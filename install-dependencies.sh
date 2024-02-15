@@ -1,0 +1,90 @@
+#!/bin/bash
+set -eo pipefail
+
+YELLOW='\033[33m'
+BLUE='\e[1;34m'
+GREEN='\e[1;32m'
+BOLD='\033[1m'
+NO_COLOR='\033[0m'
+
+PREFIX="${HOME}/opt/cross"
+TARGET="i686-elf"
+
+echo -e "${BOLD}Configuration...${NO_COLOR}"
+echo -e "${BOLD}================================${NO_COLOR}"
+echo -e "${BOLD}Install folder: ${YELLOW}${PREFIX}${NO_COLOR}"
+echo -e "${BOLD}Target: ${YELLOW}${TARGET}${NO_COLOR}"
+echo -e "${BOLD}================================${NO_COLOR}"
+
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
+echo -e "${BOLD}Creating ${YELLOW}${PREFIX}${NO_COLOR}"
+mkdir -p "${PREFIX}"
+
+echo -e "${BOLD}Installing ${YELLOW}makeinfo${NO_COLOR}"
+sudo apt install -y texinfo
+echo -e "${BOLD}Installing ${YELLOW}xorriso${NO_COLOR}"
+sudo apt install -y xorriso
+echo -e "${BOLD}Installing ${YELLOW}mtools${NO_COLOR}"
+sudo apt install -y mtools
+
+export PREFIX="${PREFIX}"
+export TARGET="${TARGET}"
+export PATH="${PREFIX}/bin:${PATH}"
+
+DEPENDENCIES_DIR="dependencies"
+echo -e "${BOLD}Creating ${YELLOW}${DEPENDENCIES_DIR}${NO_COLOR}${BOLD} directory${NO_COLOR}"
+mkdir -p dependencies && cd dependencies
+
+BINUTILS_VERSION="2.42"
+BINUTILS="binutils-${BINUTILS_VERSION}"
+BINUTILS_FILE="${BINUTILS}.tar.gz"
+BUILD_BINUTILS="build-${BINUTILS}"
+
+echo -e "${BOLD}Downloading ${YELLOW}${BINUTILS}${NO_COLOR}"
+wget "https://ftp.gnu.org/gnu/binutils/${BINUTILS_FILE}"
+tar -xzf "${BINUTILS_FILE}" && rm "${BINUTILS_FILE}"
+
+echo -e "${BOLD}Installing ${YELLOW}${BINUTILS}${NO_COLOR}"
+mkdir -p "${BUILD_BINUTILS}" && cd "${BUILD_BINUTILS}"
+../${BINUTILS}/configure --target="$TARGET" --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
+make
+make install
+cd ../
+
+GDB_VERSION="14.1"
+GDB="gdb-${GDB_VERSION}"
+GDB_FILE="${GDB}.tar.gz"
+BUILD_GDB="build-${GDB}"
+
+echo -e "${BOLD}Downloading ${YELLOW}${GDB}${NO_COLOR}"
+wget "https://ftp.gnu.org/gnu/gdb/${GDB_FILE}"
+tar -xzf "${GDB_FILE}" && rm "${GDB_FILE}"
+
+echo -e "${BOLD}Installing ${YELLOW}${GDB}${NO_COLOR}"
+mkdir -p "${BUILD_GDB}" && cd "${BUILD_GDB}"
+../${GDB}/configure --target=$TARGET --prefix="$PREFIX" --disable-werrormake
+make all-gdb
+make install-gdb
+cd ../
+
+GCC_VERSION="13.2.0"
+GCC="gcc-${GCC_VERSION}"
+GCC_FILE="${GCC}.tar.gz"
+BUILD_GCC="build-${GCC}"
+
+echo -e "${BOLD}Downloading ${YELLOW}${GCC}${NO_COLOR}"
+wget "https://ftp.gnu.org/gnu/gcc/${GCC}/${GCC_FILE}"
+tar -xzf "${GCC_FILE}" && rm "${GCC_FILE}"
+
+echo -e "${BOLD}Installing ${YELLOW}${GCC}${NO_COLOR}"
+mkdir -p "${BUILD_GCC}" && cd "${BUILD_GCC}"
+"../${GCC}/configure" --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c --without-headers
+make -j 8 all-gcc
+make -j 8 all-target-libgcc
+make install-gcc
+make install-target-libgcc
+cd ../
+
+echo -e "${BOLD}${GREEN}Dependencies correctly installed!${NO_COLOR}"
+echo -e "${BOLD}${BLUE}The journey begins...${NO_COLOR}"
