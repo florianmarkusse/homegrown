@@ -27,6 +27,10 @@ echo -e "${BOLD}Installing ${YELLOW}xorriso${NO_COLOR}"
 sudo apt install -y xorriso
 echo -e "${BOLD}Installing ${YELLOW}mtools${NO_COLOR}"
 sudo apt install -y mtools
+echo -e "${BOLD}Installing ${YELLOW}qemu${NO_COLOR}"
+sudo apt install -y qemu
+echo -e "${BOLD}Installing ${YELLOW}qemu-system-x86${NO_COLOR}"
+sudo apt install -y qemu-system-x86
 
 export PREFIX="${PREFIX}"
 export TARGET="${TARGET}"
