@@ -35,6 +35,7 @@ STRIPFLAGS =  -s -K mmio -K fb -K bootboot -K environment -K initstack
 all: mykernel.x86_64.elf mykernel.aarch64.elf mykernel.riscv64.elf
 
 mykernel.x86_64.elf: src/kernel.c
+	mkdir -p build
 	x86_64-testos-elf-gcc $(CFLAGS) -c src/kernel.c -o build/kernel.o
 	x86_64-testos-elf-ld -r -b binary -o build/font.o font.psf
 	x86_64-testos-elf-ld $(LDFLAGS) build/kernel.o build/font.o -o build/mykernel.x86_64.elf
