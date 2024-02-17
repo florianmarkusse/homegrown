@@ -1,9 +1,3 @@
-# CMake generated files
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-
 # Compiled binaries
 /bin/
 /build/
@@ -42,3 +36,4 @@ brestore.*
 
 *.iso
 *.bin
+*.elf

@@ -1,0 +1,9 @@
+{
+    "disksize": 128,
+    "config": "env-file",
+    "initrd": { "type": "cpio", "gzip": true, "directory": "initdir" },
+    "iso9660": true,
+    "partitions": [
+        { "type": "boot", "size": 16 }
+    ]
+}
