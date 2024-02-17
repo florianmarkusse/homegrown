@@ -52,8 +52,8 @@ PREFIX="${HOME}/opt/cross/${TARGET}"
 
 echo -e "${BOLD}Configuration...${NO_COLOR}"
 echo -e "${BOLD}================================${NO_COLOR}"
-echo -e "${BOLD}Install folder: ${YELLOW}${PREFIX}${NO_COLOR}"
-echo -e "${BOLD}Target:         ${YELLOW}${TARGET}${NO_COLOR}"
+echo -e "${BOLD}Install directory:  ${YELLOW}${PREFIX}${NO_COLOR}"
+echo -e "${BOLD}Target:             ${YELLOW}${TARGET}${NO_COLOR}"
 echo -e "${BOLD}================================${NO_COLOR}"
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
@@ -73,8 +73,6 @@ echo -e "${BOLD}Installing ${YELLOW}qemu-system-x86${NO_COLOR}"
 sudo apt install -y qemu-system-x86
 echo -e "${BOLD}Installing ${YELLOW}nasm${NO_COLOR}"
 sudo apt install -y nasm
-echo -e "${BOLD}Installing ${YELLOW}mkbootimg${NO_COLOR}"
-sudo apt install -y mkbootimg
 
 TARGET_TRIPLET="${TARGET}-${OS_NAME}-elf"
 
@@ -108,6 +106,18 @@ function is_target_installed() {
 	fi
 	echo -e "${BOLD}Installing ${YELLOW}${build_directory}${NO_COLOR}"
 	return 0
+}
+
+function git_install_or_pull() {
+	local repo=$1
+	local directory=$2
+
+	if [ -d "${directory}" ]; then
+		echo -e "${BOLD}Requested ${YELLOW}${directory}${NO_COLOR}${BOLD} is already downloaded."
+		cd "${directory}" && git pull && cd ../
+	else
+		git clone "${repo}"
+	fi
 }
 
 BINUTILS_VERSION="2.42"
@@ -153,6 +163,11 @@ if is_target_installed "${BUILD_GCC}"; then
 	make install-target-libgcc
 	cd ../
 fi
+
+git_install_or_pull https://gitlab.com/bztsrc/bootboot.git bootboot
+cd bootboot/mkbootimg
+make
+cd ../../
 
 echo -e "${BOLD}${GREEN}Dependencies correctly installed!${NO_COLOR}"
 echo -e "${BOLD}${BLUE}The journey begins...${NO_COLOR}"
