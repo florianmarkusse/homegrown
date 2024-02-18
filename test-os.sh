@@ -1,6 +1,8 @@
 #!/bin/bash
 set -eo pipefail
 
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
 YELLOW='\033[33m'
 BOLD='\033[1m'
 NO_COLOR='\033[0m'

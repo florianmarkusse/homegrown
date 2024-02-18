@@ -1,6 +1,8 @@
 #!/bin/bash
 set -eo pipefail
 
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
 YELLOW='\033[33m'
 RED='\033[31m'
 BOLD='\033[1m'
@@ -9,6 +11,8 @@ NO_COLOR='\033[0m'
 BUILD_MODES=("Release" "Debug" "Profiling" "Fuzzing")
 BUILD_MODE="${BUILD_MODES[0]}"
 C_COMPILER="x86_64-testos-elf-gcc"
+STRIPPER=$(whereis x86_64-testos-elf-strip | awk '{print $2}')
+STRIPPER_OUTPUT="$(pwd)/../bootboot-in/initdir/mykernel/mykernel.x86_64.elf"
 
 SELECTED_TARGETS=()
 
@@ -98,10 +102,14 @@ while [[ "$#" -gt 0 ]]; do
 	esac
 done
 
+display_configuration
+
 CONFIGURE_CMAKE_OPTIONS=(
 	-S .
 	-B build/
 	-D CMAKE_C_COMPILER="$C_COMPILER"
+	-D CMAKE_STRIPPER="$STRIPPER"
+	-D CMAKE_STRIPPER_OUTPUT="$STRIPPER_OUTPUT"
 	-D CMAKE_BUILD_TYPE="$BUILD_MODE"
 )
 

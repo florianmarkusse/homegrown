@@ -14,3 +14,9 @@ cd ../
 ## x86_64 only
 Will currently (probably) break intermittently because of interrupts clobbering the red zone. Set up separate stack to handle interrupts ok.
 
+
+## To run end-to-end
+```
+./build.sh && ../create-image.sh && ../test-os.sh
+code/build.sh -m Debug && ./create-image.sh && ./test-os.sh
+```
