@@ -102,15 +102,20 @@ typedef struct {
   uint32_t width;
   uint8_t glyphs;
 } __attribute__((packed)) psf2_t;
-extern volatile unsigned char _binary_font_psf_start;
+extern volatile unsigned char
+    _binary__home_florian_Desktop_homegrown_code_resources_font_psf_start;
 
 void puts(char *s) {
-  psf2_t *font = (psf2_t *)&_binary_font_psf_start;
+  psf2_t *font =
+      (psf2_t
+           *)&_binary__home_florian_Desktop_homegrown_code_resources_font_psf_start;
   int x, y, kx = 0, line, mask, offs;
   int bpl = (font->width + 7) / 8;
   while (*s) {
     unsigned char *glyph =
-        (unsigned char *)&_binary_font_psf_start + font->headersize +
+        (unsigned char
+             *)&_binary__home_florian_Desktop_homegrown_code_resources_font_psf_start +
+        font->headersize +
         (*s > 0 && *s < font->numglyph ? *s : 0) * font->bytesperglyph;
     offs = (kx * (font->width + 1) * 4);
     for (y = 0; y < font->height; y++) {
