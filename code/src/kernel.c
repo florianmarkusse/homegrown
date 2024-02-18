@@ -29,7 +29,7 @@
  */
 
 /* function to display a string, see below */
-void puts(char *s);
+void puts(unsigned char *s);
 
 /* we don't assume stdint.h exists */
 typedef short int int16_t;
@@ -81,7 +81,7 @@ void _start() {
     }
 
     // say hello
-    puts("Hello from a simple BOOTBOOT kernel");
+    puts((unsigned char *)"Hello from a simple BOOTBOOT kernel");
   }
   // hang for now
   while (1)
@@ -102,11 +102,11 @@ typedef struct {
   uint32_t width;
   uint8_t glyphs;
 } __attribute__((packed)) psf2_t;
-extern volatile unsigned char _binary_resources_font_psf_start;
+extern volatile unsigned char *_binary_resources_font_psf_start;
 
-void puts(char *s) {
+void puts(unsigned char *s) {
   psf2_t *font = (psf2_t *)&_binary_resources_font_psf_start;
-  int x, y, kx = 0, line, mask, offs;
+  unsigned int x, y, kx = 0, line, mask, offs;
   int bpl = (font->width + 7) / 8;
   while (*s) {
     unsigned char *glyph =
