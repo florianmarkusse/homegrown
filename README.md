@@ -20,3 +20,21 @@ Will currently (probably) break intermittently because of interrupts clobbering 
 ./build.sh && ../create-image.sh && ../test-os.sh
 code/build.sh -m Debug && ./create-image.sh && ./test-os.sh
 ```
+
+## Using gdb to debug
+
+```
+# Compile in debug mod and tell QEMU to halt execution until gdb is connected
+code/build.sh -m Debug && ./create-image.sh && ./test-os.sh -g
+
+# In another terminal
+gdb
+target remote localhost:1234
+# Load symbols from file or whatever the executable is called.
+file code/build/testos-Debug
+info functions
+break _start
+layout asm
+c
+# Now you can go over the assembly per instruction with 'ni'
+```

@@ -15,6 +15,7 @@ STRIPPER=$(whereis x86_64-testos-elf-strip | awk '{print $2}')
 STRIPPER_OUTPUT="$(pwd)/../bootboot-in/initdir/mykernel/mykernel.x86_64.elf"
 
 SELECTED_TARGETS=()
+INCLUDE_WHAT_YOU_USE=true
 
 function display_usage() {
 	echo -e "${RED}${BOLD}Usage: $0 [${YELLOW}OPTIONS${RED}]${NO_COLOR}"
@@ -68,6 +69,8 @@ function display_configuration() {
 	else
 		echo -e "${BOLD}${YELLOW}SELECTED_TARGETS${NO_COLOR}: ${YELLOW}ALL${NO_COLOR}"
 	fi
+
+	display_single_flag_configuration $INCLUDE_WHAT_YOU_USE "Include-What-You-Use"
 
 	echo ""
 }

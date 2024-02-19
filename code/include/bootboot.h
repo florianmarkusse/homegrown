@@ -43,16 +43,18 @@ extern "C" {
 #pragma pack(1)
 #endif
 
+#include "types.h"
+
 #define BOOTBOOT_MAGIC "BOOT"
 
 /* default virtual addresses for level 0 and 1 static loaders */
 #define BOOTBOOT_MMIO                                                          \
-  0xfffffffff8000000                     /* memory mapped IO virtual address   \
+    0xfffffffff8000000                   /* memory mapped IO virtual address   \
                                           */
 #define BOOTBOOT_FB 0xfffffffffc000000   /* frame buffer virtual address */
 #define BOOTBOOT_INFO 0xffffffffffe00000 /* bootboot struct virtual address */
 #define BOOTBOOT_ENV                                                           \
-  0xffffffffffe01000                     /* environment string virtual address \
+    0xffffffffffe01000                   /* environment string virtual address \
                                           */
 #define BOOTBOOT_CORE 0xffffffffffe02000 /* core loadable segment start */
 
@@ -84,8 +86,8 @@ extern "C" {
  * this means size described in 16 byte units (not a problem, most modern
  * firmware report memory in pages, 4096 byte units anyway). */
 typedef struct {
-  uint64_t ptr;
-  uint64_t size;
+    uint64_t ptr;
+    uint64_t size;
 } _pack MMapEnt;
 #define MMapEnt_Ptr(a) ((a)->ptr)
 #define MMapEnt_Size(a) ((a)->size & 0xFFFFFFFFFFFFFFF0)
@@ -100,53 +102,56 @@ typedef struct {
 #define INITRD_MAXSIZE 16 /* Mb */
 
 typedef struct {
-  /* first 64 bytes is platform independent */
-  uint8_t magic[4]; /* 'BOOT' magic */
-  uint32_t size;    /* length of bootboot structure, minimum 128 */
-  uint8_t protocol; /* 1, static addresses, see PROTOCOL_* and LOADER_* above */
-  uint8_t fb_type;  /* framebuffer type, see FB_* above */
-  uint16_t numcores;   /* number of processor cores */
-  uint16_t bspid;      /* Bootsrap processor ID (Local APIC Id on x86_64) */
-  int16_t timezone;    /* in minutes -1440..1440 */
-  uint8_t datetime[8]; /* in BCD yyyymmddhhiiss UTC (independent to timezone) */
-  uint64_t initrd_ptr; /* ramdisk image position and size */
-  uint64_t initrd_size;
-  uint64_t fb_ptr; /* framebuffer pointer and dimensions */
-  uint32_t fb_size;
-  uint32_t fb_width;
-  uint32_t fb_height;
-  uint32_t fb_scanline;
+    /* first 64 bytes is platform independent */
+    uint8_t magic[4]; /* 'BOOT' magic */
+    uint32_t size;    /* length of bootboot structure, minimum 128 */
+    uint8_t
+        protocol; /* 1, static addresses, see PROTOCOL_* and LOADER_* above */
+    uint8_t fb_type;   /* framebuffer type, see FB_* above */
+    uint16_t numcores; /* number of processor cores */
+    uint16_t bspid;    /* Bootsrap processor ID (Local APIC Id on x86_64) */
+    int16_t timezone;  /* in minutes -1440..1440 */
+    uint8_t
+        datetime[8]; /* in BCD yyyymmddhhiiss UTC (independent to timezone) */
+    uint64_t initrd_ptr; /* ramdisk image position and size */
+    uint64_t initrd_size;
+    uint64_t fb_ptr; /* framebuffer pointer and dimensions */
+    uint32_t fb_size;
+    uint32_t fb_width;
+    uint32_t fb_height;
+    uint32_t fb_scanline;
 
-  /* the rest (64 bytes) is platform specific */
-  union {
-    struct {
-      uint64_t acpi_ptr;
-      uint64_t smbi_ptr;
-      uint64_t efi_ptr;
-      uint64_t mp_ptr;
-      uint64_t unused0;
-      uint64_t unused1;
-      uint64_t unused2;
-      uint64_t unused3;
-    } x86_64;
-    struct {
-      uint64_t acpi_ptr;
-      uint64_t mmio_ptr;
-      uint64_t efi_ptr;
-      uint64_t unused0;
-      uint64_t unused1;
-      uint64_t unused2;
-      uint64_t unused3;
-      uint64_t unused4;
-    } aarch64;
-  } arch;
+    /* the rest (64 bytes) is platform specific */
+    union {
+        struct {
+            uint64_t acpi_ptr;
+            uint64_t smbi_ptr;
+            uint64_t efi_ptr;
+            uint64_t mp_ptr;
+            uint64_t unused0;
+            uint64_t unused1;
+            uint64_t unused2;
+            uint64_t unused3;
+        } x86_64;
+        struct {
+            uint64_t acpi_ptr;
+            uint64_t mmio_ptr;
+            uint64_t efi_ptr;
+            uint64_t unused0;
+            uint64_t unused1;
+            uint64_t unused2;
+            uint64_t unused3;
+            uint64_t unused4;
+        } aarch64;
+    } arch;
 
-  /* from 128th byte, MMapEnt[], more records may follow */
-  MMapEnt mmap;
-  /* use like this:
-   * MMapEnt *mmap_ent = &bootboot.mmap; mmap_ent++;
-   * until you reach bootboot->size, while(mmap_ent < bootboot + bootboot->size)
-   */
+    /* from 128th byte, MMapEnt[], more records may follow */
+    MMapEnt mmap;
+    /* use like this:
+     * MMapEnt *mmap_ent = &bootboot.mmap; mmap_ent++;
+     * until you reach bootboot->size, while(mmap_ent < bootboot +
+     * bootboot->size)
+     */
 } _pack BOOTBOOT;
 
 #ifdef _MSC_VER

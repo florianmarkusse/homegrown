@@ -31,14 +31,8 @@
 /* function to display a string, see below */
 void puts(unsigned char *s);
 
-/* we don't assume stdint.h exists */
-typedef short int int16_t;
-typedef unsigned char uint8_t;
-typedef unsigned short int uint16_t;
-typedef unsigned int uint32_t;
-typedef unsigned long int uint64_t;
-
-#include <bootboot.h>
+#include "bootboot.h"
+#include "types.h"
 
 /* imported virtual addresses, see linker script */
 extern BOOTBOOT bootboot; // see bootboot.h
@@ -49,84 +43,101 @@ extern uint8_t fb;     // linear framebuffer mapped
 /******************************************
  * Entry point, called by BOOTBOOT Loader *
  ******************************************/
-void _start() {
-  /*** NOTE: this code runs on all cores in parallel ***/
-  int x, y, s = bootboot.fb_scanline, w = bootboot.fb_width,
-            h = bootboot.fb_height;
+void start() {
+    /*** NOTE: this code runs on all cores in parallel ***/
+    int x, y, s = bootboot.fb_scanline, w = bootboot.fb_width,
+              h = bootboot.fb_height;
 
-  if (s) {
-    // cross-hair to see screen dimension detected correctly
-    for (y = 0; y < h; y++) {
-      *((uint32_t *)(&fb + s * y + (w * 2))) = 0x00FFFFFF;
-    }
-    for (x = 0; x < w; x++) {
-      *((uint32_t *)(&fb + s * (h / 2) + x * 4)) = 0x00FFFFFF;
-    }
+    if (s) {
+        for (y = 0; y < w; y++) {
+            *((uint32_t *)(&fb + y * 4)) = 0x0000FF00;
+        }
+        for (y = 0; y < w; y++) {
+            *((uint32_t *)(&fb + (h - 1) * s + y * 4)) = 0x0000FF00;
+        }
+        for (x = 0; x < h; x++) {
+            *((uint32_t *)(&fb + s * x)) = 0x0000FF00;
+        }
+        for (x = 0; x < h; x++) {
+            *((uint32_t *)(&fb + s * x + (w - 1) * 4)) = 0x0000FF00;
+        }
 
-    // red, green, blue boxes in order
-    for (y = 0; y < 20; y++) {
-      for (x = 0; x < 20; x++) {
-        *((uint32_t *)(&fb + s * (y + 20) + (x + 20) * 4)) = 0x00FF0000;
-      }
-    }
-    for (y = 0; y < 20; y++) {
-      for (x = 0; x < 20; x++) {
-        *((uint32_t *)(&fb + s * (y + 20) + (x + 50) * 4)) = 0x0000FF00;
-      }
-    }
-    for (y = 0; y < 20; y++) {
-      for (x = 0; x < 20; x++) {
-        *((uint32_t *)(&fb + s * (y + 20) + (x + 80) * 4)) = 0x000000FF;
-      }
-    }
+        // cross-hair to see screen dimension detected correctly
+        //    for (y = 0; y < h; y++) {
+        //      *((uint32_t *)(&fb + s * y + (w * 2))) = 0x00FFFFFF;
+        //    }
+        //    for (x = 0; x < w; x++) {
+        //      *((uint32_t *)(&fb + s * (h / 2) + x * 4)) = 0x00FFFFFF;
+        //    }
+        //
+        //    // red, green, blue boxes in order
+        //    for (y = 0; y < 20; y++) {
+        //      for (x = 0; x < 20; x++) {
+        //        *((uint32_t *)(&fb + s * (y + 20) + (x + 20) * 4)) =
+        //        0x00FF0000;
+        //      }
+        //    }
+        //    for (y = 0; y < 20; y++) {
+        //      for (x = 0; x < 20; x++) {
+        //        *((uint32_t *)(&fb + s * (y + 20) + (x + 50) * 4)) =
+        //        0x0000FF00;
+        //      }
+        //    }
+        //    for (y = 0; y < 20; y++) {
+        //      for (x = 0; x < 20; x++) {
+        //        *((uint32_t *)(&fb + s * (y + 20) + (x + 80) * 4)) =
+        //        0x000000FF;
+        //      }
+        //    }
 
-    // say hello
-    puts((unsigned char *)"Hello from a simple BOOTBOOT kernel");
-  }
-  // hang for now
-  while (1)
-    ;
+        // say hello
+        puts((unsigned char *)"Hellooooooooooooo from a simple BOOTBOOT");
+    }
+    // hang for now
+    while (1)
+        ;
 }
 
 /**************************
  * Display text on screen *
  **************************/
 typedef struct {
-  uint32_t magic;
-  uint32_t version;
-  uint32_t headersize;
-  uint32_t flags;
-  uint32_t numglyph;
-  uint32_t bytesperglyph;
-  uint32_t height;
-  uint32_t width;
-  uint8_t glyphs;
+    uint32_t magic;
+    uint32_t version;
+    uint32_t headersize;
+    uint32_t flags;
+    uint32_t numglyph;
+    uint32_t bytesperglyph;
+    uint32_t height;
+    uint32_t width;
+    uint8_t glyphs;
 } __attribute__((packed)) psf2_t;
-extern volatile unsigned char *_binary_resources_font_psf_start;
+extern volatile unsigned char *binary_resources_font_psf_start;
 
 void puts(unsigned char *s) {
-  psf2_t *font = (psf2_t *)&_binary_resources_font_psf_start;
-  unsigned int x, y, kx = 0, line, mask, offs;
-  int bpl = (font->width + 7) / 8;
-  while (*s) {
-    unsigned char *glyph =
-        (unsigned char *)&_binary_resources_font_psf_start + font->headersize +
-        (*s > 0 && *s < font->numglyph ? *s : 0) * font->bytesperglyph;
-    offs = (kx * (font->width + 1) * 4);
-    for (y = 0; y < font->height; y++) {
-      line = offs;
-      mask = 1 << (font->width - 1);
-      for (x = 0; x < font->width; x++) {
-        *((uint32_t *)((uint64_t)&fb + line)) =
-            ((int)*glyph) & (mask) ? 0xFFFFFF : 0;
-        mask >>= 1;
-        line += 4;
-      }
-      *((uint32_t *)((uint64_t)&fb + line)) = 0;
-      glyph += bpl;
-      offs += bootboot.fb_scanline;
+    psf2_t *font = (psf2_t *)&binary_resources_font_psf_start;
+    unsigned int x, y, kx = 0, line, mask, offs;
+    int bpl = (font->width + 7) / 8;
+    while (*s) {
+        unsigned char *glyph =
+            (unsigned char *)&binary_resources_font_psf_start +
+            font->headersize +
+            (*s > 0 && *s < font->numglyph ? *s : 0) * font->bytesperglyph;
+        offs = (kx * (font->width + 1) * 4);
+        for (y = 0; y < font->height; y++) {
+            line = offs;
+            mask = 1 << (font->width - 1);
+            for (x = 0; x < font->width; x++) {
+                *((uint32_t *)((uint64_t)&fb + line)) =
+                    ((int)*glyph) & (mask) ? 0xFFFFFF : 0;
+                mask >>= 1;
+                line += 4;
+            }
+            *((uint32_t *)((uint64_t)&fb + line)) = 0;
+            glyph += bpl;
+            offs += bootboot.fb_scanline;
+        }
+        s++;
+        kx++;
     }
-    s++;
-    kx++;
-  }
 }
