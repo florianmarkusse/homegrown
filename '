@@ -41,9 +41,6 @@ extern unsigned char
     environment[4096]; // configuration, UTF-8 text key=value pairs
 extern uint8_t fb;     // linear framebuffer mapped
 
-#define HAXOR_GREEN 0x0000FF00
-#define BYTES_PER_PIXEL 4
-
 /******************************************
  * Entry point, called by BOOTBOOT Loader *
  ******************************************/
@@ -54,18 +51,16 @@ void _start() {
 
     if (s) {
         for (y = 0; y < w; y++) {
-            *((uint32_t *)(&fb + y * BYTES_PER_PIXEL)) = HAXOR_GREEN;
+            *((uint32_t *)(&fb + y * 4)) = 0x0000FF00;
         }
         for (y = 0; y < w; y++) {
-            *((uint32_t *)(&fb + (h - 1) * s + y * BYTES_PER_PIXEL)) =
-                HAXOR_GREEN;
+            *((uint32_t *)(&fb + (h - 1) * s + y * 4)) = 0x0000FF00;
         }
         for (x = 0; x < h; x++) {
-            *((uint32_t *)(&fb + s * x)) = HAXOR_GREEN;
+            *((uint32_t *)(&fb + s * x)) = 0x0000FF00;
         }
         for (x = 0; x < h; x++) {
-            *((uint32_t *)(&fb + s * x + (w - 1) * BYTES_PER_PIXEL)) =
-                HAXOR_GREEN;
+            *((uint32_t *)(&fb + s * x + (w - 1) * 4)) = 0x0000FF00;
         }
 
         // cross-hair to see screen dimension detected correctly
@@ -86,7 +81,7 @@ void _start() {
         //    for (y = 0; y < 20; y++) {
         //      for (x = 0; x < 20; x++) {
         //        *((uint32_t *)(&fb + s * (y + 20) + (x + 50) * 4)) =
-        //        HAXOR_GREEN;
+        //        0x0000FF00;
         //      }
         //    }
         //    for (y = 0; y < 20; y++) {
@@ -97,23 +92,10 @@ void _start() {
         //    }
 
         // say hello
-        puts((unsigned char *)"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        puts((unsigned char *)"gggggggggggggggggggggggggggggggggggggggg");
-        puts((unsigned char *)"dddddddddddddddddddddddddddddddddddddddd");
-        puts((
-            unsigned char
-                *)"HelloooooooooooTTTTTLLLLLLLoo from a simple "
-                  "BOOTBOOTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
-                  "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTtT hdfkjgh dfkh "
-                  "gkdhfkj ghdfkjl hgkdfhlkdfh glkjfdh gld hldfkh gldkfj hldf");
+        puts((unsigned char *)"Hellooooooooooooo from a simple BOOTBOOT");
     }
 
-    printf("Attempting to print free memory...\n");
-    MMapEnt *mmap_ent = &bootboot.mmap;
-    while ((uint64_t)mmap_ent < (uint64_t)((char *)&bootboot + bootboot.size)) {
-        printf("location: %d size: %d\n", mmap_ent->ptr, mmap_ent->size);
-        mmap_ent++;
-    }
+    printf("hell\nhkfjhdg");
 
     // hang for now
     while (1)
@@ -122,21 +104,6 @@ void _start() {
 
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
-//            padding
-//  Font data    |
-// +----------+ +--+
-// 000001100000 0000
-// 000011110000 0000
-// 000110011000 0000
-// 001100001100 0000
-// 011000000110 0000
-// 110000000011 0000
-// 111111111111 0000
-// 111111111111 0000
-// 110000000011 0000
-// 110000000011 0000
-// 110000000011 0000
-// 110000000011 0000
 typedef struct {
     uint32_t magic;
     uint32_t version;
@@ -150,42 +117,32 @@ typedef struct {
 } __attribute__((packed)) psf2_t;
 extern unsigned char glyphStart[] asm("_binary_resources_font_psf_start");
 
-#define HORIZONTAL_PADDING 0
-#define PIXEL_MARGIN 20
 void puts(unsigned char *s) {
-    static psf2_t *font = (psf2_t *)&glyphStart;
     static uint64_t typedGlyphs = 0;
-    uint64_t glyphsPerLine = (bootboot.fb_width - PIXEL_MARGIN * 2) /
-                             (font->width + HORIZONTAL_PADDING);
-    uint32_t glyphsOnLine = 0;
-    int bytesPerLine = (font->width + 7) / 8;
+    psf2_t *font = (psf2_t *)&glyphStart;
+    uint32_t kx = 0;
+    int bpl = font->width + 1;
     while (*s) {
         unsigned char *glyph =
             (unsigned char *)&glyphStart + font->headersize +
             (*s > 0 && *s < font->numglyph ? *s : 0) * font->bytesperglyph;
-        uint32_t offset = (glyphsOnLine / glyphsPerLine) *
-                              (bootboot.fb_scanline * font->height) +
-                          (glyphsOnLine % glyphsPerLine) *
-                              (font->width + HORIZONTAL_PADDING) *
-                              BYTES_PER_PIXEL;
+        uint32_t offs = (kx * (font->width + 1) * 4);
         for (uint32_t y = 0; y < font->height; y++) {
-            // TODO: use SIMD instructions?
-            uint32_t line = offset;
+            uint32_t line = offs;
             uint32_t mask = 1 << (font->width - 1);
             for (uint32_t x = 0; x < font->width; x++) {
-                // NOLINTNEXTLINE
-                *((uint32_t *)((uint64_t)&fb +
-                               (PIXEL_MARGIN * bootboot.fb_scanline) +
-                               (PIXEL_MARGIN * BYTES_PER_PIXEL) + line)) =
-                    ((((uint32_t)*glyph) & (mask)) != 0) * 0xFFFFFF;
-
+                *((uint32_t *)((uint64_t)&fb + line +
+                               10 * bootboot.fb_scanline)) =
+                    ((int)*glyph) & (mask) ? 0xFFFFFF : 0;
                 mask >>= 1;
-                line += BYTES_PER_PIXEL;
+                line += 4;
             }
-            glyph += bytesPerLine;
-            offset += bootboot.fb_scanline;
+            *((uint32_t *)((uint64_t)&fb + line + 10 * bootboot.fb_scanline)) =
+                0;
+            glyph += bpl;
+            offs += bootboot.fb_scanline;
         }
         s++;
-        glyphsOnLine++;
+        kx++;
     }
 }

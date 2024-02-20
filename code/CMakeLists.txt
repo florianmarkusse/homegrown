@@ -5,7 +5,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-if(NOT CMAKE_BUILDTYPE)
+if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (Debug, Release, Profiling, Fuzzing)" FORCE)
 endif()
 set(VALID_BUILD_TYPES "Debug" "Release" "Profiling" "Fuzzing")
@@ -74,6 +74,7 @@ add_custom_target(embedded-resources ALL DEPENDS ${RESOURCE_OBJECTS})
 
 list(APPEND SOURCE_FILES
     "src/kernel.c"
+    "src/util/log.c"
 )
 
 set(EXECUTABLE_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
@@ -90,4 +91,3 @@ add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Stripping elf barring bootboot protocol into ${CMAKE_STRIPPER_OUTPUT}"
 )
-

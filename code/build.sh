@@ -11,8 +11,6 @@ NO_COLOR='\033[0m'
 BUILD_MODES=("Release" "Debug" "Profiling" "Fuzzing")
 BUILD_MODE="${BUILD_MODES[0]}"
 C_COMPILER="x86_64-testos-elf-gcc"
-STRIPPER=$(whereis x86_64-testos-elf-strip | awk '{print $2}')
-STRIPPER_OUTPUT="$(pwd)/../bootboot-in/initdir/mykernel/mykernel.x86_64.elf"
 
 SELECTED_TARGETS=()
 INCLUDE_WHAT_YOU_USE=true
@@ -107,6 +105,9 @@ done
 
 display_configuration
 
+STRIPPER=$(whereis x86_64-testos-elf-strip | awk '{print $2}')
+STRIPPER_OUTPUT="$(pwd)/../bootboot-in/initdir/mykernel/mykernel-${BUILD_MODE}.x86_64.elf"
+
 CONFIGURE_CMAKE_OPTIONS=(
 	-S .
 	-B build/
@@ -118,7 +119,7 @@ CONFIGURE_CMAKE_OPTIONS=(
 
 if [ "$INCLUDE_WHAT_YOU_USE" = true ]; then
 	CONFIGURE_CMAKE_OPTIONS+=(
-		-D CMAKE_C_INCLUDE_WHAT_YOU_USE="include-what-you-use;-w;-Xiwyu;--verbose=1"
+		-D CMAKE_C_INCLUDE_WHAT_YOU_USE="include-what-you-use;-w;-Xiwyu;--no_default_mappings;--verbose=1"
 	)
 fi
 
