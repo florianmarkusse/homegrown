@@ -19,6 +19,8 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wconversion -Wno-sign-convers
 
 set(CMAKE_EXE_LINKER_FLAGS "-nostdlib -n -T ${CMAKE_CURRENT_SOURCE_DIR}/link.ld")
 
+
+add_compile_definitions("__AVX2__")
 if (CMAKE_BUILD_TYPE STREQUAL "Fuzzing" OR CMAKE_BUILD_TYPE STREQUAL "Debug")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g3")
     add_compile_definitions("DEBUG")
@@ -32,7 +34,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 endif()
 
-project(testos LANGUAGES C)
+project(testos LANGUAGES C ASM)
 
 message(STATUS "=== Configuration Settings ===")
 message(STATUS "Build type:             ${CMAKE_BUILD_TYPE}")
@@ -74,14 +76,15 @@ add_custom_target(embedded-resources ALL DEPENDS ${RESOURCE_OBJECTS})
 
 list(APPEND SOURCE_FILES
     "src/kernel.c"
-    "src/util/log.c"
 )
 
 set(EXECUTABLE_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 
 add_executable(${EXECUTABLE_NAME} ${SOURCE_FILES})
+add_subdirectory(util)
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${RESOURCE_OBJECTS})
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE util-${CMAKE_BUILD_TYPE})
 
 target_include_directories(${EXECUTABLE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -89,5 +92,5 @@ add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
     COMMAND ${CMAKE_STRIPPER} -o ${CMAKE_STRIPPER_OUTPUT} -s -K mmio -K fb -K bootboot -K environment -K initstack $<TARGET_FILE:${EXECUTABLE_NAME}>
     VERBATIM
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Stripping elf barring bootboot protocol into ${CMAKE_STRIPPER_OUTPUT}"
+    COMMENT "Stripping elf baring bootboot protocol into ${CMAKE_STRIPPER_OUTPUT}"
 )
