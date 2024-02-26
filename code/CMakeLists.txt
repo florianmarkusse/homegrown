@@ -34,7 +34,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 endif()
 
-project(testos LANGUAGES C ASM)
+project(testos LANGUAGES C)
 
 message(STATUS "=== Configuration Settings ===")
 message(STATUS "Build type:             ${CMAKE_BUILD_TYPE}")

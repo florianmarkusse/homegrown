@@ -3,10 +3,14 @@
 #include "util/memory/arena.h"  // for flo_alloc, flo_arena
 #include "util/memory/macros.h" // for FLO_ALIGNOF, FLO_SIZEOF
 #include "util/memory/memory.h" // for memcpy, memset
+#include "util/ring-buffer.h"
 
-#define FLO_LOG_STD_BUFFER_LEN 1 << 10
+#define FLO_SCREEN_RING_BUFFER_LEN 1 << 10
+unsigned char screenRingBuf[FLO_SCREEN_RING_BUFFER_LEN];
+FLO_CREATE_RING_BUFFER(screenRingBuffer, flo_uint8_rb, screenRingBuf,
+                       FLO_SCREEN_RING_BUFFER_LEN);
+
 #define FLO_STRING_CONVERTER_BUF_LEN 1 << 10
-
 unsigned char stringConverterBuf[FLO_STRING_CONVERTER_BUF_LEN];
 static flo_char_a stringConverterBuffer = (flo_char_a){
     .buf = stringConverterBuf, .len = FLO_STRING_CONVERTER_BUF_LEN};
@@ -16,6 +20,7 @@ extern unsigned char glyphStart[] asm("_binary_resources_font_psf_start");
 #define HORIZONTAL_PADDING 0
 #define PIXEL_MARGIN 20
 #define BYTES_PER_PIXEL 4
+#define HAXOR_GREEN 0x0000FF00
 
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
@@ -47,43 +52,129 @@ typedef struct {
 } __attribute__((packed)) psf2_t;
 
 static flo_ScreenDimension dim;
-void flo_setupScreen(flo_ScreenDimension dimension) { dim = dimension; }
+void flo_setupScreen(flo_ScreenDimension dimension) {
+    dim = dimension;
+    for (uint32_t y = 0; y < dim.width; y++) {
+        *((uint32_t *)(dim.buffer + y * BYTES_PER_PIXEL)) = HAXOR_GREEN;
+    }
+    for (uint32_t y = 0; y < dim.width; y++) {
+        *((uint32_t *)(dim.buffer + (dim.height - 1) * dim.scanline +
+                       y * BYTES_PER_PIXEL)) = HAXOR_GREEN;
+    }
+    for (uint32_t x = 0; x < dim.height; x++) {
+        *((uint32_t *)(dim.buffer + dim.scanline * x)) = HAXOR_GREEN;
+    }
+    for (uint32_t x = 0; x < dim.height; x++) {
+        *((uint32_t *)(dim.buffer + dim.scanline * x +
+                       (dim.width - 1) * BYTES_PER_PIXEL)) = HAXOR_GREEN;
+    }
+}
+
+// void flushToScreen() {
+//     FLO_ASSERT(dim.buffer != 0);
+//
+//     static psf2_t *font = (psf2_t *)&glyphStart;
+//     uint32_t glyphsPerLine =
+//         (dim.width - PIXEL_MARGIN * 2) / (font->width + HORIZONTAL_PADDING);
+//     uint64_t glyphsPerColumn = (dim.height - PIXEL_MARGIN * 2) /
+//     (font->height);
+//
+//     static uint32_t cursor = 0;
+//
+//     int bytesPerLine = (font->width + 7) / 8;
+//     for (int64_t i = screenRingBuffer.current - 10; i < 10; i++) {
+//         uint8_t ch = screenRingBuffer.buf[screenRingBuffer.current - i];
+//         switch (ch) {
+//         case '\0': {
+//             break;
+//         }
+//         case '\n': {
+//             uint32_t line = cursor / glyphsPerLine;
+//             cursor = (line + 1) * glyphsPerLine;
+//             break;
+//         }
+//         default: {
+//             unsigned char *glyph = (unsigned char *)&glyphStart +
+//                                    font->headersize + ch *
+//                                    font->bytesperglyph;
+//             uint32_t offset =
+//                 (cursor / glyphsPerLine) * (dim.scanline * font->height) +
+//                 (cursor % glyphsPerLine) * (font->width + HORIZONTAL_PADDING)
+//                 *
+//                     BYTES_PER_PIXEL;
+//             for (uint32_t y = 0; y < font->height; y++) {
+//                 // TODO: use SIMD instructions?
+//                 uint32_t line = offset;
+//                 uint32_t mask = 1 << (font->width - 1);
+//                 for (uint32_t x = 0; x < font->width; x++) {
+//                     // NOLINTNEXTLINE
+//                     *((uint32_t *)((uint64_t)dim.buffer +
+//                                    (PIXEL_MARGIN * dim.scanline) +
+//                                    (PIXEL_MARGIN * BYTES_PER_PIXEL) + line))
+//                                    =
+//                         ((((uint32_t)*glyph) & (mask)) != 0) * 0xFFFFFF;
+//
+//                     mask >>= 1;
+//                     line += BYTES_PER_PIXEL;
+//                 }
+//                 glyph += bytesPerLine;
+//                 offset += dim.scanline;
+//             }
+//             cursor++;
+//             break;
+//         }
+//         }
+//     }
+// }
 
 void flo_printToScreen(flo_string data, uint8_t flags) {
     FLO_ASSERT(dim.buffer != 0);
 
     static psf2_t *font = (psf2_t *)&glyphStart;
-    uint64_t glyphsPerLine =
+    uint32_t glyphsPerLine =
         (dim.width - PIXEL_MARGIN * 2) / (font->width + HORIZONTAL_PADDING);
-    uint32_t glyphsOnLine = 0;
+    uint64_t glyphsPerColumn = (dim.height - PIXEL_MARGIN * 2) / (font->height);
+    FLO_SERIAL(FLO_STRING("glyphs possible cils: "));
+    FLO_SERIAL(glyphsPerColumn, FLO_NEWLINE);
+
+    uint32_t cursor = 0;
     int bytesPerLine = (font->width + 7) / 8;
     for (int64_t i = 0; i < data.len; i++) {
-        unsigned char *glyph =
-            (unsigned char *)&glyphStart + font->headersize +
-            (data.buf[i] < font->numglyph ? data.buf[i] : 0) *
-                font->bytesperglyph;
-        uint32_t offset =
-            (glyphsOnLine / glyphsPerLine) * (dim.scanline * font->height) +
-            (glyphsOnLine % glyphsPerLine) *
-                (font->width + HORIZONTAL_PADDING) * BYTES_PER_PIXEL;
-        for (uint32_t y = 0; y < font->height; y++) {
-            // TODO: use SIMD instructions?
-            uint32_t line = offset;
-            uint32_t mask = 1 << (font->width - 1);
-            for (uint32_t x = 0; x < font->width; x++) {
-                // NOLINTNEXTLINE
-                *((uint32_t *)((uint64_t)dim.buffer +
-                               (PIXEL_MARGIN * dim.scanline) +
-                               (PIXEL_MARGIN * BYTES_PER_PIXEL) + line)) =
-                    ((((uint32_t)*glyph) & (mask)) != 0) * 0xFFFFFF;
-
-                mask >>= 1;
-                line += BYTES_PER_PIXEL;
-            }
-            glyph += bytesPerLine;
-            offset += dim.scanline;
+        uint8_t ch = data.buf[i];
+        switch (ch) {
+        case '\n': {
+            uint32_t line = cursor / glyphsPerLine;
+            cursor = (line + 1) * glyphsPerLine;
+            break;
         }
-        glyphsOnLine++;
+        default: {
+            unsigned char *glyph = (unsigned char *)&glyphStart +
+                                   font->headersize + ch * font->bytesperglyph;
+            uint32_t offset =
+                (cursor / glyphsPerLine) * (dim.scanline * font->height) +
+                (cursor % glyphsPerLine) * (font->width + HORIZONTAL_PADDING) *
+                    BYTES_PER_PIXEL;
+            for (uint32_t y = 0; y < font->height; y++) {
+                // TODO: use SIMD instructions?
+                uint32_t line = offset;
+                uint32_t mask = 1 << (font->width - 1);
+                for (uint32_t x = 0; x < font->width; x++) {
+                    // NOLINTNEXTLINE
+                    *((uint32_t *)((uint64_t)dim.buffer +
+                                   (PIXEL_MARGIN * dim.scanline) +
+                                   (PIXEL_MARGIN * BYTES_PER_PIXEL) + line)) =
+                        ((((uint32_t)*glyph) & (mask)) != 0) * 0xFFFFFF;
+
+                    mask >>= 1;
+                    line += BYTES_PER_PIXEL;
+                }
+                glyph += bytesPerLine;
+                offset += dim.scanline;
+            }
+            cursor++;
+            break;
+        }
+        }
     }
 }
 
