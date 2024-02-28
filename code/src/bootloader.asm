@@ -17,7 +17,6 @@ org BOOTLOADER_START
 
     jmp $
 
-
 macro biosWriteString string
     push ax
     push si
@@ -32,8 +31,7 @@ macro biosWriteString string
     pop ax
 end macro
 
-
-macro biosWrite char&*
+macro biosWrite char&
     push ax
     iterate <chr>, char
         mov al, chr

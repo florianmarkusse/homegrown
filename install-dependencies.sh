@@ -152,9 +152,9 @@ if is_target_installed "${BUILD_GCC}"; then
 	cd ../
 fi
 
-FASM_VERSION="1.73.32"
-FASM="fasm-${FASM_VERSION}"
-FASM_FILE="${FASM}.tgz"
+FASM_VERSION="2"
+FASM="fasm${FASM_VERSION}"
+FASM_FILE="${FASM}.zip"
 
 is_present_or_download "fasm" "https://flatassembler.net" "${FASM_FILE}"
 
