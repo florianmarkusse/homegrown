@@ -34,13 +34,14 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 endif()
 
-project(testos LANGUAGES C)
+project(testos LANGUAGES C ASM)
 
 message(STATUS "=== Configuration Settings ===")
 message(STATUS "Build type:             ${CMAKE_BUILD_TYPE}")
 message(STATUS "C Compiler:             ${CMAKE_C_COMPILER}")
 message(STATUS "C flags:                ${CMAKE_C_FLAGS}")
 message(STATUS "Compile Definitions:    ${compile_definitions}")
+message(STATUS "Assembler:              ${CMAKE_ASM}")
 message(STATUS "Linker:                 ${CMAKE_LINKER}")
 message(STATUS "Linker Exe flags:       ${CMAKE_EXE_LINKER_FLAGS}")
 message(STATUS "Linker Shared flags:    ${CMAKE_SHARED_LINKER_FLAGS}")
@@ -49,33 +50,33 @@ message(STATUS "Stripper output:        ${CMAKE_STRIPPER_OUTPUT}")
 get_directory_property(compile_definitions DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
 message(STATUS "=== End Configuration ===")
 
-set(RESOURCES_NAME "resources")
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})
-set(RESOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${RESOURCES_NAME})
-file(GLOB_RECURSE RESOURCE_FILES ${RESOURCE_DIR}/*)
-set(RESOURCE_OBJECTS)
-foreach(RESOURCE_FILE ${RESOURCE_FILES})
-    string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "" RESOURCE_RELATIVE_PATH ${RESOURCE_FILE})
-    string(REGEX REPLACE "\\..*$" "" RESOURCE_OUTPUT_PATH ${RESOURCE_RELATIVE_PATH})
-    set(RESOURCE_OUTPUT_PATH ${RESOURCE_OUTPUT_PATH}.o)
-
-    set(RESOURCE_OBJECT ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCE_OUTPUT_PATH})
-    list(APPEND RESOURCE_OBJECTS ${RESOURCE_OBJECT})
-
-    add_custom_command(
-        OUTPUT ${RESOURCE_OUTPUT_PATH}
-        COMMAND ${CMAKE_LINKER} -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCE_OUTPUT_PATH} ${RESOURCE_RELATIVE_PATH}
-        DEPENDS ${RESOURCE_FILE}
-        VERBATIM
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Embedding ${RESOURCE_FILE} into ${RESOURCE_OBJECT}"
-    )
-endforeach()
-
-add_custom_target(embedded-resources ALL DEPENDS ${RESOURCE_OBJECTS})
+# set(RESOURCES_NAME "resources")
+# file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})
+# set(RESOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${RESOURCES_NAME})
+# file(GLOB_RECURSE RESOURCE_FILES ${RESOURCE_DIR}/*)
+# set(RESOURCE_OBJECTS)
+# foreach(RESOURCE_FILE ${RESOURCE_FILES})
+#     string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "" RESOURCE_RELATIVE_PATH ${RESOURCE_FILE})
+#     string(REGEX REPLACE "\\..*$" "" RESOURCE_OUTPUT_PATH ${RESOURCE_RELATIVE_PATH})
+#     set(RESOURCE_OUTPUT_PATH ${RESOURCE_OUTPUT_PATH}.o)
+# 
+#     set(RESOURCE_OBJECT ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCE_OUTPUT_PATH})
+#     list(APPEND RESOURCE_OBJECTS ${RESOURCE_OBJECT})
+# 
+#     add_custom_command(
+#         OUTPUT ${RESOURCE_OUTPUT_PATH}
+#         COMMAND ${CMAKE_LINKER} -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCE_OUTPUT_PATH} ${RESOURCE_RELATIVE_PATH}
+#         DEPENDS ${RESOURCE_FILE}
+#         VERBATIM
+#         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#         COMMENT "Embedding ${RESOURCE_FILE} into ${RESOURCE_OBJECT}"
+#     )
+# endforeach()
+# 
+# add_custom_target(embedded-resources ALL DEPENDS ${RESOURCE_OBJECTS})
 
 list(APPEND SOURCE_FILES
-    "src/kernel.c"
+    "src/bootloader.asm"
 )
 
 set(EXECUTABLE_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
@@ -87,10 +88,3 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${RESOURCE_OBJECTS})
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE util-${CMAKE_BUILD_TYPE})
 
 target_include_directories(${EXECUTABLE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-    COMMAND ${CMAKE_STRIPPER} -o ${CMAKE_STRIPPER_OUTPUT} -s -K mmio -K fb -K bootboot -K environment -K initstack $<TARGET_FILE:${EXECUTABLE_NAME}>
-    VERBATIM
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Stripping elf baring bootboot protocol into ${CMAKE_STRIPPER_OUTPUT}"
-)

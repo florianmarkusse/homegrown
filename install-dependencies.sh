@@ -108,18 +108,6 @@ function is_target_installed() {
 	return 0
 }
 
-function git_install_or_pull() {
-	local repo=$1
-	local directory=$2
-
-	if [ -d "${directory}" ]; then
-		echo -e "${BOLD}Requested ${YELLOW}${directory}${NO_COLOR}${BOLD} is already downloaded."
-		cd "${directory}" && git pull && cd ../
-	else
-		git clone "${repo}"
-	fi
-}
-
 BINUTILS_VERSION="2.42"
 BINUTILS="binutils-${BINUTILS_VERSION}"
 BINUTILS_FILE="${BINUTILS}.tar.gz"
@@ -164,10 +152,11 @@ if is_target_installed "${BUILD_GCC}"; then
 	cd ../
 fi
 
-git_install_or_pull https://gitlab.com/bztsrc/bootboot.git bootboot
-cd bootboot/mkbootimg
-make
-cd ../../
+FASM_VERSION="1.73.32"
+FASM="fasm-${FASM_VERSION}"
+FASM_FILE="${FASM}.tgz"
+
+is_present_or_download "fasm" "https://flatassembler.net" "${FASM_FILE}"
 
 echo -e "${BOLD}${GREEN}Dependencies correctly installed!${NO_COLOR}"
 echo -e "${BOLD}${BLUE}The journey begins...${NO_COLOR}"
