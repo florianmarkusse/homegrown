@@ -160,7 +160,7 @@ if [ -d "$FASMG_DIR" ]; then
 else
 	echo -e "${BOLD}Downloading ${YELLOW}${FASMG_FILE}${NO_COLOR}"
 	wget "https://flatassembler.net/${FASMG_FILE}"
-	unzip "${FASMG_FILE}" -d fasmg
+	unzip "${FASMG_FILE}" -d fasmg && rm "${FASMG_FILE}"
 fi
 
 echo -e "${BOLD}${GREEN}Dependencies correctly installed!${NO_COLOR}"

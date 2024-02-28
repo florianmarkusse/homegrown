@@ -34,14 +34,15 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 endif()
 
-project(testos LANGUAGES C ASM)
+project(os LANGUAGES ASM)
 
 message(STATUS "=== Configuration Settings ===")
 message(STATUS "Build type:             ${CMAKE_BUILD_TYPE}")
 message(STATUS "C Compiler:             ${CMAKE_C_COMPILER}")
 message(STATUS "C flags:                ${CMAKE_C_FLAGS}")
 message(STATUS "Compile Definitions:    ${compile_definitions}")
-message(STATUS "Assembler:              ${CMAKE_ASM}")
+message(STATUS "Assembler:              ${CMAKE_ASM_COMPILER}")
+message(STATUS "Assembler Include:      ${CMAKE_ASM_INCLUDE}")
 message(STATUS "Linker:                 ${CMAKE_LINKER}")
 message(STATUS "Linker Exe flags:       ${CMAKE_EXE_LINKER_FLAGS}")
 message(STATUS "Linker Shared flags:    ${CMAKE_SHARED_LINKER_FLAGS}")
@@ -75,16 +76,29 @@ message(STATUS "=== End Configuration ===")
 # 
 # add_custom_target(embedded-resources ALL DEPENDS ${RESOURCE_OBJECTS})
 
-list(APPEND SOURCE_FILES
-    "src/bootloader.asm"
+
+set(BOOTLOADER_OUTPUT bootloader.iso)
+message(STATUS "ghdkjfhgkfd output:        ${BOOTLOADER_OUTPUT}")
+set(BOOTLOADER_FILE "src/bootloader.asm")
+string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "" BOOTLOADER_RELATIVE_PATH ${BOOTLOADER_FILE})
+add_custom_command(
+    OUTPUT ${BOOTLOADER_OUTPUT}
+    COMMAND INCLUDE=${CMAKE_ASM_INCLUDE} ${CMAKE_ASM_COMPILER} -e 100 ${BOOTLOADER_RELATIVE_PATH} ${CMAKE_CURRENT_BINARY_DIR}/bootloader.iso
+    DEPENDS ${BOOTLOADER_FILE}
+    VERBATIM
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Assembling ${BOOTLOADER_FILE} into ${BOOTLOADER_OUTPUT}"
 )
+add_custom_target(bootloader ALL DEPENDS ${BOOTLOADER_OUTPUT})
 
-set(EXECUTABLE_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 
-add_executable(${EXECUTABLE_NAME} ${SOURCE_FILES})
-add_subdirectory(util)
-
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${RESOURCE_OBJECTS})
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE util-${CMAKE_BUILD_TYPE})
-
-target_include_directories(${EXECUTABLE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# set(EXECUTABLE_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
+# 
+# add_executable(${EXECUTABLE_NAME} ${SOURCE_FILES})
+# 
+# add_subdirectory(util)
+# 
+# target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${RESOURCE_OBJECTS})
+# target_link_libraries(${EXECUTABLE_NAME} PRIVATE util-${CMAKE_BUILD_TYPE})
+# 
+# target_include_directories(${EXECUTABLE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

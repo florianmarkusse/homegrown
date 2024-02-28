@@ -10,8 +10,9 @@ NO_COLOR='\033[0m'
 
 BUILD_MODES=("Release" "Debug" "Profiling" "Fuzzing")
 BUILD_MODE="${BUILD_MODES[0]}"
-C_COMPILER="x86_64-testos-elf-gcc"
-ASSEMBLER="../dependencies/fasm/fasm.x64"
+C_COMPILER=$(whereis x86_64-testos-elf-gcc | awk '{ print $2 }')
+ASSEMBLER=$(readlink -f ../dependencies/fasmg/fasmg.x64)
+ASSEMBLER_INCLUDE=$(readlink -f ../dependencies/fasmg/examples/x86/include/)
 
 SELECTED_TARGETS=()
 INCLUDE_WHAT_YOU_USE=true
@@ -116,7 +117,8 @@ CONFIGURE_CMAKE_OPTIONS=(
 	-D CMAKE_STRIPPER="$STRIPPER"
 	-D CMAKE_STRIPPER_OUTPUT="$STRIPPER_OUTPUT"
 	-D CMAKE_BUILD_TYPE="$BUILD_MODE"
-	-D CMAKE_ASM="$ASSEMBLER"
+	-D CMAKE_ASM_COMPILER="$ASSEMBLER"
+	-D CMAKE_ASM_INCLUDE="$ASSEMBLER_INCLUDE"
 )
 
 if [ "$INCLUDE_WHAT_YOU_USE" = true ]; then
