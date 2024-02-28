@@ -152,11 +152,16 @@ if is_target_installed "${BUILD_GCC}"; then
 	cd ../
 fi
 
-FASM_VERSION="2"
-FASM="fasm${FASM_VERSION}"
-FASM_FILE="${FASM}.zip"
+FASMG_FILE="fasmg.kcm8.zip"
+FASMG_DIR="fasmg"
 
-is_present_or_download "fasm" "https://flatassembler.net" "${FASM_FILE}"
+if [ -d "$FASMG_DIR" ]; then
+	echo -e "${BOLD}Requested ${YELLOW}${FASMG_DIR}${NO_COLOR}${BOLD} is already downloaded."
+else
+	echo -e "${BOLD}Downloading ${YELLOW}${FASMG_FILE}${NO_COLOR}"
+	wget "https://flatassembler.net/${FASMG_FILE}"
+	unzip "${FASMG_FILE}" -d fasmg
+fi
 
 echo -e "${BOLD}${GREEN}Dependencies correctly installed!${NO_COLOR}"
 echo -e "${BOLD}${BLUE}The journey begins...${NO_COLOR}"
