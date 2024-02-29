@@ -11,15 +11,12 @@ org BOOTLOADER_START
     mov ds, ax                  ; Initialize data segment
     mov ss, ax                  ; Initialize stack segment (SS) to 0
     mov sp, BOOTLOADER_START    ; Initialize the Stack Pointer to the bootloader location
-   ;  biosWrite 'a', 'b', 'c', ' '
-   ;  biosWrite 'a', myVar, 'b', ' ', 'f', myVar
     xor ax, ax
-    ; mov ax, 10000
-    mov ax, 1001
-    call uint16_to_print
 
-;    int 0x12
-;    call uint16_to_print
+    push 0x1337
+    call hex_print
+    push 0xB00B
+    call hex_print
 
     jmp $
 
@@ -28,82 +25,41 @@ print:
     int 0x10
     ret
 
-; assumes the uint16 is in ax
-uint16_to_print:
-    push si
-    push di
-    push dx
+hex_print:
+    push bp
+    mov bp, sp
 
-    mov dl, 10
-    mov cx, ax ; cx contains the uint16
-    mov ax, 1 ; al contains 1 to start with (10^0)
-    mov bl, 0   ; bl will contain the powers of 10 
-    .find_power:
-        biosWriteChars 'l'
-        inc bl
-        mul dl
-        jc .found_power
-        biosWriteChars 'x'
-        cmp cx, ax     ; uint16 - 10^bl
-        jg .find_power  ; If dx > 10^bl, continue looping
+    mov bx, 4
+    ._loop:
+        cmp bx, 0
+        jz ._end
+        dec bx
+        mov ax, 4
+        mov cx, 3
+        sub cx, bx
+        mul cx
 
-    .found_power:
-        add bl, '0' 
-        biosWriteChars ' ', 'b', ':', bl
-        jmp .unwind
+        mov cx, ax
+        mov ax, word [bp + 4]
 
-    
+        shl ax, cl
+        shr ax, 12
 
-    .loop:
-        xor dx, dx
-        div si
-        test dx, dx
-        jz .unwind
-        add dx, '0'
-        biosWriteChars dl
-        jmp .loop
-        
-    .unwind:
-    pop dx
-    pop di
-    pop si
-    ret
-    
+        cmp al, 10
+        jl ._num
+        mov ah, 55 ; '0' - 10
+        jmp ._char
+        ._num:
+            mov ah, '0'
+        ._char:
+            add al, ah
+            mov ah, 0xE
+            int 0x10
+            jmp ._loop
+    ._end:
+        pop bp
+        ret 2
 
-define ASCI_START 32  ; ' '
-define ASCI_END   126 ; '~'
-macro biosWrite charOrStrings*&
-    iterate <charOrString>, charOrStrings
-        if ASCI_START <= charOrString & charOrString <= ASCI_END
-            biosWriteChars charOrString
-        else
-            biosWriteString charOrString
-        end if
-    end iterate
-end macro
-
-macro biosWriteString string
-    push ax
-    push si
-    cld
-    mov si, string
-    repeat string.length
-        lodsb   ; mov al, [si] 
-                ; inc si        is the same as this
-        call print
-    end repeat
-    pop si
-    pop ax
-end macro
-
-macro biosWriteChars char&
-    push ax
-    iterate <chr>, char
-        mov al, chr
-        call print
-    end iterate
-    pop ax
-end macro
 
 struc db? values&
       . db values
