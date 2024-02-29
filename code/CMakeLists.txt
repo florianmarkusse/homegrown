@@ -20,7 +20,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wconversion -Wno-sign-convers
 set(CMAKE_EXE_LINKER_FLAGS "-nostdlib -n -T ${CMAKE_CURRENT_SOURCE_DIR}/link.ld")
 
 
-add_compile_definitions("__AVX2__")
 if (CMAKE_BUILD_TYPE STREQUAL "Fuzzing" OR CMAKE_BUILD_TYPE STREQUAL "Debug")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g3")
     add_compile_definitions("DEBUG")
@@ -78,7 +77,6 @@ message(STATUS "=== End Configuration ===")
 
 
 set(BOOTLOADER_OUTPUT bootloader.iso)
-message(STATUS "ghdkjfhgkfd output:        ${BOOTLOADER_OUTPUT}")
 set(BOOTLOADER_FILE "src/bootloader.asm")
 string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "" BOOTLOADER_RELATIVE_PATH ${BOOTLOADER_FILE})
 add_custom_command(

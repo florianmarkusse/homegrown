@@ -11,8 +11,15 @@ org BOOTLOADER_START
     mov ds, ax                  ; Initialize data segment
     mov ss, ax                  ; Initialize stack segment (SS) to 0
     mov sp, BOOTLOADER_START    ; Initialize the Stack Pointer to the bootloader location
-    biosWrite 'a', 'b', 'c', ' '
-    biosWrite 'a', myVar, 'b', ' ', 'f', myVar
+   ;  biosWrite 'a', 'b', 'c', ' '
+   ;  biosWrite 'a', myVar, 'b', ' ', 'f', myVar
+    xor ax, ax
+    ; mov ax, 10000
+    mov ax, 1001
+    call uint16_to_print
+
+;    int 0x12
+;    call uint16_to_print
 
     jmp $
 
@@ -20,6 +27,48 @@ print:
     mov ah, 0xE            
     int 0x10
     ret
+
+; assumes the uint16 is in ax
+uint16_to_print:
+    push si
+    push di
+    push dx
+
+    mov dl, 10
+    mov cx, ax ; cx contains the uint16
+    mov ax, 1 ; al contains 1 to start with (10^0)
+    mov bl, 0   ; bl will contain the powers of 10 
+    .find_power:
+        biosWriteChars 'l'
+        inc bl
+        mul dl
+        jc .found_power
+        biosWriteChars 'x'
+        cmp cx, ax     ; uint16 - 10^bl
+        jg .find_power  ; If dx > 10^bl, continue looping
+
+    .found_power:
+        add bl, '0' 
+        biosWriteChars ' ', 'b', ':', bl
+        jmp .unwind
+
+    
+
+    .loop:
+        xor dx, dx
+        div si
+        test dx, dx
+        jz .unwind
+        add dx, '0'
+        biosWriteChars dl
+        jmp .loop
+        
+    .unwind:
+    pop dx
+    pop di
+    pop si
+    ret
+    
 
 define ASCI_START 32  ; ' '
 define ASCI_END   126 ; '~'
