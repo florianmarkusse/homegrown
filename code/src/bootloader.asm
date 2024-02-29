@@ -12,10 +12,26 @@ org BOOTLOADER_START
     mov ss, ax                  ; Initialize stack segment (SS) to 0
     mov sp, BOOTLOADER_START    ; Initialize the Stack Pointer to the bootloader location
     biosWrite 'a', 'b', 'c', ' '
-    biosWrite 
-    biosWriteString myVar
+    biosWrite 'a', myVar, 'b', ' ', 'f', myVar
 
     jmp $
+
+print:
+    mov ah, 0xE            
+    int 0x10
+    ret
+
+define ASCI_START 32  ; ' '
+define ASCI_END   126 ; '~'
+macro biosWrite charOrStrings*&
+    iterate <charOrString>, charOrStrings
+        if ASCI_START <= charOrString & charOrString <= ASCI_END
+            biosWriteChars charOrString
+        else
+            biosWriteString charOrString
+        end if
+    end iterate
+end macro
 
 macro biosWriteString string
     push ax
@@ -31,7 +47,7 @@ macro biosWriteString string
     pop ax
 end macro
 
-macro biosWrite char&
+macro biosWriteChars char&
     push ax
     iterate <chr>, char
         mov al, chr
@@ -40,18 +56,13 @@ macro biosWrite char&
     pop ax
 end macro
 
-macro measured name*,string*
-    local top
-    name db string
-    top: name.length = top - name
-end macro
+struc db? values&
+      . db values
+      .length = $ - .
+end struc
 
-measured myVar, 'hello hello'
+myVar db 'hello'
 
-print:
-    mov ah, 0xE            
-    int 0x10
-    ret
 
 ; BOOT FOOTER
 ; Not all media sectors have the same size. Two signatures are required for such media: 
