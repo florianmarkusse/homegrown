@@ -75,19 +75,80 @@ message(STATUS "=== End Configuration ===")
 # 
 # add_custom_target(embedded-resources ALL DEPENDS ${RESOURCE_OBJECTS})
 
-
-set(BOOTLOADER_OUTPUT bootloader.iso)
-set(BOOTLOADER_FILE "src/bootloader.asm")
-string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "" BOOTLOADER_RELATIVE_PATH ${BOOTLOADER_FILE})
-add_custom_command(
-    OUTPUT ${BOOTLOADER_OUTPUT}
-    COMMAND INCLUDE=${CMAKE_ASM_INCLUDE} ${CMAKE_ASM_COMPILER} -e 100 ${BOOTLOADER_RELATIVE_PATH} ${CMAKE_CURRENT_BINARY_DIR}/bootloader.iso
-    DEPENDS ${BOOTLOADER_FILE}
+set(OS_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/os.iso)
+add_custom_command(OUTPUT ${OS_OUTPUT}
+    COMMAND dd if=/dev/zero of=${OS_OUTPUT} bs=1M count=10 status=none
     VERBATIM
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Assembling ${BOOTLOADER_FILE} into ${BOOTLOADER_OUTPUT}"
-)
-add_custom_target(bootloader ALL DEPENDS ${BOOTLOADER_OUTPUT})
+    COMMENT "Creating empty os.iso"
+    )
+add_custom_target(base-image ALL DEPENDS ${OS_OUTPUT})
+
+
+add_subdirectory(bootloaders)
+
+
+# add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/os.iso
+#         COMMAND dd if=/dev/zero of=${CMAKE_CURRENT_BINARY_DIR}/os.iso bs=1M count=10 status=none
+#         COMMAND dd if=${CMAKE_CURRENT_BINARY_DIR}/${STAGE_1_BOOTLOADER_OUTPUT} of=${CMAKE_CURRENT_BINARY_DIR}/os.iso bs=512 count=1 conv=notrunc
+#         COMMAND dd if=${CMAKE_CURRENT_BINARY_DIR}/stage2_stage_1_bootloader/stage2.bin of=${CMAKE_CURRENT_BINARY_DIR}/os.iso bs=512 seek=1 count=64 conv=notrunc
+#         #        COMMAND dd if=${CMAKE_CURRENT_BINARY_DIR}/kernel/kernel.bin of=${CMAKE_CURRENT_BINARY_DIR}/os.iso bs=512 seek=65 conv=notrunc
+#         DEPENDS bootloaders
+#         )
+# 
+# add_custom_target(
+#         os ALL
+#         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/os.iso
+# )
+
+
+# set(BOOTLOADER_OUTPUTS)
+# file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bootloaders)
+# set(BOOTLOADER_FILES "src/stage_1_bootloader.asm" "src/stage_2_bootloader.asm")
+# foreach(BOOTLOADER_FILE ${BOOTLOADER_FILES})
+#     string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "" BOOTLOADER_RELATIVE_PATH ${BOOTLOADER_FILE})
+#     set(BOOTLOADER_OUTPUT ${BOOTLOADER_RELATIVE_PATH}.bin)
+#     message(STATUS "shit fuck ${BOOTLOADER_FILE}")
+#     message(STATUS "shit fuck ${BOOTLOADER_OUTPUT}")
+#     list(APPEND BOOTLOADER_OUTPUTS ${CMAKE_CURRENT_BINARY_DIR}/${BOOTLOADER_OUTPUT})
+# 
+#     add_custom_command(
+#         OUTPUT ${BOOTLOADER_OUTPUT}
+#         COMMAND INCLUDE=${CMAKE_ASM_INCLUDE} ${CMAKE_ASM_COMPILER} -e 100 ${BOOTLOADER_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${BOOTLOADER_OUTPUT}
+#         DEPENDS ${BOOTLOADER_FILE}
+#         VERBATIM
+#         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#         COMMENT "Assembling ${BOOTLOADER_FILE} into ${BOOTLOADER_OUTPUT}"
+#     )
+# endforeach()
+# 
+# add_custom_target(bootloaders ALL DEPENDS ${BOOTLOADER_OUTPUTS})
+
+# string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "" STAGE_1_BOOTLOADER_RELATIVE_PATH ${STAGE_1_BOOTLOADER_FILE})
+# add_custom_command(
+#     OUTPUT ${STAGE_1_BOOTLOADER_OUTPUT}
+#     COMMAND INCLUDE=${CMAKE_ASM_INCLUDE} ${CMAKE_ASM_COMPILER} -e 100 ${STAGE_1_BOOTLOADER_RELATIVE_PATH} ${CMAKE_CURRENT_BINARY_DIR}/${STAGE_1_BOOTLOADER_OUTPUT}
+#     DEPENDS ${STAGE_1_BOOTLOADER_FILE}
+#     VERBATIM
+#     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#     COMMENT "Assembling ${STAGE_1_BOOTLOADER_FILE} into ${STAGE_1_BOOTLOADER_OUTPUT}"
+# )
+# add_custom_target(stage_1_bootloader ALL DEPENDS ${STAGE_1_BOOTLOADER_OUTPUT})
+
+
+# set(STAGE_1_BOOTLOADER_OUTPUT stage_1_bootloader.bin)
+# set(STAGE_1_BOOTLOADER_FILE "src/stage_1_bootloader.asm")
+# string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "" STAGE_1_BOOTLOADER_RELATIVE_PATH ${STAGE_1_BOOTLOADER_FILE})
+# add_custom_command(
+#     OUTPUT ${STAGE_1_BOOTLOADER_OUTPUT}
+#     COMMAND INCLUDE=${CMAKE_ASM_INCLUDE} ${CMAKE_ASM_COMPILER} -e 100 ${STAGE_1_BOOTLOADER_RELATIVE_PATH} ${CMAKE_CURRENT_BINARY_DIR}/${STAGE_1_BOOTLOADER_OUTPUT}
+#     DEPENDS ${STAGE_1_BOOTLOADER_FILE}
+#     VERBATIM
+#     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#     COMMENT "Assembling ${STAGE_1_BOOTLOADER_FILE} into ${STAGE_1_BOOTLOADER_OUTPUT}"
+# )
+# add_custom_target(stage_1_bootloader ALL DEPENDS ${STAGE_1_BOOTLOADER_OUTPUT})
+
 
 
 # set(EXECUTABLE_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")

@@ -1,6 +1,6 @@
 include 'x64.inc'
 
-format binary as 'iso'
+format binary as 'bin'
 
 define BYTES_PER_SECTOR 512
 define BOOTLOADER_START 0x7C00
@@ -23,7 +23,8 @@ true_start:
     mov     es, ax
     mov     ss, ax
 
-    mov     sp, BOOTLOADER_MAGIC   ; SP is loaded with 0x7C00, we can use all that memory below code as stack.
+    mov     sp, BOOTLOADER_START   ; SP is loaded with the start, we can use all that memory below code as stack.
+    mov     [drive_number], dl
 
 ; Enabling A20...
 ;   mov ax, 0x2401
@@ -46,9 +47,6 @@ seta20.2:
     out     0x60, al
 ; =======================
 
-; We need to store our drive number onto the stack (DL)
-    push    dx   ; Let's just push the entire DX register
-
 ; Clear Screen and set video mode to 2
     mov     ah, 0
     mov     al, 2
@@ -56,8 +54,7 @@ seta20.2:
 
     mov     si, loading_string
     mov     ecx, loading_string.length
-    call    print_string
-    pop     dx  
+    call    bios_print_string
 
 
 ; Prepare for the BIOS call to load the next few sectors to
@@ -66,6 +63,7 @@ seta20.2:
 ; First test to make sure LBA addressing mode is supported. This
 ; is generally not supported on floppy drives
 ;
+    mov     dl, [drive_number]
     mov     ah, 0x41
     mov     bx, 0x55aa
     int     0x13
@@ -78,58 +76,30 @@ seta20.2:
     mov     ah, 0x42
     int     0x13
     jc      error_load ; Carry is set if there is error while loading
+
     mov     si, success_string
     mov     ecx, success_string.length
-    call    print_string
-    jmp     _end
+    call    bios_print_string
+    mov     dl, [drive_number]
 
 ; goto stage 2
     jmp     0:0x7E00
 _end:
     jmp $
 
+include 'util.inc'
+
 error_no_ext_load:
     mov     si, error_string_no_ext
     mov     ecx, error_string_no_ext.length
-    call    print_string
+    call    bios_print_string
     jmp     _end
 
 error_load:
     mov     si, error_string_load
     mov     ecx, error_string_load.length
-    call    print_string
+    call    bios_print_string
     jmp     _end
-
-; Print string pointed to by DS:SI using
-; BIOS TTY output via int 10h/AH=0eh
-
-print_string:
-    push    ax
-    push    si
-    push    bx
-    xor     bx, bx
-    mov     ah, 0xe       ; int 10h 'print char' function
-
-_repeat:
-    lodsb
-    int     0x10
-    loop    _repeat
-    mov al, 0x0A
-    int     0x10
-    mov ah, 0x02      
-    inc dh             ; Move to the next row
-    xor dl, dl         ; Move to the first column
-    int     0x10
-done:
-    pop bx
-    pop si
-    pop ax
-    ret
-
-struc db? values&
-      . db values
-      .length = $ - .
-end struc
 
 loading_string db 'Loading Stage 2'
 error_string_no_ext db 'no EXT load'
@@ -145,55 +115,15 @@ struc DISK_ADDRESS_BLOCK
 end struc
 stage_2 DISK_ADDRESS_BLOCK
 
-; hex_print:
-;     push bp
-;     mov bp, sp
-; 
-;     mov bx, 4
-;     ._loop:
-;         cmp bx, 0
-;         jz ._my_end
-;         dec bx
-;         mov ax, 4
-;         mov cx, 3
-;         sub cx, bx
-;         mul cx
-; 
-;         mov cx, ax
-;         mov ax, word [bp + 4]
-; 
-;         shl ax, cl
-;         shr ax, 12
-; 
-;         cmp al, 10
-;         jl ._num
-;         mov ah, 55 ; '0' - 10
-;         jmp ._char
-;         ._num:
-;             mov ah, '0'
-;         ._char:
-;             add al, ah
-;             mov ah, 0xE
-;             int 0x10
-;             jmp ._loop
-;     ._my_end:
-;         pop bp
-;         ret 2
-
+drive_number rb 1
 
 ; BOOT FOOTER
 ; Not all media sectors have the same size. Two signatures are required for such media: 
 ; by offset 510 in the sector and at the end of the sector
-if $$ + 509 + $ > 0
-    rb $$ + 510 - $
-else if $$ + 510 + $ < 0
+if $ - $$ <= BYTES_PER_SECTOR - 2 ; Leaving space for the bootloader magic
+    rb (BYTES_PER_SECTOR - 2 - ($ - $$))
+else 
     err  ; code out of sector bounds!
 end if
 
 dw BOOTLOADER_MAGIC
-
-if BYTES_PER_SECTOR > 512
-    rb $$ + BYTES_PER_SECTOR - 2 - $
-    dw BOOTLOADER_MAGIC
-end if    
-
