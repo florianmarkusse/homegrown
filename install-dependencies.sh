@@ -141,7 +141,7 @@ GCC="gcc-${GCC_VERSION}"
 GCC_FILE="${GCC}.tar.gz"
 BUILD_GCC="build-${GCC}-${TARGET}"
 
-is_present_or_download "${GCC}" "https://ftp.gnu.org/gnu/gcc" "${GCC_FILE}"
+is_present_or_download "${GCC}" "https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}" "${GCC_FILE}"
 if is_target_installed "${BUILD_GCC}"; then
 	mkdir -p "${BUILD_GCC}" && cd "${BUILD_GCC}"
 	"../${GCC}/configure" --target="${TARGET_TRIPLET}" --prefix="$PREFIX" --disable-nls --enable-languages=c --without-headers

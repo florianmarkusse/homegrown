@@ -17,7 +17,7 @@ endif()
 set(CMAKE_C_FLAGS "-fpic -ffreestanding -fno-stack-protector -nostdinc -nostdlib")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wconversion -Wno-sign-conversion -Wdouble-promotion -Wvla -W")
 
-set(CMAKE_EXE_LINKER_FLAGS "-nostdlib -n -T ${CMAKE_CURRENT_SOURCE_DIR}/link.ld")
+# set(CMAKE_EXE_LINKER_FLAGS "-nostdlib -n -T ${CMAKE_CURRENT_SOURCE_DIR}/link.ld")
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Fuzzing" OR CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -26,8 +26,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Fuzzing" OR CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 if (CMAKE_BUILD_TYPE STREQUAL "Profiling")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -O2 -pg")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-    SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
+    # SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+    # SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 endif()
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
@@ -43,8 +43,8 @@ message(STATUS "Compile Definitions:    ${compile_definitions}")
 message(STATUS "Assembler:              ${CMAKE_ASM_COMPILER}")
 message(STATUS "Assembler Include:      ${CMAKE_ASM_INCLUDE}")
 message(STATUS "Linker:                 ${CMAKE_LINKER}")
-message(STATUS "Linker Exe flags:       ${CMAKE_EXE_LINKER_FLAGS}")
-message(STATUS "Linker Shared flags:    ${CMAKE_SHARED_LINKER_FLAGS}")
+# message(STATUS "Linker Exe flags:       ${CMAKE_EXE_LINKER_FLAGS}")
+# message(STATUS "Linker Shared flags:    ${CMAKE_SHARED_LINKER_FLAGS}")
 message(STATUS "Stripper:               ${CMAKE_STRIPPER}")
 message(STATUS "Stripper output:        ${CMAKE_STRIPPER_OUTPUT}")
 get_directory_property(compile_definitions DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
@@ -86,6 +86,7 @@ add_custom_target(base-image ALL DEPENDS ${OS_OUTPUT})
 
 
 add_subdirectory(bootloaders)
+add_subdirectory(kernel)
 
 
 # add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/os.iso
