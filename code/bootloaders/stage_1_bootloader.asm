@@ -1,6 +1,7 @@
-include 'x64.inc'
-
 format binary as 'bin'
+
+include 'x64.inc'
+use16
 
 define BYTES_PER_SECTOR 512
 define BOOTLOADER_START 0x7C00
