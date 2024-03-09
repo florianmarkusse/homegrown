@@ -91,6 +91,7 @@ _end:
 ; Print string pointed to by DS:SI using
 ; BIOS TTY output via int 10h/AH=0eh
 bios_print_string:
+    cld
     push    ax
     push    si
     push    bx
