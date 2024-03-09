@@ -98,19 +98,19 @@ data_seg    equ gdt_32_data - gdt_32_start
 elevate_bios:
     ; 32-bit protected mode requires the GDT, so we tell the CPU where
     ; it is with the 'lgdt' command
-    lgdt [gdt_32_descriptor]
+    lgdt    [gdt_32_descriptor]
 
     ; Enable 32-bit mode by setting bit 0 of the original control
     ; register. We cannot set this directly, so we need to copy the
     ; contents into eax (32-bit version of ax) and back again
-    mov eax, cr0
-    or eax, 0x00000001
-    mov cr0, eax
+    mov     eax, cr0
+    or      eax, 0x00000001
+    mov     cr0, eax
 
     ; Now we need to clear the pipeline of all 16-bit instructions,
     ; which we do with a far jump. The address doesn't actually need to
     ; be far away, but the type of jump needs to be specified as 'far'
-    jmp code_seg:init_pm
+    jmp     code_seg:init_pm
 
     use32
     init_pm:
@@ -122,67 +122,42 @@ elevate_bios:
     ; We need to tell all segment registers to point to our flat-mode data
     ; segment. If you're curious about what all of these do, you might want
     ; to look on the OSDev Wiki. We will not be using them enough to matter.
-    mov ax, data_seg
-    mov ds, ax
-    mov ss, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
+    mov     ax, data_seg
+    mov     ds, ax
+    mov     ss, ax
+    mov     es, ax
+    mov     fs, ax
+    mov     gs, ax
 
     ; Since the stack pointers got messed up in the elevation process, and we
     ; want a fresh stack, we need to reset them now.
-    mov ebp, 0x90000
-    mov esp, ebp
+    mov     ebp, 0x90000
+    mov     esp, ebp
 
     ; Go to the second sector with 32-bit code
-    jmp begin_protected
+    jmp     begin_protected
 
 begin_protected:
-    call clear_protected
+    call    clear_protected
 
-    mov esi, protected_alert
-    mov ecx, protected_alert.length
-    call print_protected
+    mov     esi, protected_alert
+    mov     ecx, protected_alert.length
+    call    print_protected
 
-    jmp _end_32
+    jmp     _end_32
     
 ; Clear the VGA memory. (AKA write blank spaces to every character slot)
 ; This function takes no arguments
 clear_protected:
-    ; Set up constants
-    mov ebx, vga_extent
-    mov ecx, vga_start
-    mov edx, 0
-
-    ; Do main loop
+    cld
+    mov     ecx, vga_chars
+    mov     edi, vga_start
+    mov     ah, style_wb
     clear_protected_loop:
-        ; While edx < ebx
-        cmp edx, ebx
-        jge clear_protected_done
-
-        ; Free edx to use later
-        push edx
-
-        ; Move character to al, style to ah
-        mov al, ' '
-        mov ah, style_wb
-
-        ; Print character to VGA memory
-        add edx, ecx
-        mov word[edx], ax
-
-        ; Restore edx
-        pop edx
-
-        ; Increment counter
-        add edx,2
-
-        ; GOTO beginning of loop
-        jmp clear_protected_loop
-
-clear_protected_done:
-    ret
-
+        mov     al, ' '
+        stosw
+        loop    clear_protected_loop
+        ret
 
 _end_32:
     jmp $
@@ -192,14 +167,11 @@ _end_32:
 ; Message length in ecx
 print_protected:
     cld
-    mov edx, vga_start
+    mov     edi, vga_start
+    mov     ah, style_wb
     print_protected_loop:
         lodsb
-        mov ah, style_wb
-
-        mov word[edx], ax
-
-        add edx, 2
+        stosw
 
         loop print_protected_loop
         ret
