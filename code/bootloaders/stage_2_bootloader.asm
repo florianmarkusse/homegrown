@@ -131,7 +131,7 @@ elevate_bios:
 
     ; Since the stack pointers got messed up in the elevation process, and we
     ; want a fresh stack, we need to reset them now.
-    mov     ebp, 0x90000
+    mov     ebp, BOOTLOADER_START
     mov     esp, ebp
 
     ; Go to the second sector with 32-bit code
@@ -153,8 +153,8 @@ clear_protected:
     mov     ecx, vga_chars
     mov     edi, vga_start
     mov     ah, style_wb
+    mov     al, ' '
     clear_protected_loop:
-        mov     al, ' '
         stosw
         loop    clear_protected_loop
         ret
