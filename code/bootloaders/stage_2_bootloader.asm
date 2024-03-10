@@ -141,8 +141,16 @@ elevate_bios:
     ; Go to the second sector with 32-bit code
     jmp     begin_protected
 
+; The 32 bit start
+;
+;
+;
+;
+;
+;
+;
 begin_protected:
-    call    clear_protected
+    call    clear_vga_32
 
     call    detect_lm_protected
     
@@ -150,13 +158,15 @@ begin_protected:
 
     mov     esi, protected_alert
     mov     ecx, protected_alert.length
-    call    print_protected
+    call    print_vga_32
+
+    call elevate_protected
 
     jmp     $
     
 ; Clear the VGA memory. (AKA write blank spaces to every character slot)
 ; This function takes no arguments
-clear_protected:
+clear_vga_32:
     cld
 ;   mov     ah, style_wb
 ;   mov     al, ' '
@@ -180,15 +190,15 @@ define style_wb     0x0F
 ; Simple 32-bit protected print routine
 ; Message address stored in esi
 ; Message length in ecx
-print_protected:
+print_vga_32:
     cld
     mov     edi, vga_start
     mov     ah, style_wb
-    print_protected_loop:
+    print_vga_32_loop:
         lodsb
         stosw
 
-        loop print_protected_loop
+        loop print_vga_32_loop
         ret
 
 ; Define messages
@@ -282,17 +292,17 @@ detect_lm_protected:
     ret
 
 cpuid_not_found_protected:
-    call    clear_protected
+    call    clear_vga_32
     mov     esi, cpuid_not_found_str
     mov     ecx, cpuid_not_found_str.length
-    call    print_protected
+    call    print_vga_32
     jmp     $
 
 lm_not_found_protected:
-    call    clear_protected
+    call    clear_vga_32
     mov     esi, lm_not_found_str
     mov     ecx, lm_not_found_str.length
-    call    print_protected
+    call    print_vga_32
     jmp     $
 
 lm_not_found_str        db 'ERROR: Long mode not supported. Exiting...'
@@ -394,6 +404,11 @@ init_pt_protected:
 ; The flat mode table allows us to read and write code anywhere, without restriction
 ;
 
+macro align boundary,value:?
+        db (boundary-1)-($+boundary-1) mod boundary dup value
+end macro
+
+
 align 4
 gdt_64_start:
 
@@ -425,8 +440,8 @@ gdt_64_code:
     dw 0xFFFF           ; Limit (bits 0-15)
     dw 0x0000           ; Base  (bits 0-15)
     db 0x00             ; Base  (bits 16-23)
-    db 0b10011010       ; 1st Flags, Type flags
-    db 0b10101111       ; 2nd Flags, Limit (bits 16-19)
+    db 10011010b        ; 1st Flags, Type flags
+    db 10101111b        ; 2nd Flags, Limit (bits 16-19)
     db 0x00             ; Base  (bits 24-31)
 
 ; Define the data sector for the 64 bit gdt
@@ -451,8 +466,8 @@ gdt_64_data:
     dw 0x0000           ; Limit (bits 0-15)
     dw 0x0000           ; Base  (bits 0-15)
     db 0x00             ; Base  (bits 16-23)
-    db 0b10010010       ; 1st Flags, Type flags
-    db 0b10100000       ; 2nd Flags, Limit (bits 16-19)
+    db 10010010b        ; 1st Flags, Type flags
+    db 10100000b        ; 2nd Flags, Limit (bits 16-19)
     db 0x00             ; Base  (bits 24-31)
 
 gdt_64_end:
@@ -472,12 +487,12 @@ elevate_protected:
     ; Elevate to 64-bit mode
     mov     ecx, 0xC0000080
     rdmsr
-    or      eax, 1 << 8
+    or      eax, 1 shl 8
     wrmsr
 
     ; Enable paging
     mov     eax, cr0
-    or      eax, 1 << 31
+    or      eax, 1 shl 31
     mov     cr0, eax
     
     lgdt    [gdt_64_descriptor]
@@ -495,7 +510,15 @@ init_lm:
     mov gs, ax                    ; Set the G-segment to the A-register.
     mov ss, ax                    ; Set the stack segment to the A-register.
 
-    jmp begin_long_mode
+begin_long_mode:
+    call    clear_vga_32
+    mov     esi, long_mode_note
+    mov     ecx, long_mode_note.length
+    call    print_vga_32
+    jmp     $
+
+
+long_mode_note db 'Now running in fully-enabled, 64-bit long mode!'
 
 ; stage_2 is hardcoded to be 32Kib.
 if $ - $$ <= BYTES_PER_SECTOR * TOTAL_SECTORS
