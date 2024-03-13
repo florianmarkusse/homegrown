@@ -30,8 +30,3 @@ sudo dd bs=4M if=/home/florian/Desktop/homegrown/code/build/bootloader.iso of=/d
 
 ## x86_64 only
 Will currently (probably) break intermittently because of interrupts clobbering the red zone. Set up separate stack to handle interrupts ok.
-
-INT 15 AX=2400 disable A20
-INT 15 AX=2401 enable A20
-INT 15 AX=2402 query status A20
-INT 15 AX=2403 query A20 support (kbd or port 92)

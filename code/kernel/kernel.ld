@@ -1,22 +1,9 @@
 /* Kernel Linker Script */
-ENTRY(kmain)
+ENTRY(main)
 SECTIONS {
-    . = 1M;
-    raw_init : {
-        KEEP(*(.raw_init))
-    }
-    multiboot BLOCK(8) : {
-        KEEP(*(.multiboot))
-    }
-    bootstrap : {
-        *(.bootstrap)
-    }
-    bootstrap.data BLOCK(4k) : {
-        *(.bootstrap.data)
-    }
-    kernel_start_pa = .;
-
-    kernel.text (0xFFFF800000000000 + kernel_start_pa) : AT (kernel_start_pa) {
+    /* 4Kbi */
+    . = 0x4000;
+    kernel.text : {
         *(.text .text.*)
     }
     . = ALIGN(4k);

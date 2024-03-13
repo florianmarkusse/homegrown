@@ -1,4 +1,4 @@
-__attribute__((noreturn)) void kmain(void) {
+__attribute__((noreturn)) void main(void) {
     while (1) {
     }
 }

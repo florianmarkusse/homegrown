@@ -1,9 +1,9 @@
 project(bootloaders LANGUAGES ASM)
 
-# The name of the file, the seek into the iso, the number of sectors to write
+# The name of the file, the seek into the img, the number of sectors to write
 list(APPEND BOOTLOADERS 
     "stage_1_bootloader.asm 0 1"
-    "stage_2_bootloader.asm 1 64"
+    "stage_2_bootloader.asm 1 15"
     )
 
 

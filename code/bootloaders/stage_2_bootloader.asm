@@ -4,8 +4,9 @@ include 'x64.inc'
 use16
 
 define BYTES_PER_SECTOR 512
-define TOTAL_SECTORS 64
+define TOTAL_SECTORS 15
 define BOOTLOADER_START 0x7E00
+define KERNEL_START 0x4090
 
 org BOOTLOADER_START
     mov     sp, BOOTLOADER_START   ; SP is loaded with the start, we can use all that memory below code as stack.
@@ -160,9 +161,7 @@ begin_protected:
     mov     ecx, protected_alert.length
     call    print_vga_32
 
-    call elevate_protected
-
-    jmp     $
+    call    elevate_protected
     
 ; Clear the VGA memory. (AKA write blank spaces to every character slot)
 ; This function takes no arguments
@@ -515,12 +514,13 @@ begin_long_mode:
     mov     esi, long_mode_note
     mov     ecx, long_mode_note.length
     call    print_vga_32
-    jmp     $
+    ; jmp     $
+    mov     rsp, 0x4000
+    jmp     0x4000
 
 
-long_mode_note db 'Now running in fully-enabled, 64-bit long mode!'
+long_mode_note db 'Now running in fully-enabled, 64-bit long mode'
 
-; stage_2 is hardcoded to be 32Kib.
 if $ - $$ <= BYTES_PER_SECTOR * TOTAL_SECTORS
     rb (BYTES_PER_SECTOR * TOTAL_SECTORS - ($ - $$))
 else 
