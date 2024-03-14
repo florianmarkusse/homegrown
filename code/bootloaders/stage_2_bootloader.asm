@@ -4,7 +4,7 @@ include 'x64.inc'
 use16
 
 define BYTES_PER_SECTOR 512
-define TOTAL_SECTORS 15
+define TOTAL_SECTORS 64
 define BOOTLOADER_START 0x7E00
 define KERNEL_START 0x4090
 
@@ -155,8 +155,6 @@ begin_protected:
 
     call    detect_lm_protected
     
-    call    init_pt_protected
-
     mov     esi, protected_alert
     mov     ecx, protected_alert.length
     call    print_vga_32
@@ -167,11 +165,6 @@ begin_protected:
 ; This function takes no arguments
 clear_vga_32:
     cld
-;   mov     ah, style_wb
-;   mov     al, ' '
-;   shl     eax, 16
-;   mov     ah, style_wb
-;   mov     al, ' '
     mov     eax, 0x0F200F20
     mov     edi, vga_start
     mov     ecx, vga_chars_d
@@ -307,16 +300,32 @@ lm_not_found_protected:
 lm_not_found_str        db 'ERROR: Long mode not supported. Exiting...'
 cpuid_not_found_str     db 'ERROR: CPUID unsupported, but required for long mode'
 
-; Initialize the page table
-; 
-; The Page Table has 4 components which will be mapped as follows:
-;
-define PAGE_LVL_4 0x1000 ; (Page Map Level 4 Table)
-define PAGE_LVL_3 0x2000 ; (Page Directory Pointer Table)
-define PAGE_LVL_2 0x3000 ; (Page Directory Table)
-define PAGE_LVL_1 0x4000 ; (Page table)
-; Clear the memory in those areas and then set up the page table structure
+elevate_protected:
+    lgdt    [gdt_64_descriptor]
+    jmp     code_seg_64:init_lm
 
+; ==============================================================================
+; This is where 32 bit ends and 64 bits start
+; ==============================================================================
+use64
+init_lm:
+    call    setup_paging
+    mov     ax, data_seg_64           ; Set the A-register to the data descriptor.
+    mov     ds, ax                    ; Set the data segment to the A-register.
+    mov     es, ax                    ; Set the extra segment to the A-register.
+    mov     fs, ax                    ; Set the F-segment to the A-register.
+    mov     gs, ax                    ; Set the G-segment to the A-register.
+    mov     ss, ax                    ; Set the stack segment to the A-register.
+
+begin_long_mode:
+    mov rdi, 0xB8000   ; Virtual address pointing to VGA memory
+    mov word [rdi], 0x0741  ; Example: Write 'A' character with color to VGA memory
+    jmp     $
+   ; mov     rsp, 0x4000
+   ; jmp     0x4000
+
+
+; Initialize the page table
 ; Each table in the page table has 512 entries, all of which are 8 bytes
 ; (one quadword or 64 bits) long. In this step we'll be identity mapping
 ; ONLY the lowest 2 MB of memory, since this is all we need for now. Note
@@ -328,86 +337,61 @@ define PAGE_LVL_1 0x4000 ; (Page table)
 ; to the physical page accessed with that address. Note that in the x86_64
 ; architecture, a page is addressed using 12 bits, which corresponds to
 ; 4096 addressible bytes (4KB). Remember this, it'll be important later.
-init_pt_protected:
-    ; NOTE: We did not set up 32-bit paging because we wanted to jump directly
-    ; into long mode. You should know that this is possible, and if you've done
-    ; it before entering long mode you will need to disable it here. To do so,
-    ; clear the 31st bit of the cr0 register.
+setup_paging:
 
-    ; Clear the memory area using rep stosd
-    ;
-    mov     edi, PAGE_LVL_4         ; Set the base address for rep stosd. Our page table goes from
-                            ; 0x1000 to 0x4FFF, so we want to start at 0x1000
-    mov     cr3, edi            ; Save the PML4T start address in cr3. This will save us time later
-                            ; because cr3 is what the CPU uses to locate the page table entries
-    xor     eax, eax            
-    mov     ecx, 4096           ; Repeat 4096 times. Since each page table is 4096 bytes, and we're
-                            ; writing 4 bytes each repetition, this will zero out all 4 page tables
-    rep     stosd               ; Now actually zero out the page table entries
+    ; The memory pages are aligned to 4kib, so the first 12 bits are alwaus 0
+    mov     rdx, level_4_memory
+    mov     cr3, rdx
 
-    ; Set edi back to PML4T[0]
-    mov     edi, cr3
+    mov     rdx, level_3_memory
+    or      rdx, 11b
+    mov     [level_4_memory], rdx ; Set the lowest of the zeroed/lower half to the first address of level 3 memory
+    mov     [level_4_memory + 256 * 8], rdx ; Set the lowest of the ones/higher half to the first address of level 3 memory
 
-    ; Set up the first entry of each table
-    ;
-    ; This part can be a little confusing, and it took me a while to understand.
-    ; The key is knowing that the page tables MUST be page aligned. This means
-    ; the lower 12 bits of the physical address (3 hex digits) MUST be 0. Then,
-    ; each page table entry can use the lower 12 bits as flags for that entry.
-    ;
-    ; You may notice that we're setting our flags to "0x003", because we care most
-    ; about bits 0 and 1. Bit 0 is the "exists" bit, and is only set if the entry
-    ; corresponds to another page table (for the PML4T, PDPT, and PDT) or a page of
-    ; physical memory (in the PT). Obviously we want to set this. Bit 1 is the
-    ; "read/write" bit, which allows us to view and modify the given entry. Since we
-    ; want our OS to have full control, we'll set this as well.
-    ;
-    ; Now let's wire up our table. Note that edi is already at PML4T[0]
-    mov     dword[edi], 0x2003     
-    mov     edi, PAGE_LVL_3        
-    mov     dword[edi], 0x3003     
-    mov     edi, PAGE_LVL_2        
-    mov     dword[edi], 0x4003     
+    mov     rdx, level_2_memory
+    or      rdx, 11b
+    mov     [level_3_memory], rdx
 
-    ; Fill in the final page table
-    ;
-    ; We now want to make an Identity Mapping in our PT. We still want to have the flags
-    ; set to 0x0003 as shown above, but we want to set PT[0].addr to 0x00, PT[1].addr to
-    ; 0x01, etc.
-    mov     edi, PAGE_LVL_1        
-    mov     ebx, 0x00000003         ; EBX has address 0x0000 with flags 0x0003
-    mov     ecx, 512                ; Do the operation 512 times
+    mov     rdx, level_1_memory
+    or      rdx, 11b
+    mov     [level_2_memory], rdx
+
+    mov     rdi, level_1_memory
+    mov     rdx, 11b                ; EDX has address 0x0000 with flags 0x0003
+    mov     rcx, 512                ; Do the operation 512 times
 
     add_page_entry_protected:
         ; a = address, x = index of page table, flags are entry flags
-        mov     dword[edi], ebx                 ; Write ebx to PT[x] = a.append(flags)
-        add     ebx, 0x1000                     ; Increment address of ebx (a+1)
-        add     edi, 8                          ; Increment page table location (since entries are 8 bytes)
+        mov     [rdi], rdx                 ; Write ebx to PT[x] = a.append(flags)
+        add     rdx, 0x1000                     ; Increment address of ebx (a+1)
+        add     rdi, 8                          ; Increment page table location (since entries are 8 bytes)
                                                 ; x++
         loop    add_page_entry_protected        ; Decrement ecx and loop again
 
-    ; Set up PAE paging, but don't enable it quite yet
-    ;
-    ; Here we're basically telling the CPU that we want to use paging, but not quite yet.
-    ; We're enabling the feature, but not using it.
-    mov     eax, cr4
-    or      eax, 1 shl 5               ; Set the PAE-bit, which is the 5th bit
-    mov     cr4, eax
+    ; Enable paging
+    mov     rdx, cr4
+    or      rdx, 1 shl 5
+    mov     cr4, rdx
 
-    ; Now we should have a page table that identities maps the lowest 2MB of physical memory into
-    ; virtual memory!
+    mov     ecx, 0xC0000080
+    rdmsr
+    or      eax, 1 shl 8
+    wrmsr
+
+    mov     rdx, cr0
+    or      rdx, 0x10000000
+    mov     cr0, rdx
+
     ret
-
-;
-; Define the Flat Mode Configuration Global Descriptor Table (GDT)
-; The flat mode table allows us to read and write code anywhere, without restriction
-;
 
 macro align boundary,value:?
         db (boundary-1)-($+boundary-1) mod boundary dup value
 end macro
 
-
+;
+; Define the Flat Mode Configuration Global Descriptor Table (GDT)
+; The flat mode table allows us to read and write code anywhere, without restriction
+;
 align 4
 gdt_64_start:
 
@@ -482,41 +466,24 @@ gdt_64_descriptor:
 code_seg_64 equ gdt_64_code - gdt_64_start
 data_seg_64 equ gdt_64_data - gdt_64_start
 
-elevate_protected:
-    ; Elevate to 64-bit mode
-    mov     ecx, 0xC0000080
-    rdmsr
-    or      eax, 1 shl 8
-    wrmsr
 
-    ; Enable paging
-    mov     eax, cr0
-    or      eax, 1 shl 31
-    mov     cr0, eax
-    
-    lgdt    [gdt_64_descriptor]
-    jmp     code_seg_64:init_lm
+; Zero out the 4 levels of page tables we will initially be using.
+define MEMORY_ENTRIES 512
+align 4096
+level_4_memory:
+    dq  MEMORY_ENTRIES dup 0
 
-; ==============================================================================
-; This is where 32 bit ends and 64 bits start
-; ==============================================================================
-use64
-init_lm:
-    mov ax, data_seg_64           ; Set the A-register to the data descriptor.
-    mov ds, ax                    ; Set the data segment to the A-register.
-    mov es, ax                    ; Set the extra segment to the A-register.
-    mov fs, ax                    ; Set the F-segment to the A-register.
-    mov gs, ax                    ; Set the G-segment to the A-register.
-    mov ss, ax                    ; Set the stack segment to the A-register.
+align 4096
+level_3_memory:
+    dq  MEMORY_ENTRIES dup 0
 
-begin_long_mode:
-    call    clear_vga_32
-    mov     esi, long_mode_note
-    mov     ecx, long_mode_note.length
-    call    print_vga_32
-    ; jmp     $
-    mov     rsp, 0x4000
-    jmp     0x4000
+align 4096
+level_2_memory:
+    dq  MEMORY_ENTRIES dup 0
+
+align 4096
+level_1_memory:
+    dq  MEMORY_ENTRIES dup 0
 
 
 long_mode_note db 'Now running in fully-enabled, 64-bit long mode'

@@ -8,11 +8,13 @@ BOLD='\033[1m'
 NO_COLOR='\033[0m'
 
 IMAGE_LOCATION="undefined"
+VERBOSE=false
 
 function display_usage() {
 	echo -e "Usage: $0 [${YELLOW}OPTIONS${NO_COLOR}]"
 	echo -e "${BOLD}Options:${NO_COLOR}"
 	echo -e "  -i, --image-location       Set the .iso location. Default is ${YELLOW}${IMAGE_LOCATION}${NO_COLOR}."
+	echo -e "  -v, --verbose              Enable verbose qemu."
 	echo -e "  -h, --help                 Display this help message."
 	exit 1
 }
@@ -42,6 +44,10 @@ while [[ "$#" -gt 0 ]]; do
 		IMAGE_LOCATION="$2"
 		shift 2
 		;;
+	-v | --verbose)
+		VERBOSE=true
+		shift
+		;;
 	-h | --help)
 		display_usage
 		;;
@@ -64,6 +70,11 @@ QEMU_OPTIONS=(
 	-usb
 	-vga std
 )
+if [ "$VERBOSE" = true ]; then
+	QEMU_OPTIONS+=(
+		-d "int,cpu_reset"
+	)
+fi
 
 echo -e "${BOLD}qemu-system-x86_64 ${QEMU_OPTIONS[*]}${NO_COLOR}"
 qemu-system-x86_64 "${QEMU_OPTIONS[@]}"
