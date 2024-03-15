@@ -30,12 +30,11 @@ void putstr(const char *str) {
 }
 
 __attribute__((noreturn)) void main(void) {
-    *((int *)0xb8000) = 0x07690748;
-    //    clearwin();
-    //
-    //    const char *welcome_msg =
-    //        "Welcome to the kernel! We can program in C and do debugging now";
-    //    putstr(welcome_msg);
+    clearwin();
+
+    const char *welcome_msg =
+        "Welcome to the kernel! We can program in C and do debugging now";
+    putstr(welcome_msg);
 
     while (1) {
     }

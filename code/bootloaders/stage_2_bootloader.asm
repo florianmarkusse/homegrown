@@ -376,8 +376,8 @@ begin_long_mode:
 ;    call    rax
 
 
-    mov     rbp, 0xFCA3
-    mov     rsp, 0xFCA3
+    mov     rbp, 0xFC00
+    mov     rsp, 0xFC00
     call    0xFCA3
 
 macro align boundary,value:?
