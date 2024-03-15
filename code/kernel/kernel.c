@@ -19,9 +19,7 @@ typedef struct __attribute__((packed)) {
 // }
 
 __attribute__((noreturn)) void main(void) {
-    vga_char *memory = (vga_char *)VGA_START;
-
-    memory[0] = (vga_char){.character = 'j', .style = 0x0F};
+    *((int *)0xb8000) = 0x07690748;
     while (1) {
     }
 }

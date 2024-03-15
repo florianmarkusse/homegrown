@@ -9,12 +9,14 @@ NO_COLOR='\033[0m'
 
 IMAGE_LOCATION="undefined"
 VERBOSE=false
+DEBUG=false
 
 function display_usage() {
 	echo -e "Usage: $0 [${YELLOW}OPTIONS${NO_COLOR}]"
 	echo -e "${BOLD}Options:${NO_COLOR}"
 	echo -e "  -i, --image-location       Set the .iso location. Default is ${YELLOW}${IMAGE_LOCATION}${NO_COLOR}."
 	echo -e "  -v, --verbose              Enable verbose qemu."
+	echo -e "  -d, --debug                Wait for gdb to connect to port 1234 before running."
 	echo -e "  -h, --help                 Display this help message."
 	exit 1
 }
@@ -48,6 +50,10 @@ while [[ "$#" -gt 0 ]]; do
 		VERBOSE=true
 		shift
 		;;
+	-d | --debug)
+		DEBUG=true
+		shift
+		;;
 	-h | --help)
 		display_usage
 		;;
@@ -75,6 +81,10 @@ if [ "$VERBOSE" = true ]; then
 		-d "int,cpu_reset"
 	)
 fi
-
+if [ "$DEBUG" = true ]; then
+	QEMU_OPTIONS+=(
+		-s -S
+	)
+fi
 echo -e "${BOLD}qemu-system-x86_64 ${QEMU_OPTIONS[*]}${NO_COLOR}"
 qemu-system-x86_64 "${QEMU_OPTIONS[@]}"

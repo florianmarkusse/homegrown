@@ -376,6 +376,7 @@ begin_long_mode:
 ;    call    rax
 
 
+    mov     dword [0xb8000], 0x07690748
     mov     rbp, 0x8000
     mov     rsp, 0x8000
     call    0x8000
