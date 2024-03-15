@@ -19,7 +19,6 @@ add_custom_command(
         COMMENT "compiling and linking ${KERNEL_NAME}"
 )
 
-
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
         COMMAND objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${KERNEL_LINKED} ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin

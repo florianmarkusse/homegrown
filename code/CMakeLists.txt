@@ -43,7 +43,7 @@ message(STATUS "Stripper output:        ${CMAKE_STRIPPER_OUTPUT}")
 get_directory_property(compile_definitions DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
 message(STATUS "=== End Configuration ===")
 
-set(OS_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/os.img)
+set(OS_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/os-${CMAKE_BUILD_TYPE}.img)
 add_custom_command(OUTPUT ${OS_OUTPUT}
     COMMAND dd if=/dev/zero of=${OS_OUTPUT} bs=1M count=10 status=none
     VERBATIM

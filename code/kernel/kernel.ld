@@ -1,8 +1,7 @@
 /* Kernel Linker Script */
 ENTRY(main)
 SECTIONS {
-    /* 32Kbi */
-    . = 0x8000;
+    . = 0xFC00;
     kernel.text : {
         *(.text .text.*)
     }

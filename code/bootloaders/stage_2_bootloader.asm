@@ -376,10 +376,9 @@ begin_long_mode:
 ;    call    rax
 
 
-    mov     dword [0xb8000], 0x07690748
-    mov     rbp, 0x8000
-    mov     rsp, 0x8000
-    call    0x8000
+    mov     rbp, 0xFCA3
+    mov     rsp, 0xFCA3
+    call    0xFCA3
 
 macro align boundary,value:?
         db (boundary-1)-($+boundary-1) mod boundary dup value

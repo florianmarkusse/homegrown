@@ -147,7 +147,7 @@ struc DISK_ADDRESS_BLOCK _number_of_blocks, _memory_address, _starting_block
     .starting_block dq      _starting_block       ; Starting Disk block 1, since we just need to skip the boot sector.
 end struc
 define stage_2_blocks 63
-define stage_2_address 0x07E00000
+define stage_2_address 0x07E00
 stage_2_disk DISK_ADDRESS_BLOCK stage_2_blocks,stage_2_address,1
 kernel_disk DISK_ADDRESS_BLOCK  64,stage_2_address + (stage_2_blocks * 512),stage_2_blocks + 1
 
