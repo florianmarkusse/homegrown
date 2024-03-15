@@ -301,15 +301,59 @@ lm_not_found_str        db 'ERROR: Long mode not supported. Exiting...'
 cpuid_not_found_str     db 'ERROR: CPUID unsupported, but required for long mode'
 
 elevate_protected:
-    lgdt    [gdt_64_descriptor]
-    jmp     code_seg_64:init_lm
+
+    ; The memory pages are aligned to 4kib, so the first 12 bits are alwaus 0
+    mov     edx, level_4_memory
+    mov     cr3, edx
+
+    mov     edx, level_3_memory
+    or      edx, 11b
+    mov     [level_4_memory], edx ; Set the lowest of the zeroed/lower half to the first address of level 3 memory
+    mov     [level_4_memory + 256 * 8], edx ; Set the lowest of the ones/higher half to the first address of level 3 memory
+
+    mov     edx, level_2_memory
+    or      edx, 11b
+    mov     [level_3_memory], edx
+
+    mov     edx, level_1_memory
+    or      edx, 11b
+    mov     [level_2_memory], edx
+
+    mov     edi, level_1_memory
+    mov     edx, 11b                ; EDX has address 0x0000 with flags 0x0003
+    mov     ecx, 512                ; Do the operation 512 times
+
+    add_page_entry_protected:
+        ; a = address, x = index of page table, flags are entry flags
+        mov     [edi], edx                 ; Write ebx to PT[x] = a.append(flags)
+        add     edx, 0x1000                     ; Increment address of ebx (a+1)
+        add     edi, 8                          ; Increment page table location (since entries are 8 bytes)
+                                                ; x++
+        loop    add_page_entry_protected        ; Decrement ecx and loop again
+
+    ; Enable paging
+    mov eax, cr4
+    or eax, 1 shl 5               ; Set the PAE-bit, which is the 5th bit
+    mov cr4, eax
+
+    mov ecx, 0xC0000080
+    rdmsr
+    or eax, 1 shl 8
+    wrmsr
+
+    ; Enable paging
+    mov eax, cr0
+    or eax, 1 shl 31
+    mov cr0, eax
+    
+    lgdt [gdt_64_descriptor]
+    jmp code_seg_64:init_lm
 
 ; ==============================================================================
 ; This is where 32 bit ends and 64 bits start
 ; ==============================================================================
 use64
 init_lm:
-    call    setup_paging
     mov     ax, data_seg_64           ; Set the A-register to the data descriptor.
     mov     ds, ax                    ; Set the data segment to the A-register.
     mov     es, ax                    ; Set the extra segment to the A-register.
@@ -318,71 +362,17 @@ init_lm:
     mov     ss, ax                    ; Set the stack segment to the A-register.
 
 begin_long_mode:
-    mov rdi, 0xB8000   ; Virtual address pointing to VGA memory
-    mov word [rdi], 0x0741  ; Example: Write 'A' character with color to VGA memory
+    call    clear_vga_32
+
+    mov     rsi, long_mode_note
+    mov     rcx, long_mode_note.length
+    call    print_vga_32
+
+end_of_line:
     jmp     $
    ; mov     rsp, 0x4000
    ; jmp     0x4000
 
-
-; Initialize the page table
-; Each table in the page table has 512 entries, all of which are 8 bytes
-; (one quadword or 64 bits) long. In this step we'll be identity mapping
-; ONLY the lowest 2 MB of memory, since this is all we need for now. Note
-; that this only requires one page table, so the upper 511 entries in the
-; PML4T, PDPT, and PDT will all be NULL.
-
-; Once we have the zeroth address in all pointing to our page table, we
-; will need to create a identity map, which will point each virtual page
-; to the physical page accessed with that address. Note that in the x86_64
-; architecture, a page is addressed using 12 bits, which corresponds to
-; 4096 addressible bytes (4KB). Remember this, it'll be important later.
-setup_paging:
-
-    ; The memory pages are aligned to 4kib, so the first 12 bits are alwaus 0
-    mov     rdx, level_4_memory
-    mov     cr3, rdx
-
-    mov     rdx, level_3_memory
-    or      rdx, 11b
-    mov     [level_4_memory], rdx ; Set the lowest of the zeroed/lower half to the first address of level 3 memory
-    mov     [level_4_memory + 256 * 8], rdx ; Set the lowest of the ones/higher half to the first address of level 3 memory
-
-    mov     rdx, level_2_memory
-    or      rdx, 11b
-    mov     [level_3_memory], rdx
-
-    mov     rdx, level_1_memory
-    or      rdx, 11b
-    mov     [level_2_memory], rdx
-
-    mov     rdi, level_1_memory
-    mov     rdx, 11b                ; EDX has address 0x0000 with flags 0x0003
-    mov     rcx, 512                ; Do the operation 512 times
-
-    add_page_entry_protected:
-        ; a = address, x = index of page table, flags are entry flags
-        mov     [rdi], rdx                 ; Write ebx to PT[x] = a.append(flags)
-        add     rdx, 0x1000                     ; Increment address of ebx (a+1)
-        add     rdi, 8                          ; Increment page table location (since entries are 8 bytes)
-                                                ; x++
-        loop    add_page_entry_protected        ; Decrement ecx and loop again
-
-    ; Enable paging
-    mov     rdx, cr4
-    or      rdx, 1 shl 5
-    mov     cr4, rdx
-
-    mov     ecx, 0xC0000080
-    rdmsr
-    or      eax, 1 shl 8
-    wrmsr
-
-    mov     rdx, cr0
-    or      rdx, 0x10000000
-    mov     cr0, rdx
-
-    ret
 
 macro align boundary,value:?
         db (boundary-1)-($+boundary-1) mod boundary dup value
