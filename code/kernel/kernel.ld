@@ -1,8 +1,8 @@
 /* Kernel Linker Script */
 ENTRY(main)
 SECTIONS {
-    /* 4Kbi */
-    . = 0x4000;
+    /* 32Kbi */
+    . = 0x8000;
     kernel.text : {
         *(.text .text.*)
     }
@@ -21,5 +21,6 @@ SECTIONS {
     kern_end = .;
     /DISCARD/ : {
         *(.eh_frame)
+        *(.comment)
     }
 }

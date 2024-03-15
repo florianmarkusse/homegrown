@@ -23,7 +23,7 @@ add_custom_command(
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
         COMMAND objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${KERNEL_LINKED} ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
-        COMMAND dd if=${CMAKE_CURRENT_BINARY_DIR}/kernel.bin of=${OS_OUTPUT} bs=512 seek=65 count=256 conv=notrunc
+        COMMAND dd if=${CMAKE_CURRENT_BINARY_DIR}/kernel.bin of=${OS_OUTPUT} bs=512 seek=64 count=256 conv=notrunc
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${KERNEL_LINKED}
         COMMENT "copying ${KERNEL_LINKED} and writing into ${OS_OUTPUT}"
 )

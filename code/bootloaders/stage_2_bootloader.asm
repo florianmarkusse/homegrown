@@ -4,7 +4,7 @@ include 'x64.inc'
 use16
 
 define BYTES_PER_SECTOR 512
-define TOTAL_SECTORS 64
+define TOTAL_SECTORS 63
 define BOOTLOADER_START 0x7E00
 define KERNEL_START 0x4090
 
@@ -368,11 +368,17 @@ begin_long_mode:
     mov     rcx, long_mode_note.length
     call    print_vga_32
 
-end_of_line:
-    jmp     $
-   ; mov     rsp, 0x4000
-   ; jmp     0x4000
+;    mov     rdi, DWORD [rsp]
+;    mov     rsi, DWORD [rsp + 4]
+;    mov     rbp, 0xFFFF800000000000
+;    mov     rsp, 0xFFFF800000000000 + 0x10000
+;    movabs  rax, OFFSET kmain
+;    call    rax
 
+
+    mov     rbp, 0x8000
+    mov     rsp, 0x8000
+    call    0x8000
 
 macro align boundary,value:?
         db (boundary-1)-($+boundary-1) mod boundary dup value

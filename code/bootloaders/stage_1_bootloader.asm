@@ -72,8 +72,14 @@ seta20.2:
     cmp     bx, 0xaa55
     jnz     error_no_ext_load
 
-; If all is well, we will load the first 64x(512B) blocks to 0x7E00
-    mov     si, stage_2.length
+    ; We will load the first 64x(512B) blocks to 0x7E00 for stage 2
+    mov     si, stage_2_disk.length
+    mov     ah, 0x42
+    int     0x13
+    jc      error_load ; Carry is set if there is error while loading
+
+    ; We will load the second 64x(512B) blocks to 0x7E00 for the kernel
+    mov     si, kernel_disk.length
     mov     ah, 0x42
     int     0x13
     jc      error_load ; Carry is set if there is error while loading
@@ -133,14 +139,17 @@ error_string_no_ext db 'no EXT load'
 error_string_load db 'Failed to load sectors'
 success_string db 'Stage 2 loaded! Now starting stage 2'
 
-struc DISK_ADDRESS_BLOCK 
+struc DISK_ADDRESS_BLOCK _number_of_blocks, _memory_address, _starting_block
     .length db              0x10    ; length of this block
     .reserved db            0x0     ; reserved
-    .number_of_blocks dw    64      ; number of blocks = 32k/512b = 64K
-    .target_address dd      0x07E00000  ; Target memory address
-    .starting_block dq      1       ; Starting Disk block 1, since we just need to skip the boot sector.
+    .number_of_blocks dw    _number_of_blocks      ; number of blocks = 32k/512b = 64K
+    .target_address dd      _memory_address  ; Target memory address
+    .starting_block dq      _starting_block       ; Starting Disk block 1, since we just need to skip the boot sector.
 end struc
-stage_2 DISK_ADDRESS_BLOCK
+define stage_2_blocks 63
+define stage_2_address 0x07E00000
+stage_2_disk DISK_ADDRESS_BLOCK stage_2_blocks,stage_2_address,1
+kernel_disk DISK_ADDRESS_BLOCK  64,stage_2_address + (stage_2_blocks * 512),stage_2_blocks + 1
 
 drive_number rb 1
 
