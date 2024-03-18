@@ -11,6 +11,7 @@ NO_COLOR='\033[0m'
 BUILD_MODES=("Release" "Debug" "Profiling" "Fuzzing")
 BUILD_MODE="${BUILD_MODES[0]}"
 C_COMPILER=$(whereis x86_64-testos-elf-gcc | awk '{ print $2 }')
+LINKER=$(whereis x86_64-testos-elf-ld | awk '{ print $2 }')
 ASSEMBLER=$(readlink -f ../dependencies/fasmg/fasmg.x64)
 ASSEMBLER_INCLUDE=$(readlink -f ../dependencies/fasmg/examples/x86/include/)
 
@@ -114,6 +115,7 @@ CONFIGURE_CMAKE_OPTIONS=(
 	-S .
 	-B build/
 	-D CMAKE_C_COMPILER="$C_COMPILER"
+	-D CMAKE_LINKER="$LINKER"
 	-D CMAKE_STRIPPER="$STRIPPER"
 	-D CMAKE_STRIPPER_OUTPUT="$STRIPPER_OUTPUT"
 	-D CMAKE_BUILD_TYPE="$BUILD_MODE"

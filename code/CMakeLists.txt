@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -14,7 +15,7 @@ if(VALID_BUILD_TYPE_INDEX EQUAL -1)
     message(FATAL_ERROR "Invalid build type specified. Please choose one of: ${VALID_BUILD_TYPES}")
 endif()
 
-set(CMAKE_C_FLAGS "-m64 -fpic -ffreestanding -fno-stack-protector -nostdinc -nostdlib")
+set(CMAKE_C_FLAGS "-m64 -fpic -ffreestanding -fno-stack-protector")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wconversion -Wno-sign-conversion -Wdouble-promotion -Wvla -W")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Fuzzing" OR CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -28,6 +29,9 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 endif()
 
+set(REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/..)
+set(REPO_DEPENDENCIES ${CMAKE_CURRENT_SOURCE_DIR}/../dependencies)
+
 project(os LANGUAGES ASM)
 
 message(STATUS "=== Configuration Settings ===")
@@ -40,6 +44,8 @@ message(STATUS "Assembler Include:      ${CMAKE_ASM_INCLUDE}")
 message(STATUS "Linker:                 ${CMAKE_LINKER}")
 message(STATUS "Stripper:               ${CMAKE_STRIPPER}")
 message(STATUS "Stripper output:        ${CMAKE_STRIPPER_OUTPUT}")
+message(STATUS "repo root:              ${REPO_ROOT}")
+message(STATUS "dependencies:           ${REPO_DEPENDENCIES}")
 get_directory_property(compile_definitions DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
 message(STATUS "=== End Configuration ===")
 
@@ -54,6 +60,7 @@ add_custom_target(base-image ALL DEPENDS ${OS_OUTPUT})
 
 add_subdirectory(bootloaders)
 add_subdirectory(kernel)
+ExternalProject_Add(uefi)
 
 # set(RESOURCES_NAME "resources")
 # file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})

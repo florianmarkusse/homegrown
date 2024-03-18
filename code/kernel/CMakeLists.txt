@@ -1,6 +1,5 @@
 project(kernel LANGUAGES C)
 
-
 set(KERNEL_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 
 add_library(${KERNEL_NAME} OBJECT

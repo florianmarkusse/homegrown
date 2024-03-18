@@ -73,6 +73,8 @@ echo -e "${BOLD}Installing ${YELLOW}qemu-system-x86${NO_COLOR}"
 sudo apt install -y qemu-system-x86
 echo -e "${BOLD}Installing ${YELLOW}nasm${NO_COLOR}"
 sudo apt install -y nasm
+echo -e "${BOLD}Installing ${YELLOW}ovmf${NO_COLOR}"
+sudo apt install -y ovmf
 
 TARGET_TRIPLET="${TARGET}-${OS_NAME}-elf"
 
@@ -106,6 +108,13 @@ function is_target_installed() {
 	fi
 	echo -e "${BOLD}Installing ${YELLOW}${build_directory}${NO_COLOR}"
 	return 0
+}
+
+function git_install_or_pull() {
+	local repo=$1
+	local folder=$2
+
+	git clone "${repo}" 2>/dev/null || (cd "${folder}" && git pull && cd ../)
 }
 
 BINUTILS_VERSION="2.42"
@@ -162,6 +171,24 @@ else
 	wget "https://flatassembler.net/${FASMG_FILE}"
 	unzip "${FASMG_FILE}" -d fasmg && rm "${FASMG_FILE}"
 fi
+
+MKGPT="mkgpt"
+git_install_or_pull git@github.com:jncronin/${MKGPT}.git ${MKGPT}
+cd $MKGPT
+automake --add-missing
+autoreconf
+./configure
+make
+sudo make install
+cd ../
+
+GNU_EFI="gnu-efi"
+git_install_or_pull git@github.com:rhboot/${GNU_EFI}.git ${GNU_EFI}
+cd $GNU_EFI
+C_COMPILER=$(whereis x86_64-testos-elf-gcc | awk '{ print $2 }')
+LINKER=$(whereis x86_64-testos-elf-ld | awk '{ print $2 }')
+make ARCH=x86_64 CC="${C_COMPILER}" LD="${LINKER}"
+cd ../
 
 echo -e "${BOLD}${GREEN}Dependencies correctly installed!${NO_COLOR}"
 echo -e "${BOLD}${BLUE}The journey begins...${NO_COLOR}"
