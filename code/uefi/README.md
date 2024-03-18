@@ -18,3 +18,6 @@ Neither of these work :(
 qemu-system-x86_64 -drive if=pflash,file=fat.img,format=raw
 qemu-system-x86_64 -drive if=pflash,file=hdimage.bin,format=raw
 ```
+
+It does work!
+qemu-system-x86_64 -drive if=pflash,file=bios.bin,format=raw -drive file=fat.img,index=2,media=cdrom -net none
