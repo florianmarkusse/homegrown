@@ -108,16 +108,14 @@ done
 
 display_configuration
 
-STRIPPER=$(whereis x86_64-testos-elf-strip | awk '{print $2}')
-STRIPPER_OUTPUT="$(pwd)/../bootboot-in/initdir/mykernel/mykernel-${BUILD_MODE}.x86_64.elf"
+echo -e "${BOLD}Going to build kernel folder${NO_COLOR}"
+cd kernel
 
 CONFIGURE_CMAKE_OPTIONS=(
 	-S .
 	-B build/
 	-D CMAKE_C_COMPILER="$C_COMPILER"
 	-D CMAKE_LINKER="$LINKER"
-	-D CMAKE_STRIPPER="$STRIPPER"
-	-D CMAKE_STRIPPER_OUTPUT="$STRIPPER_OUTPUT"
 	-D CMAKE_BUILD_TYPE="$BUILD_MODE"
 	-D CMAKE_ASM_COMPILER="$ASSEMBLER"
 	-D CMAKE_ASM_INCLUDE="$ASSEMBLER_INCLUDE"
@@ -143,3 +141,69 @@ fi
 
 echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
+
+cd ../
+
+echo -e "${BOLD}Going to build uefi-image-creator folder${NO_COLOR}"
+cd uefi-image-creator
+
+CONFIGURE_CMAKE_OPTIONS=(
+	-S .
+	-B build/
+	-D CMAKE_C_COMPILER="clang"
+	-D CMAKE_LINKER="clang"
+	-D CMAKE_BUILD_TYPE="$BUILD_MODE"
+)
+
+if [ "$INCLUDE_WHAT_YOU_USE" = true ]; then
+	CONFIGURE_CMAKE_OPTIONS+=(
+		-D CMAKE_C_INCLUDE_WHAT_YOU_USE="include-what-you-use;-w;-Xiwyu;--no_default_mappings;--verbose=1"
+	)
+fi
+
+echo -e "${BOLD}cmake ${CONFIGURE_CMAKE_OPTIONS[*]}${NO_COLOR}"
+cmake "${CONFIGURE_CMAKE_OPTIONS[@]}"
+
+if [ "${#SELECTED_TARGETS[@]}" -gt 0 ]; then
+	BUILD_CMAKE_OPTIONS+=("--target")
+	for target in "${SELECTED_TARGETS[@]}"; do
+		BUILD_CMAKE_OPTIONS+=("${target}")
+	done
+fi
+
+echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
+cmake "${BUILD_CMAKE_OPTIONS[@]}"
+
+cd ../
+
+echo -e "${BOLD}Going to build uefi folder${NO_COLOR}"
+cd uefi
+
+CONFIGURE_CMAKE_OPTIONS=(
+	-S .
+	-B build/
+	-D CMAKE_C_COMPILER="clang"
+	-D CMAKE_LINKER="clang"
+	-D CMAKE_BUILD_TYPE="$BUILD_MODE"
+)
+
+if [ "$INCLUDE_WHAT_YOU_USE" = true ]; then
+	CONFIGURE_CMAKE_OPTIONS+=(
+		-D CMAKE_C_INCLUDE_WHAT_YOU_USE="include-what-you-use;-w;-Xiwyu;--no_default_mappings;--verbose=1"
+	)
+fi
+
+echo -e "${BOLD}cmake ${CONFIGURE_CMAKE_OPTIONS[*]}${NO_COLOR}"
+cmake "${CONFIGURE_CMAKE_OPTIONS[@]}"
+
+if [ "${#SELECTED_TARGETS[@]}" -gt 0 ]; then
+	BUILD_CMAKE_OPTIONS+=("--target")
+	for target in "${SELECTED_TARGETS[@]}"; do
+		BUILD_CMAKE_OPTIONS+=("${target}")
+	done
+fi
+
+echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
+cmake "${BUILD_CMAKE_OPTIONS[@]}"
+
+cd ../

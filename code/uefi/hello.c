@@ -2,15 +2,14 @@
 
 CEfiStatus efi_main(CEfiHandle h, CEfiSystemTable *st) {
     CEfiStatus r;
-    CEfiUSize x;
 
-    r = st->con_out->output_string(st->con_out, L"Hello World!\n");
+    r = st->con_out->output_string(st->con_out, L"Hello losers!\n");
     if (C_EFI_ERROR(r))
         return r;
 
-    r = st->boot_services->wait_for_event(1, &st->con_in->wait_for_key, &x);
-    if (C_EFI_ERROR(r))
-        return r;
+    CEfiInputKey key;
+    while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS)
+        ;
 
-    return 0;
+    return C_EFI_SUCCESS;
 }

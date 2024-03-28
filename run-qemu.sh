@@ -69,6 +69,7 @@ QEMU_OPTIONS=(
 	-accel "tcg,thread=single"
 	-cpu core2duo
 	-m 128
+	-machine q35
 	-no-reboot
 	-drive "format=raw,file=$IMAGE_LOCATION"
 	-serial stdio

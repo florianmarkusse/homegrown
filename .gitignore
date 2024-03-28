@@ -1,6 +1,6 @@
 # Compiled binaries
 /bin/
-/build/
+**/build
 /lib/
 .cache
 /tests/build/
