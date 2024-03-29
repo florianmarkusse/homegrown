@@ -1,6 +1,8 @@
 #!/bin/bash
 set -eo pipefail
 
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
 YELLOW='\033[33m'
 BLUE='\e[1;34m'
 GREEN='\e[1;32m'
@@ -56,11 +58,6 @@ echo -e "${BOLD}Install directory:  ${YELLOW}${PREFIX}${NO_COLOR}"
 echo -e "${BOLD}Target:             ${YELLOW}${TARGET}${NO_COLOR}"
 echo -e "${BOLD}================================${NO_COLOR}"
 
-cd "$(dirname "${BASH_SOURCE[0]}")"
-
-echo -e "${BOLD}Creating ${YELLOW}${PREFIX}${NO_COLOR}"
-mkdir -p "${PREFIX}"
-
 echo -e "${BOLD}Installing ${YELLOW}makeinfo${NO_COLOR}"
 sudo apt install -y texinfo
 echo -e "${BOLD}Installing ${YELLOW}xorriso${NO_COLOR}"
@@ -75,6 +72,11 @@ echo -e "${BOLD}Installing ${YELLOW}nasm${NO_COLOR}"
 sudo apt install -y nasm
 echo -e "${BOLD}Installing ${YELLOW}ovmf${NO_COLOR}"
 sudo apt install -y ovmf
+# This is the binary that emulates UEFI on qemu
+cp /usr/share/ovmf/OVMF.fd bios.bin
+
+echo -e "${BOLD}Creating ${YELLOW}${PREFIX}${NO_COLOR}"
+mkdir -p "${PREFIX}"
 
 TARGET_TRIPLET="${TARGET}-${OS_NAME}-elf"
 
@@ -171,24 +173,6 @@ else
 	wget "https://flatassembler.net/${FASMG_FILE}"
 	unzip "${FASMG_FILE}" -d fasmg && rm "${FASMG_FILE}"
 fi
-
-MKGPT="mkgpt"
-git_install_or_pull git@github.com:jncronin/${MKGPT}.git ${MKGPT}
-cd $MKGPT
-automake --add-missing
-autoreconf
-./configure
-make
-sudo make install
-cd ../
-
-GNU_EFI="gnu-efi"
-git_install_or_pull git@github.com:rhboot/${GNU_EFI}.git ${GNU_EFI}
-cd $GNU_EFI
-C_COMPILER=$(whereis x86_64-testos-elf-gcc | awk '{ print $2 }')
-LINKER=$(whereis x86_64-testos-elf-ld | awk '{ print $2 }')
-make ARCH=x86_64 CC="${C_COMPILER}" LD="${LINKER}"
-cd ../
 
 echo -e "${BOLD}${GREEN}Dependencies correctly installed!${NO_COLOR}"
 echo -e "${BOLD}${BLUE}The journey begins...${NO_COLOR}"
