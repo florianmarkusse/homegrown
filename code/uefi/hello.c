@@ -1,6 +1,9 @@
-#include <c-efi.h>
+#include "c-efi-base.h"                        // for CEfiStatus, C_EFI_SUC...
+#include "c-efi-protocol-simple-text-input.h"  // for CEfiInputKey, CEfiSim...
+#include "c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
+#include "c-efi-system.h"                      // for CEfiSystemTable
 
-CEfiStatus efi_main(CEfiHandle h, CEfiSystemTable *st) {
+CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle h, CEfiSystemTable *st) {
     CEfiStatus r;
 
     r = st->con_out->output_string(st->con_out, L"Hello losers!\n");
