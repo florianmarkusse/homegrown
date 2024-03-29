@@ -37,3 +37,6 @@ brestore.*
 *.iso
 *.bin
 *.elf
+*.EFI
+*.INF
+*.hdd
