@@ -108,8 +108,10 @@ done
 
 display_configuration
 
-echo -e "${BOLD}Going to build kernel folder${NO_COLOR}"
-cd kernel
+# -----------------------------------------------------------------------------
+PROJECT="kernel"
+echo -e "${BOLD}Going to build ${PROJECT} folder${NO_COLOR}"
+cd ${PROJECT}
 
 CONFIGURE_CMAKE_OPTIONS=(
 	-S .
@@ -131,7 +133,6 @@ echo -e "${BOLD}cmake ${CONFIGURE_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${CONFIGURE_CMAKE_OPTIONS[@]}"
 
 BUILD_CMAKE_OPTIONS=(--build build/)
-
 if [ "${#SELECTED_TARGETS[@]}" -gt 0 ]; then
 	BUILD_CMAKE_OPTIONS+=("--target")
 	for target in "${SELECTED_TARGETS[@]}"; do
@@ -144,8 +145,10 @@ cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
 cd ../
 
-echo -e "${BOLD}Going to build uefi-image-creator folder${NO_COLOR}"
-cd uefi-image-creator
+# -----------------------------------------------------------------------------
+PROJECT="uefi-image-creator"
+echo -e "${BOLD}Going to build ${PROJECT} folder${NO_COLOR}"
+cd ${PROJECT}
 
 CONFIGURE_CMAKE_OPTIONS=(
 	-S .
@@ -164,20 +167,16 @@ fi
 echo -e "${BOLD}cmake ${CONFIGURE_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${CONFIGURE_CMAKE_OPTIONS[@]}"
 
-if [ "${#SELECTED_TARGETS[@]}" -gt 0 ]; then
-	BUILD_CMAKE_OPTIONS+=("--target")
-	for target in "${SELECTED_TARGETS[@]}"; do
-		BUILD_CMAKE_OPTIONS+=("${target}")
-	done
-fi
-
+BUILD_CMAKE_OPTIONS=(--build build/)
 echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
 cd ../
 
-echo -e "${BOLD}Going to build uefi folder${NO_COLOR}"
-cd uefi
+# -----------------------------------------------------------------------------
+PROJECT="uefi"
+echo -e "${BOLD}Going to build ${PROJECT} folder${NO_COLOR}"
+cd ${PROJECT}
 
 CONFIGURE_CMAKE_OPTIONS=(
 	-S .
@@ -196,13 +195,7 @@ fi
 echo -e "${BOLD}cmake ${CONFIGURE_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${CONFIGURE_CMAKE_OPTIONS[@]}"
 
-if [ "${#SELECTED_TARGETS[@]}" -gt 0 ]; then
-	BUILD_CMAKE_OPTIONS+=("--target")
-	for target in "${SELECTED_TARGETS[@]}"; do
-		BUILD_CMAKE_OPTIONS+=("${target}")
-	done
-fi
-
+BUILD_CMAKE_OPTIONS=(--build build/)
 echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
