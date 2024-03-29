@@ -150,29 +150,6 @@ typedef enum {
     TYPE_FILE, // Regular file
 } File_Type;
 
-// Common Virtual Hard Disk Footer, for a "fixed" vhd
-// All fields are in network byte order (Big Endian),
-//   since I'm lazy or otherwise a bad programmer,
-//   we'll use byte arrays here
-typedef struct {
-    uint8_t cookie[8];
-    uint8_t features[4];
-    uint8_t version[4];
-    uint64_t data_offset;
-    uint8_t timestamp[4];
-    uint8_t creator_app[4];
-    uint8_t creator_ver[4];
-    uint8_t creator_OS[4];
-    uint8_t original_size[8];
-    uint8_t current_size[8];
-    uint8_t disk_geometry[4];
-    uint8_t disk_type[4];
-    uint8_t checksum[4];
-    Guid unique_id;
-    uint8_t saved_state;
-    uint8_t reserved[427];
-} __attribute__((packed)) Vhd;
-
 // Internal Options object for commandline args
 typedef struct {
     char *image_name;
@@ -184,7 +161,6 @@ typedef struct {
     FILE **esp_files;
     char **data_files;
     uint32_t num_data_files;
-    bool vhd;
     bool help;
     bool error;
 } Options;
@@ -193,14 +169,13 @@ typedef struct {
 // Global constants, enums
 // -------------------------------------
 // EFI System Partition GUID
-const Guid ESP_GUID = {0xC12A7328, 0xF81F,
-                       0x11D2,     0xBA,
-                       0x4B,       {0x00, 0xA0, 0xC9, 0x3E, 0xC9, 0x3B}};
+Guid ESP_GUID = {0xC12A7328, 0xF81F, 0x11D2,
+                 0xBA,       0x4B,   {0x00, 0xA0, 0xC9, 0x3E, 0xC9, 0x3B}};
 
 // (Microsoft) Basic Data GUID
-const Guid BASIC_DATA_GUID = {0xEBD0A0A2, 0xB9E5,
-                              0x4433,     0x87,
-                              0xC0,       {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
+Guid BASIC_DATA_GUID = {0xEBD0A0A2, 0xB9E5,
+                        0x4433,     0x87,
+                        0xC0,       {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
 
 enum {
     GPT_TABLE_ENTRY_SIZE = 128,
@@ -221,10 +196,7 @@ uint64_t esp_size_lbas = 0, data_size_lbas = 0, image_size_lbas = 0,
 uint64_t align_lba = 0, esp_lba = 0, data_lba = 0, fat32_fats_lba = 0,
          fat32_data_lba = 0; // Starting LBA values
 
-// =====================================
-// Convert bytes to LBAs
-// =====================================
-uint64_t bytes_to_lbas(const uint64_t bytes) {
+uint64_t bytes_to_lbas(uint64_t bytes) {
     return (bytes + (lba_size - 1)) / lba_size;
 }
 
@@ -234,15 +206,13 @@ uint64_t bytes_to_lbas(const uint64_t bytes) {
 void write_full_lba_size(FILE *image) {
     uint8_t zero_sector[512];
     for (uint8_t i = 0;
-         i < (lba_size - sizeof zero_sector) / sizeof zero_sector; i++)
+         i < (lba_size - sizeof zero_sector) / sizeof zero_sector; i++) {
         fwrite(zero_sector, sizeof zero_sector, 1, image);
+    }
 }
 
-// =====================================
-// Get next highest aligned lba value after input lba
-// =====================================
-uint64_t next_aligned_lba(const uint64_t lba) {
-    return lba - (lba % align_lba) + align_lba;
+uint64_t next_aligned_lba(uint64_t lba) {
+    return (((lba + (align_lba - 1)) / align_lba) + 1) * align_lba;
 }
 
 // =====================================
@@ -251,8 +221,9 @@ uint64_t next_aligned_lba(const uint64_t lba) {
 Guid new_guid(void) {
     uint8_t rand_arr[16] = {0};
 
-    for (uint8_t i = 0; i < sizeof rand_arr; i++)
+    for (uint8_t i = 0; i < sizeof rand_arr; i++) {
         rand_arr[i] = rand() & 0xFF; // Equivalent to modulo 256
+    }
 
     // Fill out GUID
     Guid result = {
@@ -290,10 +261,11 @@ void create_crc32_table(void) {
     for (int32_t n = 0; n < 256; n++) {
         c = (uint32_t)n;
         for (uint8_t k = 0; k < 8; k++) {
-            if (c & 1)
+            if (c & 1) {
                 c = 0xedb88320L ^ (c >> 1);
-            else
+            } else {
                 c = c >> 1;
+            }
         }
         crc_table[n] = c;
     }
@@ -313,8 +285,9 @@ uint32_t calculate_crc32(void *buf, int32_t len) {
         made_crc_table = true;
     }
 
-    for (int32_t n = 0; n < len; n++)
+    for (int32_t n = 0; n < len; n++) {
         c = crc_table[(c ^ bufp[n]) & 0xFF] ^ (c >> 8);
+    }
 
     // Invert bits for return value
     return c ^ 0xFFFFFFFFL;
@@ -345,8 +318,9 @@ void get_fat_dir_entry_time_date(uint16_t *in_time, uint16_t *in_date) {
 // =====================================
 bool write_mbr(FILE *image) {
     uint64_t mbr_image_lbas = image_size_lbas;
-    if (mbr_image_lbas > 0xFFFFFFFF)
+    if (mbr_image_lbas > 0xFFFFFFFF) {
         mbr_image_lbas = 0x100000000;
+    }
 
     Mbr mbr = {
         .boot_code = {0},
@@ -364,8 +338,9 @@ bool write_mbr(FILE *image) {
         .boot_signature = 0xAA55,
     };
 
-    if (fwrite(&mbr, 1, sizeof mbr, image) != sizeof mbr)
+    if (fwrite(&mbr, 1, sizeof mbr, image) != sizeof mbr) {
         return false;
+    }
     write_full_lba_size(image);
 
     return true;
@@ -426,13 +401,15 @@ bool write_gpts(FILE *image) {
 
     // Write primary gpt header to file
     if (fwrite(&primary_gpt, 1, sizeof primary_gpt, image) !=
-        sizeof primary_gpt)
+        sizeof primary_gpt) {
         return false;
+    }
     write_full_lba_size(image);
 
     // Write primary gpt table to file
-    if (fwrite(&gpt_table, 1, sizeof gpt_table, image) != sizeof gpt_table)
+    if (fwrite(&gpt_table, 1, sizeof gpt_table, image) != sizeof gpt_table) {
         return false;
+    }
 
     // Fill out secondary GPT header
     Gpt_Header secondary_gpt = primary_gpt;
@@ -453,13 +430,15 @@ bool write_gpts(FILE *image) {
     fseek(image, secondary_gpt.partition_table_lba * lba_size, SEEK_SET);
 
     // Write secondary gpt table to file
-    if (fwrite(&gpt_table, 1, sizeof gpt_table, image) != sizeof gpt_table)
+    if (fwrite(&gpt_table, 1, sizeof gpt_table, image) != sizeof gpt_table) {
         return false;
+    }
 
     // Write secondary gpt header to file
     if (fwrite(&secondary_gpt, 1, sizeof secondary_gpt, image) !=
-        sizeof secondary_gpt)
+        sizeof secondary_gpt) {
         return false;
+    }
     write_full_lba_size(image);
 
     return true;
@@ -471,7 +450,7 @@ bool write_gpts(FILE *image) {
 bool write_esp(FILE *image) {
     // Reserved sectors region --------------------------
     // Fill out Volume Boot Record (VBR)
-    const uint8_t reserved_sectors = 32; // FAT32
+    uint8_t reserved_sectors = 32; // FAT32
     Vbr vbr = {
         .BS_jmpBoot = {0xEB, 0x00, 0x90},
         .BS_OEMName = {"THISDISK"},
@@ -692,7 +671,7 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
 
     // Get next free cluster in FATs
     uint32_t next_free_cluster = fsinfo.FSI_Nxt_Free;
-    const uint32_t starting_cluster =
+    uint32_t starting_cluster =
         next_free_cluster; // Starting cluster for new dir/file
 
     // Add new clusters to FATs
@@ -733,15 +712,16 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
     FAT32_Dir_Entry_Short dir_entry = {0};
 
     while (fread(&dir_entry, 1, sizeof dir_entry, image) == sizeof dir_entry &&
-           dir_entry.DIR_Name[0] != '\0')
+           dir_entry.DIR_Name[0] != '\0') {
         ;
+    }
 
     // sizeof dir_entry = 32, back up to overwrite this empty spot
     fseek(image, -32, SEEK_CUR);
 
     // Check name length for FAT 8.3 naming
-    const char *dot_pos = strchr(file_name, '.');
-    const uint32_t name_len = strlen(file_name);
+    char *dot_pos = strchr(file_name, '.');
+    uint32_t name_len = strlen(file_name);
     if ((!dot_pos && name_len > 11) || (dot_pos && name_len > 12) ||
         (dot_pos && dot_pos - file_name > 8)) {
         return false; // Name is too long or invalid
@@ -777,8 +757,9 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
         memcpy(dir_entry.DIR_Name, file_name, name_len);
     }
 
-    if (type == TYPE_DIR)
+    if (type == TYPE_DIR) {
         dir_entry.DIR_Attr = ATTR_DIRECTORY;
+    }
 
     uint16_t fat_time, fat_date;
     get_fat_dir_entry_time_date(&fat_time, &fat_date);
@@ -790,8 +771,9 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
     dir_entry.DIR_FstClusHI = (starting_cluster >> 16) & 0xFFFF;
     dir_entry.DIR_FstClusLO = starting_cluster & 0xFFFF;
 
-    if (type == TYPE_FILE)
+    if (type == TYPE_FILE) {
         dir_entry.DIR_FileSize = file_size_bytes;
+    }
 
     fwrite(&dir_entry, 1, sizeof dir_entry, image);
 
@@ -824,8 +806,9 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
     }
 
     // Set dir_cluster for new parent dir, if a directory was just added
-    if (type == TYPE_DIR)
+    if (type == TYPE_DIR) {
         *parent_dir_cluster = starting_cluster;
+    }
 
     return true;
 }
@@ -837,8 +820,9 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
 // =============================
 bool add_path_to_esp(char *path, FILE *file, FILE *image) {
     // Parse input path for each name
-    if (*path != '/')
+    if (*path != '/') {
         return false; // Path must begin with root '/'
+    }
 
     File_Type type = TYPE_DIR;
     char *start = path + 1; // Skip initial slash
@@ -848,13 +832,15 @@ bool add_path_to_esp(char *path, FILE *file, FILE *image) {
 
     // Get next name from path, until reached end of path for file to add
     while (type == TYPE_DIR) {
-        while (*end != '/' && *end != '\0')
+        while (*end != '/' && *end != '\0') {
             end++;
+        }
 
-        if (*end == '/')
+        if (*end == '/') {
             type = TYPE_DIR;
-        else
+        } else {
             type = TYPE_FILE; // Reached end of path
+        }
 
         *end = '\0'; // Null terminate next name in case of directory
 
@@ -879,8 +865,9 @@ bool add_path_to_esp(char *path, FILE *file, FILE *image) {
             // Add new directory or file to last found directory;
             //   if new directory, update current directory cluster to check/use
             //   for next new files
-            if (!add_file_to_esp(start, file, image, type, &dir_cluster))
+            if (!add_file_to_esp(start, file, image, type, &dir_cluster)) {
                 return false;
+            }
         }
 
         *end++ = '/';
@@ -904,8 +891,9 @@ bool add_disk_image_info_file(FILE *image) {
     snprintf(file_buf, lba_size, "DISK_SIZE=%" PRIu64 "\n", image_size);
 
     FILE *fp = fopen("DSKIMG.INF", "wb");
-    if (!fp)
+    if (!fp) {
         return false;
+    }
 
     fwrite(file_buf, strlen(file_buf), 1, fp);
     free(file_buf);
@@ -914,8 +902,9 @@ bool add_disk_image_info_file(FILE *image) {
 
     char path[25] = {0};
     strcpy(path, "/EFI/BOOT/DSKIMG.INF");
-    if (!add_path_to_esp(path, fp, image))
+    if (!add_path_to_esp(path, fp, image)) {
         return false;
+    }
     fclose(fp);
 
     return true;
@@ -965,10 +954,11 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
     // Print info to user
     char *name = NULL;
     char *slash = strrchr(filepath, '/');
-    if (!slash)
+    if (!slash) {
         name = filepath;
-    else
+    } else {
         name = slash + 1;
+    }
 
     printf("Added '%s' from path '%s' to Data Partition\n", name, filepath);
 
@@ -1107,14 +1097,14 @@ Options get_opts(int argc, char *argv[]) {
             }
 
             // Allocate memory for file paths & File pointers
-            const uint32_t MAX_FILES = 10;
+            uint32_t MAX_FILES = 10;
             options.esp_file_paths = malloc(MAX_FILES * sizeof(char *));
             options.esp_files = malloc(MAX_FILES * sizeof(FILE *));
 
             for (i += 1; i < argc && argv[i][0] != '-'; i++) {
                 // Grab next 2 args, 1st will be path to add, 2nd will be file
                 // to add to path
-                const int MAX_LEN = 256;
+                int MAX_LEN = 256;
                 options.esp_file_paths[options.num_esp_file_paths] =
                     calloc(1, MAX_LEN);
 
@@ -1173,13 +1163,13 @@ Options get_opts(int argc, char *argv[]) {
         if (!strcmp(argv[i], "-ad") || !strcmp(argv[i], "--add-data-files")) {
             // Add files to the Basic Data Partition
             // Allocate memory for file paths
-            const uint32_t MAX_FILES = 10;
+            uint32_t MAX_FILES = 10;
             options.data_files = malloc(MAX_FILES * sizeof(char *));
 
             for (i += 1; i < argc && argv[i][0] != '-'; i++) {
                 // Grab next 2 args, 1st will be path to add, 2nd will be file
                 // to add to path
-                const int MAX_LEN = 256;
+                int MAX_LEN = 256;
                 options.data_files[options.num_data_files] = calloc(1, MAX_LEN);
 
                 // Get path to add
@@ -1202,131 +1192,9 @@ Options get_opts(int argc, char *argv[]) {
             i--;
             continue;
         }
-
-        if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--vhd")) {
-            // Add a fixed Virtual Hard Disk Footer to the disk image;
-            //   will also change the suffix to .vhd
-
-            options.vhd = true;
-            continue;
-        }
     }
 
     return options;
-}
-
-// =============================
-// Add a fixed Virtual Hard Disk footer to the disk image
-// =============================
-void add_fixed_vhd_footer(FILE *image) {
-    // Fill out VHD footer info
-    Vhd vhd = {
-        .cookie = {"conectix"},
-        .features = {0},
-        .version = {0x00, 0x01, 0x00, 0x00},
-        .data_offset = -1,
-        .timestamp = {0}, // # of seconds since 01/01/2000
-        .creator_app = {"qfic"},
-        .creator_ver = {0x00, 0x01, 0x00, 0x00},
-        .creator_OS = {"MYOS"},
-        .original_size = {0},
-        .current_size = {0},
-        .disk_geometry = {0},
-        .disk_type = {0x00, 0x00, 0x00, 0x02}, // 2 = Fixed hard disk
-        .checksum = {0},
-        .unique_id = new_guid(),
-        .saved_state = 0,
-        .reserved = {0},
-    };
-
-    // Unix epoch for 01/01/2000 = 946684800,
-    //  subtract this value from epoch 01/01/1970 to translate
-    //  to correct timestamp
-    uint32_t time_u32 = (uint32_t)time(NULL) - 946684800;
-    vhd.timestamp[0] = (time_u32 >> 24) & 0xFF;
-    vhd.timestamp[1] = (time_u32 >> 16) & 0xFF;
-    vhd.timestamp[2] = (time_u32 >> 8) & 0xFF;
-    vhd.timestamp[3] = time_u32 & 0xFF;
-
-    // Get current image size (should be 4KiB aligned - 512 bytes)
-    //   and use 4KiB aligned size for vhd footer to not have "corrupted" image
-    fseek(image, 0, SEEK_END);
-    const uint64_t vhd_image_size = ftell(image);
-
-    vhd.original_size[0] = (vhd_image_size >> 56) & 0xFF;
-    vhd.original_size[1] = (vhd_image_size >> 48) & 0xFF;
-    vhd.original_size[2] = (vhd_image_size >> 40) & 0xFF;
-    vhd.original_size[3] = (vhd_image_size >> 32) & 0xFF;
-    vhd.original_size[4] = (vhd_image_size >> 24) & 0xFF;
-    vhd.original_size[5] = (vhd_image_size >> 16) & 0xFF;
-    vhd.original_size[6] = (vhd_image_size >> 8) & 0xFF;
-    vhd.original_size[7] = vhd_image_size & 0xFF;
-
-    memcpy(vhd.current_size, vhd.original_size, sizeof vhd.original_size);
-
-    // Fill out disk geometry (CHS values)
-    // Code Taken from Microsoft VHD documentation
-    uint32_t totalSectors;
-    uint16_t cylinders;
-    uint8_t heads, sectorsPerTrack;
-    uint32_t cylinderTimesHeads;
-
-    totalSectors = image_size_lbas;
-    //                  C      H     S
-    if (totalSectors > 65535 * 16 * 255)
-        totalSectors = 65535 * 16 * 255;
-
-    if (totalSectors >= 65535 * 16 * 63) {
-        sectorsPerTrack = 255;
-        heads = 16;
-        cylinderTimesHeads = totalSectors / sectorsPerTrack;
-    } else {
-        sectorsPerTrack = 17;
-        cylinderTimesHeads = totalSectors / sectorsPerTrack;
-
-        heads = (cylinderTimesHeads + 1023) / 1024;
-
-        if (heads < 4)
-            heads = 4;
-
-        if (cylinderTimesHeads >= (heads * 1024) || heads > 16) {
-            sectorsPerTrack = 31;
-            heads = 16;
-            cylinderTimesHeads = totalSectors / sectorsPerTrack;
-        }
-
-        if (cylinderTimesHeads >= (heads * 1024)) {
-            sectorsPerTrack = 63;
-            heads = 16;
-            cylinderTimesHeads = totalSectors / sectorsPerTrack;
-        }
-    }
-    cylinders = cylinderTimesHeads / heads;
-
-    // CHS values for disk geometry: Cylinders 2 bytes, heads 1 byte,
-    // sectorsPerTrack 1 byte
-    vhd.disk_geometry[0] = (cylinders >> 8) & 0xFF;
-    vhd.disk_geometry[1] = cylinders & 0xFF;
-    vhd.disk_geometry[2] = heads;
-    vhd.disk_geometry[3] = sectorsPerTrack;
-
-    // Fill out checksum
-    // Code Taken from Microsoft VHD documentation
-    uint32_t checksum = 0;
-    uint8_t *vhd_p = (uint8_t *)&vhd;
-    for (uint32_t counter = 0; counter < sizeof vhd; counter++)
-        checksum += vhd_p[counter];
-
-    checksum = ~checksum;
-
-    vhd.checksum[0] = (checksum >> 24) & 0xFF;
-    vhd.checksum[1] = (checksum >> 16) & 0xFF;
-    vhd.checksum[2] = (checksum >> 8) & 0xFF;
-    vhd.checksum[3] = checksum & 0xFF;
-
-    // Write footer to end of file
-    fseek(image, 0, SEEK_END);
-    fwrite(&vhd, 1, sizeof vhd, image);
 }
 
 // =============================
@@ -1337,8 +1205,9 @@ int main(int argc, char *argv[]) {
 
     // Get options passed in from command line
     Options options = get_opts(argc, argv);
-    if (options.error)
-        return EXIT_FAILURE;
+    if (options.error) {
+        return 1;
+    }
 
     // Set/evaluate values from options
     if (options.help) {
@@ -1386,24 +1255,22 @@ int main(int argc, char *argv[]) {
             "is \n"
             "                       experimental, as tools are lacking for "
             "proper testing.\n"
-            "                       Valid sizes: 512/1024/2048/4096\n"
-            "-v  --vhd              Create a fixed vhd footer and add it to "
-            "the end of the\n"
-            "                       disk image. The image name will have a "
-            ".vhd suffix.\n",
+            "                       Valid sizes: 512/1024/2048/4096\n",
             argv[0]);
-        return EXIT_SUCCESS;
+        return 0;
     }
 
     // Using .hdd to ensure this also works by default in e.g. VirtualBox or
     // other programs
     char *image_name = "test.hdd";
 
-    if (options.image_name)
+    if (options.image_name) {
         image_name = options.image_name;
+    }
 
-    if (options.lba_size)
+    if (options.lba_size) {
         lba_size = options.lba_size;
+    }
 
     if (options.esp_size) {
         // Enforce minimum sizes for ESP according to LBA size
@@ -1421,8 +1288,9 @@ int main(int argc, char *argv[]) {
     }
 
     // NOTE: Data partition will always be at least 1 MiB in size
-    if (options.data_size)
+    if (options.data_size) {
         data_size = options.data_size * ALIGNMENT;
+    }
 
     // Set sizes & LBA values
     gpt_table_lbas = GPT_TABLE_SIZE / lba_size;
@@ -1432,7 +1300,7 @@ int main(int argc, char *argv[]) {
     //   2 GPT tables
     //   MBR
     //   GPT headers
-    const uint64_t padding =
+    uint64_t padding =
         (ALIGNMENT * 2 + (lba_size * ((gpt_table_lbas * 2) + 1 + 2)));
     image_size = esp_size + data_size + padding;
     image_size_lbas = bytes_to_lbas(image_size);
@@ -1441,29 +1309,6 @@ int main(int argc, char *argv[]) {
     esp_size_lbas = bytes_to_lbas(esp_size);
     data_size_lbas = bytes_to_lbas(data_size);
     data_lba = next_aligned_lba(esp_lba + esp_size_lbas);
-
-    if (options.vhd) {
-        // Only allow lba_size = 512 for vhd,
-        //   the spec says it only uses 512 byte disk sectors
-        if (lba_size > 512) {
-            fprintf(
-                stderr,
-                "Error: VHD only allows disk sector size (LBA) = 512 bytes\n");
-            return EXIT_FAILURE;
-        }
-
-        // Add VHD suffix to image name
-        char *buf = calloc(1, strlen(image_name) + 4);
-        strcpy(buf, image_name);
-
-        char *dot_pos = strrchr(buf, '.');
-        if (!dot_pos)
-            strcat(buf, ".vhd");
-        else
-            strcpy(dot_pos, ".vhd");
-
-        image_name = buf;
-    }
 
     // Open image file
     image = fopen(image_name, "wb+");
@@ -1573,32 +1418,21 @@ int main(int argc, char *argv[]) {
     uint64_t new_size = current_size - (current_size % 4096) + 4096;
     uint8_t byte = 0;
 
-    if (options.vhd) {
-        fseek(image, new_size - (sizeof(Vhd) + 1), SEEK_SET);
-        fwrite(&byte, 1, 1, image);
-
-        // Add a fixed Virtual Hard Disk footer to the disk image
-        add_fixed_vhd_footer(image);
-        printf("Added VHD footer\n");
-
-        // Image_name had .vhd concat-ed on in a separate buffer
-        free(image_name);
-    } else {
-        // No vhd footer
-        fseek(image, new_size - 1, SEEK_SET);
-        fwrite(&byte, 1, 1, image);
-    }
+    // No vhd footer
+    fseek(image, new_size - 1, SEEK_SET);
+    fwrite(&byte, 1, 1, image);
 
     // Add disk image info file to hold at minimum the size of this disk image;
     //   this could be used in an EFI application later as part of an installer,
     //   for example
     image_size = new_size; // Image size is used to write info file
-    if (!add_disk_image_info_file(image))
+    if (!add_disk_image_info_file(image)) {
         fprintf(stderr, "Error: Could not add disk image info file to '%s'\n",
                 image_name);
+    }
 
     // File cleanup
     fclose(image);
 
-    return EXIT_SUCCESS;
+    return 0;
 }
