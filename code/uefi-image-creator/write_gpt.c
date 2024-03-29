@@ -1,12 +1,10 @@
-#include "util/log.h"
-#include <inttypes.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <uchar.h>
+#include <inttypes.h> // for uint32_t, uint8_t, uint16_t, uint64_t, int32_t
+#include <stdbool.h>  // for true, false, bool
+#include <stdio.h>    // for fwrite, fprintf, fseek, stderr, fclose, fopen
+#include <stdlib.h>   // for free, calloc, malloc, strtol, EXIT_FAILURE, rand
+#include <string.h>   // for strcmp, memcpy, strlen, strcpy, strncat, strncpy
+#include <time.h>     // for tm, time, localtime, time_t
+#include <uchar.h>    // for char16_t
 
 // -------------------------------------
 // Global Typedefs
@@ -153,7 +151,7 @@ typedef enum {
 // Internal Options object for commandline args
 typedef struct {
     char *image_name;
-    uint32_t lba_size;
+    uint16_t lba_size;
     uint32_t esp_size;
     uint32_t data_size;
     char **esp_file_paths;
@@ -161,9 +159,12 @@ typedef struct {
     FILE **esp_files;
     char **data_files;
     uint32_t num_data_files;
-    bool help;
-    bool error;
 } Options;
+
+static Options options = {.image_name = "test.hdd",
+                          .lba_size = 512,
+                          .esp_size = 1024 * 1024 * 33,
+                          .data_size = 1024 * 1024 * 1};
 
 // -------------------------------------
 // Global constants, enums
@@ -187,26 +188,24 @@ enum {
 // -------------------------------------
 // Global Variables
 // -------------------------------------
-uint64_t lba_size = 512;
-uint64_t esp_size = 1024 * 1024 * 33; // 33 MiB
-uint64_t data_size = 1024 * 1024 * 1; // 1 MiB
-uint64_t image_size = 0;
-uint64_t esp_size_lbas = 0, data_size_lbas = 0, image_size_lbas = 0,
+uint32_t image_size = 0;
+uint32_t esp_size_lbas = 0, data_size_lbas = 0, image_size_lbas = 0,
          gpt_table_lbas = 0; // Sizes in lbas
-uint64_t align_lba = 0, esp_lba = 0, data_lba = 0, fat32_fats_lba = 0,
+uint32_t align_lba = 0, esp_lba = 0, data_lba = 0, fat32_fats_lba = 0,
          fat32_data_lba = 0; // Starting LBA values
 
-uint64_t bytes_to_lbas(uint64_t bytes) {
-    return (bytes + (lba_size - 1)) / lba_size;
+uint64_t align(uint64_t value, uint64_t alignment) {
+    return value + (-value & (alignment - 1));
 }
 
 // =====================================
 // Pad out 0s to full lba size
 // =====================================
-void write_full_lba_size(FILE *image) {
+void write_full_options(FILE *image) {
     uint8_t zero_sector[512];
     for (uint8_t i = 0;
-         i < (lba_size - sizeof zero_sector) / sizeof zero_sector; i++) {
+         i < (options.lba_size - sizeof zero_sector) / sizeof zero_sector;
+         i++) {
         fwrite(zero_sector, sizeof zero_sector, 1, image);
     }
 }
@@ -305,12 +304,13 @@ void get_fat_dir_entry_time_date(uint16_t *in_time, uint16_t *in_date) {
     // since 1900,
     //   subtract 80 years for correct year value. Also convert month of year
     //   from 0-11 to 1-12 by adding 1
-    *in_date = ((tm.tm_year - 80) << 9) | ((tm.tm_mon + 1) << 5) | tm.tm_mday;
+    *in_date = (uint16_t)(((tm.tm_year - 80) << 9) | ((tm.tm_mon + 1) << 5) |
+                          tm.tm_mday);
 
     // Seconds is # 2-second count, 0-29
     if (tm.tm_sec == 60)
         tm.tm_sec = 59;
-    *in_time = tm.tm_hour << 11 | tm.tm_min << 5 | (tm.tm_sec / 2);
+    *in_time = (uint16_t)(tm.tm_hour << 11 | tm.tm_min << 5 | (tm.tm_sec / 2));
 }
 
 // =====================================
@@ -333,7 +333,7 @@ bool write_mbr(FILE *image) {
                 .os_type = 0xEE, // Protective GPT
                 .ending_chs = {0xFF, 0xFF, 0xFF},
                 .starting_lba = 0x00000001,
-                .size_lba = mbr_image_lbas - 1,
+                .size_lba = (uint32_t)(mbr_image_lbas - 1),
             },
         .boot_signature = 0xAA55,
     };
@@ -341,7 +341,7 @@ bool write_mbr(FILE *image) {
     if (fwrite(&mbr, 1, sizeof mbr, image) != sizeof mbr) {
         return false;
     }
-    write_full_lba_size(image);
+    write_full_options(image);
 
     return true;
 }
@@ -404,7 +404,7 @@ bool write_gpts(FILE *image) {
         sizeof primary_gpt) {
         return false;
     }
-    write_full_lba_size(image);
+    write_full_options(image);
 
     // Write primary gpt table to file
     if (fwrite(&gpt_table, 1, sizeof gpt_table, image) != sizeof gpt_table) {
@@ -427,7 +427,8 @@ bool write_gpts(FILE *image) {
         calculate_crc32(&secondary_gpt, secondary_gpt.header_size);
 
     // Go to position of secondary table
-    fseek(image, secondary_gpt.partition_table_lba * lba_size, SEEK_SET);
+    fseek(image, secondary_gpt.partition_table_lba * options.lba_size,
+          SEEK_SET);
 
     // Write secondary gpt table to file
     if (fwrite(&gpt_table, 1, sizeof gpt_table, image) != sizeof gpt_table) {
@@ -439,7 +440,7 @@ bool write_gpts(FILE *image) {
         sizeof secondary_gpt) {
         return false;
     }
-    write_full_lba_size(image);
+    write_full_options(image);
 
     return true;
 }
@@ -454,8 +455,7 @@ bool write_esp(FILE *image) {
     Vbr vbr = {
         .BS_jmpBoot = {0xEB, 0x00, 0x90},
         .BS_OEMName = {"THISDISK"},
-        .BPB_BytesPerSec =
-            lba_size, // This is limited to only 512/1024/2048/4096
+        .BPB_BytesPerSec = options.lba_size,
         .BPB_SecPerClus = 1,
         .BPB_RsvdSecCnt = reserved_sectors,
         .BPB_NumFATs = 2,
@@ -505,12 +505,12 @@ bool write_esp(FILE *image) {
     fat32_data_lba = fat32_fats_lba + (vbr.BPB_NumFATs * vbr.BPB_FATSz32);
 
     // Write VBR and FSInfo sector
-    fseek(image, esp_lba * lba_size, SEEK_SET);
+    fseek(image, esp_lba * options.lba_size, SEEK_SET);
     if (fwrite(&vbr, 1, sizeof vbr, image) != sizeof vbr) {
         fprintf(stderr, "Error: Could not write ESP VBR to image\n");
         return false;
     }
-    write_full_lba_size(image);
+    write_full_options(image);
 
     if (fwrite(&fsinfo, 1, sizeof fsinfo, image) != sizeof fsinfo) {
         fprintf(
@@ -518,18 +518,18 @@ bool write_esp(FILE *image) {
             "Error: Could not write ESP File System Info Sector to image\n");
         return false;
     }
-    write_full_lba_size(image);
+    write_full_options(image);
 
     // Go to backup boot sector location
-    fseek(image, (esp_lba + vbr.BPB_BkBootSec) * lba_size, SEEK_SET);
+    fseek(image, (esp_lba + vbr.BPB_BkBootSec) * options.lba_size, SEEK_SET);
 
     // Write VBR and FSInfo at backup location
-    fseek(image, esp_lba * lba_size, SEEK_SET);
+    fseek(image, esp_lba * options.lba_size, SEEK_SET);
     if (fwrite(&vbr, 1, sizeof vbr, image) != sizeof vbr) {
         fprintf(stderr, "Error: Could not write VBR to image\n");
         return false;
     }
-    write_full_lba_size(image);
+    write_full_options(image);
 
     if (fwrite(&fsinfo, 1, sizeof fsinfo, image) != sizeof fsinfo) {
         fprintf(
@@ -537,12 +537,13 @@ bool write_esp(FILE *image) {
             "Error: Could not write ESP File System Info Sector to image\n");
         return false;
     }
-    write_full_lba_size(image);
+    write_full_options(image);
 
     // FAT region --------------------------
     // Write FATs (NOTE: FATs will be mirrored)
     for (uint8_t i = 0; i < vbr.BPB_NumFATs; i++) {
-        fseek(image, (fat32_fats_lba + (i * vbr.BPB_FATSz32)) * lba_size,
+        fseek(image,
+              (fat32_fats_lba + (i * vbr.BPB_FATSz32)) * options.lba_size,
               SEEK_SET);
 
         uint32_t cluster = 0;
@@ -580,7 +581,7 @@ bool write_esp(FILE *image) {
 
     // Data region --------------------------
     // Write File/Dir data...
-    fseek(image, fat32_data_lba * lba_size, SEEK_SET);
+    fseek(image, fat32_data_lba * options.lba_size, SEEK_SET);
 
     // Root '/' Directory entries
     // "/EFI" dir entry
@@ -610,7 +611,7 @@ bool write_esp(FILE *image) {
     fwrite(&dir_ent, sizeof dir_ent, 1, image);
 
     // /EFI Directory entries
-    fseek(image, (fat32_data_lba + 1) * lba_size, SEEK_SET);
+    fseek(image, (fat32_data_lba + 1) * options.lba_size, SEEK_SET);
 
     memcpy(dir_ent.DIR_Name, ".          ",
            11); // "." dir entry, this directory itself
@@ -626,7 +627,7 @@ bool write_esp(FILE *image) {
     fwrite(&dir_ent, sizeof dir_ent, 1, image);
 
     // /EFI/BOOT Directory entries
-    fseek(image, (fat32_data_lba + 2) * lba_size, SEEK_SET);
+    fseek(image, (fat32_data_lba + 2) * options.lba_size, SEEK_SET);
 
     memcpy(dir_ent.DIR_Name, ".          ",
            11); // "." dir entry, this directory itself
@@ -647,14 +648,14 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
                      uint32_t *parent_dir_cluster) {
     // First grab FAT32 filesystem info for VBR and File System info
     Vbr vbr = {0};
-    fseek(image, esp_lba * lba_size, SEEK_SET);
+    fseek(image, esp_lba * options.lba_size, SEEK_SET);
     if (fread(&vbr, 1, sizeof vbr, image) != sizeof vbr) {
         fprintf(stderr, "Error: Could not fead vbr.\n");
         return false;
     }
 
     FSInfo fsinfo = {0};
-    fseek(image, (esp_lba + 1) * lba_size, SEEK_SET);
+    fseek(image, (esp_lba + 1) * options.lba_size, SEEK_SET);
     if (fread(&fsinfo, 1, sizeof fsinfo, image) != sizeof fsinfo) {
         fprintf(stderr, "Error: Could not fead fsinfo.\n");
         return false;
@@ -665,7 +666,7 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
     if (type == TYPE_FILE) {
         fseek(file, 0, SEEK_END);
         file_size_bytes = ftell(file);
-        file_size_lbas = bytes_to_lbas(file_size_bytes);
+        file_size_lbas = align(file_size_bytes, options.lba_size);
         rewind(file);
     }
 
@@ -676,7 +677,8 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
 
     // Add new clusters to FATs
     for (uint8_t i = 0; i < vbr.BPB_NumFATs; i++) {
-        fseek(image, (fat32_fats_lba + (i * vbr.BPB_FATSz32)) * lba_size,
+        fseek(image,
+              (fat32_fats_lba + (i * vbr.BPB_FATSz32)) * options.lba_size,
               SEEK_SET);
         fseek(image, next_free_cluster * sizeof next_free_cluster, SEEK_CUR);
 
@@ -700,11 +702,11 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
 
     // Update next free cluster in FS Info
     fsinfo.FSI_Nxt_Free = next_free_cluster;
-    fseek(image, (esp_lba + 1) * lba_size, SEEK_SET);
+    fseek(image, (esp_lba + 1) * options.lba_size, SEEK_SET);
     fwrite(&fsinfo, sizeof fsinfo, 1, image);
 
     // Go to Parent Directory's data location in data region
-    fseek(image, (fat32_data_lba + *parent_dir_cluster - 2) * lba_size,
+    fseek(image, (fat32_data_lba + *parent_dir_cluster - 2) * options.lba_size,
           SEEK_SET);
 
     // Add new directory entry for this new dir/file at end of current
@@ -721,7 +723,7 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
 
     // Check name length for FAT 8.3 naming
     char *dot_pos = strchr(file_name, '.');
-    uint32_t name_len = strlen(file_name);
+    uint64_t name_len = strlen(file_name);
     if ((!dot_pos && name_len > 11) || (dot_pos && name_len > 12) ||
         (dot_pos && dot_pos - file_name > 8)) {
         return false; // Name is too long or invalid
@@ -772,13 +774,14 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
     dir_entry.DIR_FstClusLO = starting_cluster & 0xFFFF;
 
     if (type == TYPE_FILE) {
-        dir_entry.DIR_FileSize = file_size_bytes;
+        dir_entry.DIR_FileSize = (uint32_t)file_size_bytes;
     }
 
     fwrite(&dir_entry, 1, sizeof dir_entry, image);
 
     // Go to this new file's cluster's data location in data region
-    fseek(image, (fat32_data_lba + starting_cluster - 2) * lba_size, SEEK_SET);
+    fseek(image, (fat32_data_lba + starting_cluster - 2) * options.lba_size,
+          SEEK_SET);
 
     // Add new file data
     // For directory add dir_entrys for "." and ".."
@@ -794,12 +797,12 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
         fwrite(&dir_entry, 1, sizeof dir_entry, image);
     } else {
         // For file, add file data
-        uint8_t *file_buf = calloc(1, lba_size);
+        uint8_t *file_buf = calloc(1, options.lba_size);
         for (uint64_t i = 0; i < file_size_lbas; i++) {
             // In case last lba is less than a full lba in size, use actual
             // bytes read
             //   to write file to disk image
-            size_t bytes_read = fread(file_buf, 1, lba_size, file);
+            size_t bytes_read = fread(file_buf, 1, options.lba_size, file);
             fwrite(file_buf, 1, bytes_read, image);
         }
         free(file_buf);
@@ -847,7 +850,8 @@ bool add_path_to_esp(char *path, FILE *file, FILE *image) {
         // Search for name in current directory's file data (dir_entrys)
         FAT32_Dir_Entry_Short dir_entry = {0};
         bool found = false;
-        fseek(image, (fat32_data_lba + dir_cluster - 2) * lba_size, SEEK_SET);
+        fseek(image, (fat32_data_lba + dir_cluster - 2) * options.lba_size,
+              SEEK_SET);
         do {
             if (fread(&dir_entry, 1, sizeof dir_entry, image) ==
                     sizeof dir_entry &&
@@ -887,10 +891,10 @@ bool add_path_to_esp(char *path, FILE *file, FILE *image) {
 // Add disk image info file to hold at minimum the size of this disk image
 // =============================
 bool add_disk_image_info_file(FILE *image) {
-    char *file_buf = calloc(1, lba_size);
-    snprintf(file_buf, lba_size, "DISK_SIZE=%" PRIu64 "\n", image_size);
+    char *file_buf = calloc(1, options.lba_size);
+    snprintf(file_buf, options.lba_size, "DISK_SIZE=%u\n", image_size);
 
-    FILE *fp = fopen("DSKIMG.INF", "wb");
+    FILE *fp = fopen("DSKIMG.INF", "wbe");
     if (!fp) {
         return false;
     }
@@ -898,7 +902,7 @@ bool add_disk_image_info_file(FILE *image) {
     fwrite(file_buf, strlen(file_buf), 1, fp);
     free(file_buf);
     fclose(fp);
-    fp = fopen("DSKIMG.INF", "rb");
+    fp = fopen("DSKIMG.INF", "rbe");
 
     char path[25] = {0};
     strcpy(path, "/EFI/BOOT/DSKIMG.INF");
@@ -918,9 +922,9 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
     static uint64_t starting_lba = 0;
 
     // Go to data partition
-    fseek(image, (data_lba + starting_lba) * lba_size, SEEK_SET);
+    fseek(image, (data_lba + starting_lba) * options.lba_size, SEEK_SET);
 
-    FILE *fp = fopen(filepath, "rb");
+    FILE *fp = fopen(filepath, "rbe");
     if (!fp) {
         fprintf(stderr, "Error: Could not open file '%s'\n", filepath);
         return false;
@@ -930,22 +934,23 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
     uint64_t file_size_bytes = 0, file_size_lbas = 0;
     fseek(fp, 0, SEEK_END);
     file_size_bytes = ftell(fp);
-    file_size_lbas = bytes_to_lbas(file_size_bytes);
+    file_size_lbas = align(file_size_bytes, options.lba_size);
     rewind(fp);
 
     // Check if adding next file will overrun data partition size
-    if ((starting_lba + file_size_lbas) * lba_size >= data_size) {
+    if ((starting_lba + file_size_lbas) * options.lba_size >=
+        options.data_size) {
         fprintf(stderr,
                 "Error: Can't add file %s to Data Partition; "
-                "Data Partition size is %" PRIu64 "(%" PRIu64
+                "Data Partition size is %u (%u"
                 " LBAs) and all files added "
                 "would overrun this size\n",
-                filepath, data_size, data_size_lbas);
+                filepath, options.data_size, data_size_lbas);
     }
 
-    uint8_t *file_buf = calloc(1, lba_size);
+    uint8_t *file_buf = calloc(1, options.lba_size);
     for (uint64_t i = 0; i < file_size_lbas; i++) {
-        uint64_t bytes_read = fread(file_buf, 1, lba_size, fp);
+        uint64_t bytes_read = fread(file_buf, 1, options.lba_size, fp);
         fwrite(file_buf, 1, bytes_read, image);
     }
     free(file_buf);
@@ -968,9 +973,9 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
 
     if (first_file) {
         first_file = false;
-        fp = fopen(info_file, "wb"); // Truncate before writing
+        fp = fopen(info_file, "wbe"); // Truncate before writing
     } else {
-        fp = fopen(info_file, "ab"); // Add to end of previous info
+        fp = fopen(info_file, "abe"); // Add to end of previous info
     }
 
     if (!fp) {
@@ -978,8 +983,8 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
         return false;
     }
 
-    file_buf = calloc(1, lba_size);
-    snprintf((char *)file_buf, lba_size,
+    file_buf = calloc(1, options.lba_size);
+    snprintf((char *)file_buf, options.lba_size,
              "FILE_NAME=%s\n"
              "FILE_SIZE=%" PRIu64 "\n"
              "DISK_LBA=%" PRIu64 "\n\n", // Add extra line between files
@@ -996,376 +1001,72 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
     return true;
 }
 
-// =============================
-// Get/parse input arguments from command line
-// =============================
-Options get_opts(int argc, char *argv[]) {
-    Options options = {0};
-
-    for (int i = 1; i < argc; i++) {
-        if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
-            // Print help text and exit
-            options.help = true;
-            return options;
-        }
-
-        if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--image-name")) {
-            // Set name of image, instead of using default name
-            if (++i >= argc) {
-                options.error = true;
-                return options;
-            }
-
-            options.image_name = argv[i];
-            continue;
-        }
-
-        if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "--lba-size")) {
-            // Set size of lba/disk sector, instead of default 512 bytes
-            if (++i >= argc) {
-                options.error = true;
-                return options;
-            }
-
-            options.lba_size = strtol(argv[i], NULL, 10);
-
-            if (options.lba_size != 512 && options.lba_size != 1024 &&
-                options.lba_size != 2048 && options.lba_size != 4096) {
-                // Error: invalid LBA size
-                fprintf(stderr, "Error: Invalid LBA size, must be one of "
-                                "512/1024/2048/4096\n");
-                options.error = true;
-                return options;
-            }
-
-            // Enforce minimum size of ESP per LBA size
-            if ((options.lba_size == 512 && options.esp_size < 33) ||
-                (options.lba_size == 1024 && options.esp_size < 65) ||
-                (options.lba_size == 2048 && options.esp_size < 129) ||
-                (options.lba_size == 4096 && options.esp_size < 257)) {
-                fprintf(stderr,
-                        "Error: ESP Must be a minimum of 33/65/129/257 MiB for "
-                        "LBA sizes 512/1024/2048/4096 respectively\n");
-                options.error = true;
-                return options;
-            }
-            continue;
-        }
-
-        if (!strcmp(argv[i], "-es") || !strcmp(argv[i], "--esp-size")) {
-            // Set size of EFI System Partition in Megabytes (MiB)
-            if (++i >= argc) {
-                options.error = true;
-                return options;
-            }
-
-            // Enforce minimum size of ESP per LBA size
-            options.esp_size = strtol(argv[i], NULL, 10);
-            if ((options.lba_size == 512 && options.esp_size < 33) ||
-                (options.lba_size == 1024 && options.esp_size < 65) ||
-                (options.lba_size == 2048 && options.esp_size < 129) ||
-                (options.lba_size == 4096 && options.esp_size < 257)) {
-                fprintf(stderr,
-                        "Error: ESP Must be a minimum of 33/65/129/257 MiB for "
-                        "LBA sizes 512/1024/2048/4096 respectively\n");
-                options.error = true;
-                return options;
-            }
-
-            continue;
-        }
-
-        if (!strcmp(argv[i], "-ds") || !strcmp(argv[i], "--data-size")) {
-            // Set size of EFI System Partition in Megabytes (MiB)
-            if (++i >= argc) {
-                options.error = true;
-                return options;
-            }
-
-            options.data_size = strtol(argv[i], NULL, 10);
-            continue;
-        }
-
-        if (!strcmp(argv[i], "-ae") || !strcmp(argv[i], "--add-esp-files")) {
-            // Add files to the EFI System Partition
-            if (i + 2 >= argc) {
-                // Need at least 2 more args for path & file, for this to work
-                fprintf(stderr, "Error: Must include at least 1 path and 1 "
-                                "file to add to ESP\n");
-                options.error = true;
-                return options;
-            }
-
-            // Allocate memory for file paths & File pointers
-            uint32_t MAX_FILES = 10;
-            options.esp_file_paths = malloc(MAX_FILES * sizeof(char *));
-            options.esp_files = malloc(MAX_FILES * sizeof(FILE *));
-
-            for (i += 1; i < argc && argv[i][0] != '-'; i++) {
-                // Grab next 2 args, 1st will be path to add, 2nd will be file
-                // to add to path
-                int MAX_LEN = 256;
-                options.esp_file_paths[options.num_esp_file_paths] =
-                    calloc(1, MAX_LEN);
-
-                // Get path to add
-                strncpy(options.esp_file_paths[options.num_esp_file_paths],
-                        argv[i], MAX_LEN - 1);
-
-                // Ensure path starts and ends with a slash '/'
-                if ((argv[i][0] != '/') ||
-                    (argv[i][strlen(argv[i]) - 1] != '/')) {
-                    fprintf(stderr, "Error: All file paths to add to ESP must "
-                                    "start and end with slash '/'\n");
-                    options.error = true;
-                    return options;
-                }
-
-                // Get FILE * for file to add to path
-                i++;
-                options.esp_files[options.num_esp_file_paths] =
-                    fopen(argv[i], "rb");
-                if (!options.esp_files[options.num_esp_file_paths]) {
-                    fprintf(stderr, "Error: Could not fopen file '%s'\n",
-                            argv[i]);
-                    options.error = true;
-                    return options;
-                }
-
-                // Concat file to add to path
-                char *slash = strrchr(argv[i], '/');
-                if (!slash) {
-                    // Plain file name, no folder path
-                    strncat(options.esp_file_paths[options.num_esp_file_paths],
-                            argv[i], MAX_LEN - 1);
-                } else {
-                    // Get only last name in path, no folders
-                    strncat(options.esp_file_paths[options.num_esp_file_paths],
-                            slash + 1, // File name starts after final slash
-                            MAX_LEN - 1);
-                }
-
-                if (++options.num_esp_file_paths == MAX_FILES) {
-                    fprintf(stderr,
-                            "Error: Number of ESP files to add must be <= %d\n",
-                            MAX_FILES);
-                    options.error = true;
-                    return options;
-                }
-            }
-
-            // Overall for loop will increment i; in order to get next option,
-            // decrement here
-            i--;
-            continue;
-        }
-
-        if (!strcmp(argv[i], "-ad") || !strcmp(argv[i], "--add-data-files")) {
-            // Add files to the Basic Data Partition
-            // Allocate memory for file paths
-            uint32_t MAX_FILES = 10;
-            options.data_files = malloc(MAX_FILES * sizeof(char *));
-
-            for (i += 1; i < argc && argv[i][0] != '-'; i++) {
-                // Grab next 2 args, 1st will be path to add, 2nd will be file
-                // to add to path
-                int MAX_LEN = 256;
-                options.data_files[options.num_data_files] = calloc(1, MAX_LEN);
-
-                // Get path to add
-                strncpy(options.data_files[options.num_data_files], argv[i],
-                        MAX_LEN - 1);
-
-                if (++options.num_data_files == MAX_FILES) {
-                    fprintf(stderr,
-                            "Error: Number of Data Parition files to add must "
-                            "be <= %d\n",
-                            MAX_FILES);
-
-                    options.error = true;
-                    return options;
-                }
-            }
-
-            // Overall for loop will increment i; in order to get next option,
-            // decrement here
-            i--;
-            continue;
-        }
-    }
-
-    return options;
-}
-
-// =============================
-// MAIN
-// =============================
-int main(int argc, char *argv[]) {
+int writeUEFIImage() {
     FILE *image = NULL, *fp = NULL;
 
-    // Get options passed in from command line
-    Options options = get_opts(argc, argv);
-    if (options.error) {
-        return 1;
-    }
-
-    // Set/evaluate values from options
-    if (options.help) {
-        // Print help/usage text
-        fprintf(
-            stderr,
-            "%s [options]\n"
-            "\n"
-            "options:\n"
-            "-ad --add-data-files   Add local files to the basic data "
-            "partition, and create\n"
-            "                       a <DATAFLS.INF> file in directory "
-            "'/EFI/BOOT/' in the \n"
-            "                       ESP. This INF file will hold info for each "
-            "file added\n"
-            "                       ex: '-ad info.txt ../folderA/kernel.bin'.\n"
-            "-ae --add-esp-files    Add local files to the generated EFI "
-            "System Partition.\n"
-            "                       File paths must start under root '/' and "
-            "end with a \n"
-            "                       slash '/', and all dir/file names are "
-            "limited to FAT 8.3\n"
-            "                       naming. Each file is added in 2 parts; The "
-            "1st arg for\n"
-            "                       the path, and the 2nd arg for the file to "
-            "add to that\n"
-            "                       path. ex: '-ae /EFI/BOOT/ file1.txt' will "
-            "add the local\n"
-            "                       file 'file1.txt' to the ESP under the path "
-            "'/EFI/BOOT/'.\n"
-            "                       To add multiple files (up to 10), use "
-            "multiple\n"
-            "                       <path> <file> args.\n"
-            "                       ex: '-ae /DIR1/ FILE1.TXT /DIR2/ "
-            "FILE2.TXT'.\n"
-            "-ds --data-size        Set the size of the Basic Data Partition "
-            "in MiB; Minimum\n"
-            "                       size is 1 MiB\n"
-            "-es --esp-size         Set the size of the EFI System Partition "
-            "in MiB\n"
-            "-h  --help             Print this help text\n"
-            "-i  --image-name       Set the image name. Default name is "
-            "'test.hdd'\n"
-            "-l  --lba-size         Set the lba (sector) size in bytes; This "
-            "is \n"
-            "                       experimental, as tools are lacking for "
-            "proper testing.\n"
-            "                       Valid sizes: 512/1024/2048/4096\n",
-            argv[0]);
-        return 0;
-    }
-
-    // Using .hdd to ensure this also works by default in e.g. VirtualBox or
-    // other programs
-    char *image_name = "test.hdd";
-
-    if (options.image_name) {
-        image_name = options.image_name;
-    }
-
-    if (options.lba_size) {
-        lba_size = options.lba_size;
-    }
-
-    if (options.esp_size) {
-        // Enforce minimum sizes for ESP according to LBA size
-        if ((lba_size == 512 && options.esp_size < 33) ||
-            (lba_size == 1024 && options.esp_size < 65) ||
-            (lba_size == 2048 && options.esp_size < 129) ||
-            (lba_size == 4096 && options.esp_size < 257)) {
-            fprintf(stderr,
-                    "Error: ESP Must be a minimum of 33/65/129/257 MiB for "
-                    "LBA sizes 512/1024/2048/4096 respectively\n");
-            return EXIT_FAILURE;
-        }
-
-        esp_size = options.esp_size * ALIGNMENT;
-    }
-
-    // NOTE: Data partition will always be at least 1 MiB in size
-    if (options.data_size) {
-        data_size = options.data_size * ALIGNMENT;
-    }
-
     // Set sizes & LBA values
-    gpt_table_lbas = GPT_TABLE_SIZE / lba_size;
+    gpt_table_lbas = GPT_TABLE_SIZE / options.lba_size;
 
     // Add extra padding for:
     //   2 aligned partitions
     //   2 GPT tables
     //   MBR
     //   GPT headers
-    uint64_t padding =
-        (ALIGNMENT * 2 + (lba_size * ((gpt_table_lbas * 2) + 1 + 2)));
-    image_size = esp_size + data_size + padding;
-    image_size_lbas = bytes_to_lbas(image_size);
-    align_lba = ALIGNMENT / lba_size;
+    uint32_t padding =
+        (ALIGNMENT * 2 + (options.lba_size * ((gpt_table_lbas * 2) + 1 + 2)));
+    image_size = options.esp_size + options.data_size + padding;
+    image_size_lbas = (uint32_t)align(image_size, options.lba_size);
+    align_lba = ALIGNMENT / options.lba_size;
     esp_lba = align_lba;
-    esp_size_lbas = bytes_to_lbas(esp_size);
-    data_size_lbas = bytes_to_lbas(data_size);
-    data_lba = next_aligned_lba(esp_lba + esp_size_lbas);
+    esp_size_lbas = (uint32_t)align(options.esp_size, options.lba_size);
+    data_size_lbas = (uint32_t)align(options.data_size, options.lba_size);
+    data_lba = (uint32_t)next_aligned_lba(esp_lba + esp_size_lbas);
 
     // Open image file
-    image = fopen(image_name, "wb+");
+    image = fopen(options.image_name, "wb+e");
     if (!image) {
-        fprintf(stderr, "Error: could not open file %s\n", image_name);
-        return EXIT_FAILURE;
+        fprintf(stderr, "Error: could not open file %s\n", options.image_name);
+        return 1;
     }
 
     // Print info on sizes and image for user
     printf("IMAGE NAME: %s\n"
-           "LBA SIZE: %" PRIu64 "\n"
-           "ESP SIZE: %" PRIu64 "MiB\n"
-           "DATA SIZE: %" PRIu64 "MiB\n"
-           "PADDING: %" PRIu64 "MiB\n"
-           "IMAGE SIZE: %" PRIu64 "MiB\n",
+           "LBA SIZE: %u\n"
+           "ESP SIZE: %uMiB\n"
+           "DATA SIZE: %uMiB\n"
+           "PADDING: %uMiB\n"
+           "IMAGE SIZE: %uMiB\n",
 
-           image_name, lba_size, esp_size / ALIGNMENT, data_size / ALIGNMENT,
-           padding / ALIGNMENT, image_size / ALIGNMENT);
+           options.image_name, options.lba_size, options.esp_size / ALIGNMENT,
+           options.data_size / ALIGNMENT, padding / ALIGNMENT,
+           image_size / ALIGNMENT);
 
     // Seed random number generation
-    srand(time(NULL));
+    srand((uint32_t)time(NULL));
 
     // Write protective MBR
     if (!write_mbr(image)) {
         fprintf(stderr, "Error: could not write protective MBR for file %s\n",
-                image_name);
+                options.image_name);
         fclose(image);
-        return EXIT_FAILURE;
+        return 1;
     }
 
     // Write GPT headers & tables
     if (!write_gpts(image)) {
         fprintf(stderr,
                 "Error: could not write GPT headers & tables for file %s\n",
-                image_name);
+                options.image_name);
         fclose(image);
-        return EXIT_FAILURE;
+        return 1;
     }
 
     // Write EFI System Partition w/FAT32 filesystem
     if (!write_esp(image)) {
-        fprintf(stderr, "Error: could not write ESP for file %s\n", image_name);
+        fprintf(stderr, "Error: could not write ESP for file %s\n",
+                options.image_name);
         fclose(image);
-        return EXIT_FAILURE;
-    }
-
-    // Check if "BOOTX64.EFI" file exists in current directory, if so
-    // automatically
-    //   add it to the ESP
-    fp = fopen("BOOTX64.EFI", "rb");
-    if (fp) {
-        char path[25] = {0};
-        strcpy(path, "/EFI/BOOT/BOOTX64.EFI");
-        if (!add_path_to_esp(path, fp, image))
-            fprintf(stderr, "Error: Could not add file '%s'\n", path);
-
-        fclose(fp);
+        return 1;
     }
 
     if (options.num_esp_file_paths > 0) {
@@ -1399,15 +1100,15 @@ int main(int argc, char *argv[]) {
         char info_path[25] = {0};
         strcpy(info_path, "/EFI/BOOT/DATAFLS.INF");
 
-        fp = fopen(info_file, "rb");
+        fp = fopen(info_file, "rbe");
         if (!fp) {
             fprintf(stderr, "ERROR: Could not open '%s'\n", info_file);
-            return false;
+            return 1;
         }
 
         if (!add_path_to_esp(info_path, fp, image)) {
             fprintf(stderr, "ERROR: Could not add '%s' to ESP\n", info_path);
-            return false;
+            return 1;
         }
         fclose(fp);
     }
@@ -1425,14 +1126,247 @@ int main(int argc, char *argv[]) {
     // Add disk image info file to hold at minimum the size of this disk image;
     //   this could be used in an EFI application later as part of an installer,
     //   for example
-    image_size = new_size; // Image size is used to write info file
+    image_size = (uint32_t)new_size; // Image size is used to write info file
     if (!add_disk_image_info_file(image)) {
         fprintf(stderr, "Error: Could not add disk image info file to '%s'\n",
-                image_name);
+                options.image_name);
     }
 
     // File cleanup
     fclose(image);
 
     return 0;
+}
+
+// =============================
+// MAIN
+// =============================
+int main(int argc, char *argv[]) {
+    for (int i = 1; i < argc; i++) {
+        if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
+            fprintf(
+                stderr,
+                "%s [options]\n"
+                "\n"
+                "options:\n"
+                "-ad --add-data-files   Add local files to the basic data "
+                "partition, and create\n"
+                "                       a <DATAFLS.INF> file in directory "
+                "'/EFI/BOOT/' in the \n"
+                "                       ESP. This INF file will hold info for "
+                "each "
+                "file added\n"
+                "                       ex: '-ad info.txt "
+                "../folderA/kernel.bin'.\n"
+                "-ae --add-esp-files    Add local files to the generated EFI "
+                "System Partition.\n"
+                "                       File paths must start under root '/' "
+                "and "
+                "end with a \n"
+                "                       slash '/', and all dir/file names are "
+                "limited to FAT 8.3\n"
+                "                       naming. Each file is added in 2 parts; "
+                "The "
+                "1st arg for\n"
+                "                       the path, and the 2nd arg for the file "
+                "to "
+                "add to that\n"
+                "                       path. ex: '-ae /EFI/BOOT/ file1.txt' "
+                "will "
+                "add the local\n"
+                "                       file 'file1.txt' to the ESP under the "
+                "path "
+                "'/EFI/BOOT/'.\n"
+                "                       To add multiple files (up to 10), use "
+                "multiple\n"
+                "                       <path> <file> args.\n"
+                "                       ex: '-ae /DIR1/ FILE1.TXT /DIR2/ "
+                "FILE2.TXT'.\n"
+                "-ds --data-size        Set the size of the Basic Data "
+                "Partition "
+                "in MiB; Minimum\n"
+                "                       size is 1 MiB\n"
+                "-es --esp-size         Set the size of the EFI System "
+                "Partition "
+                "in MiB\n"
+                "-h  --help             Print this help text\n"
+                "-i  --image-name       Set the image name. Default name is "
+                "'test.hdd'\n"
+                "-l  --lba-size         Set the lba (sector) size in bytes; "
+                "This "
+                "is \n"
+                "                       experimental, as tools are lacking for "
+                "proper testing.\n"
+                "                       Valid sizes: 512/1024/2048/4096\n",
+                argv[0]);
+            return 0;
+        }
+
+        if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--image-name")) {
+            // Set name of image, instead of using default name
+            if (++i >= argc) {
+                return 1;
+            }
+
+            options.image_name = argv[i];
+            continue;
+        }
+
+        if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "--lba-size")) {
+            // Set size of lba/disk sector, instead of default 512 bytes
+            if (++i >= argc) {
+                return 1;
+            }
+
+            uint16_t lba_size = (uint16_t)strtol(argv[i], NULL, 10);
+
+            if (lba_size != 512 && lba_size != 1024 && lba_size != 2048 &&
+                lba_size != 4096) {
+                // Error: invalid LBA size
+                fprintf(stderr,
+                        "Error: Invalid LBA size of %d, must be one of "
+                        "512/1024/2048/4096\n",
+                        lba_size);
+                return 1;
+            }
+
+            options.lba_size = lba_size;
+
+            continue;
+        }
+
+        if (!strcmp(argv[i], "-es") || !strcmp(argv[i], "--esp-size")) {
+            // Set size of EFI System Partition in Megabytes (MiB)
+            if (++i >= argc) {
+                return 1;
+            }
+
+            // Enforce minimum size of ESP per LBA size
+            options.esp_size = ALIGNMENT * (uint32_t)strtol(argv[i], NULL, 10);
+
+            continue;
+        }
+
+        if (!strcmp(argv[i], "-ds") || !strcmp(argv[i], "--data-size")) {
+            // Set size of EFI System Partition in Megabytes (MiB)
+            if (++i >= argc) {
+                return 1;
+            }
+
+            options.data_size = ALIGNMENT * (uint32_t)strtol(argv[i], NULL, 10);
+            continue;
+        }
+
+        if (!strcmp(argv[i], "-ae") || !strcmp(argv[i], "--add-esp-files")) {
+            // Add files to the EFI System Partition
+            if (i + 2 >= argc) {
+                // Need at least 2 more args for path & file, for this to work
+                fprintf(stderr, "Error: Must include at least 1 path and 1 "
+                                "file to add to ESP\n");
+                return 1;
+            }
+
+            // Allocate memory for file paths & File pointers
+            uint32_t MAX_FILES = 10;
+            options.esp_file_paths = malloc(MAX_FILES * sizeof(char *));
+            options.esp_files = malloc(MAX_FILES * sizeof(FILE *));
+
+            for (i += 1; i < argc && argv[i][0] != '-'; i++) {
+                // Grab next 2 args, 1st will be path to add, 2nd will be file
+                // to add to path
+                int MAX_LEN = 256;
+                options.esp_file_paths[options.num_esp_file_paths] =
+                    calloc(1, MAX_LEN);
+
+                // Get path to add
+                strncpy(options.esp_file_paths[options.num_esp_file_paths],
+                        argv[i], MAX_LEN - 1);
+
+                // Ensure path starts and ends with a slash '/'
+                if ((argv[i][0] != '/') ||
+                    (argv[i][strlen(argv[i]) - 1] != '/')) {
+                    fprintf(stderr, "Error: All file paths to add to ESP must "
+                                    "start and end with slash '/'\n");
+                    return 1;
+                }
+
+                // Get FILE * for file to add to path
+                i++;
+                options.esp_files[options.num_esp_file_paths] =
+                    fopen(argv[i], "rbe");
+                if (!options.esp_files[options.num_esp_file_paths]) {
+                    fprintf(stderr, "Error: Could not fopen file '%s'\n",
+                            argv[i]);
+                    return 1;
+                }
+
+                // Concat file to add to path
+                char *slash = strrchr(argv[i], '/');
+                if (!slash) {
+                    // Plain file name, no folder path
+                    strncat(options.esp_file_paths[options.num_esp_file_paths],
+                            argv[i], MAX_LEN - 1);
+                } else {
+                    // Get only last name in path, no folders
+                    strncat(options.esp_file_paths[options.num_esp_file_paths],
+                            slash + 1, // File name starts after final slash
+                            MAX_LEN - 1);
+                }
+
+                if (++options.num_esp_file_paths == MAX_FILES) {
+                    fprintf(stderr,
+                            "Error: Number of ESP files to add must be <= %d\n",
+                            MAX_FILES);
+                    return 1;
+                }
+            }
+
+            // Overall for loop will increment i; in order to get next option,
+            // decrement here
+            i--;
+            continue;
+        }
+
+        if (!strcmp(argv[i], "-ad") || !strcmp(argv[i], "--add-data-files")) {
+            // Add files to the Basic Data Partition
+            // Allocate memory for file paths
+            uint32_t MAX_FILES = 10;
+            options.data_files = malloc(MAX_FILES * sizeof(char *));
+
+            for (i += 1; i < argc && argv[i][0] != '-'; i++) {
+                // Grab next 2 args, 1st will be path to add, 2nd will be file
+                // to add to path
+                int MAX_LEN = 256;
+                options.data_files[options.num_data_files] = calloc(1, MAX_LEN);
+
+                // Get path to add
+                strncpy(options.data_files[options.num_data_files], argv[i],
+                        MAX_LEN - 1);
+
+                if (++options.num_data_files == MAX_FILES) {
+                    fprintf(stderr,
+                            "Error: Number of Data Parition files to add must "
+                            "be <= %d\n",
+                            MAX_FILES);
+                    return 1;
+                }
+            }
+
+            // Overall for loop will increment i; in order to get next option,
+            // decrement here
+            i--;
+            continue;
+        }
+    }
+
+    if ((options.lba_size == 512 && options.esp_size < 33 * ALIGNMENT) ||
+        (options.lba_size == 1024 && options.esp_size < 65 * ALIGNMENT) ||
+        (options.lba_size == 2048 && options.esp_size < 129 * ALIGNMENT) ||
+        (options.lba_size == 4096 && options.esp_size < 257 * ALIGNMENT)) {
+        fprintf(stderr, "Error: ESP Must be a minimum of 33/65/129/257 MiB for "
+                        "LBA sizes 512/1024/2048/4096 respectively\n");
+        return 1;
+    }
+
+    return writeUEFIImage();
 }
