@@ -85,6 +85,7 @@ flo_string flo_noAppend();
         unsigned char *: flo_cStrToString,                                     \
         void *: flo_ptrToStringDefault,                                        \
         int *: flo_ptrToStringDefault,                                         \
+        char **: flo_ptrToStringDefault,                                       \
         unsigned int *: flo_ptrToStringDefault,                                \
         char: flo_charToStringDefault,                                         \
         ptrdiff_t: flo_ptrdiffToStringDefault,                                 \

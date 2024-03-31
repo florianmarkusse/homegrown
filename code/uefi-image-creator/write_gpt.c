@@ -1,10 +1,17 @@
+#include "crc32-table.h"
+#include "util/log.h"
+#include <errno.h>    // for errno
 #include <inttypes.h> // for uint32_t, uint8_t, uint16_t, uint64_t, int32_t
 #include <stdbool.h>  // for true, false, bool
 #include <stdio.h>    // for fwrite, fprintf, fseek, stderr, fclose, fopen
 #include <stdlib.h>   // for free, calloc, malloc, strtol, EXIT_FAILURE, rand
 #include <string.h>   // for strcmp, memcpy, strlen, strcpy, strncat, strncpy
+#include <sys/mman.h> // for mmap, munmap, MAP_ANONYMOUS, MAP_...
 #include <time.h>     // for tm, time, localtime, time_t
 #include <uchar.h>    // for char16_t
+
+size_t memoryCap = (size_t)1 << 21;
+void *jmp_buf[5];
 
 // -------------------------------------
 // Global Typedefs
@@ -148,16 +155,20 @@ typedef enum {
     TYPE_FILE, // Regular file
 } File_Type;
 
+#define MAX_FILES 10
+#define MAX_FILE_LEN (1 << 8)
+
 // Internal Options object for commandline args
 typedef struct {
     char *image_name;
     uint16_t lba_size;
     uint32_t esp_size;
     uint32_t data_size;
-    char **esp_file_paths;
+    char esp_file_paths[MAX_FILES][MAX_FILE_LEN];
     uint32_t num_esp_file_paths;
-    FILE **esp_files;
-    char **data_files;
+    FILE *esp_files[MAX_FILES];
+    // TODO: why do esp files work with a file pointer and this exits later?
+    char data_files[MAX_FILES][MAX_FILE_LEN];
     uint32_t num_data_files;
 } Options;
 
@@ -206,7 +217,15 @@ void write_full_options(FILE *image) {
     for (uint8_t i = 0;
          i < (options.lba_size - sizeof zero_sector) / sizeof zero_sector;
          i++) {
-        fwrite(zero_sector, sizeof zero_sector, 1, image);
+        if (fwrite(zero_sector, sizeof zero_sector, 1, image) !=
+            sizeof zero_sector) {
+            FLO_FLUSH_AFTER(FLO_STDERR) {
+                FLO_ERROR(FLO_STRING("Failed to write zero sector\n"));
+            }
+
+            FLO_ASSERT(false);
+            __builtin_longjmp(jmp_buf, 1);
+        }
     }
 }
 
@@ -805,7 +824,6 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
             size_t bytes_read = fread(file_buf, 1, options.lba_size, file);
             fwrite(file_buf, 1, bytes_read, image);
         }
-        free(file_buf);
     }
 
     // Set dir_cluster for new parent dir, if a directory was just added
@@ -900,7 +918,6 @@ bool add_disk_image_info_file(FILE *image) {
     }
 
     fwrite(file_buf, strlen(file_buf), 1, fp);
-    free(file_buf);
     fclose(fp);
     fp = fopen("DSKIMG.INF", "rbe");
 
@@ -953,7 +970,6 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
         uint64_t bytes_read = fread(file_buf, 1, options.lba_size, fp);
         fwrite(file_buf, 1, bytes_read, image);
     }
-    free(file_buf);
     fclose(fp);
 
     // Print info to user
@@ -992,7 +1008,6 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
              data_lba + starting_lba); // Offset from start of data partition
 
     fwrite(file_buf, 1, strlen((char *)file_buf), fp);
-    free(file_buf);
     fclose(fp);
 
     // Set next spot to write a file at
@@ -1001,7 +1016,7 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
     return true;
 }
 
-int writeUEFIImage() {
+int writeUEFIImage(flo_arena scratch) {
     FILE *image = NULL, *fp = NULL;
 
     // Set sizes & LBA values
@@ -1077,11 +1092,8 @@ int writeUEFIImage() {
                 fprintf(stderr, "ERROR: Could not add '%s' to ESP\n",
                         options.esp_file_paths[i]);
             }
-            free(options.esp_file_paths[i]);
             fclose(options.esp_files[i]);
         }
-        free(options.esp_file_paths);
-        free(options.esp_files);
     }
 
     if (options.num_data_files > 0) {
@@ -1092,9 +1104,7 @@ int writeUEFIImage() {
                         "ERROR: Could not add file '%s' to data partition\n",
                         options.data_files[i]);
             }
-            free(options.data_files[i]);
         }
-        free(options.data_files);
 
         char info_file[12] = "DATAFLS.INF"; // "Data (partition) files info"
         char info_path[25] = {0};
@@ -1142,68 +1152,126 @@ int writeUEFIImage() {
 // MAIN
 // =============================
 int main(int argc, char *argv[]) {
+    char *begin = mmap(NULL, memoryCap, PROT_READ | PROT_WRITE,
+                       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (begin == MAP_FAILED) {
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(FLO_STRING("Failed to allocate memory!\n"));
+            FLO_APPEND_ERRNO
+        }
+        return 1;
+    }
+
+    flo_arena arena = (flo_arena){
+        .beg = begin, .cap = memoryCap, .end = begin + (ptrdiff_t)(memoryCap)};
+
+    if (__builtin_setjmp(jmp_buf)) {
+        if (munmap(arena.beg, arena.cap) == -1) {
+            FLO_FLUSH_AFTER(FLO_STDERR) {
+                FLO_ERROR((FLO_STRING("Failed to unmap memory from"
+                                      "arena !\n "
+                                      "Arena Details:\n"
+                                      "  beg: ")));
+                FLO_ERROR(arena.beg);
+                FLO_ERROR((FLO_STRING("\n end: ")));
+                FLO_ERROR(arena.end);
+                FLO_ERROR((FLO_STRING("\n cap: ")));
+                FLO_ERROR(arena.cap);
+                FLO_ERROR((FLO_STRING("\nZeroing Arena regardless.\n")));
+            }
+        }
+        arena.beg = NULL;
+        arena.end = NULL;
+        arena.cap = 0;
+        arena.jmp_buf = NULL;
+        FLO_ERROR(
+            (FLO_STRING("Early exit due to error or OOM/overflow in arena!\n")),
+            FLO_FLUSH);
+        return 1;
+    }
+    arena.jmp_buf = jmp_buf;
+
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
-            fprintf(
-                stderr,
-                "%s [options]\n"
-                "\n"
-                "options:\n"
-                "-ad --add-data-files   Add local files to the basic data "
-                "partition, and create\n"
-                "                       a <DATAFLS.INF> file in directory "
-                "'/EFI/BOOT/' in the \n"
-                "                       ESP. This INF file will hold info for "
-                "each "
-                "file added\n"
-                "                       ex: '-ad info.txt "
-                "../folderA/kernel.bin'.\n"
-                "-ae --add-esp-files    Add local files to the generated EFI "
-                "System Partition.\n"
-                "                       File paths must start under root '/' "
-                "and "
-                "end with a \n"
-                "                       slash '/', and all dir/file names are "
-                "limited to FAT 8.3\n"
-                "                       naming. Each file is added in 2 parts; "
-                "The "
-                "1st arg for\n"
-                "                       the path, and the 2nd arg for the file "
-                "to "
-                "add to that\n"
-                "                       path. ex: '-ae /EFI/BOOT/ file1.txt' "
-                "will "
-                "add the local\n"
-                "                       file 'file1.txt' to the ESP under the "
-                "path "
-                "'/EFI/BOOT/'.\n"
-                "                       To add multiple files (up to 10), use "
-                "multiple\n"
-                "                       <path> <file> args.\n"
-                "                       ex: '-ae /DIR1/ FILE1.TXT /DIR2/ "
-                "FILE2.TXT'.\n"
-                "-ds --data-size        Set the size of the Basic Data "
-                "Partition "
-                "in MiB; Minimum\n"
-                "                       size is 1 MiB\n"
-                "-es --esp-size         Set the size of the EFI System "
-                "Partition "
-                "in MiB\n"
-                "-h  --help             Print this help text\n"
-                "-i  --image-name       Set the image name. Default name is "
-                "'test.hdd'\n"
-                "-l  --lba-size         Set the lba (sector) size in bytes; "
-                "This "
-                "is \n"
-                "                       experimental, as tools are lacking for "
-                "proper testing.\n"
-                "                       Valid sizes: 512/1024/2048/4096\n",
-                argv[0]);
-            return 0;
+            FLO_FLUSH_AFTER(FLO_STDOUT) {
+                FLO_INFO(argv[0]);
+                FLO_INFO(FLO_STRING(" [options]\n\noptions:\n"));
+
+                // add data files
+                FLO_INFO(
+                    FLO_STRING("-ad --add-data-files\tAdd local files to the "
+                               "basic data partition, annd create a\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING("<DATAFLS.INF> file in the directory "
+                                    "'/EFI/BOOT/' in the ESP.\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING(
+                    "This INF will hold info for each file added.\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(
+                    FLO_STRING("e.g: '-ad info.txt ../folderA/kernel.bin'.\n"));
+
+                // add esp files
+                FLO_INFO(FLO_STRING("-ae --add-esp-files\tAdd local files to "
+                                    "the generated EFI System Partition.\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING(
+                    "File paths must start under root '/' and end with a \n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING("slash '/', and all dir/file names are "
+                                    "limited to FAT 8.3\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING("naming. Each file is added in 2 parts; "
+                                    "The 1st arg for\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING(
+                    "the path, and the 2nd arg for the file to add to that\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING("path. ex: '-ae /EFI/BOOT/ file1.txt' "
+                                    "will add the local\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING("file 'file1.txt' to the ESP under the "
+                                    "path '/EFI/BOOT/'.\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING(
+                    "To add multiple files (up to 10), use multiple\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING("<path> <file> args.\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING(
+                    "ex: '-ae /DIR1/ FILE1.TXT /DIR2/ FILE2.TXT'.\n"));
+
+                // set data size
+                FLO_INFO(FLO_STRING("-ds --data-size\tSet the size of the "
+                                    "Basic Data Partition in MiB; Minimum\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING("size is 1 MiB\n"));
+
+                // set esp size
+                FLO_INFO(FLO_STRING("-es --esp-size\t\tSet the size of the "
+                                    "EFI System Partition in MiB\n"));
+
+                // set lba size
+                FLO_INFO(FLO_STRING("-l --lba-size\t\tSet the lba (sector) "
+                                    "size in bytes; This is \n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING("experimental, as tools are lacking for "
+                                    "proper testing.\n"));
+                FLO_INFO(FLO_STRING("\t\t\t"));
+                FLO_INFO(FLO_STRING("experimental, as tools are lacking Valid "
+                                    "sizes: 512/1024/2048/4096\n"));
+
+                // set image name
+                FLO_INFO(FLO_STRING("-i --image-name\t\tSet the image name. "
+                                    "Default name is 'test.hdd'\n"));
+
+                // help
+                FLO_INFO(FLO_STRING("-h --help\t\tPrint this help text\n"));
+            }
+            return 1;
         }
 
         if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--image-name")) {
-            // Set name of image, instead of using default name
             if (++i >= argc) {
                 return 1;
             }
@@ -1213,7 +1281,6 @@ int main(int argc, char *argv[]) {
         }
 
         if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "--lba-size")) {
-            // Set size of lba/disk sector, instead of default 512 bytes
             if (++i >= argc) {
                 return 1;
             }
@@ -1222,11 +1289,13 @@ int main(int argc, char *argv[]) {
 
             if (lba_size != 512 && lba_size != 1024 && lba_size != 2048 &&
                 lba_size != 4096) {
-                // Error: invalid LBA size
-                fprintf(stderr,
-                        "Error: Invalid LBA size of %d, must be one of "
-                        "512/1024/2048/4096\n",
-                        lba_size);
+                FLO_FLUSH_AFTER(FLO_STDERR) {
+                    FLO_ERROR(FLO_STRING("Error: Invalid LBA size of "));
+                    FLO_ERROR(lba_size);
+                    FLO_ERROR(
+                        FLO_STRING(", must be one of 512/1024/2048/4096\n"));
+                }
+
                 return 1;
             }
 
@@ -1236,19 +1305,16 @@ int main(int argc, char *argv[]) {
         }
 
         if (!strcmp(argv[i], "-es") || !strcmp(argv[i], "--esp-size")) {
-            // Set size of EFI System Partition in Megabytes (MiB)
             if (++i >= argc) {
                 return 1;
             }
 
-            // Enforce minimum size of ESP per LBA size
             options.esp_size = ALIGNMENT * (uint32_t)strtol(argv[i], NULL, 10);
 
             continue;
         }
 
         if (!strcmp(argv[i], "-ds") || !strcmp(argv[i], "--data-size")) {
-            // Set size of EFI System Partition in Megabytes (MiB)
             if (++i >= argc) {
                 return 1;
             }
@@ -1258,35 +1324,33 @@ int main(int argc, char *argv[]) {
         }
 
         if (!strcmp(argv[i], "-ae") || !strcmp(argv[i], "--add-esp-files")) {
-            // Add files to the EFI System Partition
             if (i + 2 >= argc) {
-                // Need at least 2 more args for path & file, for this to work
-                fprintf(stderr, "Error: Must include at least 1 path and 1 "
-                                "file to add to ESP\n");
+                FLO_FLUSH_AFTER(FLO_STDERR) {
+                    FLO_ERROR(FLO_STRING("Error: Must include at least 1 path "
+                                         "and 1 file to add to ESP\n"));
+                }
+
                 return 1;
             }
 
             // Allocate memory for file paths & File pointers
-            uint32_t MAX_FILES = 10;
-            options.esp_file_paths = malloc(MAX_FILES * sizeof(char *));
-            options.esp_files = malloc(MAX_FILES * sizeof(FILE *));
+            // TODO: this code is dumb
 
             for (i += 1; i < argc && argv[i][0] != '-'; i++) {
-                // Grab next 2 args, 1st will be path to add, 2nd will be file
-                // to add to path
-                int MAX_LEN = 256;
-                options.esp_file_paths[options.num_esp_file_paths] =
-                    calloc(1, MAX_LEN);
-
+                // Grab next 2 args, 1st will be path to add, 2nd will be
+                // file to add to path
                 // Get path to add
                 strncpy(options.esp_file_paths[options.num_esp_file_paths],
-                        argv[i], MAX_LEN - 1);
+                        argv[i], MAX_FILE_LEN - 1);
 
                 // Ensure path starts and ends with a slash '/'
                 if ((argv[i][0] != '/') ||
                     (argv[i][strlen(argv[i]) - 1] != '/')) {
-                    fprintf(stderr, "Error: All file paths to add to ESP must "
-                                    "start and end with slash '/'\n");
+                    FLO_FLUSH_AFTER(FLO_STDERR) {
+                        FLO_ERROR(FLO_STRING(
+                            "Error: All file paths to add to ESP must "
+                            "start and end with slash '/'\n"));
+                    }
                     return 1;
                 }
 
@@ -1295,8 +1359,11 @@ int main(int argc, char *argv[]) {
                 options.esp_files[options.num_esp_file_paths] =
                     fopen(argv[i], "rbe");
                 if (!options.esp_files[options.num_esp_file_paths]) {
-                    fprintf(stderr, "Error: Could not fopen file '%s'\n",
-                            argv[i]);
+                    FLO_FLUSH_AFTER(FLO_STDERR) {
+                        FLO_ERROR(FLO_STRING("Error: Could not fopen file "));
+                        FLO_ERROR(argv[i], FLO_NEWLINE);
+                    }
+
                     return 1;
                 }
 
@@ -1305,24 +1372,27 @@ int main(int argc, char *argv[]) {
                 if (!slash) {
                     // Plain file name, no folder path
                     strncat(options.esp_file_paths[options.num_esp_file_paths],
-                            argv[i], MAX_LEN - 1);
+                            argv[i], MAX_FILE_LEN - 1);
                 } else {
                     // Get only last name in path, no folders
                     strncat(options.esp_file_paths[options.num_esp_file_paths],
                             slash + 1, // File name starts after final slash
-                            MAX_LEN - 1);
+                            MAX_FILE_LEN - 1);
                 }
 
                 if (++options.num_esp_file_paths == MAX_FILES) {
-                    fprintf(stderr,
-                            "Error: Number of ESP files to add must be <= %d\n",
-                            MAX_FILES);
+                    FLO_FLUSH_AFTER(FLO_STDERR) {
+                        FLO_ERROR(FLO_STRING(
+                            "Error: Number of ESP files to add must be <= "));
+                        FLO_ERROR(MAX_FILES, FLO_NEWLINE);
+                    }
+
                     return 1;
                 }
             }
 
-            // Overall for loop will increment i; in order to get next option,
-            // decrement here
+            // Overall for loop will increment i; in order to get next
+            // option, decrement here
             i--;
             continue;
         }
@@ -1330,30 +1400,27 @@ int main(int argc, char *argv[]) {
         if (!strcmp(argv[i], "-ad") || !strcmp(argv[i], "--add-data-files")) {
             // Add files to the Basic Data Partition
             // Allocate memory for file paths
-            uint32_t MAX_FILES = 10;
-            options.data_files = malloc(MAX_FILES * sizeof(char *));
 
             for (i += 1; i < argc && argv[i][0] != '-'; i++) {
-                // Grab next 2 args, 1st will be path to add, 2nd will be file
-                // to add to path
-                int MAX_LEN = 256;
-                options.data_files[options.num_data_files] = calloc(1, MAX_LEN);
-
+                // Grab next 2 args, 1st will be path to add, 2nd will be
+                // file to add to path
                 // Get path to add
                 strncpy(options.data_files[options.num_data_files], argv[i],
-                        MAX_LEN - 1);
+                        MAX_FILE_LEN - 1);
 
                 if (++options.num_data_files == MAX_FILES) {
-                    fprintf(stderr,
-                            "Error: Number of Data Parition files to add must "
-                            "be <= %d\n",
-                            MAX_FILES);
+                    FLO_FLUSH_AFTER(FLO_STDERR) {
+                        FLO_ERROR(FLO_STRING("Error: Number of Data Parition "
+                                             "files to add must be <= "));
+                        FLO_ERROR(MAX_FILES, FLO_NEWLINE);
+                    }
+
                     return 1;
                 }
             }
 
-            // Overall for loop will increment i; in order to get next option,
-            // decrement here
+            // Overall for loop will increment i; in order to get next
+            // option, decrement here
             i--;
             continue;
         }
@@ -1363,10 +1430,14 @@ int main(int argc, char *argv[]) {
         (options.lba_size == 1024 && options.esp_size < 65 * ALIGNMENT) ||
         (options.lba_size == 2048 && options.esp_size < 129 * ALIGNMENT) ||
         (options.lba_size == 4096 && options.esp_size < 257 * ALIGNMENT)) {
-        fprintf(stderr, "Error: ESP Must be a minimum of 33/65/129/257 MiB for "
-                        "LBA sizes 512/1024/2048/4096 respectively\n");
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(
+                FLO_STRING("Error: ESP Must be a minimum of 33/65/129/257 MiB "
+                           "for LBA sizes 512/1024/2048/4096 respectively\n"));
+        }
+
         return 1;
     }
 
-    return writeUEFIImage();
+    return writeUEFIImage(arena);
 }

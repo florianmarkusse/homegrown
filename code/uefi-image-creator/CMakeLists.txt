@@ -10,5 +10,7 @@ add_executable(${EXECUTABLE_NAME}
     "write_gpt.c"
     )
 
+target_include_directories(${EXECUTABLE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE util-${CMAKE_BUILD_TYPE})
 
