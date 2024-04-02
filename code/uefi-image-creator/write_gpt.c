@@ -16,6 +16,8 @@ size_t memoryCap = (size_t)1 << 21;
 void *fileCloser[5];
 typedef FLO_MAX_LENGTH_ARRAY(FILE *) flo_FILEPtr_max_a;
 #define MAX_OPEN_FILES 64
+// TODO: check returns of fseek beby
+// TODO: add all files when open to this stack/array
 FILE *openFilesBuf[MAX_OPEN_FILES];
 flo_FILEPtr_max_a openedFiles = {
     .buf = openFilesBuf, .cap = MAX_OPEN_FILES, .len = 0};
@@ -232,7 +234,6 @@ void write_full_options(FILE *image) {
                 FLO_ERROR(FLO_STRING("Failed to write zero sector\n"));
             }
 
-            FLO_ASSERT(false);
             __builtin_longjmp(fileCloser, 1);
         }
     }
@@ -301,7 +302,7 @@ void get_fat_dir_entry_time_date(uint16_t *in_time, uint16_t *in_date) {
 // =====================================
 // Write protective MBR
 // =====================================
-bool write_mbr(FILE *image) {
+void write_mbr(FILE *image) {
     uint64_t mbr_image_lbas = image_size_lbas;
     if (mbr_image_lbas > 0xFFFFFFFF) {
         mbr_image_lbas = 0x100000000;
@@ -324,16 +325,20 @@ bool write_mbr(FILE *image) {
     };
 
     if (fwrite(&mbr, 1, sizeof mbr, image) != sizeof mbr) {
-        return false;
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(
+                FLO_STRING("Error: could not write protective MBR for file "));
+            FLO_ERROR(options.image_name, FLO_NEWLINE);
+        }
+        __builtin_longjmp(fileCloser, 1);
     }
-    write_full_options(image);
 
-    return true;
+    write_full_options(image);
 }
 // =====================================
 // Write GPT headers & tables, primary & secondary
 // =====================================
-bool write_gpts(FILE *image) {
+void write_gpts(FILE *image) {
     // Fill out primary GPT header
     Gpt_Header primary_gpt = {
         .signature = {"EFI PART"},
@@ -378,25 +383,27 @@ bool write_gpts(FILE *image) {
         },
     };
 
-    // Fill out primary header CRC values
     primary_gpt.partition_table_crc32 =
         calculateCRC32(gpt_table, sizeof gpt_table);
     primary_gpt.header_crc32 =
         calculateCRC32(&primary_gpt, primary_gpt.header_size);
 
-    // Write primary gpt header to file
     if (fwrite(&primary_gpt, 1, sizeof primary_gpt, image) !=
         sizeof primary_gpt) {
-        return false;
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(FLO_STRING("Failed to write primary GPT header\n"));
+        }
+        __builtin_longjmp(fileCloser, 1);
     }
     write_full_options(image);
 
-    // Write primary gpt table to file
     if (fwrite(&gpt_table, 1, sizeof gpt_table, image) != sizeof gpt_table) {
-        return false;
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(FLO_STRING("Failed to write primary GPT table\n"));
+        }
+        __builtin_longjmp(fileCloser, 1);
     }
 
-    // Fill out secondary GPT header
     Gpt_Header secondary_gpt = primary_gpt;
 
     secondary_gpt.header_crc32 = 0;
@@ -405,29 +412,29 @@ bool write_gpts(FILE *image) {
     secondary_gpt.alternate_lba = primary_gpt.my_lba;
     secondary_gpt.partition_table_lba = image_size_lbas - 1 - gpt_table_lbas;
 
-    // Fill out secondary header CRC values
     secondary_gpt.partition_table_crc32 =
         calculateCRC32(gpt_table, sizeof gpt_table);
     secondary_gpt.header_crc32 =
         calculateCRC32(&secondary_gpt, secondary_gpt.header_size);
 
-    // Go to position of secondary table
     fseek(image, secondary_gpt.partition_table_lba * options.lba_size,
           SEEK_SET);
 
-    // Write secondary gpt table to file
     if (fwrite(&gpt_table, 1, sizeof gpt_table, image) != sizeof gpt_table) {
-        return false;
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(FLO_STRING("Failed to write secondary GPT table\n"));
+        }
+        __builtin_longjmp(fileCloser, 1);
     }
 
-    // Write secondary gpt header to file
     if (fwrite(&secondary_gpt, 1, sizeof secondary_gpt, image) !=
         sizeof secondary_gpt) {
-        return false;
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(FLO_STRING("Failed to write secondary GPT header\n"));
+        }
+        __builtin_longjmp(fileCloser, 1);
     }
     write_full_options(image);
-
-    return true;
 }
 
 // =====================================
@@ -492,15 +499,20 @@ bool write_esp(FILE *image) {
     // Write VBR and FSInfo sector
     fseek(image, esp_lba * options.lba_size, SEEK_SET);
     if (fwrite(&vbr, 1, sizeof vbr, image) != sizeof vbr) {
-        fprintf(stderr, "Error: Could not write ESP VBR to image\n");
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(FLO_STRING("Error: Could not write ESP VBR to image\n"));
+        }
+        __builtin_longjmp(fileCloser, 1);
         return false;
     }
     write_full_options(image);
 
     if (fwrite(&fsinfo, 1, sizeof fsinfo, image) != sizeof fsinfo) {
-        fprintf(
-            stderr,
-            "Error: Could not write ESP File System Info Sector to image\n");
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(FLO_STRING("Error: Could not write ESP File System Info "
+                                 "Sector to image\n"));
+        }
+        __builtin_longjmp(fileCloser, 1);
         return false;
     }
     write_full_options(image);
@@ -511,15 +523,20 @@ bool write_esp(FILE *image) {
     // Write VBR and FSInfo at backup location
     fseek(image, esp_lba * options.lba_size, SEEK_SET);
     if (fwrite(&vbr, 1, sizeof vbr, image) != sizeof vbr) {
-        fprintf(stderr, "Error: Could not write VBR to image\n");
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(FLO_STRING("Error: Could not write VBR to image\n"));
+        }
+        __builtin_longjmp(fileCloser, 1);
         return false;
     }
     write_full_options(image);
 
     if (fwrite(&fsinfo, 1, sizeof fsinfo, image) != sizeof fsinfo) {
-        fprintf(
-            stderr,
-            "Error: Could not write ESP File System Info Sector to image\n");
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(FLO_STRING("Error: Could not write ESP File System Info "
+                                 "Sector to image\n"));
+        }
+        __builtin_longjmp(fileCloser, 1);
         return false;
     }
     write_full_options(image);
@@ -532,6 +549,8 @@ bool write_esp(FILE *image) {
               SEEK_SET);
 
         uint32_t cluster = 0;
+
+#define CLUSTER_WRITE
 
         // Cluster 0; FAT identifier, lowest 8 bits are the media type/byte
         cluster = 0xFFFFFF00 | vbr.BPB_Media;
@@ -982,7 +1001,7 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
     return true;
 }
 
-int writeUEFIImage(flo_arena scratch) {
+void writeUEFIImage(flo_arena scratch) {
     FILE *image = NULL, *fp = NULL;
 
     // Set sizes & LBA values
@@ -1006,48 +1025,50 @@ int writeUEFIImage(flo_arena scratch) {
     // Open image file
     image = fopen(options.image_name, "wb+e");
     if (!image) {
-        fprintf(stderr, "Error: could not open file %s\n", options.image_name);
-        return 1;
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(FLO_STRING("Error: could not open file "));
+            FLO_ERROR(options.image_name, FLO_NEWLINE);
+        }
+        __builtin_longjmp(fileCloser, 1);
     }
 
     // Print info on sizes and image for user
-    printf("IMAGE NAME: %s\n"
-           "LBA SIZE: %u\n"
-           "ESP SIZE: %uMiB\n"
-           "DATA SIZE: %uMiB\n"
-           "PADDING: %uMiB\n"
-           "IMAGE SIZE: %uMiB\n",
+    FLO_FLUSH_AFTER(FLO_STDOUT) {
+        FLO_INFO("IMAGE NAME: ");
+        FLO_INFO(options.image_name, FLO_NEWLINE);
 
-           options.image_name, options.lba_size, options.esp_size / ALIGNMENT,
-           options.data_size / ALIGNMENT, padding / ALIGNMENT,
-           image_size / ALIGNMENT);
+        FLO_INFO("LBA SIZE: ");
+        FLO_INFO(options.lba_size, FLO_NEWLINE);
 
-    // Seed random number generation
+        FLO_INFO("ESP SIZE: ");
+        FLO_INFO(options.esp_size);
+        FLO_INFO("MiB\n");
+
+        FLO_INFO("DATA SIZE: ");
+        FLO_INFO(options.data_size / ALIGNMENT);
+        FLO_INFO("MiB\n");
+
+        FLO_INFO("PADDING: ");
+        FLO_INFO(padding / ALIGNMENT);
+        FLO_INFO("MiB\n");
+
+        FLO_INFO("IMAGE SIZE: ");
+        FLO_INFO(image_size / ALIGNMENT);
+        FLO_INFO("MiB\n");
+    }
+
     srand((uint32_t)time(NULL));
 
-    // Write protective MBR
-    if (!write_mbr(image)) {
-        fprintf(stderr, "Error: could not write protective MBR for file %s\n",
-                options.image_name);
-        fclose(image);
-        return 1;
-    }
+    write_mbr(image);
 
-    // Write GPT headers & tables
-    if (!write_gpts(image)) {
-        fprintf(stderr,
-                "Error: could not write GPT headers & tables for file %s\n",
-                options.image_name);
-        fclose(image);
-        return 1;
-    }
+    write_gpts(image);
 
     // Write EFI System Partition w/FAT32 filesystem
     if (!write_esp(image)) {
         fprintf(stderr, "Error: could not write ESP for file %s\n",
                 options.image_name);
         fclose(image);
-        return 1;
+        return;
     }
 
     if (options.num_esp_file_paths > 0) {
@@ -1079,12 +1100,12 @@ int writeUEFIImage(flo_arena scratch) {
         fp = fopen(info_file, "rbe");
         if (!fp) {
             fprintf(stderr, "ERROR: Could not open '%s'\n", info_file);
-            return 1;
+            return;
         }
 
         if (!add_path_to_esp(info_path, fp, image)) {
             fprintf(stderr, "ERROR: Could not add '%s' to ESP\n", info_path);
-            return 1;
+            return;
         }
         fclose(fp);
     }
@@ -1110,8 +1131,6 @@ int writeUEFIImage(flo_arena scratch) {
 
     // File cleanup
     fclose(image);
-
-    return 0;
 }
 
 // =============================
@@ -1119,6 +1138,7 @@ int writeUEFIImage(flo_arena scratch) {
 // =============================
 int main(int argc, char *argv[]) {
     if (__builtin_setjmp(fileCloser)) {
+        FLO_ASSERT(false);
         for (ptrdiff_t i = 0; i < openedFiles.len; i++) {
             if (fclose(openedFiles.buf[i])) {
                 FLO_FLUSH_AFTER(FLO_STDERR) {
@@ -1417,5 +1437,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    return writeUEFIImage(arena);
+    writeUEFIImage(arena);
+
+    return 0;
 }
