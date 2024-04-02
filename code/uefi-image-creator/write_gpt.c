@@ -11,7 +11,16 @@
 #include <uchar.h>    // for char16_t
 
 size_t memoryCap = (size_t)1 << 21;
-void *jmp_buf[5];
+// Note: we open files in this program which need to be closed when a program
+// exits on error.
+void *fileCloser[5];
+typedef FLO_MAX_LENGTH_ARRAY(FILE *) flo_FILEPtr_max_a;
+#define MAX_OPEN_FILES 64
+FILE *openFilesBuf[MAX_OPEN_FILES];
+flo_FILEPtr_max_a openedFiles = {
+    .buf = openFilesBuf, .cap = MAX_OPEN_FILES, .len = 0};
+
+void *memoryErrors[5];
 
 // -------------------------------------
 // Global Typedefs
@@ -224,7 +233,7 @@ void write_full_options(FILE *image) {
             }
 
             FLO_ASSERT(false);
-            __builtin_longjmp(jmp_buf, 1);
+            __builtin_longjmp(fileCloser, 1);
         }
     }
 }
@@ -266,49 +275,6 @@ Guid new_guid(void) {
     result.clock_seq_hi_and_res &= ~(1 << 5); // 0b11_0_1 1111
 
     return result;
-}
-
-// =====================================
-// Create CRC32 table values
-// =====================================
-uint32_t crc_table[256];
-
-void create_crc32_table(void) {
-    uint32_t c = 0;
-
-    for (int32_t n = 0; n < 256; n++) {
-        c = (uint32_t)n;
-        for (uint8_t k = 0; k < 8; k++) {
-            if (c & 1) {
-                c = 0xedb88320L ^ (c >> 1);
-            } else {
-                c = c >> 1;
-            }
-        }
-        crc_table[n] = c;
-    }
-}
-
-// =====================================
-// Calculate CRC32 value for range of data
-// =====================================
-uint32_t calculate_crc32(void *buf, int32_t len) {
-    static bool made_crc_table = false;
-
-    uint8_t *bufp = buf;
-    uint32_t c = 0xFFFFFFFFL;
-
-    if (!made_crc_table) {
-        create_crc32_table();
-        made_crc_table = true;
-    }
-
-    for (int32_t n = 0; n < len; n++) {
-        c = crc_table[(c ^ bufp[n]) & 0xFF] ^ (c >> 8);
-    }
-
-    // Invert bits for return value
-    return c ^ 0xFFFFFFFFL;
 }
 
 // =====================================
@@ -414,9 +380,9 @@ bool write_gpts(FILE *image) {
 
     // Fill out primary header CRC values
     primary_gpt.partition_table_crc32 =
-        calculate_crc32(gpt_table, sizeof gpt_table);
+        calculateCRC32(gpt_table, sizeof gpt_table);
     primary_gpt.header_crc32 =
-        calculate_crc32(&primary_gpt, primary_gpt.header_size);
+        calculateCRC32(&primary_gpt, primary_gpt.header_size);
 
     // Write primary gpt header to file
     if (fwrite(&primary_gpt, 1, sizeof primary_gpt, image) !=
@@ -441,9 +407,9 @@ bool write_gpts(FILE *image) {
 
     // Fill out secondary header CRC values
     secondary_gpt.partition_table_crc32 =
-        calculate_crc32(gpt_table, sizeof gpt_table);
+        calculateCRC32(gpt_table, sizeof gpt_table);
     secondary_gpt.header_crc32 =
-        calculate_crc32(&secondary_gpt, secondary_gpt.header_size);
+        calculateCRC32(&secondary_gpt, secondary_gpt.header_size);
 
     // Go to position of secondary table
     fseek(image, secondary_gpt.partition_table_lba * options.lba_size,
@@ -1152,6 +1118,18 @@ int writeUEFIImage(flo_arena scratch) {
 // MAIN
 // =============================
 int main(int argc, char *argv[]) {
+    if (__builtin_setjmp(fileCloser)) {
+        for (ptrdiff_t i = 0; i < openedFiles.len; i++) {
+            if (fclose(openedFiles.buf[i])) {
+                FLO_FLUSH_AFTER(FLO_STDERR) {
+                    FLO_ERROR(FLO_STRING("Failed to close FILE*\n"));
+                    FLO_APPEND_ERRNO
+                }
+            }
+        }
+        return 1;
+    }
+
     char *begin = mmap(NULL, memoryCap, PROT_READ | PROT_WRITE,
                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (begin == MAP_FAILED) {
@@ -1165,7 +1143,7 @@ int main(int argc, char *argv[]) {
     flo_arena arena = (flo_arena){
         .beg = begin, .cap = memoryCap, .end = begin + (ptrdiff_t)(memoryCap)};
 
-    if (__builtin_setjmp(jmp_buf)) {
+    if (__builtin_setjmp(memoryErrors)) {
         if (munmap(arena.beg, arena.cap) == -1) {
             FLO_FLUSH_AFTER(FLO_STDERR) {
                 FLO_ERROR((FLO_STRING("Failed to unmap memory from"
@@ -1187,9 +1165,9 @@ int main(int argc, char *argv[]) {
         FLO_ERROR(
             (FLO_STRING("Early exit due to error or OOM/overflow in arena!\n")),
             FLO_FLUSH);
-        return 1;
+        __builtin_longjmp(fileCloser, 1);
     }
-    arena.jmp_buf = jmp_buf;
+    arena.jmp_buf = memoryErrors;
 
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
