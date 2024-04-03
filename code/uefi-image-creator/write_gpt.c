@@ -560,7 +560,7 @@ void write_esp(FILE *image) {
     dir_ent.DIR_WrtTime = create_time;
     dir_ent.DIR_WrtDate = create_date;
 
-    fwrite(&dir_ent, sizeof dir_ent, 1, image);
+    checkedFwrite(&dir_ent, sizeof dir_ent, image);
 
     // /EFI Directory entries
     fseek(image, (fat32_data_lba + 1) * options.lba_size, SEEK_SET);
@@ -638,7 +638,7 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
             for (uint64_t lba = 0; lba < file_size_lbas - 1; lba++) {
                 cluster++; // Each cluster points to next cluster of file data
                 next_free_cluster++;
-                fwrite(&cluster, sizeof cluster, 1, image);
+                checkedFwrite(&cluster, sizeof cluster, image);
             }
         }
 
@@ -647,13 +647,13 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
         //   (type == TYPE_DIR)
         cluster = 0xFFFFFFFF;
         next_free_cluster++;
-        fwrite(&cluster, sizeof cluster, 1, image);
+        checkedFwrite(&cluster, sizeof cluster, image);
     }
 
     // Update next free cluster in FS Info
     fsinfo.FSI_Nxt_Free = next_free_cluster;
     fseek(image, (esp_lba + 1) * options.lba_size, SEEK_SET);
-    fwrite(&fsinfo, sizeof fsinfo, 1, image);
+    checkedFwrite(&fsinfo, sizeof fsinfo, image);
 
     // Go to Parent Directory's data location in data region
     fseek(image, (fat32_data_lba + *parent_dir_cluster - 2) * options.lba_size,
@@ -727,7 +727,7 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
         dir_entry.DIR_FileSize = (uint32_t)file_size_bytes;
     }
 
-    fwrite(&dir_entry, 1, sizeof dir_entry, image);
+    checkedFwrite(&dir_entry, sizeof dir_entry, image);
 
     // Go to this new file's cluster's data location in data region
     fseek(image, (fat32_data_lba + starting_cluster - 2) * options.lba_size,
@@ -738,13 +738,13 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
     if (type == TYPE_DIR) {
         memcpy(dir_entry.DIR_Name, ".          ",
                11); // "." dir_entry; this directory itself
-        fwrite(&dir_entry, 1, sizeof dir_entry, image);
+        checkedFwrite(&dir_entry, sizeof dir_entry, image);
 
         memcpy(dir_entry.DIR_Name, "..         ",
                11); // ".." dir_entry; parent directory
         dir_entry.DIR_FstClusHI = (*parent_dir_cluster >> 16) & 0xFFFF;
         dir_entry.DIR_FstClusLO = *parent_dir_cluster & 0xFFFF;
-        fwrite(&dir_entry, 1, sizeof dir_entry, image);
+        checkedFwrite(&dir_entry, sizeof dir_entry, image);
     } else {
         // For file, add file data
         uint8_t *file_buf = calloc(1, options.lba_size);
@@ -753,7 +753,7 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
             // bytes read
             //   to write file to disk image
             size_t bytes_read = fread(file_buf, 1, options.lba_size, file);
-            fwrite(file_buf, 1, bytes_read, image);
+            checkedFwrite(file_buf, bytes_read, image);
         }
     }
 
@@ -848,7 +848,7 @@ bool add_disk_image_info_file(FILE *image) {
         return false;
     }
 
-    fwrite(file_buf, strlen(file_buf), 1, fp);
+    checkedFwrite(file_buf, strlen(file_buf), fp);
     fclose(fp);
     fp = fopen("DSKIMG.INF", "rbe");
 
@@ -899,7 +899,7 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
     uint8_t *file_buf = calloc(1, options.lba_size);
     for (uint64_t i = 0; i < file_size_lbas; i++) {
         uint64_t bytes_read = fread(file_buf, 1, options.lba_size, fp);
-        fwrite(file_buf, 1, bytes_read, image);
+        checkedFwrite(file_buf, bytes_read, image);
     }
     fclose(fp);
 
@@ -938,7 +938,7 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
              name, file_size_bytes,
              data_lba + starting_lba); // Offset from start of data partition
 
-    fwrite(file_buf, 1, strlen((char *)file_buf), fp);
+    checkedFwrite(file_buf, strlen((char *)file_buf), fp);
     fclose(fp);
 
     // Set next spot to write a file at
@@ -1058,7 +1058,7 @@ void writeUEFIImage(flo_arena scratch) {
 
     // No vhd footer
     fseek(image, new_size - 1, SEEK_SET);
-    fwrite(&byte, 1, 1, image);
+    checkedFwrite(&byte, 1, image);
 
     // Add disk image info file to hold at minimum the size of this disk image;
     //   this could be used in an EFI application later as part of an installer,
