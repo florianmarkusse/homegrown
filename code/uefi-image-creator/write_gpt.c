@@ -384,21 +384,10 @@ void write_gpts(FILE *image) {
     primary_gpt.header_crc32 =
         calculateCRC32(&primary_gpt, primary_gpt.header_size);
 
-    if (fwrite(&primary_gpt, 1, sizeof primary_gpt, image) !=
-        sizeof primary_gpt) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Failed to write primary GPT header\n"));
-        }
-        __builtin_longjmp(fileCloser, 1);
-    }
+    checkedFwrite(&primary_gpt, sizeof primary_gpt, image);
     write_full_options(image);
 
-    if (fwrite(&gpt_table, 1, sizeof gpt_table, image) != sizeof gpt_table) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Failed to write primary GPT table\n"));
-        }
-        __builtin_longjmp(fileCloser, 1);
-    }
+    checkedFwrite(&gpt_table, sizeof gpt_table, image);
 
     Gpt_Header secondary_gpt = primary_gpt;
 
@@ -416,27 +405,16 @@ void write_gpts(FILE *image) {
     fseek(image, secondary_gpt.partition_table_lba * options.lba_size,
           SEEK_SET);
 
-    if (fwrite(&gpt_table, 1, sizeof gpt_table, image) != sizeof gpt_table) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Failed to write secondary GPT table\n"));
-        }
-        __builtin_longjmp(fileCloser, 1);
-    }
+    checkedFwrite(&gpt_table, sizeof gpt_table, image);
 
-    if (fwrite(&secondary_gpt, 1, sizeof secondary_gpt, image) !=
-        sizeof secondary_gpt) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Failed to write secondary GPT header\n"));
-        }
-        __builtin_longjmp(fileCloser, 1);
-    }
+    checkedFwrite(&secondary_gpt, sizeof secondary_gpt, image);
     write_full_options(image);
 }
 
 // =====================================
 // Write EFI System Partition (ESP) w/FAT32 filesystem
 // =====================================
-bool write_esp(FILE *image) {
+void write_esp(FILE *image) {
     // Reserved sectors region --------------------------
     // Fill out Volume Boot Record (VBR)
     uint8_t reserved_sectors = 32; // FAT32
@@ -494,23 +472,11 @@ bool write_esp(FILE *image) {
 
     // Write VBR and FSInfo sector
     fseek(image, esp_lba * options.lba_size, SEEK_SET);
-    if (fwrite(&vbr, 1, sizeof vbr, image) != sizeof vbr) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Error: Could not write ESP VBR to image\n"));
-        }
-        __builtin_longjmp(fileCloser, 1);
-        return false;
-    }
+
+    checkedFwrite(&vbr, sizeof vbr, image);
     write_full_options(image);
 
-    if (fwrite(&fsinfo, 1, sizeof fsinfo, image) != sizeof fsinfo) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Error: Could not write ESP File System Info "
-                                 "Sector to image\n"));
-        }
-        __builtin_longjmp(fileCloser, 1);
-        return false;
-    }
+    checkedFwrite(&fsinfo, sizeof fsinfo, image);
     write_full_options(image);
 
     // Go to backup boot sector location
@@ -518,23 +484,11 @@ bool write_esp(FILE *image) {
 
     // Write VBR and FSInfo at backup location
     fseek(image, esp_lba * options.lba_size, SEEK_SET);
-    if (fwrite(&vbr, 1, sizeof vbr, image) != sizeof vbr) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Error: Could not write VBR to image\n"));
-        }
-        __builtin_longjmp(fileCloser, 1);
-        return false;
-    }
+
+    checkedFwrite(&vbr, sizeof vbr, image);
     write_full_options(image);
 
-    if (fwrite(&fsinfo, 1, sizeof fsinfo, image) != sizeof fsinfo) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Error: Could not write ESP File System Info "
-                                 "Sector to image\n"));
-        }
-        __builtin_longjmp(fileCloser, 1);
-        return false;
-    }
+    checkedFwrite(&fsinfo, sizeof fsinfo, image);
     write_full_options(image);
 
     // FAT region --------------------------
@@ -546,28 +500,26 @@ bool write_esp(FILE *image) {
 
         uint32_t cluster = 0;
 
-#define CLUSTER_WRITE
-
         // Cluster 0; FAT identifier, lowest 8 bits are the media type/byte
         cluster = 0xFFFFFF00 | vbr.BPB_Media;
-        fwrite(&cluster, sizeof cluster, 1, image);
+        checkedFwrite(&cluster, sizeof cluster, image);
 
         // Cluster 1; End of Chain (EOC) marker
         cluster = 0xFFFFFFFF;
-        fwrite(&cluster, sizeof cluster, 1, image);
+        checkedFwrite(&cluster, sizeof cluster, image);
 
         // Cluster 2; Root dir '/' cluster start, if end of file/dir data then
         // write EOC marker
         cluster = 0xFFFFFFFF;
-        fwrite(&cluster, sizeof cluster, 1, image);
+        checkedFwrite(&cluster, sizeof cluster, image);
 
         // Cluster 3; '/EFI' dir cluster
         cluster = 0xFFFFFFFF;
-        fwrite(&cluster, sizeof cluster, 1, image);
+        checkedFwrite(&cluster, sizeof cluster, image);
 
         // Cluster 4; '/EFI/BOOT' dir cluster
         cluster = 0xFFFFFFFF;
-        fwrite(&cluster, sizeof cluster, 1, image);
+        checkedFwrite(&cluster, sizeof cluster, image);
 
         // Cluster 5+; Other files/directories...
         // e.g. if adding a file with a size = 5 sectors/clusters
@@ -615,30 +567,28 @@ bool write_esp(FILE *image) {
 
     memcpy(dir_ent.DIR_Name, ".          ",
            11); // "." dir entry, this directory itself
-    fwrite(&dir_ent, sizeof dir_ent, 1, image);
+    checkedFwrite(&dir_ent, sizeof dir_ent, image);
 
     memcpy(dir_ent.DIR_Name, "..         ",
            11);                // ".." dir entry, parent dir (ROOT dir)
     dir_ent.DIR_FstClusLO = 0; // Root directory does not have a cluster value
-    fwrite(&dir_ent, sizeof dir_ent, 1, image);
+    checkedFwrite(&dir_ent, sizeof dir_ent, image);
 
     memcpy(dir_ent.DIR_Name, "BOOT       ", 11); // /EFI/BOOT directory
     dir_ent.DIR_FstClusLO = 4;                   // /EFI/BOOT cluster
-    fwrite(&dir_ent, sizeof dir_ent, 1, image);
+    checkedFwrite(&dir_ent, sizeof dir_ent, image);
 
     // /EFI/BOOT Directory entries
     fseek(image, (fat32_data_lba + 2) * options.lba_size, SEEK_SET);
 
     memcpy(dir_ent.DIR_Name, ".          ",
            11); // "." dir entry, this directory itself
-    fwrite(&dir_ent, sizeof dir_ent, 1, image);
+    checkedFwrite(&dir_ent, sizeof dir_ent, image);
 
     memcpy(dir_ent.DIR_Name, "..         ",
            11);                // ".." dir entry, parent dir (/EFI dir)
     dir_ent.DIR_FstClusLO = 3; // /EFI directory cluster
-    fwrite(&dir_ent, sizeof dir_ent, 1, image);
-
-    return true;
+    checkedFwrite(&dir_ent, sizeof dir_ent, image);
 }
 
 // =============================
@@ -1059,13 +1009,7 @@ void writeUEFIImage(flo_arena scratch) {
 
     write_gpts(image);
 
-    // Write EFI System Partition w/FAT32 filesystem
-    if (!write_esp(image)) {
-        fprintf(stderr, "Error: could not write ESP for file %s\n",
-                options.image_name);
-        fclose(image);
-        return;
-    }
+    write_esp(image);
 
     if (options.num_esp_file_paths > 0) {
         // Add file paths to EFI System Partition
