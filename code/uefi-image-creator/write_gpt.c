@@ -24,6 +24,16 @@ flo_FILEPtr_max_a openedFiles = {
 
 void *memoryErrors[5];
 
+void checkedFwrite(void *data, uint64_t size, FILE *fd) {
+    if (fwrite(data, 1, size, fd) != size) {
+        FLO_FLUSH_AFTER(FLO_STDERR) {
+            FLO_ERROR(FLO_STRING("Could not write to file descriptor!\n"));
+        }
+        FLO_ASSERT(false);
+        __builtin_longjmp(fileCloser, 1);
+    }
+}
+
 // -------------------------------------
 // Global Typedefs
 // -------------------------------------
@@ -228,14 +238,7 @@ void write_full_options(FILE *image) {
     for (uint8_t i = 0;
          i < (options.lba_size - sizeof zero_sector) / sizeof zero_sector;
          i++) {
-        if (fwrite(zero_sector, sizeof zero_sector, 1, image) !=
-            sizeof zero_sector) {
-            FLO_FLUSH_AFTER(FLO_STDERR) {
-                FLO_ERROR(FLO_STRING("Failed to write zero sector\n"));
-            }
-
-            __builtin_longjmp(fileCloser, 1);
-        }
+        checkedFwrite(zero_sector, sizeof zero_sector, image);
     }
 }
 
@@ -324,14 +327,7 @@ void write_mbr(FILE *image) {
         .boot_signature = 0xAA55,
     };
 
-    if (fwrite(&mbr, 1, sizeof mbr, image) != sizeof mbr) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(
-                FLO_STRING("Error: could not write protective MBR for file "));
-            FLO_ERROR(options.image_name, FLO_NEWLINE);
-        }
-        __builtin_longjmp(fileCloser, 1);
-    }
+    checkedFwrite(&mbr, sizeof mbr, image);
 
     write_full_options(image);
 }
@@ -1138,7 +1134,6 @@ void writeUEFIImage(flo_arena scratch) {
 // =============================
 int main(int argc, char *argv[]) {
     if (__builtin_setjmp(fileCloser)) {
-        FLO_ASSERT(false);
         for (ptrdiff_t i = 0; i < openedFiles.len; i++) {
             if (fclose(openedFiles.buf[i])) {
                 FLO_FLUSH_AFTER(FLO_STDERR) {
