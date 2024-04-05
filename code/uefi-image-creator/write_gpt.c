@@ -932,9 +932,9 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
 
     file_buf = calloc(1, options.lba_size);
     snprintf((char *)file_buf, options.lba_size,
-             "FILE_NAME=%s\n"
-             "FILE_SIZE=%" PRIu64 "\n"
-             "DISK_LBA=%" PRIu64 "\n\n", // Add extra line between files
+             "FILE_NAME=%s\t"
+             "FILE_SIZE=%" PRIu64 "\t"
+             "DISK_LBA=%" PRIu64 "\n", // Add newline between files
              name, file_size_bytes,
              data_lba + starting_lba); // Offset from start of data partition
 
@@ -987,7 +987,7 @@ void writeUEFIImage(flo_arena scratch) {
         FLO_INFO(options.lba_size, FLO_NEWLINE);
 
         FLO_INFO("ESP SIZE: ");
-        FLO_INFO(options.esp_size);
+        FLO_INFO(options.esp_size / ALIGNMENT);
         FLO_INFO("MiB\n");
 
         FLO_INFO("DATA SIZE: ");

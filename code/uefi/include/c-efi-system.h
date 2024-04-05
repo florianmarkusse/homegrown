@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-#include <c-efi-base.h>
+#include "c-efi-base.h"
 
 /*
  * Time Management
