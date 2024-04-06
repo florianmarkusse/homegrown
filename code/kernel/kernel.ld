@@ -1,7 +1,6 @@
 /* Kernel Linker Script */
-ENTRY(main)
+ENTRY(kernelmain)
 SECTIONS {
-    . = 0xFC00;
     kernel.text : {
         *(.text .text.*)
     }

@@ -5,7 +5,7 @@ project(kernel LANGUAGES C ASM)
 include("../setup.cmake")
 initial_setup()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mno-red-zone -nostdinc -nostdlib -m64 -fpie -ffreestanding -fno-stack-protector")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector")
 
 add_subdirectory(util)
 
@@ -17,8 +17,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE util-${CMAKE_BUILD_TYPE})
 
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME}
-        # COMMAND ${CMAKE_LINKER} -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/kernel.ld -o ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME} $<TARGET_OBJECTS:${EXECUTABLE_NAME}>
-        COMMAND ${CMAKE_LINKER} -m elf_x86_64 -nostdlib -e kernelmain -pie -o ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME} $<TARGET_OBJECTS:${EXECUTABLE_NAME}>
+        COMMAND ${CMAKE_LINKER} -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/kernel.ld -o ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME} $<TARGET_OBJECTS:${EXECUTABLE_NAME}>
         COMMAND objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME} > ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME}.asm
         COMMAND objdump -x ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME} > ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME}.objdump
         COMMAND_EXPAND_LISTS
