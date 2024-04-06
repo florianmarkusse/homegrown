@@ -352,7 +352,6 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
                 &gop_guid, C_EFI_NULL, (void *)&gop);
             if (C_EFI_ERROR(status)) {
                 error(u"Could not locate locate GOP\r\n");
-                return status;
             }
 
             KernelParameters params = {0};
@@ -371,6 +370,47 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
 
             void CEFICALL (*entry_point)(KernelParameters) = kernelContent;
 
+            CEfiUSize memoryMapSize = 0;
+            CEfiMemoryDescriptor *memoryMap = C_EFI_NULL;
+            CEfiUSize mapKey;
+            CEfiUSize descriptorSize;
+            CEfiU32 descriptorVersion;
+
+            // Call GetMemoryMap with initial buffer size of 0 to retrieve the
+            // required buffer size
+            status = st->boot_services->get_memory_map(
+                &memoryMapSize, memoryMap, &mapKey, &descriptorSize,
+                &descriptorVersion);
+            if (status == C_EFI_SUCCESS) {
+                error(u"Error calling initial memory map, should have failed "
+                      u"initially...\r\n");
+            }
+
+            if (memoryMapSize == 0) {
+                //                st->con_out->output_string(st->con_out, u"is
+                //                still0\r\n");
+            } else {
+                //                st->con_out->output_string(st->con_out,
+                //                u"nzlonget 0\r\n");
+            }
+
+            status = st->boot_services->allocate_pool(
+                C_EFI_LOADER_DATA, memoryMapSize, (void *)&memoryMap);
+            if (C_EFI_ERROR(status)) {
+                error(u"Could not allocete data for memory map buffer\r\n");
+            }
+
+            status = st->boot_services->get_memory_map(
+                &memoryMapSize, memoryMap, &mapKey, &descriptorSize,
+                &descriptorVersion);
+            if (C_EFI_ERROR(status)) {
+                error(u"Error calling second memory map\r\n");
+            }
+
+            status = st->boot_services->exit_boot_services(h, mapKey);
+            if (C_EFI_ERROR(status)) {
+                error(u"Error exiting boot services\r\n");
+            }
             entry_point(params);
 
             __builtin_unreachable();
