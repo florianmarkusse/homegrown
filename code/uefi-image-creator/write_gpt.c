@@ -226,8 +226,8 @@ uint32_t esp_size_lbas = 0, data_size_lbas = 0, image_size_lbas = 0,
 uint32_t align_lba = 0, esp_lba = 0, data_lba = 0, fat32_fats_lba = 0,
          fat32_data_lba = 0; // Starting LBA values
 
-uint64_t align(uint64_t value, uint64_t alignment) {
-    return value + (-value & (alignment - 1));
+uint64_t bytes_to_lbas(const uint64_t bytes) {
+    return (bytes + (options.lba_size - 1)) / options.lba_size;
 }
 
 // =====================================
@@ -616,7 +616,7 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
     if (type == TYPE_FILE) {
         fseek(file, 0, SEEK_END);
         file_size_bytes = ftell(file);
-        file_size_lbas = align(file_size_bytes, options.lba_size);
+        file_size_lbas = bytes_to_lbas(file_size_bytes);
         rewind(file);
     }
 
@@ -882,7 +882,7 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
     uint64_t file_size_bytes = 0, file_size_lbas = 0;
     fseek(fp, 0, SEEK_END);
     file_size_bytes = ftell(fp);
-    file_size_lbas = align(file_size_bytes, options.lba_size);
+    file_size_lbas = bytes_to_lbas(file_size_bytes);
     rewind(fp);
 
     // Check if adding next file will overrun data partition size
@@ -961,11 +961,11 @@ void writeUEFIImage(flo_arena scratch) {
     uint32_t padding =
         (ALIGNMENT * 2 + (options.lba_size * ((gpt_table_lbas * 2) + 1 + 2)));
     image_size = options.esp_size + options.data_size + padding;
-    image_size_lbas = (uint32_t)align(image_size, options.lba_size);
+    image_size_lbas = (uint32_t)bytes_to_lbas(image_size);
     align_lba = ALIGNMENT / options.lba_size;
     esp_lba = align_lba;
-    esp_size_lbas = (uint32_t)align(options.esp_size, options.lba_size);
-    data_size_lbas = (uint32_t)align(options.data_size, options.lba_size);
+    esp_size_lbas = (uint32_t)bytes_to_lbas(options.esp_size);
+    data_size_lbas = (uint32_t)bytes_to_lbas(options.data_size);
     data_lba = (uint32_t)next_aligned_lba(esp_lba + esp_size_lbas);
 
     // Open image file
@@ -1363,10 +1363,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if ((options.lba_size == 512 && options.esp_size < 33 * ALIGNMENT) ||
-        (options.lba_size == 1024 && options.esp_size < 65 * ALIGNMENT) ||
-        (options.lba_size == 2048 && options.esp_size < 129 * ALIGNMENT) ||
-        (options.lba_size == 4096 && options.esp_size < 257 * ALIGNMENT)) {
+    if ((options.lba_size == 512 && options.esp_size < 33) ||
+        (options.lba_size == 1024 && options.esp_size < 65) ||
+        (options.lba_size == 2048 && options.esp_size < 129) ||
+        (options.lba_size == 4096 && options.esp_size < 257)) {
         FLO_FLUSH_AFTER(FLO_STDERR) {
             FLO_ERROR(
                 FLO_STRING("Error: ESP Must be a minimum of 33/65/129/257 MiB "

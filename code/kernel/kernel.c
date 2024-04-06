@@ -61,22 +61,22 @@ typedef struct __attribute__((packed)) {
     MemoryMap *memory;
 } KernelParameters;
 
-int kernelmain(KernelParameters kernelParameters) {
-    //    uint32_t *fb = (uint32_t *)kernelParameters.fb.ptr;
-    //    uint32_t xres = kernelParameters.fb.scanline;
-    //    uint32_t yres = kernelParameters.fb.columns;
-    //
-    //    fb[0] = 0xFFDDDDDD;
+__attribute__((ms_abi)) int kernelmain(KernelParameters kernelParameters) {
+    uint32_t *fb = (uint32_t *)kernelParameters.fb.ptr;
+    uint32_t xres = kernelParameters.fb.scanline;
+    uint32_t yres = kernelParameters.fb.columns;
 
-    //    // Clear screen to solid color
-    //    for (uint32_t y = 0; y < yres; y++)
-    //        for (uint32_t x = 0; x < xres; x++)
-    //            fb[y * xres + x] = 0xFFDDDDDD; // Light Gray AARRGGBB 8888
-    //
-    //    // Draw square in top left
-    //    for (uint32_t y = 0; y < yres / 5; y++)
-    //        for (uint32_t x = 0; x < xres / 5; x++)
-    //            fb[y * xres + x] = 0xFFCC2222; // AARRGGBB 8888
+    fb[0] = 0xFFDDDDDD;
+
+    // Clear screen to solid color
+    for (uint32_t y = 0; y < yres; y++)
+        for (uint32_t x = 0; x < xres; x++)
+            fb[y * xres + x] = 0xFFDDDDDD; // Light Gray AARRGGBB 8888
+
+    // Draw square in top left
+    for (uint32_t y = 0; y < yres / 5; y++)
+        for (uint32_t x = 0; x < xres / 5; x++)
+            fb[y * xres + x] = 0xFFCC2222; // AARRGGBB 8888
 
     while (1)
         ;

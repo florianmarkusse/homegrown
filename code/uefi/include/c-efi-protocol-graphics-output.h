@@ -24,20 +24,6 @@ typedef enum {
     EfiGraphicsOutputBltOperationMax
 } CEfiBltOperation;
 
-typedef struct CEfiGraphicsOutputProtocolBlt {
-    CEfiGraphicsOutputProtocol *this_;
-    CEfiBltPixel *bltBuffer;
-    CEfiBltOperation bltOperation;
-    CEfiUSize sourceX;
-    CEfiUSize sourceY;
-    CEfiUSize destinationX;
-    CEfiUSize destinationY;
-    CEfiUSize width;
-    CEfiUSize height;
-    CEfiUSize delta;
-
-} CEfiGraphicsOutputProtocolBlt;
-
 typedef struct {
     CEfiU32 redMask;
     CEfiU32 greenMask;
@@ -77,7 +63,12 @@ typedef struct CEfiGraphicsOutputProtocol {
                                     CEfiGraphicsOutputModeInformation **info);
     CEfiStatus(CEFICALL *setMode)(CEfiGraphicsOutputProtocol *this_,
                                   CEfiU32 modeNumber);
-    CEfiGraphicsOutputProtocolBlt blt;
+    CEfiStatus(CEFICALL *blt)(CEfiGraphicsOutputProtocol *this_,
+                              CEfiBltPixel *bltBuffer,
+                              CEfiBltOperation bltOperation, CEfiUSize sourceX,
+                              CEfiUSize sourceY, CEfiUSize destinationX,
+                              CEfiUSize destinationY, CEfiUSize width,
+                              CEfiUSize height, CEfiUSize delta);
     CEfiGraphicsOutputProtocolMode *mode;
 } CEfiGraphicsOutputProtocol;
 

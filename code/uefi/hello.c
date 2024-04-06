@@ -7,30 +7,10 @@
 #include "c-efi-protocol-simple-text-input.h"  // for CEfiInputKey, CEfiSim...
 #include "c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
 #include "c-efi-system.h"                      // for CEfiSystemTable
+#include "memory.h"
 
 CEfiHandle h;
 CEfiSystemTable *st;
-
-/* Compare N bytes of S1 and S2.  */
-__attribute((nothrow, pure, nonnull(1, 2))) int
-memcmp(const void *s1, const void *s2, CEfiU64 n) {
-    CEfiU64 i;
-
-    /**
-     * p1 and p2 are the same memory? easy peasy! bail out
-     */
-    if (s1 == s2) {
-        return 0;
-    }
-
-    // This for loop does the comparing and pointer moving...
-    for (i = 0; (i < n) && (*(CEfiU8 *)s1 == *(CEfiU8 *)s2);
-         i++, s1 = 1 + (CEfiU8 *)s1, s2 = 1 + (CEfiU8 *)s2)
-        ;
-
-    // if i == length, then we have passed the test
-    return (i == n) ? 0 : (*(CEfiU8 *)s1 - *(CEfiU8 *)s2);
-}
 
 typedef struct {
     CEfiChar8 *buf;
@@ -286,57 +266,6 @@ AsciString readEspFile(CEfiU16 *path) {
     return result;
 }
 
-CEfiBool print_number(CEfiUSize number, CEfiU8 base) {
-    const CEfiChar16 *digits = u"0123456789ABCDEF";
-    CEfiChar16 buffer[24]; // Hopefully enough for CEfiUSize_MAX (UINT64_MAX) +
-                           // sign character
-    CEfiUSize i = 0;
-
-    do {
-        buffer[i++] = digits[number % base];
-        number /= base;
-    } while (number > 0);
-
-    switch (base) {
-    case 2:
-        // Binary
-        buffer[i++] = u'b';
-        buffer[i++] = u'0';
-        break;
-
-    case 8:
-        // Octal
-        buffer[i++] = u'o';
-        buffer[i++] = u'0';
-        break;
-    case 16:
-        // Hexadecimal
-        buffer[i++] = u'x';
-        buffer[i++] = u'0';
-        break;
-
-    default:
-        // Maybe invalid base, but we'll go with it (no special processing)
-        break;
-    }
-
-    // NULL terminate string
-    buffer[i--] = u'\0';
-
-    // Reverse buffer before printing
-    for (CEfiUSize j = 0; j < i; j++, i--) {
-        // Swap digits
-        CEfiUSize temp = buffer[i];
-        buffer[i] = buffer[j];
-        buffer[j] = temp;
-    }
-
-    // Print number string
-    st->con_out->output_string(st->con_out, buffer);
-
-    return C_EFI_TRUE;
-}
-
 void printAsciString(AsciString string) {
     unsigned char *pos = (unsigned char *)string.buf;
     for (CEfiUSize bytes = string.len; bytes > 0; bytes--) {
@@ -416,35 +345,34 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
             void *kernelContent = readDiskLbas(
                 dataFile.lbaStart, dataFile.bytes, getDiskImageMediaID());
 
-            KernelParameters params = {0};
-
             CEfiGuid gop_guid = C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
             CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
 
             CEfiStatus status = st->boot_services->locate_protocol(
                 &gop_guid, C_EFI_NULL, (void *)&gop);
             if (C_EFI_ERROR(status)) {
-                for (CEfiU64 i = 0; i < 64; i++) {
-                    if (status == 1 << i) {
-                        st->con_out->output_string(st->con_out, u"yes\r\n");
-                    } else {
-                        st->con_out->output_string(st->con_out, u"no\r\n");
-                    }
-                }
                 error(u"Could not locate locate GOP\r\n");
+                return status;
             }
 
-            params.fb.columns = gop->mode->info->horizontalResolution;
-            //        params.fb.rows = gop->mode->info->verticalResolution;
-            //        params.fb.scanline = gop->mode->info->pixelsPerScanLine;
-            //        params.fb.ptr = gop->mode->frameBufferBase;
-            //        params.fb.size = gop->mode->frameBufferSize;
+            KernelParameters params = {0};
 
-            //            void CEFICALL (*entry_point)(KernelParameters) =
-            //            kernelContent;
-            //
-            //            entry_point(params);
-            //
+            params.fb.columns = gop->mode->info->horizontalResolution;
+            params.fb.rows = gop->mode->info->verticalResolution;
+            params.fb.scanline = gop->mode->info->pixelsPerScanLine;
+            params.fb.ptr = gop->mode->frameBufferBase;
+            params.fb.size = gop->mode->frameBufferSize;
+
+            CEfiU32 *ptr = (CEfiU32 *)params.fb.ptr;
+            ptr[0] = 0xFFDDDDDD;
+            ptr[1] = 0xFFDDDDDD;
+            ptr[2] = 0xFFDDDDDD;
+            ptr[3] = 0xFFDDDDDD;
+
+            void CEFICALL (*entry_point)(KernelParameters) = kernelContent;
+
+            entry_point(params);
+
             __builtin_unreachable();
         }
     }
