@@ -386,13 +386,9 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
                       u"initially...\r\n");
             }
 
-            if (memoryMapSize == 0) {
-                //                st->con_out->output_string(st->con_out, u"is
-                //                still0\r\n");
-            } else {
-                //                st->con_out->output_string(st->con_out,
-                //                u"nzlonget 0\r\n");
-            }
+            // Allocating can in and of itself result in 1/2 more memory
+            // descriptors so we are playing it safe.
+            memoryMapSize += descriptorSize * 2;
 
             status = st->boot_services->allocate_pool(
                 C_EFI_LOADER_DATA, memoryMapSize, (void *)&memoryMap);
