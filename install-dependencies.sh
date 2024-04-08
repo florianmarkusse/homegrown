@@ -53,9 +53,6 @@ sudo apt install -y ovmf
 # This is the binary that emulates UEFI on qemu
 cp /usr/share/ovmf/OVMF.fd bios.bin
 
-echo -e "${BOLD}Creating ${YELLOW}${PREFIX}${NO_COLOR}"
-mkdir -p "${PREFIX}"
-
 DEPENDENCIES_DIR="dependencies"
 echo -e "${BOLD}Creating ${YELLOW}${DEPENDENCIES_DIR}${NO_COLOR}${BOLD} directory${NO_COLOR}"
 mkdir -p dependencies && cd dependencies
