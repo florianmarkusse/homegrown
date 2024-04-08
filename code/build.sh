@@ -10,8 +10,8 @@ NO_COLOR='\033[0m'
 
 BUILD_MODES=("Release" "Debug" "Profiling" "Fuzzing")
 BUILD_MODE="${BUILD_MODES[0]}"
-C_COMPILER=$(whereis x86_64-testos-elf-gcc | awk '{ print $2 }')
-LINKER=$(whereis x86_64-testos-elf-ld | awk '{ print $2 }')
+C_COMPILER=$(whereis clang | awk '{ print $2 }')
+LINKER=$(whereis ld | awk '{ print $2 }')
 ASSEMBLER=$(readlink -f ../dependencies/fasmg/fasmg.x64)
 ASSEMBLER_INCLUDE=$(readlink -f ../dependencies/fasmg/examples/x86/include/)
 
