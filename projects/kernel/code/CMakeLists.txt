@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 project(kernel LANGUAGES C ASM)
 
-include("../setup.cmake")
+include("../../setup.cmake")
 initial_setup()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector")

@@ -109,7 +109,7 @@ done
 display_configuration
 
 # -----------------------------------------------------------------------------
-PROJECT="kernel"
+PROJECT="kernel/code"
 echo -e "${BOLD}Going to build ${PROJECT} folder${NO_COLOR}"
 cd ${PROJECT}
 
@@ -143,10 +143,10 @@ fi
 echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
-cd ../
+cd ../../
 
 # -----------------------------------------------------------------------------
-PROJECT="uefi-image-creator"
+PROJECT="uefi-image-creator/code"
 echo -e "${BOLD}Going to build ${PROJECT} folder${NO_COLOR}"
 cd ${PROJECT}
 
@@ -171,10 +171,10 @@ BUILD_CMAKE_OPTIONS=(--build build/)
 echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
-cd ../
+cd ../../
 
 # -----------------------------------------------------------------------------
-PROJECT="uefi"
+PROJECT="uefi/code"
 echo -e "${BOLD}Going to build ${PROJECT} folder${NO_COLOR}"
 cd ${PROJECT}
 
@@ -199,4 +199,4 @@ BUILD_CMAKE_OPTIONS=(--build build/)
 echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
-cd ../
+cd ../../
