@@ -91,7 +91,7 @@ typedef struct {
     CEfiU64 size;
 } MemoryMap;
 
-typedef struct __attribute__((packed)) {
+typedef struct {
     FrameBuffer fb;
     MemoryMap *memory;
 } KernelParameters;
