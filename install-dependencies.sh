@@ -38,9 +38,11 @@ while [[ "$#" -gt 0 ]]; do
 	esac
 done
 
+LLVM_VERSION=19
+echo -e "${BOLD}Installing ${YELLOW}llvm toolchain ${LLVM_VERSION}${NO_COLOR}"
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
-sudo ./llvm.sh 19
+sudo ./llvm.sh "${LLVM_VERSION}"
 rm ./llvm.sh
 
 echo -e "${BOLD}Installing ${YELLOW}cmake${NO_COLOR}"
