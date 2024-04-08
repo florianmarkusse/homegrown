@@ -7,7 +7,7 @@ initial_setup()
 add_subdirectory(util)
 
 add_executable(${EXECUTABLE_NAME} 
-    "write_gpt.c"
+    "src/main.c"
     )
 
 target_include_directories(${EXECUTABLE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
