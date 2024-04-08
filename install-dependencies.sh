@@ -40,6 +40,8 @@ done
 
 echo -e "${BOLD}Installing ${YELLOW}cmake${NO_COLOR}"
 sudo apt install -y cmake
+echo -e "${BOLD}Installing ${YELLOW}iwyu${NO_COLOR}"
+sudo apt install -y iwyu
 echo -e "${BOLD}Installing ${YELLOW}gcc${NO_COLOR}"
 sudo apt install -y gcc
 echo -e "${BOLD}Installing ${YELLOW}clang${NO_COLOR}"
