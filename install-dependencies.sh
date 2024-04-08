@@ -38,6 +38,11 @@ while [[ "$#" -gt 0 ]]; do
 	esac
 done
 
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+sudo ./llvm.sh 19
+rm ./llvm.sh
+
 echo -e "${BOLD}Installing ${YELLOW}cmake${NO_COLOR}"
 sudo apt install -y cmake
 echo -e "${BOLD}Installing ${YELLOW}iwyu${NO_COLOR}"
