@@ -38,6 +38,8 @@ while [[ "$#" -gt 0 ]]; do
 	esac
 done
 
+echo -e "${BOLD}Installing ${YELLOW}cmake${NO_COLOR}"
+sudo apt install -y cmake
 echo -e "${BOLD}Installing ${YELLOW}gcc${NO_COLOR}"
 sudo apt install -y gcc
 echo -e "${BOLD}Installing ${YELLOW}clang${NO_COLOR}"
