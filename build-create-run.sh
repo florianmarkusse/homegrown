@@ -4,9 +4,9 @@ set -x
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-code/build.sh
-cp code/uefi/build/uefi-Release BOOTX64.EFI
-cp code/kernel/build/kernel-Release.bin kernel.bin
-code/uefi-image-creator/build/uefi-image-creator-Release -ae /EFI/BOOT/ BOOTX64.EFI -ad kernel.bin
+projects/build.sh
+cp projects/uefi/code/build/uefi-Release BOOTX64.EFI
+cp projects/kernel/code/build/kernel-Release.bin kernel.bin
+projects/uefi-image-creator/code/build/uefi-image-creator-Release -ae /EFI/BOOT/ BOOTX64.EFI -ad kernel.bin
 
 ./run-qemu.sh -o test.hdd -u bios.bin
