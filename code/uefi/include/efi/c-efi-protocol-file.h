@@ -1,11 +1,12 @@
-
+#ifndef EFI_C_EFI_PROTOCOL_FILE_H
+#define EFI_C_EFI_PROTOCOL_FILE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <c-efi-base.h>
-#include <c-efi-system.h>
+#include "c-efi-base.h"
+#include "c-efi-system.h"
 
 #define C_EFI_FILE_INFO_ID                                                     \
     C_EFI_GUID(0x09576e92, 0x6d3f, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
@@ -74,4 +75,6 @@ typedef struct CEfiFileProtocol {
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

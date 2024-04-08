@@ -1,3 +1,6 @@
+#ifndef EFI_C_EFI_PROTOCOL_LOADED_IMAGE_H
+#define EFI_C_EFI_PROTOCOL_LOADED_IMAGE_H
+
 #pragma once
 
 /**
@@ -10,8 +13,8 @@
 extern "C" {
 #endif
 
-#include <c-efi-base.h>
-#include <c-efi-system.h>
+#include "c-efi-base.h"
+#include "c-efi-system.h"
 
 #define C_EFI_LOADED_IMAGE_PROTOCOL_GUID                                       \
     C_EFI_GUID(0x5B1B31A1, 0x9562, 0x11d2, 0x8E, 0x3F, 0x00, 0xA0, 0xC9, 0x69, \
@@ -41,4 +44,6 @@ typedef struct CEfiLoadedImageProtocol {
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

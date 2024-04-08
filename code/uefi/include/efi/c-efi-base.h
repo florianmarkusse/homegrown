@@ -1,3 +1,6 @@
+#ifndef EFI_C_EFI_BASE_H
+#define EFI_C_EFI_BASE_H
+
 #pragma once
 
 /**
@@ -418,4 +421,6 @@ typedef struct CEfiIpAddress {
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

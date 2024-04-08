@@ -1,9 +1,11 @@
+#ifndef EFI_C_EFI_PROTOCOL_BLOCK_IO_H
+#define EFI_C_EFI_PROTOCOL_BLOCK_IO_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <c-efi-base.h>
-#include <c-efi-system.h>
+#include "c-efi-base.h"
 
 #define C_EFI_BLOCK_IO_PROTOCOL_GUID                                           \
     C_EFI_GUID(0x964e5b21, 0x6459, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
@@ -36,4 +38,6 @@ typedef struct CEfiBlockIoProtocol {
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

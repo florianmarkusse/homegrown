@@ -8,8 +8,8 @@ initial_setup()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -target x86_64-unknown-windows -ffreestanding -nostdlib -nostdinc -fshort-wchar -mno-red-zone")
 
 add_executable(${EXECUTABLE_NAME} 
-    "hello.c"
-    "memory.c"
+    "src/main.c"
+    "src/memory/memory.c"
     )
 
 target_include_directories(${EXECUTABLE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

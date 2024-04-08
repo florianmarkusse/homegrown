@@ -1,9 +1,11 @@
+#ifndef EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
+#define EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <c-efi-base.h>
-#include <c-efi-system.h>
+#include "c-efi-base.h"
 
 #define C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID                                    \
     C_EFI_GUID(0x9042a9de, 0x23dc, 0x4a38, 0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, \
@@ -74,4 +76,6 @@ typedef struct CEfiGraphicsOutputProtocol {
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

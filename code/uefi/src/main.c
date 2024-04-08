@@ -1,12 +1,12 @@
-#include "c-efi-base.h" // for CEfiStatus, C_EFI_SUC...
-#include "c-efi-protocol-block-io.h"
-#include "c-efi-protocol-disk-io.h"
-#include "c-efi-protocol-graphics-output.h"
-#include "c-efi-protocol-loaded-image.h"
-#include "c-efi-protocol-simple-file-system.h"
-#include "c-efi-protocol-simple-text-input.h"  // for CEfiInputKey, CEfiSim...
-#include "c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
-#include "c-efi-system.h"                      // for CEfiSystemTable
+#include "efi/c-efi-base.h" // for CEfiStatus, C_EFI_SUC...
+#include "efi/c-efi-protocol-block-io.h"
+#include "efi/c-efi-protocol-disk-io.h"
+#include "efi/c-efi-protocol-graphics-output.h"
+#include "efi/c-efi-protocol-loaded-image.h"
+#include "efi/c-efi-protocol-simple-file-system.h"
+#include "efi/c-efi-protocol-simple-text-input.h" // for CEfiInputKey, CEfiSim...
+#include "efi/c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
+#include "efi/c-efi-system.h"                      // for CEfiSystemTable
 #include "memory.h"
 
 CEfiHandle h;

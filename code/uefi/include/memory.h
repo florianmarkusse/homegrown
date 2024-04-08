@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#include "c-efi-base.h"
+#include "efi/c-efi-base.h"
 
 /* Copy N bytes of SRC to DEST.  */
 __attribute((nothrow, nonnull(1, 2))) void *
