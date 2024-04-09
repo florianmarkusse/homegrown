@@ -117,7 +117,7 @@ void *readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
     CEfiHandle mediaHandle = C_EFI_NULL;
     for (CEfiUSize i = 0; i < num_handles && mediaHandle == C_EFI_NULL; i++) {
         status = st->boot_services->open_protocol(
-            handle_buffer[i], &bio_guid, (void *)&biop, h, C_EFI_NULL,
+            handle_buffer[i], &bio_guid, (void **)&biop, h, C_EFI_NULL,
             C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
         if (C_EFI_ERROR(status)) {
             error(u"Could not Open Block IO protocol on handle\r\n");
@@ -173,7 +173,7 @@ CEfiU32 getDiskImageMediaID() {
     CEfiGuid lip_guid = C_EFI_LOADED_IMAGE_PROTOCOL_GUID;
     CEfiLoadedImageProtocol *lip = C_EFI_NULL;
     status = st->boot_services->open_protocol(
-        h, &lip_guid, (void *)&lip, h, C_EFI_NULL,
+        h, &lip_guid, (void **)&lip, h, C_EFI_NULL,
         C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
     if (C_EFI_ERROR(status)) {
         error(u"Could not open Loaded Image Protocol\r\n");
@@ -182,7 +182,7 @@ CEfiU32 getDiskImageMediaID() {
     CEfiBlockIoProtocol *biop;
     CEfiGuid bio_guid = C_EFI_BLOCK_IO_PROTOCOL_GUID;
     status = st->boot_services->open_protocol(
-        lip->device_handle, &bio_guid, (void *)&biop, h, C_EFI_NULL,
+        lip->device_handle, &bio_guid, (void **)&biop, h, C_EFI_NULL,
         C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
     if (C_EFI_ERROR(status)) {
         error(u"Could not open Block IO Protocol for this loaded image.\r\n");
@@ -204,7 +204,7 @@ AsciString readEspFile(CEfiU16 *path) {
     CEfiGuid lip_guid = C_EFI_LOADED_IMAGE_PROTOCOL_GUID;
     CEfiLoadedImageProtocol *lip = 0;
     status = st->boot_services->open_protocol(
-        h, &lip_guid, (void *)&lip, h, C_EFI_NULL,
+        h, &lip_guid, (void **)&lip, h, C_EFI_NULL,
         C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
     if (C_EFI_ERROR(status)) {
         error(u"Could not open Loaded Image Protocol\r\n");
@@ -215,7 +215,7 @@ AsciString readEspFile(CEfiU16 *path) {
     CEfiGuid sfsp_guid = C_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
     CEfiSimpleFileSystemProtocol *sfsp = C_EFI_NULL;
     status = st->boot_services->open_protocol(
-        lip->device_handle, &sfsp_guid, (void *)&sfsp, h, C_EFI_NULL,
+        lip->device_handle, &sfsp_guid, (void **)&sfsp, h, C_EFI_NULL,
         C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
     if (C_EFI_ERROR(status)) {
         error(u"Could not open Simple File System Protocol\r\n");
@@ -245,7 +245,7 @@ AsciString readEspFile(CEfiU16 *path) {
     result.len = file_info.fileSize;
 
     status = st->boot_services->allocate_pool(C_EFI_LOADER_DATA, result.len,
-                                              (void *)&result.buf);
+                                              (void **)&result.buf);
     if (C_EFI_ERROR(status) || result.len != file_info.fileSize) {
         error(u"Could not allocate memory for file\r\n");
     }
@@ -270,8 +270,8 @@ void jumpIntoKernel(void *kernelPtr) {
     CEfiGuid gop_guid = C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
     CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
 
-    CEfiStatus status =
-        st->boot_services->locate_protocol(&gop_guid, C_EFI_NULL, (void *)&gop);
+    CEfiStatus status = st->boot_services->locate_protocol(
+        &gop_guid, C_EFI_NULL, (void **)&gop);
     if (C_EFI_ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
     }
@@ -301,7 +301,7 @@ void jumpIntoKernel(void *kernelPtr) {
     if (status == C_EFI_BUFFER_TOO_SMALL) {
         memoryMapSize += descriptorSize * 2;
         status = st->boot_services->allocate_pool(
-            C_EFI_LOADER_DATA, memoryMapSize, (void *)&memoryMap);
+            C_EFI_LOADER_DATA, memoryMapSize, (void **)&memoryMap);
         if (C_EFI_ERROR(status)) {
             error(u"Could not allocate data for memory map buffer\r\n");
         }
@@ -327,7 +327,7 @@ void jumpIntoKernel(void *kernelPtr) {
         if (status == C_EFI_BUFFER_TOO_SMALL) {
             memoryMapSize += descriptorSize * 2;
             status = st->boot_services->allocate_pool(
-                C_EFI_LOADER_DATA, memoryMapSize, (void *)&memoryMap);
+                C_EFI_LOADER_DATA, memoryMapSize, (void **)&memoryMap);
             if (C_EFI_ERROR(status)) {
                 error(u"Could not allocate data for memory map buffer\r\n");
             }
