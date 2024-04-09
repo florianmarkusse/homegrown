@@ -266,6 +266,96 @@ AsciString readEspFile(CEfiU16 *path) {
     return result;
 }
 
+void jumpIntoKernel(void *kernelPtr) {
+    CEfiGuid gop_guid = C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
+    CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
+
+    CEfiStatus status =
+        st->boot_services->locate_protocol(&gop_guid, C_EFI_NULL, (void *)&gop);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not locate locate GOP\r\n");
+    }
+
+    KernelParameters params = {0};
+
+    params.fb.columns = gop->mode->info->horizontalResolution;
+    params.fb.rows = gop->mode->info->verticalResolution;
+    params.fb.scanline = gop->mode->info->pixelsPerScanLine;
+    params.fb.ptr = gop->mode->frameBufferBase;
+    params.fb.size = gop->mode->frameBufferSize;
+
+    CEfiU32 *ptr = (CEfiU32 *)params.fb.ptr;
+    ptr[0] = 0xFFDDDDDD;
+    ptr[1] = 0xFFDDDDDD;
+    ptr[2] = 0xFFDDDDDD;
+    ptr[3] = 0xFFDDDDDD;
+
+    void CEFICALL (*entry_point)(KernelParameters) = kernelPtr;
+
+    CEfiUSize memoryMapSize = 0;
+    CEfiMemoryDescriptor *memoryMap = C_EFI_NULL;
+    CEfiUSize mapKey;
+    CEfiUSize descriptorSize;
+    CEfiU32 descriptorVersion;
+
+    // Call GetMemoryMap with initial buffer size of 0 to retrieve the
+    // required buffer size
+    status =
+        st->boot_services->get_memory_map(&memoryMapSize, memoryMap, &mapKey,
+                                          &descriptorSize, &descriptorVersion);
+
+    if (status == C_EFI_BUFFER_TOO_SMALL) {
+        st->con_out->output_string(st->con_out,
+                                   u"initial buffer too small...\r\n");
+
+        memoryMapSize += descriptorSize * 2;
+        status = st->boot_services->allocate_pool(
+            C_EFI_LOADER_DATA, memoryMapSize, (void *)&memoryMap);
+        if (C_EFI_ERROR(status)) {
+            error(u"Could not allocate data for memory map buffer\r\n");
+        }
+        status = st->boot_services->get_memory_map(&memoryMapSize, memoryMap,
+                                                   &mapKey, &descriptorSize,
+                                                   &descriptorVersion);
+    }
+
+    status = st->boot_services->exit_boot_services(h, mapKey);
+
+    if (C_EFI_ERROR(status)) {
+        st->con_out->output_string(st->con_out,
+                                   u"First exit boot services failed..\r\n");
+        status = st->boot_services->free_pool(memoryMap);
+        if (C_EFI_ERROR(status)) {
+            error(u"Could not free allocated memory map\r\n");
+        }
+
+        status = st->boot_services->get_memory_map(&memoryMapSize, memoryMap,
+                                                   &mapKey, &descriptorSize,
+                                                   &descriptorVersion);
+
+        if (status == C_EFI_BUFFER_TOO_SMALL) {
+            memoryMapSize += descriptorSize * 2;
+            status = st->boot_services->allocate_pool(
+                C_EFI_LOADER_DATA, memoryMapSize, (void *)&memoryMap);
+            if (C_EFI_ERROR(status)) {
+                error(u"Could not allocate data for memory map buffer\r\n");
+            }
+            status = st->boot_services->get_memory_map(
+                &memoryMapSize, memoryMap, &mapKey, &descriptorSize,
+                &descriptorVersion);
+        }
+
+        status = st->boot_services->exit_boot_services(h, mapKey);
+    }
+    if (C_EFI_ERROR(status)) {
+        error(u"could not exit boot servies!\r\n");
+    }
+
+    entry_point(params);
+
+    __builtin_unreachable();
+}
+
 void printAsciString(AsciString string) {
     unsigned char *pos = (unsigned char *)string.buf;
     for (CEfiUSize bytes = string.len; bytes > 0; bytes--) {
@@ -344,72 +434,7 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
         if (asciStringEquals(dataFile.name, ASCI_STRING("kernel.bin"))) {
             void *kernelContent = readDiskLbas(
                 dataFile.lbaStart, dataFile.bytes, getDiskImageMediaID());
-
-            CEfiGuid gop_guid = C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
-            CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
-
-            CEfiStatus status = st->boot_services->locate_protocol(
-                &gop_guid, C_EFI_NULL, (void *)&gop);
-            if (C_EFI_ERROR(status)) {
-                error(u"Could not locate locate GOP\r\n");
-            }
-
-            KernelParameters params = {0};
-
-            params.fb.columns = gop->mode->info->horizontalResolution;
-            params.fb.rows = gop->mode->info->verticalResolution;
-            params.fb.scanline = gop->mode->info->pixelsPerScanLine;
-            params.fb.ptr = gop->mode->frameBufferBase;
-            params.fb.size = gop->mode->frameBufferSize;
-
-            CEfiU32 *ptr = (CEfiU32 *)params.fb.ptr;
-            ptr[0] = 0xFFDDDDDD;
-            ptr[1] = 0xFFDDDDDD;
-            ptr[2] = 0xFFDDDDDD;
-            ptr[3] = 0xFFDDDDDD;
-
-            void CEFICALL (*entry_point)(KernelParameters) = kernelContent;
-
-            CEfiUSize memoryMapSize = 0;
-            CEfiMemoryDescriptor *memoryMap = C_EFI_NULL;
-            CEfiUSize mapKey;
-            CEfiUSize descriptorSize;
-            CEfiU32 descriptorVersion;
-
-            // Call GetMemoryMap with initial buffer size of 0 to retrieve the
-            // required buffer size
-            status = st->boot_services->get_memory_map(
-                &memoryMapSize, memoryMap, &mapKey, &descriptorSize,
-                &descriptorVersion);
-            if (status == C_EFI_SUCCESS) {
-                error(u"Error calling initial memory map, should have failed "
-                      u"initially...\r\n");
-            }
-
-            // Allocating can in and of itself result in 1/2 more memory
-            // descriptors so we are playing it safe.
-            memoryMapSize += descriptorSize * 2;
-
-            status = st->boot_services->allocate_pool(
-                C_EFI_LOADER_DATA, memoryMapSize, (void *)&memoryMap);
-            if (C_EFI_ERROR(status)) {
-                error(u"Could not allocete data for memory map buffer\r\n");
-            }
-
-            status = st->boot_services->get_memory_map(
-                &memoryMapSize, memoryMap, &mapKey, &descriptorSize,
-                &descriptorVersion);
-            if (C_EFI_ERROR(status)) {
-                error(u"Error calling second memory map\r\n");
-            }
-
-            status = st->boot_services->exit_boot_services(h, mapKey);
-            if (C_EFI_ERROR(status)) {
-                error(u"Error exiting boot services\r\n");
-            }
-            entry_point(params);
-
-            __builtin_unreachable();
+            jumpIntoKernel(kernelContent);
         }
     }
 
