@@ -1,11 +1,9 @@
 /* Kernel Linker Script */
 ENTRY(kernelmain)
 SECTIONS {
-    kernel.start : {
+    . = 0x0;
+    kernel-start : {
         KEEP(*(.kernel-start))
-    }
-    kernel.text : {
-        *(.text .text.*)
     }
     kernel.text : {
         *(.text .text.*)

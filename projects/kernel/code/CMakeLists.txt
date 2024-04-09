@@ -7,13 +7,25 @@ initial_setup()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector")
 
-add_subdirectory(util)
-
 add_library(${EXECUTABLE_NAME} OBJECT
         "src/main.c" 
         )
 
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE util-${CMAKE_BUILD_TYPE})
+set(LINKING_LIBRARIES
+    util)
+set(LINKING_LIBRARIES_LOCATIONS)
+foreach(LINK_LIBRARY ${LINKING_LIBRARIES})
+    add_subdirectory(${LINK_LIBRARY})
+    target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${LINK_LIBRARY}-${CMAKE_BUILD_TYPE})
+    list(APPEND LINKING_LIBRARIES_LOCATIONS ${CMAKE_CURRENT_BINARY_DIR}/${LINK_LIBRARY}/lib${LINK_LIBRARY}-${CMAKE_BUILD_TYPE}.a)
+endforeach()
+
+
+foreach(LINK_LIBRARY ${LINKING_LIBRARIES_LOCATIONS})
+    message("the location is ${LINK_LIBRARY}")
+endforeach()
+
+
 
 set(RESOURCES_NAME "resources")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})
@@ -23,10 +35,8 @@ set(RESOURCE_OBJECTS)
 foreach(RESOURCE_FILE ${RESOURCE_FILES})
     string(REPLACE "${RESOURCE_DIR}/" "" RESOURCE_OBJECT ${RESOURCE_FILE})
     set(RESOURCE_OBJECT "${RESOURCE_OBJECT}.o")
-    message("rrp path ${RESOURCE_OBJECT}")
 
     set(RESOURCE_OBJECT "${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME}/${RESOURCE_OBJECT}")
-    message("output path ${RESOURCE_OBJECT}")
     list(APPEND RESOURCE_OBJECTS ${RESOURCE_OBJECT})
 
     add_custom_command(
@@ -41,17 +51,23 @@ foreach(RESOURCE_FILE ${RESOURCE_FILES})
 endforeach()
 add_custom_target(embedded-resources ALL DEPENDS ${RESOURCE_OBJECTS})
 
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${RESOURCE_OBJECTS})
-
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME}
-        COMMAND ${CMAKE_LINKER} -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld -o ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME} $<TARGET_OBJECTS:${EXECUTABLE_NAME}> ${RESOURCE_OBJECTS} 
+        COMMAND ${CMAKE_LINKER} -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld 
+            -o ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME} 
+            $<TARGET_OBJECTS:${EXECUTABLE_NAME}> 
+            ${RESOURCE_OBJECTS} 
+            ${LINKING_LIBRARIES_LOCATIONS}
         COMMAND objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME} > ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME}.asm
         COMMAND objdump -x ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME} > ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME}.objdump
         COMMAND_EXPAND_LISTS
         VERBATIM
         BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME}.asm ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME}.objdump
-        DEPENDS $<TARGET_OBJECTS:${EXECUTABLE_NAME}> ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
+        DEPENDS 
+            $<TARGET_OBJECTS:${EXECUTABLE_NAME}>
+            ${CMAKE_CURRENT_SOURCE_DIR}/main.ld 
+            ${LINKING_LIBRARIES_LOCATIONS}
+            ${RESOURCE_OBJECTS} 
         COMMENT "Linking ${EXECUTABLE_NAME}"
 )
 
@@ -65,4 +81,4 @@ add_custom_command(
         COMMENT "Copying binary data from ${EXECUTABLE_NAME} into ${EXECUTABLE_NAME_BIN}"
 )
 
-add_custom_target("${EXECUTABLE_NAME}-binary" ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME_BIN})
+add_custom_target("${EXECUTABLE_NAME}-binary" ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME_BIN} util-${CMAKE_BUILD_TYPE})

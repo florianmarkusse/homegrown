@@ -11,6 +11,8 @@ extern "C" {
 
 #define FLO_NEWLINE 0x01
 
+// This struct implicitly assumes that there are 4 bytes per pixel, hence a
+// uint32 buffer
 typedef struct {
     uint32_t *buffer;
     uint64_t size;

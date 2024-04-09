@@ -284,12 +284,6 @@ void jumpIntoKernel(void *kernelPtr) {
     params.fb.ptr = gop->mode->frameBufferBase;
     params.fb.size = gop->mode->frameBufferSize;
 
-    CEfiU32 *ptr = (CEfiU32 *)params.fb.ptr;
-    ptr[0] = 0xFFDDDDDD;
-    ptr[1] = 0xFFDDDDDD;
-    ptr[2] = 0xFFDDDDDD;
-    ptr[3] = 0xFFDDDDDD;
-
     void CEFICALL (*entry_point)(KernelParameters) = kernelPtr;
 
     CEfiUSize memoryMapSize = 0;
@@ -305,9 +299,6 @@ void jumpIntoKernel(void *kernelPtr) {
                                           &descriptorSize, &descriptorVersion);
 
     if (status == C_EFI_BUFFER_TOO_SMALL) {
-        st->con_out->output_string(st->con_out,
-                                   u"initial buffer too small...\r\n");
-
         memoryMapSize += descriptorSize * 2;
         status = st->boot_services->allocate_pool(
             C_EFI_LOADER_DATA, memoryMapSize, (void *)&memoryMap);

@@ -15,7 +15,9 @@ unsigned char stringConverterBuf[FLO_STRING_CONVERTER_BUF_LEN];
 static flo_char_a stringConverterBuffer = (flo_char_a){
     .buf = stringConverterBuf, .len = FLO_STRING_CONVERTER_BUF_LEN};
 
-extern unsigned char glyphStart[] asm("_binary_resources_font_psf_start");
+extern unsigned char
+    glyphStart[] asm("_binary__home_florian_Desktop_homegrown_projects_kernel_"
+                     "code____resources_font_psf_start");
 
 #define HORIZONTAL_PADDING 0
 #define PIXEL_MARGIN 20
@@ -54,19 +56,25 @@ typedef struct {
 static flo_ScreenDimension dim;
 void flo_setupScreen(flo_ScreenDimension dimension) {
     dim = dimension;
-    for (uint32_t y = 0; y < dim.width; y++) {
-        *((uint32_t *)(dim.buffer + y * BYTES_PER_PIXEL)) = HAXOR_GREEN;
+
+    for (uint32_t y = 0; y < dim.height; y++) {
+        for (uint32_t x = 0; x < dim.scanline; x++) {
+            dim.buffer[y * dim.scanline + x] = 0x00000000;
+        }
     }
-    for (uint32_t y = 0; y < dim.width; y++) {
-        *((uint32_t *)(dim.buffer + (dim.height - 1) * dim.scanline +
-                       y * BYTES_PER_PIXEL)) = HAXOR_GREEN;
+
+    for (uint32_t x = 0; x < dim.scanline; x++) {
+        dim.buffer[x] = HAXOR_GREEN;
     }
-    for (uint32_t x = 0; x < dim.height; x++) {
-        *((uint32_t *)(dim.buffer + dim.scanline * x)) = HAXOR_GREEN;
+    for (uint32_t y = 0; y < dim.height; y++) {
+        dim.buffer[y * dim.scanline] = HAXOR_GREEN;
     }
-    for (uint32_t x = 0; x < dim.height; x++) {
-        *((uint32_t *)(dim.buffer + dim.scanline * x +
-                       (dim.width - 1) * BYTES_PER_PIXEL)) = HAXOR_GREEN;
+    for (uint32_t y = 0; y < dim.height; y++) {
+        dim.buffer[y * dim.scanline + (dim.width - 1)] = HAXOR_GREEN;
+    }
+
+    for (uint32_t x = 0; x < dim.scanline; x++) {
+        dim.buffer[(dim.scanline * (dim.height - 1)) + x] = HAXOR_GREEN;
     }
 }
 
@@ -130,12 +138,12 @@ void flo_setupScreen(flo_ScreenDimension dimension) {
 void flo_printToScreen(flo_string data, uint8_t flags) {
     FLO_ASSERT(dim.buffer != 0);
 
-    static psf2_t *font = (psf2_t *)&glyphStart;
+    static psf2_t *font = (psf2_t *)glyphStart;
     uint32_t glyphsPerLine =
         (dim.width - PIXEL_MARGIN * 2) / (font->width + HORIZONTAL_PADDING);
     uint64_t glyphsPerColumn = (dim.height - PIXEL_MARGIN * 2) / (font->height);
-    FLO_SERIAL(FLO_STRING("glyphs possible cils: "));
-    FLO_SERIAL(glyphsPerColumn, FLO_NEWLINE);
+    //    FLO_SERIAL(FLO_STRING("glyphs possible cils: "));
+    //    FLO_SERIAL(glyphsPerColumn, FLO_NEWLINE);
 
     uint32_t cursor = 0;
     int bytesPerLine = (font->width + 7) / 8;
@@ -150,28 +158,58 @@ void flo_printToScreen(flo_string data, uint8_t flags) {
         default: {
             unsigned char *glyph = (unsigned char *)&glyphStart +
                                    font->headersize + ch * font->bytesperglyph;
-            uint32_t offset =
-                (cursor / glyphsPerLine) * (dim.scanline * font->height) +
-                (cursor % glyphsPerLine) * (font->width + HORIZONTAL_PADDING) *
-                    BYTES_PER_PIXEL;
+            uint32_t offset = 0;
+            //         (cursor / glyphsPerLine) * (dim.scanline * font->height)
+            //         + (cursor % glyphsPerLine) * (font->width +
+            //         HORIZONTAL_PADDING) *
+            //             BYTES_PER_PIXEL;
+
+            if (font->height == 0) {
+                for (uint32_t x = 0; x < dim.scanline / 2; x++) {
+                    dim.buffer[20 * dim.scanline + x] = 0xFFFF0000;
+                }
+            }
+
             for (uint32_t y = 0; y < font->height; y++) {
-                // TODO: use SIMD instructions?
-                uint32_t line = offset;
                 uint32_t mask = 1 << (font->width - 1);
                 for (uint32_t x = 0; x < font->width; x++) {
-                    // NOLINTNEXTLINE
-                    *((uint32_t *)((uint64_t)dim.buffer +
-                                   (PIXEL_MARGIN * dim.scanline) +
-                                   (PIXEL_MARGIN * BYTES_PER_PIXEL) + line)) =
-                        ((((uint32_t)*glyph) & (mask)) != 0) * 0xFFFFFF;
-
+                    dim.buffer[(50 * dim.scanline) + (y * dim.scanline + x)] =
+                        0xFFFF0000;
+                    // ((((uint32_t)*glyph) & (mask)) != 0) * 0xFFFF0000;
                     mask >>= 1;
-                    line += BYTES_PER_PIXEL;
                 }
                 glyph += bytesPerLine;
-                offset += dim.scanline;
             }
-            cursor++;
+
+            //            for (uint32_t y = 0; y < font->height; y++) {
+            //                // TODO: use SIMD instructions?
+            //                uint32_t line = offset;
+            //                uint32_t mask = 1 << (font->width - 1);
+            //                for (uint32_t x = 0; x < font->width; x++) {
+            //                    dim.buffer[(PIXEL_MARGIN * dim.scanline) +
+            //                    PIXEL_MARGIN +
+            //                               line] =
+            //                        ((((uint32_t)*glyph) & (mask)) != 0) *
+            //                        0xFF00FF00;
+            //
+            //                    // NOLINTNEXTLINE
+            //                    //                    *((uint32_t
+            //                    *)((uint64_t)dim.buffer +
+            //                    // (PIXEL_MARGIN *
+            //                    // dim.scanline) +
+            //                    // (PIXEL_MARGIN *
+            //                    // BYTES_PER_PIXEL) +
+            //                    // line)) =
+            //                    // ((((uint32_t)*glyph) & (mask)) !=
+            //                    //                        0) * 0xFFFFFF;
+            //
+            //                    mask >>= 1;
+            //                    line++;
+            //                }
+            //                glyph += bytesPerLine;
+            //                offset += dim.scanline;
+            //            }
+            //            cursor++;
             break;
         }
         }
@@ -197,18 +235,21 @@ void flo_printToSerial(flo_string data, uint8_t flags) {
         __asm__ __volatile__(
             "movl %0, %%edx;"
             "xorb %%al, %%al;outb %%al, %%dx;"               /* IER int off */
-            "movb $0x80, %%al;addb $2,%%dl;outb %%al, %%dx;" /* LCR set divisor
-                                                                mode */
+            "movb $0x80, %%al;addb $2,%%dl;outb %%al, %%dx;" /* LCR set
+                                                                divisor mode
+                                                              */
             "movb $1, %%al;subb $3,%%dl;outb %%al, %%dx;"    /* DLL divisor lo
                                                                 115200 */
-            "xorb %%al, %%al;incb %%dl;outb %%al, %%dx;"  /* DLH divisor hi */
-            "incb %%dl;outb %%al, %%dx;"                  /* FCR fifo off */
-            "movb $0x43, %%al;incb %%dl;outb %%al, %%dx;" /* LCR 8N1, break on
-                                                           */
-            "movb $0x8, %%al;incb %%dl;outb %%al, %%dx;"  /* MCR Aux out 2 */
-            "xorb %%al, %%al;subb $4,%%dl;inb %%dx, %%al" /* clear
-                                                             receiver/transmitter
-                                                           */
+            "xorb %%al, %%al;incb %%dl;outb %%al, %%dx;"     /* DLH divisor hi
+                                                              */
+            "incb %%dl;outb %%al, %%dx;"                     /* FCR fifo off */
+            "movb $0x43, %%al;incb %%dl;outb %%al, %%dx;"    /* LCR 8N1, break
+                                                              * on
+                                                              */
+            "movb $0x8, %%al;incb %%dl;outb %%al, %%dx;"     /* MCR Aux out 2 */
+            "xorb %%al, %%al;subb $4,%%dl;inb %%dx, %%al"    /* clear
+                                                                receiver/transmitter
+                                                              */
             :
             : "a"(0x3f9)
             : "rdx");
