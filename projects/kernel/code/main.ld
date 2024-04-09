@@ -1,6 +1,12 @@
 /* Kernel Linker Script */
 ENTRY(kernelmain)
 SECTIONS {
+    kernel.start : {
+        KEEP(*(.kernel-start))
+    }
+    kernel.text : {
+        *(.text .text.*)
+    }
     kernel.text : {
         *(.text .text.*)
     }

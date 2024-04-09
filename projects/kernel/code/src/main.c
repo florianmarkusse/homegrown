@@ -18,7 +18,8 @@ typedef struct {
     MemoryMap *memory;
 } KernelParameters;
 
-__attribute__((ms_abi)) int kernelmain(KernelParameters kernelParameters) {
+__attribute__((ms_abi, section("kernel-start"))) int
+kernelmain(KernelParameters kernelParameters) {
     uint32_t *fb = (uint32_t *)kernelParameters.fb.ptr;
     uint32_t xres = kernelParameters.fb.scanline;
     uint32_t yres = kernelParameters.fb.columns;
