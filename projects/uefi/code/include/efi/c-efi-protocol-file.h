@@ -50,10 +50,10 @@ typedef struct CEfiFileProtocol {
                                void *buffer);
     CEfiStatus(CEFICALL *write)(CEfiFileProtocol *this_, CEfiUSize *bufferSize,
                                 void *buffer);
-    CEfiStatus(CEFICALL *getPosisition)(CEfiFileProtocol *this_,
-                                        CEfiU64 position);
-    CEfiStatus(CEFICALL *setPosisition)(CEfiFileProtocol *this_,
-                                        CEfiU64 position);
+    CEfiStatus(CEFICALL *getPosition)(CEfiFileProtocol *this_,
+                                      CEfiU64 *position);
+    CEfiStatus(CEFICALL *setPosition)(CEfiFileProtocol *this_,
+                                      CEfiU64 position);
     CEfiStatus(CEFICALL *getInfo)(CEfiFileProtocol *this_,
                                   CEfiGuid *informationType,
                                   CEfiUSize *bufferSize, void *buffer);

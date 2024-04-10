@@ -2,9 +2,11 @@
 ENTRY(kernelmain)
 SECTIONS {
     . = 0x0;
+
     kernel-start : {
         KEEP(*(.kernel-start))
     }
+
     kernel.text : {
         *(.text .text.*)
     }
@@ -21,6 +23,7 @@ SECTIONS {
     }
     . = ALIGN(4k);
     kern_end = .;
+
     /DISCARD/ : {
         *(.eh_frame)
         *(.comment)

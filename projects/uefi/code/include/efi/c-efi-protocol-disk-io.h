@@ -13,12 +13,12 @@ extern "C" {
 
 typedef struct CEfiDiskIOProtocol {
     CEfiU64 Revision;
-    CEfiUSize(CEFICALL *readDisk)(CEfiDiskIOProtocol *this_, CEfiU32 mediaId,
-                                  CEfiU64 offset, CEfiUSize bufferSize,
-                                  void *buffer);
-    CEfiUSize(CEFICALL *writeDisk)(CEfiDiskIOProtocol *this_, CEfiU32 mediaId,
+    CEfiStatus(CEFICALL *readDisk)(CEfiDiskIOProtocol *this_, CEfiU32 mediaId,
                                    CEfiU64 offset, CEfiUSize bufferSize,
                                    void *buffer);
+    CEfiStatus(CEFICALL *writeDisk)(CEfiDiskIOProtocol *this_, CEfiU32 mediaId,
+                                    CEfiU64 offset, CEfiUSize bufferSize,
+                                    void *buffer);
 } CEfiDiskIOProtocol;
 
 #ifdef __cplusplus

@@ -25,8 +25,6 @@ foreach(LINK_LIBRARY ${LINKING_LIBRARIES_LOCATIONS})
     message("the location is ${LINK_LIBRARY}")
 endforeach()
 
-
-
 set(RESOURCES_NAME "resources")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})
 set(RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../${RESOURCES_NAME}")
@@ -66,8 +64,8 @@ add_custom_command(
         DEPENDS 
             $<TARGET_OBJECTS:${EXECUTABLE_NAME}>
             ${CMAKE_CURRENT_SOURCE_DIR}/main.ld 
-            ${LINKING_LIBRARIES_LOCATIONS}
             ${RESOURCE_OBJECTS} 
+            ${LINKING_LIBRARIES_LOCATIONS}
         COMMENT "Linking ${EXECUTABLE_NAME}"
 )
 
