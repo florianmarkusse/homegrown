@@ -55,6 +55,8 @@ typedef struct {
 
 static flo_ScreenDimension dim;
 void flo_setupScreen(flo_ScreenDimension dimension) {
+    psf2_t *font = (psf2_t *)glyphStart;
+
     dim = dimension;
 
     for (uint32_t y = 0; y < dim.height; y++) {

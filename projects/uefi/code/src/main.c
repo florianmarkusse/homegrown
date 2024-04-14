@@ -102,6 +102,86 @@ typedef struct {
     MemoryMap *memory;
 } KernelParameters;
 
+void printAsciString(AsciString string) {
+    unsigned char *pos = (unsigned char *)string.buf;
+    for (CEfiUSize bytes = string.len; bytes > 0; bytes--) {
+        CEfiChar16 str[2];
+        str[0] = *pos;
+        str[1] = u'\0';
+        if (*pos == '\n') {
+            st->con_out->output_string(st->con_out, u"\r\n");
+        } else {
+            st->con_out->output_string(st->con_out, str);
+        }
+
+        pos++;
+    }
+    st->con_out->output_string(st->con_out, u"\r\n");
+}
+
+void print_number(CEfiUSize number, CEfiU8 base) {
+    const CEfiChar16 *digits = u"0123456789ABCDEF";
+    CEfiChar16 buffer[24]; // Hopefully enough for UINTN_MAX (UINT64_MAX) + sign
+                           // character
+    CEfiUSize i = 0;
+    CEfiBool negative = C_EFI_FALSE;
+
+    if (base > 16) {
+        error(u"Invalid base specified!\r\n");
+    }
+
+    do {
+        buffer[i++] = digits[number % base];
+        number /= base;
+    } while (number > 0);
+
+    switch (base) {
+    case 2:
+        // Binary
+        buffer[i++] = u'b';
+        buffer[i++] = u'0';
+        break;
+
+    case 8:
+        // Octal
+        buffer[i++] = u'o';
+        buffer[i++] = u'0';
+        break;
+
+    case 10:
+        // Decimal
+        if (negative)
+            buffer[i++] = u'-';
+        break;
+
+    case 16:
+        // Hexadecimal
+        buffer[i++] = u'x';
+        buffer[i++] = u'0';
+        break;
+
+    default:
+        // Maybe invalid base, but we'll go with it (no special processing)
+        break;
+    }
+
+    // NULL terminate string
+    buffer[i--] = u'\0';
+
+    // Reverse buffer before printing
+    for (CEfiUSize j = 0; j < i; j++, i--) {
+        // Swap digits
+        CEfiUSize temp = buffer[i];
+        buffer[i] = buffer[j];
+        buffer[j] = temp;
+    }
+
+    // Print number string
+    st->con_out->output_string(st->con_out, buffer);
+}
+
+void printHex(CEfiU64 hex) { print_number(hex, 16); }
+
 AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
     CEfiStatus status;
 
@@ -301,23 +381,6 @@ void jumpIntoKernel(void *kernelPtr) {
     __builtin_unreachable();
 }
 
-void printAsciString(AsciString string) {
-    unsigned char *pos = (unsigned char *)string.buf;
-    for (CEfiUSize bytes = string.len; bytes > 0; bytes--) {
-        CEfiChar16 str[2];
-        str[0] = *pos;
-        str[1] = u'\0';
-        if (*pos == '\n') {
-            st->con_out->output_string(st->con_out, u"\r\n");
-        } else {
-            st->con_out->output_string(st->con_out, str);
-        }
-
-        pos++;
-    }
-    st->con_out->output_string(st->con_out, u"\r\n");
-}
-
 CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
                              CEfiSystemTable *systemtable) {
     h = handle;
@@ -452,12 +515,20 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
     AsciString kernelContent = readDiskLbas(
         kernelFile.lbaStart, kernelFile.bytes, getDiskImageMediaID());
 
-    st->con_out->output_string(
-        st->con_out, u"Read kernel content, trying to execute now!\r\n");
+    st->con_out->output_string(st->con_out,
+                               u"Read kernel content, at memory location:\r\n");
+
+    printHex((CEfiUSize)kernelContent.buf);
+
+    st->con_out->output_string(st->con_out,
+                               u"Press a key to start execution!\r\n");
+
+    CEfiInputKey key;
+    while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS)
+        ;
 
     jumpIntoKernel(kernelContent.buf);
 
-    CEfiInputKey key;
     while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS)
         ;
 

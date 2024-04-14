@@ -23,6 +23,7 @@ function display_usage() {
 	echo -e "${BOLD}Options:${NO_COLOR}"
 	echo -e "  -m, --build-mode <TYPE>    Set the build mode (${YELLOW}${BUILD_MODES[*]}${NO_COLOR}). Default is ${YELLOW}${BUILD_MODES[0]}${NO_COLOR}."
 	echo -e "  -u, --no-iwyu              Opt-out of include-what-you-use."
+	echo -e "  -c, --c-compiler           Set the c-compiler. Default is ${YELLOW}${C_COMPILER}${NO_COLOR}."
 	echo -e "  -s, --select-targets       Select specific target(s, space-separated) to be built."
 	echo -e "  -h, --help                 Display this help message."
 	exit 1
@@ -89,6 +90,10 @@ while [[ "$#" -gt 0 ]]; do
 	-u | --no-iwyu)
 		INCLUDE_WHAT_YOU_USE=false
 		shift
+		;;
+	-c | --c-compiler)
+		C_COMPILER="$2"
+		shift 2
 		;;
 	-s | --select-targets)
 		shift
