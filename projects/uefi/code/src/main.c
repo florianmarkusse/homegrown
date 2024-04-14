@@ -9,6 +9,12 @@
 #include "efi/c-efi-system.h"                      // for CEfiSystemTable
 #include "memory.h"
 
+#define PAGE_SHIFT 12
+#define PAGE_SIZE (1 << PAGE_SHIFT)
+#define PAGE_MASK (PAGE_SIZE - 1)
+
+#define EFI_SIZE_TO_PAGES(a) (((a) >> PAGE_SHIFT) + ((a) & PAGE_MASK ? 1 : 0))
+
 CEfiHandle h;
 CEfiSystemTable *st;
 
@@ -96,7 +102,7 @@ typedef struct {
     MemoryMap *memory;
 } KernelParameters;
 
-void *readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
+AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
     CEfiStatus status;
 
     // Loop through and get Block IO protocol for input media ID, for entire
@@ -147,15 +153,16 @@ void *readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
         error(u"Could not Open Disk IO protocol on handle\r\n");
     }
 
-    void *buffer;
-    status =
-        st->boot_services->allocate_pool(C_EFI_LOADER_DATA, bytes, &buffer);
+    CEfiPhysicalAddress address;
+    status = st->boot_services->allocate_pages(
+        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA, EFI_SIZE_TO_PAGES(bytes),
+        &address);
     if (C_EFI_ERROR(status)) {
         error(u"Could not allocete data for disk buffer\r\n");
     }
 
     status = diop->readDisk(diop, mediaID, diskLba * biop->Media->BlockSize,
-                            bytes, buffer);
+                            bytes, (void *)address);
     if (C_EFI_ERROR(status)) {
         error(u"Could not read Disk LBAs into buffer\r\n");
     }
@@ -163,7 +170,7 @@ void *readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
     // Close disk IO protocol when done
     st->boot_services->close_protocol(mediaHandle, &dio_guid, h, C_EFI_NULL);
 
-    return buffer;
+    return (AsciString){.buf = (CEfiChar8 *)address, .len = bytes};
 }
 
 CEfiU32 getDiskImageMediaID() {
@@ -197,75 +204,6 @@ CEfiU32 getDiskImageMediaID() {
     return mediaID;
 }
 
-AsciString readEspFile(CEfiU16 *path) {
-    CEfiStatus status;
-    // Get loaded image protocol first to grab device handle to use
-    //   simple file system protocol on
-    CEfiGuid lip_guid = C_EFI_LOADED_IMAGE_PROTOCOL_GUID;
-    CEfiLoadedImageProtocol *lip = 0;
-    status = st->boot_services->open_protocol(
-        h, &lip_guid, (void **)&lip, h, C_EFI_NULL,
-        C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not open Loaded Image Protocol\r\n");
-    }
-
-    // Get Simple File System Protocol for device handle for this loaded
-    //   image, to open the root directory for the ESP
-    CEfiGuid sfsp_guid = C_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
-    CEfiSimpleFileSystemProtocol *sfsp = C_EFI_NULL;
-    status = st->boot_services->open_protocol(
-        lip->device_handle, &sfsp_guid, (void **)&sfsp, h, C_EFI_NULL,
-        C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not open Simple File System Protocol\r\n");
-    }
-
-    CEfiFileProtocol *root = C_EFI_NULL;
-    status = sfsp->openVolume(sfsp, &root);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not Open Volume for root directory in ESP\r\n");
-    }
-
-    CEfiFileProtocol *file = C_EFI_NULL;
-    status = root->open(root, &file, path, C_EFI_FILE_MODE_READ, 0);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not Open File\r\n");
-    }
-
-    CEfiFileInfo file_info;
-    CEfiGuid fi_guid = C_EFI_FILE_INFO_ID;
-    CEfiUSize file_info_size = sizeof(file_info);
-    status = file->getInfo(file, &fi_guid, &file_info_size, &file_info);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not get file info\r\n");
-    }
-
-    AsciString result;
-    result.len = file_info.fileSize;
-
-    status = st->boot_services->allocate_pool(C_EFI_LOADER_DATA, result.len,
-                                              (void **)&result.buf);
-    if (C_EFI_ERROR(status) || result.len != file_info.fileSize) {
-        error(u"Could not allocate memory for file\r\n");
-    }
-
-    status = file->read(file, &result.len, result.buf);
-    if (C_EFI_ERROR(status) || result.len != file_info.fileSize) {
-        error(u"Could not read file into buffer\r\n");
-    }
-
-    root->close(root);
-    file->close(file);
-
-    st->boot_services->close_protocol(lip->device_handle, &sfsp_guid, h,
-                                      C_EFI_NULL);
-
-    st->boot_services->close_protocol(h, &lip_guid, h, C_EFI_NULL);
-
-    return result;
-}
-
 void jumpIntoKernel(void *kernelPtr) {
     CEfiGuid gop_guid = C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
     CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
@@ -292,30 +230,40 @@ void jumpIntoKernel(void *kernelPtr) {
     CEfiUSize descriptorSize;
     CEfiU32 descriptorVersion;
 
+    CEfiPhysicalAddress memoryMapAddress;
+
     // Call GetMemoryMap with initial buffer size of 0 to retrieve the
     // required buffer size
     status =
         st->boot_services->get_memory_map(&memoryMapSize, memoryMap, &mapKey,
                                           &descriptorSize, &descriptorVersion);
 
-    if (status == C_EFI_BUFFER_TOO_SMALL) {
-        memoryMapSize += descriptorSize * 2;
-        status = st->boot_services->allocate_pool(
-            C_EFI_LOADER_DATA, memoryMapSize, (void **)&memoryMap);
-        if (C_EFI_ERROR(status)) {
-            error(u"Could not allocate data for memory map buffer\r\n");
-        }
-        status = st->boot_services->get_memory_map(&memoryMapSize, memoryMap,
-                                                   &mapKey, &descriptorSize,
-                                                   &descriptorVersion);
+    if (status != C_EFI_BUFFER_TOO_SMALL) {
+        error(u"Should have received a buffer too small error here!\r\n");
     }
+
+    // Some extra because allocating can creat extra descriptors (lol)
+    memoryMapSize += descriptorSize * 2;
+    status = st->boot_services->allocate_pages(
+        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+        EFI_SIZE_TO_PAGES(memoryMapSize), &memoryMapAddress);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not allocate data for memory map buffer\r\n");
+    }
+
+    memoryMap = (CEfiMemoryDescriptor *)memoryMapAddress;
+
+    status =
+        st->boot_services->get_memory_map(&memoryMapSize, memoryMap, &mapKey,
+                                          &descriptorSize, &descriptorVersion);
 
     status = st->boot_services->exit_boot_services(h, mapKey);
 
     if (C_EFI_ERROR(status)) {
         st->con_out->output_string(st->con_out,
                                    u"First exit boot services failed..\r\n");
-        status = st->boot_services->free_pool(memoryMap);
+        status = st->boot_services->free_pages(
+            memoryMapAddress, EFI_SIZE_TO_PAGES(memoryMapSize));
         if (C_EFI_ERROR(status)) {
             error(u"Could not free allocated memory map\r\n");
         }
@@ -323,18 +271,24 @@ void jumpIntoKernel(void *kernelPtr) {
         status = st->boot_services->get_memory_map(&memoryMapSize, memoryMap,
                                                    &mapKey, &descriptorSize,
                                                    &descriptorVersion);
+        memoryMapSize = 0;
 
-        if (status == C_EFI_BUFFER_TOO_SMALL) {
-            memoryMapSize += descriptorSize * 2;
-            status = st->boot_services->allocate_pool(
-                C_EFI_LOADER_DATA, memoryMapSize, (void **)&memoryMap);
-            if (C_EFI_ERROR(status)) {
-                error(u"Could not allocate data for memory map buffer\r\n");
-            }
-            status = st->boot_services->get_memory_map(
-                &memoryMapSize, memoryMap, &mapKey, &descriptorSize,
-                &descriptorVersion);
+        if (status != C_EFI_BUFFER_TOO_SMALL) {
+            error(u"Should have received a buffer too small error here!\r\n");
         }
+
+        status = st->boot_services->allocate_pages(
+            C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+            EFI_SIZE_TO_PAGES(memoryMapSize), &memoryMapAddress);
+        if (C_EFI_ERROR(status)) {
+            error(u"Could not allocate data for memory map buffer\r\n");
+        }
+
+        memoryMap = (CEfiMemoryDescriptor *)memoryMapAddress;
+
+        status = st->boot_services->get_memory_map(&memoryMapSize, memoryMap,
+                                                   &mapKey, &descriptorSize,
+                                                   &descriptorVersion);
 
         status = st->boot_services->exit_boot_services(h, mapKey);
     }
@@ -374,18 +328,84 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
     st->con_out->set_attribute(st->con_out,
                                C_EFI_BACKGROUND_RED | C_EFI_YELLOW);
 
-    AsciString espFile = readEspFile(u"\\EFI\\BOOT\\DATAFLS.INF");
+    CEfiStatus status;
+    // Get loaded image protocol first to grab device handle to use
+    //   simple file system protocol on
+    CEfiGuid lip_guid = C_EFI_LOADED_IMAGE_PROTOCOL_GUID;
+    CEfiLoadedImageProtocol *lip = 0;
+    status = st->boot_services->open_protocol(
+        h, &lip_guid, (void **)&lip, h, C_EFI_NULL,
+        C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not open Loaded Image Protocol\r\n");
+    }
+
+    // Get Simple File System Protocol for device handle for this loaded
+    //   image, to open the root directory for the ESP
+    CEfiGuid sfsp_guid = C_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
+    CEfiSimpleFileSystemProtocol *sfsp = C_EFI_NULL;
+    status = st->boot_services->open_protocol(
+        lip->device_handle, &sfsp_guid, (void **)&sfsp, h, C_EFI_NULL,
+        C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not open Simple File System Protocol\r\n");
+    }
+
+    CEfiFileProtocol *root = C_EFI_NULL;
+    status = sfsp->openVolume(sfsp, &root);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not Open Volume for root directory in ESP\r\n");
+    }
+
+    CEfiFileProtocol *file = C_EFI_NULL;
+    status = root->open(root, &file, u"\\EFI\\BOOT\\DATAFLS.INF",
+                        C_EFI_FILE_MODE_READ, 0);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not Open File\r\n");
+    }
+
+    CEfiFileInfo file_info;
+    CEfiGuid fi_guid = C_EFI_FILE_INFO_ID;
+    CEfiUSize file_info_size = sizeof(file_info);
+    status = file->getInfo(file, &fi_guid, &file_info_size, &file_info);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not get file info\r\n");
+    }
+
+    AsciString dataFile;
+    dataFile.len = file_info.fileSize;
+
+    CEfiPhysicalAddress dataFileAddress;
+
+    status = st->boot_services->allocate_pages(
+        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+        EFI_SIZE_TO_PAGES(dataFile.len), &dataFileAddress);
+    if (C_EFI_ERROR(status) || dataFile.len != file_info.fileSize) {
+        error(u"Could not allocate memory for file\r\n");
+    }
+
+    dataFile.buf = (CEfiChar8 *)dataFileAddress;
+
+    status = file->read(file, &dataFile.len, dataFile.buf);
+    if (C_EFI_ERROR(status) || dataFile.len != file_info.fileSize) {
+        error(u"Could not read file into buffer\r\n");
+    }
+
+    root->close(root);
+    file->close(file);
+
+    st->boot_services->close_protocol(lip->device_handle, &sfsp_guid, h,
+                                      C_EFI_NULL);
+
+    st->boot_services->close_protocol(h, &lip_guid, h, C_EFI_NULL);
 
     // Assumes the below file structure:
     // FILE_NAME=kernel.bin
     // FILE_SIZE=2
     // DISK_LBA=34607104
-    // FILE_NAME=other.txt
-    // FILE_SIZE=5
-    // DISK_LBA=34607156
     AsciStringIter lines;
-    TOKENIZE_ASCI_STRING(espFile, lines, '\n', 0) {
-        DataPartitionFile dataFile;
+    DataPartitionFile kernelFile;
+    TOKENIZE_ASCI_STRING(dataFile, lines, '\n', 0) {
         DataPartitionLayout layout = NAME;
         AsciStringIter pairs;
         TOKENIZE_ASCI_STRING(lines.string, pairs, '\t', 0) {
@@ -395,7 +415,7 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
                 if (second) {
                     switch (layout) {
                     case NAME: {
-                        dataFile.name = tokens.string;
+                        kernelFile.name = tokens.string;
                         break;
                     }
                     case BYTE_SIZE: {
@@ -403,7 +423,7 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
                         for (CEfiU64 i = 0; i < tokens.string.len; i++) {
                             bytes = bytes * 10 + (tokens.string.buf[i] - '0');
                         }
-                        dataFile.bytes = bytes;
+                        kernelFile.bytes = bytes;
                         break;
                     }
                     case LBA_START: {
@@ -412,7 +432,7 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
                             lbaStart =
                                 lbaStart * 10 + (tokens.string.buf[i] - '0');
                         }
-                        dataFile.lbaStart = lbaStart;
+                        kernelFile.lbaStart = lbaStart;
                         break;
                     }
                     }
@@ -421,15 +441,21 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
             }
             layout++;
         }
-
-        if (asciStringEquals(dataFile.name, ASCI_STRING("kernel.bin"))) {
-            void *kernelContent = readDiskLbas(
-                dataFile.lbaStart, dataFile.bytes, getDiskImageMediaID());
-            jumpIntoKernel(kernelContent);
-        }
     }
 
-    st->con_out->output_string(st->con_out, u"Success...\r\n");
+    if (!asciStringEquals(kernelFile.name, ASCI_STRING("kernel.bin"))) {
+        error(u"kernel.bin was not read!\r\n");
+    }
+
+    st->con_out->output_string(st->con_out, u"Going to load kernel\r\n");
+
+    AsciString kernelContent = readDiskLbas(
+        kernelFile.lbaStart, kernelFile.bytes, getDiskImageMediaID());
+
+    st->con_out->output_string(
+        st->con_out, u"Read kernel content, trying to execute now!\r\n");
+
+    jumpIntoKernel(kernelContent.buf);
 
     CEfiInputKey key;
     while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS)
