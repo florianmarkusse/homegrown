@@ -1,7 +1,7 @@
 /* Kernel Linker Script */
 ENTRY(kernelmain)
 SECTIONS {
-    . = 0x0;
+    . = 0xfffffffff8000000;
     kernel-start : {
         KEEP(*(.kernel-start))
     }

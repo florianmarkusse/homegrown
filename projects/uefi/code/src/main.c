@@ -9,14 +9,58 @@
 #include "efi/c-efi-system.h"                      // for CEfiSystemTable
 #include "memory.h"
 
+#define KERNEL_START 0xfffffffff8000000
+
+#define PAGE_ENTRY_SHIFT 9
+#define PAGE_ENTRY_SIZE (1 << PAGE_ENTRY_SHIFT)
+#define PAGE_ENTRY_MASK (PAGE_ENTRY_SIZE - 1)
+
 #define PAGE_SHIFT 12
 #define PAGE_SIZE (1 << PAGE_SHIFT)
 #define PAGE_MASK (PAGE_SIZE - 1)
+
+#define PAGE_PRESENT (1ULL << 0)  // The page is currently in memory
+#define PAGE_WRITABLE (1ULL << 1) // It’s allowed to write to this page
+#define PAGE_USER_ACCESSIBLE                                                   \
+    (1ULL << 2) // If not set, only kernel mode code can access this page
+#define PAGE_WRITE_THROUGH (1ULL << 3) // Writes go directly to memory
+#define PAGE_DISABLE_CACHE (1ULL << 4) // No cache is used for this page
+#define PAGE_ACCESSED                                                          \
+    (1ULL << 5) // The CPU sets this bit when this page is used
+#define PAGE_DIRTY                                                             \
+    (1ULL << 6) // The CPU sets this bit when a write to this page occurs
+#define PAGE_HUGE_PAGE                                                         \
+    (1ULL << 7) // Must be 0 in P1 and P4, creates a 1 GiB page in P3, creates a
+                // 2 MiB page in P2
+#define PAGE_GLOBAL                                                            \
+    (1ULL << 8) // Page isn’t flushed from caches on address space switch (PGE
+                // bit of CR4 register must be set)
+#define PAGE_AVAILABLE_9 (1ULL << 9)   // Can be used freely by the OS
+#define PAGE_AVAILABLE_10 (1ULL << 10) // Can be used freely by the OS
+#define PAGE_AVAILABLE_11 (1ULL << 11) // Can be used freely by the OS
+#define PAGE_PHYSICAL_ADDR_MASK                                                \
+    0x7FFFFFFFFFFFFULL                 // Mask for the 52-bit physical address
+#define PAGE_AVAILABLE_52 (1ULL << 52) // Can be used freely by the OS
+#define PAGE_AVAILABLE_53 (1ULL << 53) // Can be used freely by the OS
+#define PAGE_AVAILABLE_54 (1ULL << 54) // Can be used freely by the OS
+#define PAGE_AVAILABLE_55 (1ULL << 55) // Can be used freely by the OS
+#define PAGE_AVAILABLE_56 (1ULL << 56) // Can be used freely by the OS
+#define PAGE_AVAILABLE_57 (1ULL << 57) // Can be used freely by the OS
+#define PAGE_AVAILABLE_58 (1ULL << 58) // Can be used freely by the OS
+#define PAGE_AVAILABLE_59 (1ULL << 59) // Can be used freely by the OS
+#define PAGE_AVAILABLE_60 (1ULL << 60) // Can be used freely by the OS
+#define PAGE_AVAILABLE_61 (1ULL << 61) // Can be used freely by the OS
+#define PAGE_AVAILABLE_62 (1ULL << 62) // Can be used freely by the OS
+#define PAGE_NO_EXECUTE                                                        \
+    (1ULL << 63) // Forbid executing code on this page (the NXE bit in the EFER
+                 // register must be set)
 
 #define EFI_SIZE_TO_PAGES(a) (((a) >> PAGE_SHIFT) + ((a) & PAGE_MASK ? 1 : 0))
 
 CEfiHandle h;
 CEfiSystemTable *st;
+
+CEfiU64 *level4PageTable;
 
 typedef struct {
     CEfiChar8 *buf;
@@ -178,9 +222,74 @@ void print_number(CEfiUSize number, CEfiU8 base) {
 
     // Print number string
     st->con_out->output_string(st->con_out, buffer);
+    st->con_out->output_string(st->con_out, u"\r\n");
 }
 
 void printHex(CEfiU64 hex) { print_number(hex, 16); }
+
+/**
+ * Allocate and zero out a page on UEFI
+ */
+CEfiPhysicalAddress efi_alloc(void) {
+    CEfiPhysicalAddress page = 0;
+    CEfiStatus status = st->boot_services->allocate_pages(
+        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA, 1, &page);
+    if (C_EFI_ERROR(status)) {
+        error(u"unable to allocate a page!\r\n");
+    } else {
+        memset((void *)page, 0, 4096);
+    }
+    return page;
+}
+
+void prepareMemory(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
+    /* is this a canonical address? We handle virtual memory up to 256TB */
+    if (!level4PageTable ||
+        ((virt >> 48L) != 0x0000 && (virt >> 48L) != 0xffff))
+        error(u"Incorrect address mapped or no page table set up yet!\r\n");
+
+    CEfiU64 end = virt + size;
+    CEfiU64 *ptr;
+    CEfiU64 *next = C_EFI_NULL;
+    /* walk the page tables and add the missing pieces */
+    for (virt &= ~4095, phys &= ~(PAGE_MASK); virt < end; virt += PAGE_SIZE) {
+        /* 512G */
+        ptr = &level4PageTable[(virt >> 39L) & PAGE_ENTRY_MASK];
+        if (!*ptr) {
+            *ptr = efi_alloc();
+            *ptr |= (PAGE_PRESENT | PAGE_WRITABLE);
+        }
+        /* 1G */
+        ptr = (CEfiU64 *)(*ptr & ~(PAGE_MASK));
+        ptr = &ptr[(virt >> 30L) & PAGE_ENTRY_MASK];
+        if (!*ptr) {
+            *ptr = efi_alloc();
+            *ptr |= (PAGE_PRESENT | PAGE_WRITABLE);
+        }
+        /* 2M if we previously had a large page here, split it into 4K pages */
+        ptr = (CEfiU64 *)(*ptr & ~(PAGE_MASK));
+        ptr = &ptr[(virt >> 21L) & PAGE_ENTRY_MASK];
+        if (!*ptr || *ptr & PAGE_HUGE_PAGE) {
+            *ptr = efi_alloc();
+            *ptr |= (PAGE_PRESENT | PAGE_WRITABLE);
+        }
+        /* 4K */
+        ptr = (CEfiU64 *)(*ptr & ~(PAGE_MASK));
+        ptr = &ptr[(virt >> 12L) & PAGE_ENTRY_MASK];
+        /* if this page is already mapped, that means the kernel has invalid,
+         * overlapping segments */
+        if (!*ptr) {
+            *ptr = (CEfiU64)next;
+            next = ptr;
+        }
+    }
+    /* resolve the linked list */
+    for (end = (phys + size - 1) & ~(PAGE_MASK); next;
+         end -= PAGE_SIZE, next = ptr) {
+        ptr = (CEfiU64 *)*next;
+        *next = end | (PAGE_PRESENT | PAGE_WRITABLE);
+    }
+}
 
 AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
     CEfiStatus status;
@@ -284,7 +393,22 @@ CEfiU32 getDiskImageMediaID() {
     return mediaID;
 }
 
-void jumpIntoKernel(void *kernelPtr) {
+static CEfiU8 in_exc = 0;
+
+// Not sure what we are doing when we encounter an exception tbh.
+void fw_exc(CEfiU8 excno, CEfiU64 exccode, CEfiU64 rip, CEfiU64 rsp) {
+    CEfiU64 cr2, cr3;
+    if (!in_exc) {
+        in_exc++;
+        __asm__ __volatile__("movq %%cr2, %%rax;movq %%cr3, %%rbx;"
+                             : "=a"(cr2), "=b"(cr3)::);
+        error(u"Ran into the first exception?\r\n");
+    }
+    error(u"Ran into the second exception????\r\n");
+    __asm__ __volatile__("1: cli; hlt; jmp 1b");
+}
+
+void jumpIntoKernel() {
     CEfiGuid gop_guid = C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
     CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
 
@@ -302,7 +426,7 @@ void jumpIntoKernel(void *kernelPtr) {
     params.fb.ptr = gop->mode->frameBufferBase;
     params.fb.size = gop->mode->frameBufferSize;
 
-    void CEFICALL (*entry_point)(KernelParameters) = kernelPtr;
+    void CEFICALL (*entry_point)(KernelParameters) = (void *)KERNEL_START;
 
     CEfiUSize memoryMapSize = 0;
     CEfiMemoryDescriptor *memoryMap = C_EFI_NULL;
@@ -376,6 +500,90 @@ void jumpIntoKernel(void *kernelPtr) {
         error(u"could not exit boot servies!\r\n");
     }
 
+    /* now that we have left the firmware realm behind, we can get some real
+     * work done :-) */
+    __asm__ __volatile__(
+        /* fw_loadseg might have altered the paging tables for higher-half
+           kernels. Better to reload */
+        /* CR3 to kick the MMU, but on UEFI we can only do this after we have
+           called ExitBootServices */
+        "movq %%rax, %%cr3;"
+        /* Set up dummy exception handlers */
+        ".byte 0xe8;.long 0;" /* absolute address to set the code segment
+                                 register) */
+        "1:popq %%rax;"
+        "movq %%rax, %%rsi;addq $4f - 1b, %%rsi;" /* pointer to the code stubs
+                                                   */
+        "movq %%rax, %%rdi;addq $5f - 1b, %%rdi;" /* pointer to IDT */
+        "addq $3f - 1b, %%rax;addq %%rax, 2(%%rax);lgdt (%%rax);" /* we must set
+                                                                     up a new
+                                                                     GDT with a
+                                                                     TSS */
+        "addq $72, %%rax;" /* patch GDT and load TR */
+        "movq %%rax, %%rcx;andl $0xffffff, %%ecx;addl %%ecx, -14(%%rax);"
+        "movq %%rax, %%rcx;shrq $24, %%rcx;movq %%rcx, -9(%%rax);"
+        "movq $48, %%rax;ltr %%ax;"
+        "movw $32, %%cx;\n" /* we set up 32 entires in IDT */
+        "1:movq %%rsi, %%rax;movw $0x8F01, %%ax;shlq $16, %%rax;movw $32, "
+        "%%ax;shlq $16, %%rax;movw %%si, %%ax;stosq;"
+        "movq %%rsi, %%rax;shrq $32, %%rax;stosq;"
+        "addq $16, %%rsi;decw %%cx;jnz 1b;" /* next entry */
+        "lidt (6f);jmp 2f;"                 /* set up IDT */
+        /* new GDT */
+        ".balign 8;3:;"
+        ".word 0x40;.long 8;.word 0;.quad 0;" /* value / null descriptor */
+        ".long 0x0000FFFF;.long 0x00009800;"  /*   8 - legacy real cs */
+        ".long 0x0000FFFF;.long 0x00CF9A00;"  /*  16 - prot mode cs */
+        ".long 0x0000FFFF;.long 0x00CF9200;"  /*  24 - prot mode ds */
+        ".long 0x0000FFFF;.long 0x00AF9A00;"  /*  32 - long mode cs */
+        ".long 0x0000FFFF;.long 0x00CF9200;"  /*  40 - long mode ds */
+        ".long 0x00000068;.long 0x00008900;"  /*  48 - long mode tss descriptor
+                                               */
+        ".long 0x00000000;.long 0x00000000;"  /*       cont. */
+        /* TSS */
+        ".long 0;.long 0x1000;.long 0;.long 0x1000;.long 0;.long 0x1000;.long "
+        "0;"
+        ".long 0;.long 0;.long 0x1000;.long 0;"
+        /* ISRs */
+        "1:popq %%r8;movq 16(%%rsp),%%r9;jmp fw_exc;"
+        ".balign 16;4:xorq %%rdx, %%rdx; xorb %%cl, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $1, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $2, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $3, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $4, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $5, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $6, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $7, %%cl;jmp 1b;"
+        ".balign 16;popq %%rdx; movb $8, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $9, %%cl;jmp 1b;"
+        ".balign 16;popq %%rdx; movb $10, %%cl;jmp 1b;"
+        ".balign 16;popq %%rdx; movb $11, %%cl;jmp 1b;"
+        ".balign 16;popq %%rdx; movb $12, %%cl;jmp 1b;"
+        ".balign 16;popq %%rdx; movb $13, %%cl;jmp 1b;"
+        ".balign 16;popq %%rdx; movb $14, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $15, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $16, %%cl;jmp 1b;"
+        ".balign 16;popq %%rdx; movb $17, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $18, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $19, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $20, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $21, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $22, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $23, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $24, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $25, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $26, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $27, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $28, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $29, %%cl;jmp 1b;"
+        ".balign 16;popq %%rdx; movb $30, %%cl;jmp 1b;"
+        ".balign 16;xorq %%rdx, %%rdx; movb $31, %%cl;jmp 1b;"
+        /* IDT */
+        ".balign 16;5:.space (32*16);"
+        /* IDT value */
+        "6:.word 6b-5b;.quad 5b;2:" ::"a"(level4PageTable)
+        : "rcx", "rsi", "rdi");
+
     entry_point(params);
 
     __builtin_unreachable();
@@ -392,6 +600,33 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
                                C_EFI_BACKGROUND_RED | C_EFI_YELLOW);
 
     CEfiStatus status;
+
+    level4PageTable = C_EFI_NULL;
+    status = st->boot_services->allocate_pages(
+        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA, 8,
+        (CEfiPhysicalAddress *)&level4PageTable);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not allocate pages for page table\r\n");
+    }
+
+    // Identity map some initial values with large tables
+    memset(level4PageTable, 0, 8 * PAGE_SIZE);
+    // Level 4
+    level4PageTable[0] =
+        (CEfiU64)level4PageTable + PAGE_SIZE + (PAGE_PRESENT | PAGE_WRITABLE);
+    for (CEfiU64 i = 0; i < 5; i++) {
+        // Level 3
+        level4PageTable[512 + i] = (CEfiU64)level4PageTable +
+                                   (i + 2) * PAGE_SIZE +
+                                   (PAGE_PRESENT | PAGE_WRITABLE);
+    }
+    // Level 2, note the large table of 2 MiB.
+    for (CEfiU64 i = 0; i < 6 * 512; i++) {
+        level4PageTable[1024 + i] =
+            (CEfiU64)i * 2 * 1024 * 1024 +
+            (PAGE_PRESENT | PAGE_WRITABLE | PAGE_HUGE_PAGE);
+    }
+
     // Get loaded image protocol first to grab device handle to use
     //   simple file system protocol on
     CEfiGuid lip_guid = C_EFI_LOADED_IMAGE_PROTOCOL_GUID;
@@ -521,14 +756,16 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
     printHex((CEfiUSize)kernelContent.buf);
 
     st->con_out->output_string(st->con_out,
-                               u"Press a key to start execution!\r\n");
+                               u"Attempting to map memory now...\r\n");
+
+    st->con_out->output_string(st->con_out,
+                               u"Read kernel content, at memory location:\r\n");
+    prepareMemory((CEfiU64)kernelContent.buf, KERNEL_START,
+                  (CEfiU32)kernelContent.len);
+
+    jumpIntoKernel();
 
     CEfiInputKey key;
-    while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS)
-        ;
-
-    jumpIntoKernel(kernelContent.buf);
-
     while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS)
         ;
 

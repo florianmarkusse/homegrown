@@ -5,7 +5,8 @@ project(kernel LANGUAGES C ASM)
 include("../../setup.cmake")
 initial_setup()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector")
+# TODO: do we need fpic??
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector")
 
 add_library(${EXECUTABLE_NAME} OBJECT
         "src/main.c" 
@@ -53,7 +54,7 @@ add_custom_target(embedded-resources ALL DEPENDS ${RESOURCE_OBJECTS})
 
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME}
-        COMMAND ${CMAKE_LINKER} -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld 
+        COMMAND ${CMAKE_LINKER} -n -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld 
             -o ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME} 
             $<TARGET_OBJECTS:${EXECUTABLE_NAME}> 
             ${RESOURCE_OBJECTS} 

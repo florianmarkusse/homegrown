@@ -28,7 +28,7 @@ kernelmain(KernelParameters kernelParameters) {
                               .height = kernelParameters.fb.rows,
                               .buffer = (uint32_t *)kernelParameters.fb.ptr});
 
-    // flo_printToScreen(FLO_STRING("H"), 0);
+    flo_printToScreen(FLO_STRING("H"), 0);
 
     //  uint32_t *fb = (uint32_t *)kernelParameters.fb.ptr;
     //  uint32_t xres = kernelParameters.fb.scanline;
