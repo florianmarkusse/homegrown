@@ -252,7 +252,8 @@ void prepareMemory(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
     CEfiU64 *ptr;
     CEfiU64 *next = C_EFI_NULL;
     /* walk the page tables and add the missing pieces */
-    for (virt &= ~4095, phys &= ~(PAGE_MASK); virt < end; virt += PAGE_SIZE) {
+    for (virt &= ~(PAGE_MASK), phys &= ~(PAGE_MASK); virt < end;
+         virt += PAGE_SIZE) {
         /* 512G */
         ptr = &level4PageTable[(virt >> 39L) & PAGE_ENTRY_MASK];
         if (!*ptr) {
@@ -408,7 +409,7 @@ void fw_exc(CEfiU8 excno, CEfiU64 exccode, CEfiU64 rip, CEfiU64 rsp) {
     __asm__ __volatile__("1: cli; hlt; jmp 1b");
 }
 
-void jumpIntoKernel() {
+void jumpIntoKernel(CEfiU64 virtualStackPointerStart) {
     CEfiGuid gop_guid = C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
     CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
 
@@ -425,8 +426,6 @@ void jumpIntoKernel() {
     params.fb.scanline = gop->mode->info->pixelsPerScanLine;
     params.fb.ptr = gop->mode->frameBufferBase;
     params.fb.size = gop->mode->frameBufferSize;
-
-    void CEFICALL (*entry_point)(KernelParameters) = (void *)KERNEL_START;
 
     CEfiUSize memoryMapSize = 0;
     CEfiMemoryDescriptor *memoryMap = C_EFI_NULL;
@@ -584,13 +583,41 @@ void jumpIntoKernel() {
         "6:.word 6b-5b;.quad 5b;2:" ::"a"(level4PageTable)
         : "rcx", "rsi", "rdi");
 
-    entry_point(params);
+    /* execute 64-bit kernels in long mode */
+    __asm__ __volatile__(
+        "movq %%rcx, %%r8;"
+        /* SysV ABI uses %rdi, %rsi, but fastcall uses %rcx, %rdx */
+        // "movq %%rax, %%rcx;movq %%rax, %%rdi;"
+        "movq %%rbx, %%rsp; movq %%rsp, %%rbp;;"
+        "jmp *%%r8" // Jump to the address stored in %%rdx (KERNEL_START)
+        ::          //"a"(params),
+        "b"(virtualStackPointerStart),
+        "c"(KERNEL_START)
+        :);
 
     __builtin_unreachable();
 }
 
 CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
                              CEfiSystemTable *systemtable) {
+    /* make sure SSE is enabled, because some say there are buggy firmware in
+     * the wild not enabling (and also needed if we come from boot_x86.asm). No
+     * supported check, because according to AMD64 Spec Vol 2, all long mode
+     * capable CPUs must also support SSE2 at least. We don't need them, but
+     * it's more than likely that a kernel is compiled using SSE instructions.
+     */
+    __asm__ __volatile__(
+        "movq %%cr0, %%rax;andb $0xF1, %%al;movq %%rax, %%cr0;" /* clear MP, EM,
+                                                                   TS (FPU
+                                                                   emulation
+                                                                   off) */
+        "movq %%cr4, %%rax;orw $3 << 9, %%ax;movq %%rax, %%cr4;" /* set OSFXSR,
+                                                                    OSXMMEXCPT
+                                                                    (enable SSE)
+                                                                  */
+        ::
+            : "rax");
+
     h = handle;
     st = systemtable;
 
@@ -758,12 +785,24 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
     st->con_out->output_string(st->con_out,
                                u"Attempting to map memory now...\r\n");
 
-    st->con_out->output_string(st->con_out,
-                               u"Read kernel content, at memory location:\r\n");
     prepareMemory((CEfiU64)kernelContent.buf, KERNEL_START,
                   (CEfiU32)kernelContent.len);
 
-    jumpIntoKernel();
+    CEfiPhysicalAddress stackLowAddress;
+    status = st->boot_services->allocate_pages(
+        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+        EFI_SIZE_TO_PAGES(PAGE_SIZE), &stackLowAddress);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not allocete data for the stack\r\n");
+    }
+
+    CEfiU64 virtualStackStart =
+        (KERNEL_START + kernelContent.len) + ~(PAGE_MASK) + PAGE_SIZE;
+    prepareMemory(stackLowAddress, (CEfiU32)virtualStackStart, PAGE_SIZE);
+
+    st->con_out->output_string(st->con_out, u"Jumping to kernel!\r\n");
+
+    jumpIntoKernel(virtualStackStart + PAGE_SIZE - 1);
 
     CEfiInputKey key;
     while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS)
