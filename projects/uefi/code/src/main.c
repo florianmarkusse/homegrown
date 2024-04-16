@@ -583,17 +583,19 @@ void jumpIntoKernel(CEfiU64 virtualStackPointerStart) {
         "6:.word 6b-5b;.quad 5b;2:" ::"a"(level4PageTable)
         : "rcx", "rsi", "rdi");
 
-    /* execute 64-bit kernels in long mode */
-    __asm__ __volatile__(
-        "movq %%rcx, %%r8;"
-        /* SysV ABI uses %rdi, %rsi, but fastcall uses %rcx, %rdx */
-        // "movq %%rax, %%rcx;movq %%rax, %%rdi;"
-        "movq %%rbx, %%rsp; movq %%rsp, %%rbp;;"
-        "jmp *%%r8" // Jump to the address stored in %%rdx (KERNEL_START)
-        ::          //"a"(params),
-        "b"(virtualStackPointerStart),
-        "c"(KERNEL_START)
-        :);
+    void CEFICALL (*entry_point)(KernelParameters) = (void *)KERNEL_START;
+    entry_point(params);
+
+    //    /* execute 64-bit kernels in long mode */
+    //    __asm__ __volatile__(
+    //        "movq %%rcx, %%r8;"
+    //        /* SysV ABI uses %rdi, %rsi, but fastcall uses %rcx, %rdx */
+    //        "movq %%rax, %%rcx;movq %%rax, %%rdi;"
+    //        "movq %%rbx, %%rsp; movq %%rsp, %%rbp;;"
+    //        "jmp *%%r8" // Jump to the address stored in %%rdx (KERNEL_START)
+    //        ::"a"(&params),
+    //        "b"(virtualStackPointerStart), "c"(KERNEL_START)
+    //        :);
 
     __builtin_unreachable();
 }
