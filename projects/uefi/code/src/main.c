@@ -263,10 +263,6 @@ void prepareMemory(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
         if (!*pageEntry) {
             newPageTableAddress = alloc_and_zero(1);
             *pageEntry = (newPageTableAddress | (PAGE_PRESENT | PAGE_WRITABLE));
-
-            st->con_out->output_string(
-                st->con_out, u"I added this address into level 4...\r\n");
-            printHex(*pageEntry);
         }
         /* 1G */
         pageEntry = &((CEfiPhysicalAddress *)
@@ -274,10 +270,6 @@ void prepareMemory(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
         if (!*pageEntry) {
             newPageTableAddress = alloc_and_zero(1);
             *pageEntry = (newPageTableAddress | (PAGE_PRESENT | PAGE_WRITABLE));
-
-            st->con_out->output_string(
-                st->con_out, u"I added this address into level 3...\r\n");
-            printHex(*pageEntry);
         }
         /* 2M  */
         pageEntry = &((CEfiPhysicalAddress *)
@@ -285,10 +277,6 @@ void prepareMemory(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
         if (!*pageEntry) {
             newPageTableAddress = alloc_and_zero(1);
             *pageEntry = (newPageTableAddress | (PAGE_PRESENT | PAGE_WRITABLE));
-
-            st->con_out->output_string(
-                st->con_out, u"I added this address into level 2...\r\n");
-            printHex(*pageEntry);
         }
         /* 4K */
         pageEntry = &((CEfiPhysicalAddress *)
@@ -297,10 +285,6 @@ void prepareMemory(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
          * overlapping segments */
         if (!*pageEntry) {
             *pageEntry = phys | (PAGE_PRESENT | PAGE_WRITABLE);
-
-            st->con_out->output_string(
-                st->con_out, u"I added this physi address into level 1...\r\n");
-            printHex(*pageEntry);
         }
     }
 }
@@ -666,50 +650,93 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
 
     CEfiStatus status;
 
-    CEfiUSize memoryMapSize = 0;
-    CEfiMemoryDescriptor *memoryMap = C_EFI_NULL;
-    CEfiUSize mapKey;
-    CEfiUSize descriptorSize;
-    CEfiU32 descriptorVersion;
+    //    CEfiPhysicalAddress memoryMapAddress;
+    //    CEfiMemoryDescriptor *memory_map = C_EFI_NULL;
+    //    CEfiUSize memory_map_size = 0, map_key = 0, desc_size = 0;
+    //    CEfiU32 desc_ver = 0;
+    //    status = st->boot_services->get_memory_map(
+    //        &memory_map_size, C_EFI_NULL, &map_key, &desc_size, C_EFI_NULL);
+    //    if (status != C_EFI_BUFFER_TOO_SMALL) {
+    //        error(u"Should have received a buffer too small error here!\r\n");
+    //    }
+    //    memory_map_size += 4 * desc_size;
+    //    status = st->boot_services->allocate_pages(
+    //        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+    //        EFI_SIZE_TO_PAGES(memory_map_size), &memoryMapAddress);
+    //    memory_map = (CEfiMemoryDescriptor *)memoryMapAddress;
+    //
+    //    status = st->boot_services->get_memory_map(&memory_map_size,
+    //    memory_map,
+    //                                               &map_key, &desc_size,
+    //                                               &desc_ver);
+    //
+    //    st->con_out->output_string(st->con_out, u"version\r\n");
+    //    print_number(desc_ver, 10);
+    //    st->con_out->output_string(st->con_out, u"Total size:\r\n");
+    //    print_number(memory_map_size, 10);
+    //    CEfiMemoryDescriptor *iterator = memory_map;
+    //    CEfiU64 totalMemory = 0;
+    //    CEfiU64 i = 0;
+    //    for (; iterator;
+    //         i++, iterator = (CEfiMemoryDescriptor *)((CEfiU8 *)memory_map +
+    //                                                  i * desc_size)) {
+    //        totalMemory += iterator->number_of_pages * 4096;
+    //    }
+    //
+    //    st->con_out->output_string(st->con_out, u"Total memory:\r\n");
+    //    print_number(totalMemory, 10);
+    //    st->con_out->output_string(st->con_out, u"Total iterations:\r\n");
+    //    print_number(i, 10);
 
-    CEfiPhysicalAddress memoryMapAddress;
+    // --------------------------------------------------------
 
-    // Call GetMemoryMap with initial buffer size of 0 to retrieve the
-    // required buffer size
-    status =
-        st->boot_services->get_memory_map(&memoryMapSize, memoryMap, &mapKey,
-                                          &descriptorSize, &descriptorVersion);
-
-    if (status != C_EFI_BUFFER_TOO_SMALL) {
-        error(u"Should have received a buffer too small error here!\r\n");
-    }
-
-    // Some extra because allocating can create extra descriptors and otherwise
-    // exitbootservices will fail (lol)
-    memoryMapSize += descriptorSize * 2;
-    status = st->boot_services->allocate_pages(
-        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
-        EFI_SIZE_TO_PAGES(memoryMapSize), &memoryMapAddress);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not allocate data for memory map buffer\r\n");
-    }
-
-    memoryMap = (CEfiMemoryDescriptor *)memoryMapAddress;
-
-    st->con_out->output_string(st->con_out, u"Total memory maps:\r\n");
-    print_number(memoryMapSize, 10);
-    CEfiMemoryDescriptor *iterator = memoryMap;
-    CEfiU64 totalMemory = 0;
-    for (CEfiU64 i = 0; iterator;
-         i++, iterator = (CEfiMemoryDescriptor *)((CEfiU8 *)memoryMap +
-                                                  i * descriptorSize)) {
-        totalMemory += iterator->number_of_pages * 4096;
-
-        print_number(iterator->number_of_pages, 10);
-    }
-
-    st->con_out->output_string(st->con_out, u"Total memory:\r\n");
-    print_number(totalMemory, 10);
+    //    CEfiUSize memoryMapSize = 0;
+    //    CEfiMemoryDescriptor *memoryMap = C_EFI_NULL;
+    //    CEfiUSize mapKey;
+    //    CEfiUSize descriptorSize;
+    //    CEfiU32 descriptorVersion;
+    //
+    //    CEfiPhysicalAddress memoryMapAddress;
+    //
+    //    // Call GetMemoryMap with initial buffer size of 0 to retrieve the
+    //    // required buffer size
+    //    status =
+    //        st->boot_services->get_memory_map(&memoryMapSize, memoryMap,
+    //        &mapKey,
+    //                                          &descriptorSize,
+    //                                          &descriptorVersion);
+    //
+    //    if (status != C_EFI_BUFFER_TOO_SMALL) {
+    //        error(u"Should have received a buffer too small error here!\r\n");
+    //    }
+    //
+    //    // Some extra because allocating can create extra descriptors and
+    //    otherwise
+    //    // exitbootservices will fail (lol)
+    //    memoryMapSize += descriptorSize * 2;
+    //    status = st->boot_services->allocate_pages(
+    //        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+    //        EFI_SIZE_TO_PAGES(memoryMapSize), &memoryMapAddress);
+    //    if (C_EFI_ERROR(status)) {
+    //        error(u"Could not allocate data for memory map buffer\r\n");
+    //    }
+    //
+    //    memoryMap = (CEfiMemoryDescriptor *)memoryMapAddress;
+    //
+    //    st->con_out->output_string(st->con_out, u"Total memory maps:\r\n");
+    //    print_number(memoryMapSize, 10);
+    //    CEfiMemoryDescriptor *iterator = memoryMap;
+    //    CEfiU64 totalMemory = 0;
+    //    for (CEfiU64 i = 0; iterator;
+    //         i++, iterator = (CEfiMemoryDescriptor *)((CEfiU8 *)memoryMap +
+    //                                                  i * descriptorSize)) {
+    //        totalMemory += iterator->number_of_pages * 4096;
+    //
+    //        // print_number(iterator->number_of_pages, 10);
+    //    }
+    //
+    //    st->con_out->output_string(st->con_out, u"Total memory:\r\n");
+    //    print_number(totalMemory, 10);
 
     level4PageTable = (CEfiPhysicalAddress *)alloc_and_zero(1);
     printHex((CEfiPhysicalAddress)level4PageTable);
@@ -953,59 +980,64 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
     //        }
     //    }
 
-    st->con_out->output_string(st->con_out, u"Sanity check for mapping...\r\n");
+    //    st->con_out->output_string(st->con_out, u"Sanity check for
+    //    mapping...\r\n");
+    //
+    //    st->con_out->output_string(st->con_out, u"Sanity check for
+    //    mapping...\r\n"); st->con_out->output_string(st->con_out, u"level
+    //    4\r\n"); for (CEfiU64 i = 0; i < PAGE_ENTRIES_NUM; i++) {
+    //        if (level4PageTable[i]) {
+    //            print_number(i, 10);
+    //            print_number(level4PageTable[i], 16);
+    //            st->con_out->output_string(st->con_out, u"\r\n");
+    //        }
+    //    }
+    //
+    //    st->con_out->output_string(st->con_out, u"level 3\r\n");
+    //    for (CEfiU64 i = 0; i < PAGE_ENTRIES_NUM; i++) {
+    //        if (level4PageTable[i]) {
+    //            st->con_out->output_string(st->con_out, u"============\r\n");
+    //            CEfiPhysicalAddress *level3Address =
+    //                (CEfiPhysicalAddress *)(level4PageTable[i] &
+    //                ~(PAGE_MASK));
+    //            print_number((CEfiPhysicalAddress)level3Address, 16);
+    //            for (CEfiU64 j = 0; j < PAGE_ENTRIES_NUM; j++) {
+    //                if (level3Address[j]) {
+    //                    print_number(j, 10);
+    //                    print_number(level3Address[j], 16);
+    //                    st->con_out->output_string(st->con_out, u"\r\n");
+    //                }
+    //            }
+    //            st->con_out->output_string(st->con_out, u"============\r\n");
+    //        }
+    //    }
 
-    st->con_out->output_string(st->con_out, u"Sanity check for mapping...\r\n");
-    st->con_out->output_string(st->con_out, u"level 4\r\n");
-    for (CEfiU64 i = 0; i < PAGE_ENTRIES_NUM; i++) {
-        if (level4PageTable[i]) {
-            print_number(i, 10);
-            print_number(level4PageTable[i], 16);
-            st->con_out->output_string(st->con_out, u"\r\n");
-        }
-    }
-
-    st->con_out->output_string(st->con_out, u"level 3\r\n");
-    for (CEfiU64 i = 0; i < PAGE_ENTRIES_NUM; i++) {
-        if (level4PageTable[i]) {
-            st->con_out->output_string(st->con_out, u"============\r\n");
-            CEfiPhysicalAddress *level3Address =
-                (CEfiPhysicalAddress *)(level4PageTable[i] & ~(PAGE_MASK));
-            print_number((CEfiPhysicalAddress)level3Address, 16);
-            for (CEfiU64 j = 0; j < PAGE_ENTRIES_NUM; j++) {
-                if (level3Address[j]) {
-                    print_number(j, 10);
-                    print_number(level3Address[j], 16);
-                    st->con_out->output_string(st->con_out, u"\r\n");
-                }
-            }
-            st->con_out->output_string(st->con_out, u"============\r\n");
-        }
-    }
-
-    st->con_out->output_string(st->con_out, u"press a key...\r\n");
-    CEfiInputKey key;
-    while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS)
-        ;
-
-    printHex((CEfiPhysicalAddress)level4PageTable);
-    CEfiPhysicalAddress *level3 =
-        (CEfiPhysicalAddress
-             *)(level4PageTable[KERNEL_START >> 39L & PAGE_ENTRY_MASK] &
-                ~(PAGE_MASK));
-    printHex((CEfiPhysicalAddress)level3);
-    CEfiPhysicalAddress *level2 =
-        (CEfiPhysicalAddress *)(level3[KERNEL_START >> 30L & PAGE_ENTRY_MASK] &
-                                ~(PAGE_MASK));
-    printHex((CEfiPhysicalAddress)level2);
-    CEfiPhysicalAddress *level1 =
-        (CEfiPhysicalAddress *)(level2[KERNEL_START >> 21L & PAGE_ENTRY_MASK] &
-                                ~(PAGE_MASK));
-    printHex((CEfiPhysicalAddress)level1);
-    CEfiPhysicalAddress *address =
-        (CEfiPhysicalAddress *)(level1[KERNEL_START >> 12L & PAGE_ENTRY_MASK] &
-                                ~(PAGE_MASK));
-    printHex((CEfiPhysicalAddress)address);
+    //    st->con_out->output_string(st->con_out, u"press a key...\r\n");
+    //    CEfiInputKey key;
+    //    while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS)
+    //        ;
+    //
+    //    printHex((CEfiPhysicalAddress)level4PageTable);
+    //    CEfiPhysicalAddress *level3 =
+    //        (CEfiPhysicalAddress
+    //             *)(level4PageTable[KERNEL_START >> 39L & PAGE_ENTRY_MASK] &
+    //                ~(PAGE_MASK));
+    //    printHex((CEfiPhysicalAddress)level3);
+    //    CEfiPhysicalAddress *level2 =
+    //        (CEfiPhysicalAddress *)(level3[KERNEL_START >> 30L &
+    //        PAGE_ENTRY_MASK] &
+    //                                ~(PAGE_MASK));
+    //    printHex((CEfiPhysicalAddress)level2);
+    //    CEfiPhysicalAddress *level1 =
+    //        (CEfiPhysicalAddress *)(level2[KERNEL_START >> 21L &
+    //        PAGE_ENTRY_MASK] &
+    //                                ~(PAGE_MASK));
+    //    printHex((CEfiPhysicalAddress)level1);
+    //    CEfiPhysicalAddress *address =
+    //        (CEfiPhysicalAddress *)(level1[KERNEL_START >> 12L &
+    //        PAGE_ENTRY_MASK] &
+    //                                ~(PAGE_MASK));
+    //    printHex((CEfiPhysicalAddress)address);
     //    CEfiPhysicalAddress level2 =
     //        ((CEfiPhysicalAddress *)level3)[KERNEL_START >> 30L];
     //    printHex(level2);
@@ -1031,6 +1063,7 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
 
     st->con_out->output_string(st->con_out,
                                u"Preparing to jump to kernel, press a key\r\n");
+    CEfiInputKey key;
     while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS)
         ;
 
