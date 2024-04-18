@@ -19,8 +19,10 @@ typedef struct {
     MemoryMap *memory;
 } KernelParameters;
 
-__attribute__((ms_abi, section("kernel-start"))) int
-kernelmain(KernelParameters kernelParameters) {
+#define KERNEL_PARAMS_START 0xfffffffff7000000
+__attribute__((ms_abi, section("kernel-start"))) int kernelmain() {
+    KernelParameters *kernelParameters =
+        (KernelParameters *)KERNEL_PARAMS_START;
     // flo_setupScreen(
     //     (flo_ScreenDimension){.scanline = kernelParameters.fb.scanline,
     //                           .size = kernelParameters.fb.size,
@@ -31,9 +33,9 @@ kernelmain(KernelParameters kernelParameters) {
 
     //    flo_printToScreen(FLO_STRING("H"), 0);
 
-    uint32_t *fb = (uint32_t *)kernelParameters.fb.ptr;
-    uint32_t xres = kernelParameters.fb.scanline;
-    uint32_t yres = kernelParameters.fb.columns;
+    uint32_t *fb = (uint32_t *)kernelParameters->fb.ptr;
+    uint32_t xres = kernelParameters->fb.scanline;
+    uint32_t yres = kernelParameters->fb.columns;
 
     //  // Clear screen to solid color
     //  for (uint32_t y = 0; y < yres; y++) {

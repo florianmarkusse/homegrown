@@ -13,7 +13,6 @@
 #include "memory/definitions.h"
 #include "memory/standard.h"
 #include "printing.h"
-#include "string.h"
 
 static CEfiU8 in_exc = 0;
 
@@ -58,13 +57,23 @@ void jumpIntoKernel() {
         error(u"Could not locate locate GOP\r\n");
     }
 
-    KernelParameters params = {0};
+    CEfiPhysicalAddress kernelParams = allocAndZero(1);
+    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, PAGE_SIZE);
+    KernelParameters *params = (KernelParameters *)kernelParams;
 
-    params.fb.columns = gop->mode->info->horizontalResolution;
-    params.fb.rows = gop->mode->info->verticalResolution;
-    params.fb.scanline = gop->mode->info->pixelsPerScanLine;
-    params.fb.ptr = gop->mode->frameBufferBase;
-    params.fb.size = gop->mode->frameBufferSize;
+    CEfiPhysicalAddress stackEnd = allocAndZero(4);
+    mapMemory(stackEnd, 4 * PAGE_SIZE);
+    CEfiPhysicalAddress stackPointer = stackEnd + 4 * PAGE_SIZE;
+
+    globals.st->con_out->output_string(globals.st->con_out, u"The stack: \n");
+    printNumber(stackPointer, 16);
+    printNumber(stackEnd, 16);
+
+    params->fb.columns = gop->mode->info->horizontalResolution;
+    params->fb.rows = gop->mode->info->verticalResolution;
+    params->fb.scanline = gop->mode->info->pixelsPerScanLine;
+    params->fb.ptr = gop->mode->frameBufferBase;
+    params->fb.size = gop->mode->frameBufferSize;
 
     globals.st->con_out->output_string(
         globals.st->con_out,
@@ -176,19 +185,21 @@ void jumpIntoKernel() {
         "6:.word 6b-5b;.quad 5b;2:" ::"a"(globals.level4PageTable)
         : "rcx", "rsi", "rdi");
 
-    void CEFICALL (*entry_point)(KernelParameters) = (void *)KERNEL_START;
-    entry_point(params);
+    //    void CEFICALL (*entry_point)(KernelParameters *) = (void
+    //    *)KERNEL_START; entry_point(params);
 
-    //    /* execute 64-bit kernels in long mode */
-    //    __asm__ __volatile__(
-    //        "movq %%rcx, %%r8;"
-    //        /* SysV ABI uses %rdi, %rsi, but fastcall uses %rcx, %rdx */
-    //        "movq %%rax, %%rcx;movq %%rax, %%rdi;"
-    //        "movq %%rbx, %%rsp; movq %%rsp, %%rbp;;"
-    //        "jmp *%%r8" // Jump to the address stored in %%rdx (KERNEL_START)
-    //        ::"a"(&params),
-    //        "b"(virtualStackPointerStart), "c"(KERNEL_START)
-    //        :);
+    /* execute 64-bit kernels in long mode */
+    __asm__ __volatile__(
+        "movq %%rcx, %%r8;"
+        /* SysV ABI uses %rdi, %rsi, but fastcall uses %rcx, %rdx */
+        //"movq %%rax, %%rcx;movq %%rax, %%rdi;"
+        "movq %%rbx, %%rsp; movq %%rsp, %%rbp;;"
+        "jmp *%%r8" // Jump to the address stored in %%rdx (KERNEL_START)
+        ::
+            //"a"(params),
+        "b"(stackPointer),
+        "c"(KERNEL_START)
+        :);
 
     __builtin_unreachable();
 }
@@ -255,9 +266,9 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Attempting to map memory now...\r\n");
 
-    mapMemory(0, 0, 4294967295); // 4 GiB ???
-    mapMemory((CEfiU64)kernelContent.buf, KERNEL_START,
-              (CEfiU32)kernelContent.len);
+    mapMemoryAt(0, 0, 4294967295); // 4 GiB ???
+    mapMemoryAt((CEfiU64)kernelContent.buf, KERNEL_START,
+                (CEfiU32)kernelContent.len);
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Preparing to jump to kernel...\r\n");

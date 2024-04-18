@@ -5,7 +5,8 @@
 #include "efi/c-efi-system.h"
 
 CEfiPhysicalAddress allocAndZero(CEfiUSize numPages);
-void mapMemory(CEfiU64 phys, CEfiU64 virt, CEfiU32 size);
+void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU32 size);
+void mapMemory(CEfiU64 phys, CEfiU32 size);
 
 typedef struct {
     CEfiUSize memoryMapSize;
