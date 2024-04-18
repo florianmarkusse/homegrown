@@ -6,7 +6,7 @@
 
 CEfiPhysicalAddress allocAndZero(CEfiUSize numPages) {
     CEfiPhysicalAddress page = 0;
-    CEfiStatus status = st->boot_services->allocate_pages(
+    CEfiStatus status = globals.st->boot_services->allocate_pages(
         C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA, numPages, &page);
     if (C_EFI_ERROR(status)) {
         error(u"unable to allocate pages!\r\n");
@@ -18,7 +18,7 @@ CEfiPhysicalAddress allocAndZero(CEfiUSize numPages) {
 
 void mapMemory(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
     /* is this a canonical address? We handle virtual memory up to 256TB */
-    if (!level4PageTable ||
+    if (!globals.level4PageTable ||
         ((virt >> 48L) != 0x0000 && (virt >> 48L) != 0xffff)) {
         error(u"Incorrect address mapped or no page table set up yet!\r\n");
     }
@@ -29,7 +29,7 @@ void mapMemory(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
     for (virt &= ~(PAGE_MASK), phys &= ~(PAGE_MASK); virt < end;
          virt += PAGE_SIZE, phys += PAGE_SIZE) {
         /* 512G */
-        pageEntry = &(level4PageTable[(virt >> 39L) & PAGE_ENTRY_MASK]);
+        pageEntry = &(globals.level4PageTable[(virt >> 39L) & PAGE_ENTRY_MASK]);
         if (!*pageEntry) {
             CEfiPhysicalAddress addr = allocAndZero(1);
             *pageEntry = (addr | (PAGE_PRESENT | PAGE_WRITABLE));
@@ -70,18 +70,19 @@ MemoryInfo getMemoryInfo() {
 
     // Call GetMemoryMap with initial buffer size of 0 to retrieve the
     // required buffer size
-    CEfiStatus status =
-        st->boot_services->get_memory_map(&memoryMapSize, memoryMap, &mapKey,
-                                          &descriptorSize, &descriptorVersion);
+    CEfiStatus status = globals.st->boot_services->get_memory_map(
+        &memoryMapSize, memoryMap, &mapKey, &descriptorSize,
+        &descriptorVersion);
 
     if (status != C_EFI_BUFFER_TOO_SMALL) {
         error(u"Should have received a buffer too small error here!\r\n");
     }
 
-    // Some extra because allocating can create extra descriptors and otherwise
+    // Some extra because allocating can create extra descriptors and
+    // otherwise
     // exitbootservices will fail (lol)
     memoryMapSize += descriptorSize * 2;
-    status = st->boot_services->allocate_pages(
+    status = globals.st->boot_services->allocate_pages(
         C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
         EFI_SIZE_TO_PAGES(memoryMapSize), &memoryMapAddress);
     if (C_EFI_ERROR(status)) {
@@ -89,9 +90,9 @@ MemoryInfo getMemoryInfo() {
     }
     memoryMap = (CEfiMemoryDescriptor *)memoryMapAddress;
 
-    status =
-        st->boot_services->get_memory_map(&memoryMapSize, memoryMap, &mapKey,
-                                          &descriptorSize, &descriptorVersion);
+    status = globals.st->boot_services->get_memory_map(
+        &memoryMapSize, memoryMap, &mapKey, &descriptorSize,
+        &descriptorVersion);
     if (C_EFI_ERROR(status)) {
         error(u"Getting memory map failed!\r\n");
     }

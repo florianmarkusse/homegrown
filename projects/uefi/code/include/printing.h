@@ -4,5 +4,6 @@
 #include "efi/c-efi-base.h"
 
 void error(CEfiU16 *string);
+void printNumber(CEfiUSize number, CEfiU8 base);
 
 #endif

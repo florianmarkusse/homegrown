@@ -5,11 +5,72 @@
 #include "globals.h"
 
 void error(CEfiU16 *string) {
-    st->con_out->output_string(st->con_out, string);
+    globals.st->con_out->output_string(globals.st->con_out, string);
     CEfiInputKey key;
-    while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS) {
+    while (globals.st->con_in->read_key_stroke(globals.st->con_in, &key) !=
+           C_EFI_SUCCESS) {
         ;
     }
-    st->runtime_services->reset_system(C_EFI_RESET_SHUTDOWN, C_EFI_SUCCESS, 0,
-                                       C_EFI_NULL);
+    globals.st->runtime_services->reset_system(C_EFI_RESET_SHUTDOWN,
+                                               C_EFI_SUCCESS, 0, C_EFI_NULL);
+}
+
+void printNumber(CEfiUSize number, CEfiU8 base) {
+    const CEfiChar16 *digits = u"0123456789ABCDEF";
+    CEfiChar16 buffer[24]; // Hopefully enough for UINTN_MAX (UINT64_MAX) + sign
+                           // character
+    CEfiUSize i = 0;
+    CEfiBool negative = C_EFI_FALSE;
+
+    if (base > 16) {
+        error(u"Invalid base specified!\r\n");
+    }
+
+    do {
+        buffer[i++] = digits[number % base];
+        number /= base;
+    } while (number > 0);
+
+    switch (base) {
+    case 2:
+        // Binary
+        buffer[i++] = u'b';
+        buffer[i++] = u'0';
+        break;
+
+    case 8:
+        // Octal
+        buffer[i++] = u'o';
+        buffer[i++] = u'0';
+        break;
+
+    case 10:
+        // Decimal
+        if (negative)
+            buffer[i++] = u'-';
+        break;
+
+    case 16:
+        // Hexadecimal
+        buffer[i++] = u'x';
+        buffer[i++] = u'0';
+        break;
+
+    default:
+        // Maybe invalid base, but we'll go with it (no special processing)
+        break;
+    }
+
+    // NULL terminate string
+    buffer[i--] = u'\0';
+
+    // Reverse buffer before printing
+    for (CEfiUSize j = 0; j < i; j++, i--) {
+        // Swap digits
+        CEfiUSize temp = buffer[i];
+        buffer[i] = buffer[j];
+        buffer[j] = temp;
+    }
+
+    globals.st->con_out->output_string(globals.st->con_out, buffer);
 }

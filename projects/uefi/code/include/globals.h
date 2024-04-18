@@ -3,9 +3,12 @@
 
 #include "efi/c-efi-base.h"
 
-static CEfiHandle h;
-static CEfiSystemTable *st;
+typedef struct {
+    CEfiHandle h;
+    CEfiSystemTable *st;
+    CEfiU64 *level4PageTable;
+} Globals;
 
-static CEfiU64 *level4PageTable = C_EFI_NULL;
+extern Globals globals;
 
 #endif

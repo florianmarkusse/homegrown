@@ -9,7 +9,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -target x86_64-unknown-windows -ffreestandin
 
 add_executable(${EXECUTABLE_NAME} 
     "src/main.c"
+    "src/globals.c"
+    "src/printing.c"
+    "src/data-reading.c"
     "src/memory/standard.c"
+    "src/memory/boot-functions.c"
     )
 
 target_include_directories(${EXECUTABLE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
