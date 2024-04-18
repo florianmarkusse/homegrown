@@ -7,7 +7,15 @@
 #include "efi/c-efi-protocol-simple-text-input.h" // for CEfiInputKey, CEfiSim...
 #include "efi/c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
 #include "efi/c-efi-system.h"                      // for CEfiSystemTable
-#include "memory.h"
+// #include "globals.h"
+// #include "memory/boot-functions.h"
+// #include "memory/definitions.h"
+// #include "memory/standard.h"
+// #include "printing.h"
+#include "memory/standard.h"
+
+#define KERNEL_SPACE_START 0xffff800000000000
+#define KERNEL_SPACE_END 0xffffffffffffffff
 
 #define KERNEL_START 0xfffffffff8000000
 
@@ -225,7 +233,6 @@ void print_number(CEfiUSize number, CEfiU8 base) {
 
     // Print number string
     st->con_out->output_string(st->con_out, buffer);
-    st->con_out->output_string(st->con_out, u"\r\n");
 }
 
 void printHex(CEfiU64 hex) { print_number(hex, 16); }
@@ -254,37 +261,36 @@ void prepareMemory(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
 
     CEfiU64 end = virt + size;
     CEfiU64 *pageEntry = C_EFI_NULL;
-    CEfiU64 newPageTableAddress = 0;
     /* walk the page tables and add the missing pieces */
     for (virt &= ~(PAGE_MASK), phys &= ~(PAGE_MASK); virt < end;
          virt += PAGE_SIZE, phys += PAGE_SIZE) {
         /* 512G */
         pageEntry = &(level4PageTable[(virt >> 39L) & PAGE_ENTRY_MASK]);
         if (!*pageEntry) {
-            newPageTableAddress = alloc_and_zero(1);
-            *pageEntry = (newPageTableAddress | (PAGE_PRESENT | PAGE_WRITABLE));
+            CEfiPhysicalAddress addr = alloc_and_zero(1);
+            *pageEntry = (addr | (PAGE_PRESENT | PAGE_WRITABLE));
         }
         /* 1G */
-        pageEntry = &((CEfiPhysicalAddress *)
-                          newPageTableAddress)[(virt >> 30L) & PAGE_ENTRY_MASK];
+        pageEntry = (CEfiPhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
+        pageEntry = &(pageEntry[(virt >> 30L) & PAGE_ENTRY_MASK]);
         if (!*pageEntry) {
-            newPageTableAddress = alloc_and_zero(1);
-            *pageEntry = (newPageTableAddress | (PAGE_PRESENT | PAGE_WRITABLE));
+            *pageEntry = (alloc_and_zero(1) | (PAGE_PRESENT | PAGE_WRITABLE));
         }
         /* 2M  */
-        pageEntry = &((CEfiPhysicalAddress *)
-                          newPageTableAddress)[(virt >> 21L) & PAGE_ENTRY_MASK];
+        pageEntry = (CEfiPhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
+        pageEntry = &(pageEntry[(virt >> 21L) & PAGE_ENTRY_MASK]);
         if (!*pageEntry) {
-            newPageTableAddress = alloc_and_zero(1);
-            *pageEntry = (newPageTableAddress | (PAGE_PRESENT | PAGE_WRITABLE));
+            *pageEntry = (alloc_and_zero(1) | (PAGE_PRESENT | PAGE_WRITABLE));
         }
         /* 4K */
-        pageEntry = &((CEfiPhysicalAddress *)
-                          newPageTableAddress)[(virt >> 12L) & PAGE_ENTRY_MASK];
+        pageEntry = (CEfiPhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
+        pageEntry = &(pageEntry[(virt >> 12L) & PAGE_ENTRY_MASK]);
         /* if this page is already mapped, that means the kernel has invalid,
          * overlapping segments */
         if (!*pageEntry) {
             *pageEntry = phys | (PAGE_PRESENT | PAGE_WRITABLE);
+        } else {
+            error(u"This should not happen!\r\n");
         }
     }
 }
@@ -406,6 +412,59 @@ void fw_exc(CEfiU8 excno, CEfiU64 exccode, CEfiU64 rip, CEfiU64 rsp) {
     __asm__ __volatile__("1: cli; hlt; jmp 1b");
 }
 
+typedef struct {
+    CEfiUSize memoryMapSize;
+    CEfiMemoryDescriptor *memoryMap;
+    CEfiUSize mapKey;
+    CEfiUSize descriptorSize;
+    CEfiU32 descriptorVersion;
+} MemoryInfo;
+
+MemoryInfo getMemoryInfo() {
+    CEfiUSize memoryMapSize = 0;
+    CEfiMemoryDescriptor *memoryMap = C_EFI_NULL;
+    CEfiUSize mapKey;
+    CEfiUSize descriptorSize;
+    CEfiU32 descriptorVersion;
+
+    CEfiPhysicalAddress memoryMapAddress;
+
+    // Call GetMemoryMap with initial buffer size of 0 to retrieve the
+    // required buffer size
+    CEfiStatus status =
+        st->boot_services->get_memory_map(&memoryMapSize, memoryMap, &mapKey,
+                                          &descriptorSize, &descriptorVersion);
+
+    if (status != C_EFI_BUFFER_TOO_SMALL) {
+        error(u"Should have received a buffer too small error here!\r\n");
+    }
+
+    // Some extra because allocating can create extra descriptors and
+    // otherwise
+    // exitbootservices will fail (lol)
+    memoryMapSize += descriptorSize * 2;
+    status = st->boot_services->allocate_pages(
+        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+        EFI_SIZE_TO_PAGES(memoryMapSize), &memoryMapAddress);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not allocate data for memory map buffer\r\n");
+    }
+    memoryMap = (CEfiMemoryDescriptor *)memoryMapAddress;
+
+    status =
+        st->boot_services->get_memory_map(&memoryMapSize, memoryMap, &mapKey,
+                                          &descriptorSize, &descriptorVersion);
+    if (C_EFI_ERROR(status)) {
+        error(u"Getting memory map failed!\r\n");
+    }
+
+    return (MemoryInfo){.memoryMapSize = memoryMapSize,
+                        .memoryMap = memoryMap,
+                        .mapKey = mapKey,
+                        .descriptorSize = descriptorSize,
+                        .descriptorVersion = descriptorVersion};
+}
+
 void jumpIntoKernel() {
     CEfiGuid gop_guid = C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
     CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
@@ -424,45 +483,12 @@ void jumpIntoKernel() {
     params.fb.ptr = gop->mode->frameBufferBase;
     params.fb.size = gop->mode->frameBufferSize;
 
-    CEfiUSize memoryMapSize = 0;
-    CEfiMemoryDescriptor *memoryMap = C_EFI_NULL;
-    CEfiUSize mapKey;
-    CEfiUSize descriptorSize;
-    CEfiU32 descriptorVersion;
-
-    CEfiPhysicalAddress memoryMapAddress;
-
-    // Call GetMemoryMap with initial buffer size of 0 to retrieve the
-    // required buffer size
-    status =
-        st->boot_services->get_memory_map(&memoryMapSize, memoryMap, &mapKey,
-                                          &descriptorSize, &descriptorVersion);
-
-    if (status != C_EFI_BUFFER_TOO_SMALL) {
-        error(u"Should have received a buffer too small error here!\r\n");
-    }
-
-    // Some extra because allocating can create extra descriptors and otherwise
-    // exitbootservices will fail (lol)
-    memoryMapSize += descriptorSize * 2;
-    status = st->boot_services->allocate_pages(
-        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
-        EFI_SIZE_TO_PAGES(memoryMapSize), &memoryMapAddress);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not allocate data for memory map buffer\r\n");
-    }
-    memoryMap = (CEfiMemoryDescriptor *)memoryMapAddress;
-
     st->con_out->output_string(
-        st->con_out, u"Exiting boot services, no printing after this!\r\n");
-    status =
-        st->boot_services->get_memory_map(&memoryMapSize, memoryMap, &mapKey,
-                                          &descriptorSize, &descriptorVersion);
-    if (C_EFI_ERROR(status)) {
-        error(u"Getting memory map failed!\r\n");
-    }
+        st->con_out,
+        u"Starting exit boot services process, no printing after this!\r\n");
 
-    status = st->boot_services->exit_boot_services(h, mapKey);
+    MemoryInfo memoryInfo = getMemoryInfo();
+    status = st->boot_services->exit_boot_services(h, memoryInfo.mapKey);
 
     if (C_EFI_ERROR(status)) {
         st->con_out->output_string(st->con_out,
@@ -470,34 +496,14 @@ void jumpIntoKernel() {
         printHex(status);
         print_number(status, 2);
         status = st->boot_services->free_pages(
-            memoryMapAddress, EFI_SIZE_TO_PAGES(memoryMapSize));
+            (CEfiPhysicalAddress)memoryInfo.memoryMap,
+            EFI_SIZE_TO_PAGES(memoryInfo.memoryMapSize));
         if (C_EFI_ERROR(status)) {
             error(u"Could not free allocated memory map\r\n");
         }
 
-        status = st->boot_services->get_memory_map(&memoryMapSize, memoryMap,
-                                                   &mapKey, &descriptorSize,
-                                                   &descriptorVersion);
-        memoryMapSize = 0;
-
-        if (status != C_EFI_BUFFER_TOO_SMALL) {
-            error(u"Should have received a buffer too small error here!\r\n");
-        }
-
-        status = st->boot_services->allocate_pages(
-            C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
-            EFI_SIZE_TO_PAGES(memoryMapSize), &memoryMapAddress);
-        if (C_EFI_ERROR(status)) {
-            error(u"Could not allocate data for memory map buffer\r\n");
-        }
-
-        memoryMap = (CEfiMemoryDescriptor *)memoryMapAddress;
-
-        status = st->boot_services->get_memory_map(&memoryMapSize, memoryMap,
-                                                   &mapKey, &descriptorSize,
-                                                   &descriptorVersion);
-
-        status = st->boot_services->exit_boot_services(h, mapKey);
+        memoryInfo = getMemoryInfo();
+        status = st->boot_services->exit_boot_services(h, memoryInfo.mapKey);
     }
     if (C_EFI_ERROR(status)) {
         error(u"could not exit boot services!\r\n");
@@ -604,6 +610,20 @@ void jumpIntoKernel() {
     __builtin_unreachable();
 }
 
+// TODO: table 7.10 UEFI spec section 7.2 - 7.2.1 , not fully complete yet I
+// think?
+bool needsTobeMappedByOS(CEfiMemoryType type) {
+    switch (type) {
+    case C_EFI_RUNTIME_SERVICES_DATA:
+        //    case C_EFI_ACPI_RECLAIM_MEMORY:
+        //    case C_EFI_ACPI_MEMORY_NVS:
+        //    case C_EFI_PAL_CODE:
+        return true;
+    default:
+        return false;
+    }
+}
+
 CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
                              CEfiSystemTable *systemtable) {
     /* make sure SSE is enabled, because some say there are buggy firmware in
@@ -627,41 +647,14 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
     h = handle;
     st = systemtable;
 
+    CEfiStatus status;
+
     st->con_out->reset(st->con_out, false);
 
     st->con_out->set_attribute(st->con_out,
                                C_EFI_BACKGROUND_RED | C_EFI_YELLOW);
 
-    CEfiStatus status;
-
     level4PageTable = (CEfiPhysicalAddress *)alloc_and_zero(1);
-    printHex((CEfiPhysicalAddress)level4PageTable);
-    CEfiPhysicalAddress *level3PageTable =
-        (CEfiPhysicalAddress *)alloc_and_zero(1);
-    printHex((CEfiPhysicalAddress)level3PageTable);
-    CEfiPhysicalAddress *level2PageTable =
-        (CEfiPhysicalAddress *)alloc_and_zero(1);
-    printHex((CEfiPhysicalAddress)level2PageTable);
-    CEfiPhysicalAddress *level1PageTable =
-        (CEfiPhysicalAddress *)alloc_and_zero(512);
-    printHex((CEfiPhysicalAddress)level1PageTable);
-
-    level4PageTable[0] =
-        (CEfiPhysicalAddress)level3PageTable | (PAGE_PRESENT | PAGE_WRITABLE);
-    level3PageTable[0] =
-        (CEfiPhysicalAddress)level2PageTable | (PAGE_PRESENT | PAGE_WRITABLE);
-    for (CEfiU64 i = 0; i < PAGE_ENTRIES_NUM; i++) {
-        (level2PageTable)[i] =
-            ((CEfiPhysicalAddress)level1PageTable + (i * PAGE_SIZE)) |
-            (PAGE_PRESENT | PAGE_WRITABLE);
-    }
-    for (CEfiU64 i = 0; i < PAGE_ENTRIES_NUM; i++) {
-        for (CEfiU64 j = 0; j < PAGE_ENTRIES_NUM; j++) {
-            ((level1PageTable + PAGE_ENTRIES_NUM * i))[j] =
-                (i * PAGE_SIZE * PAGE_ENTRIES_NUM) + (PAGE_SIZE * j) |
-                (PAGE_PRESENT | PAGE_WRITABLE);
-        }
-    }
 
     // Get loaded image protocol first to grab device handle to use
     //   simple file system protocol on
@@ -787,26 +780,36 @@ CEFICALL CEfiStatus efi_main([[__maybe_unused__]] CEfiHandle handle,
         kernelFile.lbaStart, kernelFile.bytes, getDiskImageMediaID());
 
     st->con_out->output_string(st->con_out,
-                               u"Read kernel content, at memory location:\r\n");
-
+                               u"Read kernel content, at memory location:");
     printHex((CEfiUSize)kernelContent.buf);
+    st->con_out->output_string(st->con_out, u"\r\n");
+
+    MemoryInfo memoryInfo = getMemoryInfo();
+    CEfiMemoryDescriptor *iterator;
+    for (CEfiU64 i = 0; i < memoryInfo.memoryMapSize;
+         iterator = (CEfiMemoryDescriptor *)((char *)memoryInfo.memoryMap + i),
+                 i += memoryInfo.descriptorSize) {
+        st->con_out->output_string(st->con_out, u"here..");
+        if (needsTobeMappedByOS(iterator->type)) {
+            st->con_out->output_string(st->con_out, u"Memory entry:");
+            print_number(iterator->physical_start, 16);
+            st->con_out->output_string(st->con_out, u" ");
+            print_number(iterator->virtual_start, 16);
+            st->con_out->output_string(st->con_out, u" ");
+            print_number(iterator->number_of_pages, 16);
+            st->con_out->output_string(st->con_out, u"\r\n");
+        }
+    }
 
     st->con_out->output_string(st->con_out,
                                u"Attempting to map memory now...\r\n");
-    st->con_out->output_string(st->con_out,
-                               u"mapping kernel to virtual address: \r\n");
 
-    printHex(KERNEL_START);
-
+    prepareMemory(0, 0, 4294967295); // 4 GiB ???
     prepareMemory((CEfiU64)kernelContent.buf, KERNEL_START,
                   (CEfiU32)kernelContent.len);
 
     st->con_out->output_string(st->con_out,
-                               u"Preparing to jump to kernel, press a key\r\n");
-    CEfiInputKey key;
-    while (st->con_in->read_key_stroke(st->con_in, &key) != C_EFI_SUCCESS)
-        ;
-
+                               u"Preparing to jump to kernel...\r\n");
     jumpIntoKernel();
 
     return !C_EFI_SUCCESS;

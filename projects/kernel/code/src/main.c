@@ -20,19 +20,20 @@ typedef struct {
 } KernelParameters;
 
 __attribute__((ms_abi, section("kernel-start"))) int
-kernelmain(KernelParameters *kernelParameters) {
-    flo_setupScreen(
-        (flo_ScreenDimension){.scanline = kernelParameters->fb.scanline,
-                              .size = kernelParameters->fb.size,
-                              .width = kernelParameters->fb.columns,
-                              .height = kernelParameters->fb.rows,
-                              .buffer = (uint32_t *)kernelParameters->fb.ptr});
+kernelmain(KernelParameters kernelParameters) {
+    // flo_setupScreen(
+    //     (flo_ScreenDimension){.scanline = kernelParameters.fb.scanline,
+    //                           .size = kernelParameters.fb.size,
+    //                           .width = kernelParameters.fb.columns,
+    //                           .height = kernelParameters.fb.rows,
+    //                           .buffer = (uint32_t
+    //                           *)kernelParameters.fb.ptr});
 
     //    flo_printToScreen(FLO_STRING("H"), 0);
 
-    //  uint32_t *fb = (uint32_t *)kernelParameters.fb.ptr;
-    //  uint32_t xres = kernelParameters.fb.scanline;
-    //  uint32_t yres = kernelParameters.fb.columns;
+    uint32_t *fb = (uint32_t *)kernelParameters.fb.ptr;
+    uint32_t xres = kernelParameters.fb.scanline;
+    uint32_t yres = kernelParameters.fb.columns;
 
     //  // Clear screen to solid color
     //  for (uint32_t y = 0; y < yres; y++) {
@@ -41,12 +42,12 @@ kernelmain(KernelParameters *kernelParameters) {
     //      }
     //  }
 
-    //  // Draw square in top left
-    //  for (uint32_t y = 0; y < yres / 5; y++) {
-    //      for (uint32_t x = 0; x < xres / 5; x++) {
-    //          fb[y * xres + x] = 0xFFCC2222; // AARRGGBB 8888
-    //      }
-    //  }
+    // Draw square in top left
+    for (uint32_t y = 0; y < yres / 5; y++) {
+        for (uint32_t x = 0; x < xres / 5; x++) {
+            fb[y * xres + x] = 0xFFCC2222; // AARRGGBB 8888
+        }
+    }
 
     while (1) {
         ;
