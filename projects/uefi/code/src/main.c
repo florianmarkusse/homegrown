@@ -65,9 +65,12 @@ void jumpIntoKernel() {
     mapMemory(stackEnd, 4 * PAGE_SIZE);
     CEfiPhysicalAddress stackPointer = stackEnd + 4 * PAGE_SIZE;
 
-    globals.st->con_out->output_string(globals.st->con_out, u"The stack: \n");
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"The stack will go down from ");
     printNumber(stackPointer, 16);
-    printNumber(stackEnd, 16);
+    globals.st->con_out->output_string(globals.st->con_out, u"to ");
+    printNumber(stackPointer, 16);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
     params->fb.columns = gop->mode->info->horizontalResolution;
     params->fb.rows = gop->mode->info->verticalResolution;
