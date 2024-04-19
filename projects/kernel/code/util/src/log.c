@@ -15,15 +15,6 @@ unsigned char stringConverterBuf[FLO_STRING_CONVERTER_BUF_LEN];
 static flo_char_a stringConverterBuffer = (flo_char_a){
     .buf = stringConverterBuf, .len = FLO_STRING_CONVERTER_BUF_LEN};
 
-extern unsigned char
-    glyphStart[] asm("_binary__home_florian_Desktop_homegrown_projects_kernel_"
-                     "code____resources_font_psf_start");
-
-#define HORIZONTAL_PADDING 0
-#define PIXEL_MARGIN 20
-#define BYTES_PER_PIXEL 4
-#define HAXOR_GREEN 0x0000FF00
-
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
 //            padding
@@ -53,9 +44,28 @@ typedef struct {
     uint8_t glyphs;
 } __attribute__((packed)) psf2_t;
 
+extern psf2_t
+    glyphs asm("_binary__home_florian_Desktop_homegrown_projects_kernel_"
+               "code____resources_font_psf_start");
+
+#define PIXEL_MARGIN 20
+#define HAXOR_GREEN 0x0000FF00
+#define HAXOR_WHITE 0x00FFFFFF
+
+typedef struct {
+    uint32_t x;
+    uint32_t y;
+} Cursor;
+
 static flo_ScreenDimension dim;
+static Cursor cursor;
+// static psf2_t *font = (psf2_t *)glyphStart;
+static uint32_t glyphsPerLine;
+static int bytesPerLine;
 void flo_setupScreen(flo_ScreenDimension dimension) {
     dim = dimension;
+    glyphsPerLine = (dim.width - PIXEL_MARGIN * 2) / (glyphs.width);
+    bytesPerLine = (glyphs.width + 7) / 8;
 
     for (uint32_t y = 0; y < dim.height; y++) {
         for (uint32_t x = 0; x < dim.scanline; x++) {
@@ -138,81 +148,47 @@ void flo_setupScreen(flo_ScreenDimension dimension) {
 void flo_printToScreen(flo_string data, uint8_t flags) {
     FLO_ASSERT(dim.buffer != 0);
 
-    static psf2_t *font = (psf2_t *)glyphStart;
-    uint32_t glyphsPerLine =
-        (dim.width - PIXEL_MARGIN * 2) / (font->width + HORIZONTAL_PADDING);
-    uint64_t glyphsPerColumn = (dim.height - PIXEL_MARGIN * 2) / (font->height);
-    //    FLO_SERIAL(FLO_STRING("glyphs possible cils: "));
-    //    FLO_SERIAL(glyphsPerColumn, FLO_NEWLINE);
-
-    uint32_t cursor = 0;
-    int bytesPerLine = (font->width + 7) / 8;
     for (int64_t i = 0; i < data.len; i++) {
         uint8_t ch = data.buf[i];
         switch (ch) {
         case '\n': {
-            uint32_t line = cursor / glyphsPerLine;
-            cursor = (line + 1) * glyphsPerLine;
+            cursor.x = 0;
+            cursor.y++;
             break;
         }
         default: {
-            unsigned char *glyph = (unsigned char *)&glyphStart +
-                                   font->headersize + ch * font->bytesperglyph;
-            uint32_t offset = 0;
-            //         (cursor / glyphsPerLine) * (dim.scanline * font->height)
-            //         + (cursor % glyphsPerLine) * (font->width +
-            //         HORIZONTAL_PADDING) *
-            //             BYTES_PER_PIXEL;
+            unsigned char *glyph = &(glyphs.glyphs) + ch * glyphs.bytesperglyph;
+            uint32_t offset = dim.scanline * PIXEL_MARGIN +
+                              cursor.y * (dim.scanline * glyphs.height) +
+                              PIXEL_MARGIN + cursor.x * (glyphs.width);
 
-            if (font->height == 0) {
-                for (uint32_t x = 0; x < dim.scanline / 2; x++) {
-                    dim.buffer[20 * dim.scanline + x] = 0xFFFF0000;
-                }
-            }
-
-            for (uint32_t y = 0; y < font->height; y++) {
-                uint32_t mask = 1 << (font->width - 1);
-                for (uint32_t x = 0; x < font->width; x++) {
-                    dim.buffer[(50 * dim.scanline) + (y * dim.scanline + x)] =
-                        0xFFFF0000;
-                    // ((((uint32_t)*glyph) & (mask)) != 0) * 0xFFFF0000;
+            for (uint32_t y = 0; y < glyphs.height; y++) {
+                // TODO: use SIMD instructions?
+                uint32_t line = offset;
+                uint32_t mask = 1 << (glyphs.width - 1);
+                for (uint32_t x = 0; x < glyphs.width; x++) {
+                    dim.buffer[line] =
+                        ((((uint32_t)*glyph) & (mask)) != 0) * HAXOR_WHITE;
                     mask >>= 1;
+                    line++;
                 }
                 glyph += bytesPerLine;
+                offset += dim.scanline;
             }
 
-            //            for (uint32_t y = 0; y < font->height; y++) {
-            //                // TODO: use SIMD instructions?
-            //                uint32_t line = offset;
-            //                uint32_t mask = 1 << (font->width - 1);
-            //                for (uint32_t x = 0; x < font->width; x++) {
-            //                    dim.buffer[(PIXEL_MARGIN * dim.scanline) +
-            //                    PIXEL_MARGIN +
-            //                               line] =
-            //                        ((((uint32_t)*glyph) & (mask)) != 0) *
-            //                        0xFF00FF00;
-            //
-            //                    // NOLINTNEXTLINE
-            //                    //                    *((uint32_t
-            //                    *)((uint64_t)dim.buffer +
-            //                    // (PIXEL_MARGIN *
-            //                    // dim.scanline) +
-            //                    // (PIXEL_MARGIN *
-            //                    // BYTES_PER_PIXEL) +
-            //                    // line)) =
-            //                    // ((((uint32_t)*glyph) & (mask)) !=
-            //                    //                        0) * 0xFFFFFF;
-            //
-            //                    mask >>= 1;
-            //                    line++;
-            //                }
-            //                glyph += bytesPerLine;
-            //                offset += dim.scanline;
-            //            }
-            //            cursor++;
+            cursor.x = (cursor.x < glyphsPerLine) * (cursor.x + 1);
+            cursor.y += cursor.x == 0;
             break;
         }
         }
+    }
+
+    cursor.x = ((flags & FLO_NEWLINE) == 0) * cursor.x;
+    cursor.y += ((flags & FLO_NEWLINE) > 0);
+
+    if (flags & FLO_NEWLINE) {
+        cursor.x = 0;
+        cursor.y++;
     }
 }
 

@@ -69,7 +69,7 @@ void jumpIntoKernel() {
                                        u"The stack will go down from ");
     printNumber(stackPointer, 16);
     globals.st->con_out->output_string(globals.st->con_out, u"to ");
-    printNumber(stackPointer, 16);
+    printNumber(stackEnd, 16);
     globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
     params->fb.columns = gop->mode->info->horizontalResolution;
