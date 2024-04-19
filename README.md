@@ -1,15 +1,11 @@
-# Directory with bad ideas
+# UEFI-bootloader & OS
 
 run 
 ```
 ./install-dependencies.sh
-echo export PATH=\$PATH:~/opt/cross/x86_64/bin >> ~/.bashrc # or whatever shell and target u use.  
+./build-create-run.sh
 ```
 
-## To build
-```
-code/build.sh
-```
 
 ## To run as a standalone operating system
 ```

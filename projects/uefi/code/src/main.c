@@ -62,8 +62,8 @@ void jumpIntoKernel() {
     KernelParameters *params = (KernelParameters *)kernelParams;
 
     CEfiPhysicalAddress stackEnd = allocAndZero(4);
-    mapMemory(stackEnd, 4 * PAGE_SIZE);
-    CEfiPhysicalAddress stackPointer = stackEnd + 4 * PAGE_SIZE;
+    mapMemory(stackEnd, STACK_SIZE);
+    CEfiPhysicalAddress stackPointer = stackEnd + STACK_SIZE - RED_ZONE_SIZE;
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"The stack will go down from ");

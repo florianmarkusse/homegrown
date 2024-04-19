@@ -7,6 +7,9 @@
 #define KERNEL_START 0xfffffffff8000000
 #define KERNEL_PARAMS_START 0xfffffffff7000000
 
+#define STACK_SIZE (1 << 14)
+#define RED_ZONE_SIZE (1 << 7)
+
 #define PAGE_ENTRY_SHIFT 9
 #define PAGE_ENTRY_SIZE (1 << PAGE_ENTRY_SHIFT)
 #define PAGE_ENTRY_MASK (PAGE_ENTRY_SIZE - 1)
