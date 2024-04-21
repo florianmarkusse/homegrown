@@ -183,9 +183,6 @@ void flo_printToScreen(flo_string data, uint8_t flags) {
         }
     }
 
-    cursor.x = ((flags & FLO_NEWLINE) == 0) * cursor.x;
-    cursor.y += ((flags & FLO_NEWLINE) > 0);
-
     if (flags & FLO_NEWLINE) {
         cursor.x = 0;
         cursor.y++;

@@ -53,7 +53,10 @@ void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
         /* if this page is already mapped, that means the kernel has invalid,
          * overlapping segments */
         if (!*pageEntry) {
-            *pageEntry = phys | (PAGE_PRESENT | PAGE_WRITABLE);
+            *pageEntry =
+                // TODO: Remove WRITE_THROUGH once figured out what is necessary
+                // for firmware to work.
+                phys | (PAGE_PRESENT | PAGE_WRITABLE | PAGE_WRITE_THROUGH);
         } else {
             error(u"This should not happen!\r\n");
         }

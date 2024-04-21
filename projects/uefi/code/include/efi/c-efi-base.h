@@ -106,6 +106,7 @@ typedef struct CEfiFileProtocol CEfiFileProtocol;
 typedef struct CEfiGraphicsOutputProtocol CEfiGraphicsOutputProtocol;
 typedef struct CEfiSimpleTextOutputProtocol CEfiSimpleTextOutputProtocol;
 typedef struct CEfiSystemTable CEfiSystemTable;
+typedef struct CEfiACPITableProtocol CEfiACPITableProtocol;
 
 /**
  * C_EFI_NULL: NULL symbol
