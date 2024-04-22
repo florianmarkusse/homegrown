@@ -17,7 +17,7 @@ CEfiPhysicalAddress allocAndZero(CEfiUSize numPages) {
 }
 
 static CEfiPhysicalAddress bumpMemory = KERNEL_SPACE_START;
-void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
+void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU64 size) {
     /* is this a canonical address? We handle virtual memory up to 256TB */
     if (!globals.level4PageTable ||
         ((virt >> 48L) != 0x0000 && (virt >> 48L) != 0xffff)) {
@@ -64,7 +64,7 @@ void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU32 size) {
 }
 
 // TODO: Need to create a safeguord for overflow ...
-void mapMemory(CEfiU64 phys, CEfiU32 size) {
+void mapMemory(CEfiU64 phys, CEfiU64 size) {
     mapMemoryAt(phys, bumpMemory, size);
     bumpMemory += size;
     bumpMemory += bumpMemory & PAGE_MASK ? PAGE_SIZE : 0;

@@ -257,7 +257,186 @@ typedef struct {
     MemoryMap *memory;
 } KernelParameters;
 
-void jumpIntoKernel() {
+void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
+    /* now that we have left the firmware realm behind, we can get some real
+     * work done :-) */
+
+    // disable PIC and NMI
+    __asm__ __volatile__(
+        "movb $0xFF, %%al; outb %%al, $0x21; outb %%al, $0xA1;" // disable PIC
+        "inb $0x70, %%al; orb $0x80, %%al; outb %%al, $0x70;"   // disable NMI
+        :
+        :
+        :);
+
+    // enable SSE
+    __asm__ __volatile__("movl $0xC0000011, %%eax;"
+                         "movq %%rax, %%cr0;"
+                         "movq %%cr4, %%rax;"
+                         "orw $3 << 8, %%ax;"
+                         "mov %%rax, %%cr4"
+                         :);
+
+    // set up paging
+    __asm__ __volatile__("mov %0, %%rax;"
+                         "mov %%rax, %%cr3"
+                         :
+                         : "b"(globals.level4PageTable)
+                         : "memory");
+
+    //    pic_mask_all();
+    //
+
+    // This changes when multicore ofc.
+    // TODO: this code should change when doing multicore,
+    // set stack and call _start() in sys/core
+    __asm__ __volatile__(
+        // get a valid stack for the core we're running on
+        // "xorq %%rsp, %%rsp;"
+        // pass control over
+        "movq %%rbx, %%rsp; movq %%rsp, %%rbp;;"
+        "pushq %0;"
+        "retq"
+        :
+        : "a"(KERNEL_START)
+        : "memory");
+
+    __builtin_unreachable();
+
+    //    //    void CEFICALL (*entry_point)(KernelParameters *) = (void
+    //    //    *)KERNEL_START; entry_point(params);
+    //
+    //    // Set PAT as:
+    //    // PAT0 -> WB  (06)
+    //    // PAT1 -> WT  (04)
+    //    // PAT2 -> UC- (07)
+    //    // PAT3 -> UC  (00)
+    //    // PAT4 -> WP  (05)
+    //    // PAT5 -> WC  (01)
+    //    CEfiU64 pat = (CEfiU64)0x010500070406;
+    //    wrmsr(0x277, pat);
+
+    //    /* execute 64-bit kernels in long mode */
+    //    __asm__ __volatile__(
+    //        "movq %%rcx, %%r8;"
+    //        /* SysV ABI uses %rdi, %rsi, but fastcall uses %rcx, %rdx */
+    //        //"movq %%rax, %%rcx;movq %%rax, %%rdi;"
+    //        "movq %%rbx, %%rsp; movq %%rsp, %%rbp;;"
+    //        "movq $0x0000FF00, %%rax;" // Load the absolute value
+    //        "movq %%rax, (%%rdx);"     // Store the value at the address
+    //                                   // pointed to by
+    //        "jmp *%%r8" // Jump to the address stored in %%rdx (KERNEL_START)
+    //        ::
+    //            //"a"(params),
+    //        "b"(stackPointer),
+    //        "c"(KERNEL_START), "d"(*(CEfiU32 *)KERNEL_PARAMS_START)
+    //        :);
+
+    //    __asm__ __volatile__(
+    //        /* fw_loadseg might have altered the paging tables for higher-half
+    //           kernels. Better to reload */
+    //        /* CR3 to kick the MMU, but on UEFI we can only do this after we
+    //        have
+    //           called ExitBootServices */
+    //        "movq %%rax, %%cr3;"
+    //        /* Set up dummy exception handlers */
+    //        //        ".byte 0xe8;.long 0;" /* absolute address to set the
+    //        code
+    //        //        segment
+    //        //                                 register) */
+    //        //        "1:popq %%rax;"
+    //        //        "movq %%rax, %%rsi;addq $4f - 1b, %%rsi;" /* pointer to
+    //        the
+    //        //        code stubs
+    //        //                                                   */
+    //        //        "movq %%rax, %%rdi;addq $5f - 1b, %%rdi;" /* pointer to
+    //        IDT */
+    //        //        "addq $3f - 1b, %%rax;addq %%rax, 2(%%rax);lgdt
+    //        (%%rax);" /*
+    //        //        we must set
+    //        // up a new
+    //        // GDT with a
+    //        // TSS */
+    //        //        "addq $72, %%rax;" /* patch GDT and load TR */
+    //        //        "movq %%rax, %%rcx;andl $0xffffff, %%ecx;addl %%ecx,
+    //        //        -14(%%rax);" "movq %%rax, %%rcx;shrq $24, %%rcx;movq
+    //        %%rcx,
+    //        //        -9(%%rax);" "movq $48, %%rax;ltr %%ax;" "movw $32,
+    //        %%cx;\n" /*
+    //        //        we set up 32 entires in IDT */ "1:movq %%rsi, %%rax;movw
+    //        //        $0x8F01, %%ax;shlq $16, %%rax;movw $32, "
+    //        //        "%%ax;shlq $16, %%rax;movw %%si, %%ax;stosq;"
+    //        //        "movq %%rsi, %%rax;shrq $32, %%rax;stosq;"
+    //        //        "addq $16, %%rsi;decw %%cx;jnz 1b;" /* next entry */
+    //        //        "lidt (6f);jmp 2f;"                 /* set up IDT */
+    //        //        /* new GDT */
+    //        //        ".balign 8;3:;"
+    //        //        ".word 0x40;.long 8;.word 0;.quad 0;" /* value / null
+    //        //        descriptor */
+    //        //        ".long 0x0000FFFF;.long 0x00009800;"  /*   8 - legacy
+    //        real cs
+    //        //        */
+    //        //        ".long 0x0000FFFF;.long 0x00CF9A00;"  /*  16 - prot mode
+    //        cs */
+    //        //        ".long 0x0000FFFF;.long 0x00CF9200;"  /*  24 - prot mode
+    //        ds */
+    //        //        ".long 0x0000FFFF;.long 0x00AF9A00;"  /*  32 - long mode
+    //        cs */
+    //        //        ".long 0x0000FFFF;.long 0x00CF9200;"  /*  40 - long mode
+    //        ds */
+    //        //        ".long 0x00000068;.long 0x00008900;"  /*  48 - long mode
+    //        tss
+    //        //        descriptor
+    //        //                                               */
+    //        //        ".long 0x00000000;.long 0x00000000;"  /*       cont. */
+    //        //        /* TSS */
+    //        //        ".long 0;.long 0x1000;.long 0;.long 0x1000;.long 0;.long
+    //        //        0x1000;.long " "0;"
+    //        //        ".long 0;.long 0;.long 0x1000;.long 0;"
+    //        //        /* ISRs */
+    //        //        "1:popq %%r8;movq 16(%%rsp),%%r9;jmp fw_exc;"
+    //        //        ".balign 16;4:xorq %%rdx, %%rdx; xorb %%cl, %%cl;jmp
+    //        1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $1, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $2, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $3, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $4, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $5, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $6, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $7, %%cl;jmp 1b;"
+    //        //        ".balign 16;popq %%rdx; movb $8, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $9, %%cl;jmp 1b;"
+    //        //        ".balign 16;popq %%rdx; movb $10, %%cl;jmp 1b;"
+    //        //        ".balign 16;popq %%rdx; movb $11, %%cl;jmp 1b;"
+    //        //        ".balign 16;popq %%rdx; movb $12, %%cl;jmp 1b;"
+    //        //        ".balign 16;popq %%rdx; movb $13, %%cl;jmp 1b;"
+    //        //        ".balign 16;popq %%rdx; movb $14, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $15, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $16, %%cl;jmp 1b;"
+    //        //        ".balign 16;popq %%rdx; movb $17, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $18, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $19, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $20, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $21, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $22, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $23, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $24, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $25, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $26, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $27, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $28, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $29, %%cl;jmp 1b;"
+    //        //        ".balign 16;popq %%rdx; movb $30, %%cl;jmp 1b;"
+    //        //        ".balign 16;xorq %%rdx, %%rdx; movb $31, %%cl;jmp 1b;"
+    //        //        /* IDT */
+    //        //        ".balign 16;5:.space (32*16);"
+    //        //        /* IDT value */
+    //        //        "6:.word 6b-5b;.quad 5b;2:"
+    //        ::"a"(globals.level4PageTable)
+    //        : "rcx", "rsi", "rdi");
+}
+
+void collectAndExitEfi() {
     CEfiGuid gop_guid = C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
     CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
 
@@ -294,6 +473,9 @@ void jumpIntoKernel() {
     params->fb.size = gop->mode->frameBufferSize;
 
     globals.st->con_out->output_string(
+        globals.st->con_out, u"Prepared and collected all necessary "
+                             u"information to jump to the kernel.\r\n");
+    globals.st->con_out->output_string(
         globals.st->con_out,
         u"Starting exit boot services process, no printing after this!\r\n");
 
@@ -319,150 +501,10 @@ void jumpIntoKernel() {
         error(u"could not exit boot services!\r\n");
     }
 
-    /* now that we have left the firmware realm behind, we can get some real
-     * work done :-) */
-    __asm__ __volatile__(
-        /* fw_loadseg might have altered the paging tables for higher-half
-           kernels. Better to reload */
-        /* CR3 to kick the MMU, but on UEFI we can only do this after we have
-           called ExitBootServices */
-        "movq %%rax, %%cr3;"
-        /* Set up dummy exception handlers */
-        //        ".byte 0xe8;.long 0;" /* absolute address to set the code
-        //        segment
-        //                                 register) */
-        //        "1:popq %%rax;"
-        //        "movq %%rax, %%rsi;addq $4f - 1b, %%rsi;" /* pointer to the
-        //        code stubs
-        //                                                   */
-        //        "movq %%rax, %%rdi;addq $5f - 1b, %%rdi;" /* pointer to IDT */
-        //        "addq $3f - 1b, %%rax;addq %%rax, 2(%%rax);lgdt (%%rax);" /*
-        //        we must set
-        //                                                                     up a new
-        //                                                                     GDT with a
-        //                                                                     TSS */
-        //        "addq $72, %%rax;" /* patch GDT and load TR */
-        //        "movq %%rax, %%rcx;andl $0xffffff, %%ecx;addl %%ecx,
-        //        -14(%%rax);" "movq %%rax, %%rcx;shrq $24, %%rcx;movq %%rcx,
-        //        -9(%%rax);" "movq $48, %%rax;ltr %%ax;" "movw $32, %%cx;\n" /*
-        //        we set up 32 entires in IDT */ "1:movq %%rsi, %%rax;movw
-        //        $0x8F01, %%ax;shlq $16, %%rax;movw $32, "
-        //        "%%ax;shlq $16, %%rax;movw %%si, %%ax;stosq;"
-        //        "movq %%rsi, %%rax;shrq $32, %%rax;stosq;"
-        //        "addq $16, %%rsi;decw %%cx;jnz 1b;" /* next entry */
-        //        "lidt (6f);jmp 2f;"                 /* set up IDT */
-        //        /* new GDT */
-        //        ".balign 8;3:;"
-        //        ".word 0x40;.long 8;.word 0;.quad 0;" /* value / null
-        //        descriptor */
-        //        ".long 0x0000FFFF;.long 0x00009800;"  /*   8 - legacy real cs
-        //        */
-        //        ".long 0x0000FFFF;.long 0x00CF9A00;"  /*  16 - prot mode cs */
-        //        ".long 0x0000FFFF;.long 0x00CF9200;"  /*  24 - prot mode ds */
-        //        ".long 0x0000FFFF;.long 0x00AF9A00;"  /*  32 - long mode cs */
-        //        ".long 0x0000FFFF;.long 0x00CF9200;"  /*  40 - long mode ds */
-        //        ".long 0x00000068;.long 0x00008900;"  /*  48 - long mode tss
-        //        descriptor
-        //                                               */
-        //        ".long 0x00000000;.long 0x00000000;"  /*       cont. */
-        //        /* TSS */
-        //        ".long 0;.long 0x1000;.long 0;.long 0x1000;.long 0;.long
-        //        0x1000;.long " "0;"
-        //        ".long 0;.long 0;.long 0x1000;.long 0;"
-        //        /* ISRs */
-        //        "1:popq %%r8;movq 16(%%rsp),%%r9;jmp fw_exc;"
-        //        ".balign 16;4:xorq %%rdx, %%rdx; xorb %%cl, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $1, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $2, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $3, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $4, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $5, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $6, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $7, %%cl;jmp 1b;"
-        //        ".balign 16;popq %%rdx; movb $8, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $9, %%cl;jmp 1b;"
-        //        ".balign 16;popq %%rdx; movb $10, %%cl;jmp 1b;"
-        //        ".balign 16;popq %%rdx; movb $11, %%cl;jmp 1b;"
-        //        ".balign 16;popq %%rdx; movb $12, %%cl;jmp 1b;"
-        //        ".balign 16;popq %%rdx; movb $13, %%cl;jmp 1b;"
-        //        ".balign 16;popq %%rdx; movb $14, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $15, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $16, %%cl;jmp 1b;"
-        //        ".balign 16;popq %%rdx; movb $17, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $18, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $19, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $20, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $21, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $22, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $23, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $24, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $25, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $26, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $27, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $28, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $29, %%cl;jmp 1b;"
-        //        ".balign 16;popq %%rdx; movb $30, %%cl;jmp 1b;"
-        //        ".balign 16;xorq %%rdx, %%rdx; movb $31, %%cl;jmp 1b;"
-        //        /* IDT */
-        //        ".balign 16;5:.space (32*16);"
-        //        /* IDT value */
-        //        "6:.word 6b-5b;.quad 5b;2:"
-        ::"a"(globals.level4PageTable)
-        : "rcx", "rsi", "rdi");
-
-    //    void CEFICALL (*entry_point)(KernelParameters *) = (void
-    //    *)KERNEL_START; entry_point(params);
-
-    // Set PAT as:
-    // PAT0 -> WB  (06)
-    // PAT1 -> WT  (04)
-    // PAT2 -> UC- (07)
-    // PAT3 -> UC  (00)
-    // PAT4 -> WP  (05)
-    // PAT5 -> WC  (01)
-    CEfiU64 pat = (CEfiU64)0x010500070406;
-    wrmsr(0x277, pat);
-
-    //    pic_mask_all();
-
-    /* execute 64-bit kernels in long mode */
-    __asm__ __volatile__(
-        "movq %%rcx, %%r8;"
-        /* SysV ABI uses %rdi, %rsi, but fastcall uses %rcx, %rdx */
-        //"movq %%rax, %%rcx;movq %%rax, %%rdi;"
-        "movq %%rbx, %%rsp; movq %%rsp, %%rbp;;"
-        "movq $0x0000FF00, %%rax;" // Load the absolute value
-        "movq %%rax, (%%rdx);"     // Store the value at the address
-                                   // pointed to by
-        "jmp *%%r8" // Jump to the address stored in %%rdx (KERNEL_START)
-        ::
-            //"a"(params),
-        "b"(stackPointer),
-        "c"(KERNEL_START), "d"(*(CEfiU32 *)KERNEL_PARAMS_START)
-        :);
-
-    __builtin_unreachable();
+    jumpIntoKernel(stackPointer);
 }
 
 CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
-    /* make sure SSE is enabled, because some say there are buggy firmware in
-     * the wild not enabling (and also needed if we come from boot_x86.asm). No
-     * supported check, because according to AMD64 Spec Vol 2, all long mode
-     * capable CPUs must also support SSE2 at least. We don't need them, but
-     * it's more than likely that a kernel is compiled using SSE instructions.
-     */
-    __asm__ __volatile__(
-        "movq %%cr0, %%rax;andb $0xF1, %%al;movq %%rax, %%cr0;" /* clear MP, EM,
-                                                                   TS (FPU
-                                                                   emulation
-                                                                   off) */
-        "movq %%cr4, %%rax;orw $3 << 9, %%ax;movq %%rax, %%cr4;" /* set OSFXSR,
-                                                                    OSXMMEXCPT
-                                                                    (enable SSE)
-                                                                  */
-        ::
-            : "rax");
-
     globals.h = handle;
     globals.st = systemtable;
 
@@ -503,19 +545,17 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
         }
     }
 
-    //    init_flush_irqs();
-    //    init_io_apics();
-
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Attempting to map memory now...\r\n");
 
-    mapMemoryAt(0, 0, 4294967295); // 4 GiB ???
+    mapMemoryAt(0, 0, (1ULL << 33)); // 8 GiB ???
     mapMemoryAt((CEfiU64)kernelContent.buf, KERNEL_START,
                 (CEfiU32)kernelContent.len);
 
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"Preparing to jump to kernel...\r\n");
-    jumpIntoKernel();
+    globals.st->con_out->output_string(
+        globals.st->con_out,
+        u"Going to collect necessary info, then exit bootservices...\r\n");
+    collectAndExitEfi();
 
     return !C_EFI_SUCCESS;
 }
