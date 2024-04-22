@@ -75,11 +75,22 @@ void printNumber(CEfiUSize number, CEfiU8 base) {
     globals.st->con_out->output_string(globals.st->con_out, buffer);
 }
 
+static CEfiChar16 charstr[2] = {0};
 void printAsci(char *string) {
-    CEfiChar16 charstr[2] = {0};
-
     while (*string != '\0') {
         char ch = *string++;
+        if (ch == '\n') {
+            globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+        } else {
+            charstr[0] = (CEfiChar16)ch;
+            globals.st->con_out->output_string(globals.st->con_out, charstr);
+        }
+    }
+}
+
+void printAsciSize(char *string, CEfiUSize size) {
+    for (CEfiUSize i = 0; i < size; i++) {
+        char ch = string[i];
         if (ch == '\n') {
             globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
         } else {

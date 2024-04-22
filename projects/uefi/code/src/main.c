@@ -462,7 +462,7 @@ void collectAndExitEfi() {
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"The stack will go down from ");
     printNumber(stackPointer, 16);
-    globals.st->con_out->output_string(globals.st->con_out, u"to ");
+    globals.st->con_out->output_string(globals.st->con_out, u" to ");
     printNumber(stackEnd, 16);
     globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
@@ -471,6 +471,11 @@ void collectAndExitEfi() {
     params->fb.scanline = gop->mode->info->pixelsPerScanLine;
     params->fb.ptr = gop->mode->frameBufferBase;
     params->fb.size = gop->mode->frameBufferSize;
+
+    RSDPResult rsdp = getRSDP();
+    printDescriptionHeaders(rsdp);
+
+    error(u"Waiting here \r\n");
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Prepared and collected all necessary "

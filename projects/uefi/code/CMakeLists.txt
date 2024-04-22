@@ -14,6 +14,8 @@ add_executable(${EXECUTABLE_NAME}
     "src/data-reading.c"
     "src/memory/standard.c"
     "src/memory/boot-functions.c"
+    "src/acpi/c-acpi-rsdp.c"
+    "src/acpi/c-acpi-rsdt.c"
     )
 
 target_include_directories(${EXECUTABLE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

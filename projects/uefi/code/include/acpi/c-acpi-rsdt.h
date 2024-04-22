@@ -1,10 +1,13 @@
 #ifndef ACPI_C_ACPI_RSDT_H
 #define ACPI_C_ACPI_RSDT_H
 
+#include "acpi/c-acpi-rdsp.h"
 #include "efi/c-efi-base.h"
 
-typedef struct __attribute__((packed)) {
-    char signature[4];
+#define ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN 4
+
+typedef struct {
+    char signature[ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN];
     CEfiU32 length;
     CEfiU8 rev;
     CEfiU8 checksum;
@@ -13,16 +16,13 @@ typedef struct __attribute__((packed)) {
     CEfiU32 oem_rev;
     char creator_id[4];
     CEfiU32 creator_rev;
+} CAcpiDescriptionTableHeader;
+
+typedef struct {
+    CAcpiDescriptionTableHeader header;
+    CAcpiDescriptionTableHeader **descriptionHeaders;
 } CAcpiSDT;
 
-// V1
-#define RSDT_BYTE_LEN 4
-// V2
-#define XSDT_BYTE_LEN 8
-
-typedef struct __attribute((packed)) {
-    CAcpiSDT header;
-    char ptrs_start[];
-} CAcpiRSDT;
+void printDescriptionHeaders(RSDPResult rsdp);
 
 #endif
