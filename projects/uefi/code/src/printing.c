@@ -15,8 +15,8 @@ void error(CEfiU16 *string) {
                                                C_EFI_SUCCESS, 0, C_EFI_NULL);
 }
 
+static const CEfiChar16 *digits = u"0123456789ABCDEF";
 void printNumber(CEfiUSize number, CEfiU8 base) {
-    const CEfiChar16 *digits = u"0123456789ABCDEF";
     CEfiChar16 buffer[24]; // Hopefully enough for UINTN_MAX (UINT64_MAX) + sign
                            // character
     CEfiUSize i = 0;

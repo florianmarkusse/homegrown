@@ -6,7 +6,7 @@
 
 #define ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN 4
 
-typedef struct {
+typedef struct __attribute((packed)) {
     char signature[ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN];
     CEfiU32 length;
     CEfiU8 rev;
@@ -18,7 +18,7 @@ typedef struct {
     CEfiU32 creator_rev;
 } CAcpiDescriptionTableHeader;
 
-typedef struct {
+typedef struct __attribute((packed)) {
     CAcpiDescriptionTableHeader header;
     CAcpiDescriptionTableHeader **descriptionHeaders;
 } CAcpiSDT;

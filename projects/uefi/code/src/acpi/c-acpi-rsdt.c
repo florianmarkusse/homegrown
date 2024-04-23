@@ -31,16 +31,22 @@ void printDescriptionHeaders(RSDPResult rsdp) {
     }
     }
 
-    printAsciSize(sdt->header.signature, ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+    //   printAsciSize(sdt->header.signature,
+    //   ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
+    //   globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
-    int entries = (sdt->header.length - sizeof(sdt->header)) / 8;
-
-    for (int i = 0; i < entries; i++) {
-        CAcpiDescriptionTableHeader *h = sdt->descriptionHeaders[i];
-        printAsciSize(h->signature, ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
-        globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-    }
+    //   int entries = (sdt->header.length - sizeof(sdt->header)) / 8;
+    //   for (int i = 0; i < entries; i++) {
+    //       CAcpiDescriptionTableHeader *h = sdt->descriptionHeaders[i];
+    //       printNumber((CEfiU64)h, 16);
+    //       globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+    //       printNumber((CEfiU64)(&h->signature), 16);
+    //       globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+    //       //        printAsciSize(h->signature,
+    //       //        ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
+    //       //        globals.st->con_out->output_string(globals.st->con_out,
+    //       //        u"\r\n");
+    //   }
 
     //    printAsciSize(sdt->header.signature,
     //    ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
@@ -64,15 +70,14 @@ void printDescriptionHeaders(RSDPResult rsdp) {
     //                  ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
     //    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
-    //    CEfiU32 *entries = (CEfiU32 *)sdt->descriptionHeaders;
-    //
-    //    for (CEfiUSize i = 0; i < 6; i++) {
-    //        CAcpiDescriptionTableHeader *header =
-    //            (CAcpiDescriptionTableHeader *)entries[i];
-    //        printAsciSize(header->signature,
-    //        ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
-    //        globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-    //    }
+    char *entries = (char *)sdt->descriptionHeaders;
+    for (CEfiU64 i = 0; i < sdt->header.length - sizeof(CAcpiSDT);
+         i += entrySize) {
+        CAcpiDescriptionTableHeader *header =
+            (CAcpiDescriptionTableHeader *)(CEfiU64 *)(entries + i);
+        printAsciSize(header->signature, ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
+        globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+    }
 }
 
 // void *acpi_get_table(char *signature, int index) {

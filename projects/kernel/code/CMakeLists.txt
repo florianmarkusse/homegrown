@@ -5,7 +5,6 @@ project(kernel LANGUAGES C ASM)
 include("../../setup.cmake")
 initial_setup()
 
-# TODO: do we need fpic??
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector")
 
 add_library(${EXECUTABLE_NAME} OBJECT
@@ -20,13 +19,6 @@ foreach(LINK_LIBRARY ${LINKING_LIBRARIES})
     target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${LINK_LIBRARY}-${CMAKE_BUILD_TYPE})
     list(APPEND LINKING_LIBRARIES_LOCATIONS ${CMAKE_CURRENT_BINARY_DIR}/${LINK_LIBRARY}/lib${LINK_LIBRARY}-${CMAKE_BUILD_TYPE}.a)
 endforeach()
-
-
-foreach(LINK_LIBRARY ${LINKING_LIBRARIES_LOCATIONS})
-    message("the location is ${LINK_LIBRARY}")
-endforeach()
-
-
 
 set(RESOURCES_NAME "resources")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})
