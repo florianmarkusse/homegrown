@@ -8,17 +8,18 @@ extern "C" {
 #include "util/array.h"
 #include "util/text/string.h"
 
-typedef FLO_DYNAMIC_ARRAY(flo_string) flo_string_d_a;
-typedef FLO_DYNAMIC_ARRAY(uint64_t) flo_uint64_d_a;
-typedef FLO_DYNAMIC_ARRAY(bool) flo_bool_d_a;
-typedef FLO_DYNAMIC_ARRAY(unsigned char) flo_char_d_a;
-typedef FLO_MAX_LENGTH_ARRAY(flo_string) flo_string_max_a;
-typedef FLO_MAX_LENGTH_ARRAY(uint64_t) flo_uint64_max_a;
-typedef FLO_MAX_LENGTH_ARRAY(uint32_t) flo_uint32_max_a;
-typedef FLO_MAX_LENGTH_ARRAY(bool) flo_bool_max_a;
-typedef FLO_ARRAY(unsigned char) flo_char_a;
-typedef FLO_ARRAY(char *) flo_char_ptr_a;
-typedef FLO_ARRAY(bool) flo_bool_a;
+typedef DYNAMIC_ARRAY(string) string_d_a;
+typedef DYNAMIC_ARRAY(uint64_t) uint64_d_a;
+typedef DYNAMIC_ARRAY(bool) bool_d_a;
+typedef DYNAMIC_ARRAY(unsigned char) char_d_a;
+typedef MAX_LENGTH_ARRAY(string) string_max_a;
+typedef MAX_LENGTH_ARRAY(uint64_t) uint64_max_a;
+typedef MAX_LENGTH_ARRAY(uint32_t) uint32_max_a;
+typedef MAX_LENGTH_ARRAY(uint8_t) uint8_max_a;
+typedef MAX_LENGTH_ARRAY(bool) bool_max_a;
+typedef ARRAY(unsigned char) char_a;
+typedef ARRAY(char *) char_ptr_a;
+typedef ARRAY(bool) bool_a;
 
 #ifdef __cplusplus
 }

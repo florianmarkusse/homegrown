@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-#define FLO_MACRO_VAR(name) _##name##_##MACRO_VAR##__LINE__
+#define MACRO_VAR(name) _##name##_##MACRO_VAR##__LINE__
 
-#define FLO_STR_HELPER(x) #x
-#define FLO_STRINGIFY(x) FLO_STR_HELPER(x)
+#define STR_HELPER(x) #x
+#define STRINGIFY(x) STR_HELPER(x)
 
 #ifdef __cplusplus
 }

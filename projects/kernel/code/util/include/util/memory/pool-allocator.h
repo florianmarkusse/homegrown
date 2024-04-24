@@ -7,33 +7,33 @@ extern "C" {
 
 #include "util/types.h"
 
-struct flo_PoolHead {
-    struct flo_PoolHead *next;
+struct PoolHead {
+    struct PoolHead *next;
 };
-typedef struct flo_PoolHead flo_PoolHead;
+typedef struct PoolHead PoolHead;
 
 typedef struct {
     char *beg;
     int64_t cap;
     int64_t chunkSize;
 
-    flo_PoolHead *head;
+    PoolHead *head;
 
     void **jmp_buf;
-} flo_PoolAllocator;
+} PoolAllocator;
 
-void flo_freePool(flo_PoolAllocator *pool);
+void freePool(PoolAllocator *pool);
 
 /*
  * Set up the pool allocator values, except for the jmp_buf!
  */
-flo_PoolAllocator flo_createPoolAllocator(char *buffer, int64_t cap,
+PoolAllocator createPoolAllocator(char *buffer, int64_t cap,
                                           int64_t chunkSize);
 
-__attribute((malloc)) void *flo_poolAlloc(flo_PoolAllocator *pool,
+__attribute((malloc)) void *poolAlloc(PoolAllocator *pool,
                                           unsigned char flags);
 
-void flo_freePoolNode(flo_PoolAllocator *pool, void *ptr);
+void freePoolNode(PoolAllocator *pool, void *ptr);
 
 #ifdef __cplusplus
 }

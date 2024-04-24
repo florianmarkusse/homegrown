@@ -7,11 +7,12 @@ extern "C" {
 
 #include "util/types.h"
 
-#define FLO_MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define FLO_MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define ABS(x) (((x) < 0) ? (-(x)) : (x))
 
-__attribute__((unused)) static inline uint64_t flo_power(uint64_t base,
-                                                         uint64_t exponent) {
+__attribute__((unused)) static inline uint64_t power(uint64_t base,
+                                                     uint64_t exponent) {
     uint64_t result = 1;
 
     while (exponent > 0) {

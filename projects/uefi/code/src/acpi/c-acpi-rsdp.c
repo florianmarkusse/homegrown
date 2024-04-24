@@ -1,4 +1,5 @@
 #include "acpi/c-acpi-rdsp.h"
+#include "acpi/c-acpi-rsdt.h"
 #include "efi/c-efi-protocol-simple-text-output.h"
 #include "efi/c-efi-system.h"
 #include "globals.h"

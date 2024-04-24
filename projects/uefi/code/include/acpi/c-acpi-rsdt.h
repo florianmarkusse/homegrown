@@ -20,7 +20,7 @@ typedef struct __attribute((packed)) {
 
 typedef struct __attribute((packed)) {
     CAcpiDescriptionTableHeader header;
-    CAcpiDescriptionTableHeader **descriptionHeaders;
+    void **descriptionHeaders;
 } CAcpiSDT;
 
 void printDescriptionHeaders(RSDPResult rsdp);

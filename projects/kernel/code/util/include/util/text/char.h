@@ -6,17 +6,17 @@ extern "C" {
 #endif
 
 __attribute__((unused)) static inline unsigned char
-flo_isAlphabetical(unsigned char ch) {
+isAlphabetical(unsigned char ch) {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
 }
 
 __attribute__((unused)) static inline unsigned char
-flo_isNumerical(unsigned char ch) {
+isNumerical(unsigned char ch) {
     return (ch >= '0' && ch <= '9');
 }
 
 __attribute__((unused)) static inline unsigned char
-flo_isFormattingCharacter(unsigned char ch) {
+isFormattingCharacter(unsigned char ch) {
     return ch == '\t' || ch == '\n' || ch == '\r';
 }
 

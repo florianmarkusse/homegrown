@@ -181,20 +181,20 @@
 //     already_inited = true;
 // }
 //
-static inline void wrmsr(CEfiU32 msr, CEfiU64 value) {
-    CEfiU32 edx = value >> 32;
-    CEfiU32 eax = (CEfiU32)value;
-    asm volatile("wrmsr" : : "a"(eax), "d"(edx), "c"(msr) : "memory");
-}
-
-static inline void outb(CEfiU16 port, CEfiU8 value) {
-    asm volatile("outb %%al, %1" : : "a"(value), "Nd"(port) : "memory");
-}
-
-void pic_mask_all(void) {
-    outb(0xa1, 0xff);
-    outb(0x21, 0xff);
-}
+// static inline void wrmsr(CEfiU32 msr, CEfiU64 value) {
+//    CEfiU32 edx = value >> 32;
+//    CEfiU32 eax = (CEfiU32)value;
+//    asm volatile("wrmsr" : : "a"(eax), "d"(edx), "c"(msr) : "memory");
+//}
+//
+// static inline void outb(CEfiU16 port, CEfiU8 value) {
+//    asm volatile("outb %%al, %1" : : "a"(value), "Nd"(port) : "memory");
+//}
+//
+// void pic_mask_all(void) {
+//    outb(0xa1, 0xff);
+//    outb(0x21, 0xff);
+//}
 //
 // void io_apic_mask_all(void) {
 //     for (size_t i = 0; i < max_io_apics; i++) {
@@ -262,44 +262,43 @@ void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
      * work done :-) */
 
     // disable PIC and NMI
-    __asm__ __volatile__(
-        "movb $0xFF, %%al; outb %%al, $0x21; outb %%al, $0xA1;" // disable PIC
-        "inb $0x70, %%al; orb $0x80, %%al; outb %%al, $0x70;"   // disable NMI
-        :
-        :
-        :);
+    __asm__ __volatile__("movb $0xFF, %%al;"
+                         "outb %%al, $0x21;"
+                         "outb %%al, $0xA1;" // disable PIC
+                         "inb $0x70, %%al;"
+                         "orb $0x80, %%al;"
+                         "outb %%al, $0x70;" // disable NMI
+                         :
+                         :
+                         : "eax");
 
     // enable SSE
     __asm__ __volatile__("movl $0xC0000011, %%eax;"
                          "movq %%rax, %%cr0;"
                          "movq %%cr4, %%rax;"
                          "orw $3 << 8, %%ax;"
-                         "mov %%rax, %%cr4"
-                         :);
+                         "mov %%rax, %%cr4" ::
+                             : "eax");
 
     // set up paging
     __asm__ __volatile__("mov %0, %%rax;"
                          "mov %%rax, %%cr3"
                          :
-                         : "b"(globals.level4PageTable)
-                         : "memory");
-
-    //    pic_mask_all();
-    //
+                         : "r"(globals.level4PageTable)
+                         : "eax", "memory");
 
     // This changes when multicore ofc.
     // TODO: this code should change when doing multicore,
-    // set stack and call _start() in sys/core
+    // set stack
     __asm__ __volatile__(
-        // get a valid stack for the core we're running on
-        // "xorq %%rsp, %%rsp;"
         // pass control over
-        "movq %%rbx, %%rsp; movq %%rsp, %%rbp;;"
+        "movq %1, %%rsp;"
+        "movq %%rsp, %%rbp;"
         "pushq %0;"
         "retq"
         :
-        : "a"(KERNEL_START)
-        : "memory");
+        : "r"(KERNEL_START), "r"(stackPointer)
+        : "rsp", "rbp", "memory");
 
     __builtin_unreachable();
 
@@ -472,10 +471,10 @@ void collectAndExitEfi() {
     params->fb.ptr = gop->mode->frameBufferBase;
     params->fb.size = gop->mode->frameBufferSize;
 
-    RSDPResult rsdp = getRSDP();
-    printDescriptionHeaders(rsdp);
+    //   RSDPResult rsdp = getRSDP();
+    //   printDescriptionHeaders(rsdp);
 
-    error(u"Waiting here \r\n");
+    //   error(u"Waiting here \r\n");
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Prepared and collected all necessary "

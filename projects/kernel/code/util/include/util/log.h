@@ -5,11 +5,12 @@
 extern "C" {
 #endif
 
-#include "util/array-types.h" // for flo_char_a
-#include "util/text/string.h" // for flo_string
+#include "util/array-types.h" // for char_a
+#include "util/text/string.h" // for string
 #include "util/types.h"       // for int64_t, uint64_t
 
-#define FLO_NEWLINE 0x01
+#define NEWLINE 0x01
+#define FLUSH 0x02
 
 // This struct implicitly assumes that there are 4 bytes per pixel, hence a
 // uint32 buffer
@@ -19,81 +20,81 @@ typedef struct {
     uint32_t width;
     uint32_t height;
     uint32_t scanline;
-} flo_ScreenDimension;
-void flo_setupScreen(flo_ScreenDimension dimension);
-void flo_printToScreen(flo_string data, uint8_t flags);
+} ScreenDimension;
+void setupScreen(ScreenDimension dimension);
+// TODO: needs buffer as argument when memory is set up
+void appendToFlushBuffer(string data, unsigned char flags);
+void flushBuffer(uint8_max_a *buffer);
 
-void flo_printToSerial(flo_string data, uint8_t flags);
+void printToSerial(string data, uint8_t flags);
 
-flo_string flo_stringWithMinSize(flo_string data, unsigned char minSize,
-                                 flo_char_a tmp);
-flo_string flo_stringWithMinSizeDefault(flo_string data, unsigned char minSize);
+string stringWithMinSize(string data, unsigned char minSize, char_a tmp);
+string stringWithMinSizeDefault(string data, unsigned char minSize);
 
-flo_string flo_boolToString(bool data);
+string boolToString(bool data);
 
-flo_string flo_ptrToString(void *data, flo_char_a tmp);
-flo_string flo_ptrToStringDefault(void *data);
+string ptrToString(void *data, char_a tmp);
+string ptrToStringDefault(void *data);
 
-flo_string flo_charToString(char data, flo_char_a tmp);
-flo_string flo_charToStringDefault(char data);
+string charToString(char data, char_a tmp);
+string charToStringDefault(char data);
 
-flo_string flo_stringToString(flo_string data);
+string stringToString(string data);
 
-flo_string flo_uint64ToString(uint64_t data, flo_char_a tmp);
-flo_string flo_uint64ToStringDefault(uint64_t data);
+string uint64ToString(uint64_t data, char_a tmp);
+string uint64ToStringDefault(uint64_t data);
 
-flo_string flo_int64ToString(int64_t data, flo_char_a tmp);
-flo_string flo_int64ToStringDefault(int64_t data);
+string int64ToString(int64_t data, char_a tmp);
+string int64ToStringDefault(int64_t data);
 
-flo_string flo_doubleToString(double data, flo_char_a tmp);
-flo_string flo_doubleToStringDefault(double data);
+string doubleToString(double data, char_a tmp);
+string doubleToStringDefault(double data);
 
-flo_string flo_noAppend();
+string noAppend();
 
-#define FLO_CONVERT_TO_STRING(data)                                            \
+#define CONVERT_TO_STRING(data)                                                \
     _Generic((data),                                                           \
-        flo_string: flo_stringToString,                                        \
-        void *: flo_ptrToStringDefault,                                        \
-        int *: flo_ptrToStringDefault,                                         \
-        uint8_t *: flo_ptrToStringDefault,                                     \
-        unsigned int *: flo_ptrToStringDefault,                                \
-        char: flo_charToStringDefault,                                         \
-        int64_t: flo_int64ToStringDefault,                                     \
-        double: flo_doubleToStringDefault,                                     \
-        uint64_t: flo_uint64ToStringDefault,                                   \
-        uint32_t: flo_uint64ToStringDefault,                                   \
-        uint16_t: flo_uint64ToStringDefault,                                   \
-        uint8_t: flo_uint64ToStringDefault,                                    \
-        int: flo_int64ToStringDefault,                                         \
-        short: flo_int64ToStringDefault,                                       \
-        bool: flo_boolToString,                                                \
-        default: flo_noAppend)(data)
+        string: stringToString,                                                \
+        void *: ptrToStringDefault,                                            \
+        int *: ptrToStringDefault,                                             \
+        uint8_t *: ptrToStringDefault,                                         \
+        unsigned int *: ptrToStringDefault,                                    \
+        char: charToStringDefault,                                             \
+        int64_t: int64ToStringDefault,                                         \
+        double: doubleToStringDefault,                                         \
+        uint64_t: uint64ToStringDefault,                                       \
+        uint32_t: uint64ToStringDefault,                                       \
+        uint16_t: uint64ToStringDefault,                                       \
+        uint8_t: uint64ToStringDefault,                                        \
+        int: int64ToStringDefault,                                             \
+        short: int64ToStringDefault,                                           \
+        bool: boolToString,                                                    \
+        default: noAppend)(data)
 
-#define FLO_SERIAL_DATA(data, flags)                                           \
-    flo_printToSerial(FLO_CONVERT_TO_STRING(data), flags)
+#define SERIAL_DATA(data, flags) printToSerial(CONVERT_TO_STRING(data), flags)
 
-#define FLO_SERIAL_1(data) FLO_SERIAL_DATA(data, 0)
-#define FLO_SERIAL_2(data, flags) FLO_SERIAL_DATA(data, flags)
+#define SERIAL_1(data) SERIAL_DATA(data, 0)
+#define SERIAL_2(data, flags) SERIAL_DATA(data, flags)
 
-#define FLO_SERIAL_CHOOSER_IMPL_1(arg1) FLO_SERIAL_1(arg1)
-#define FLO_SERIAL_CHOOSER_IMPL_2(arg1, arg2) FLO_SERIAL_2(arg1, arg2)
-#define FLO_SERIAL_CHOOSER(...) FLO_SERIAL_CHOOSER_IMPL(__VA_ARGS__, 2, 1)
-#define FLO_SERIAL_CHOOSER_IMPL(_1, _2, N, ...) FLO_SERIAL_CHOOSER_IMPL_##N
+#define SERIAL_CHOOSER_IMPL_1(arg1) SERIAL_1(arg1)
+#define SERIAL_CHOOSER_IMPL_2(arg1, arg2) SERIAL_2(arg1, arg2)
+#define SERIAL_CHOOSER(...) SERIAL_CHOOSER_IMPL(__VA_ARGS__, 2, 1)
+#define SERIAL_CHOOSER_IMPL(_1, _2, N, ...) SERIAL_CHOOSER_IMPL_##N
 
-#define FLO_SERIAL(...) FLO_SERIAL_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+#define SERIAL(...) SERIAL_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
-#define FLO_LOG_DATA(data, flags)                                              \
-    flo_printToScreen(FLO_CONVERT_TO_STRING(data), flags)
+#define LOG_DATA(data, flags)                                                  \
+    appendToFlushBuffer(CONVERT_TO_STRING(data), flags)
 
-#define FLO_LOG_1(data) FLO_LOG_DATA(data, 0)
-#define FLO_LOG_2(data, flags) FLO_LOG_DATA(data, flags)
+#define LOG_1(data) LOG_DATA(data, 0)
+#define LOG_2(data, flags) LOG_DATA(data, flags)
 
-#define FLO_LOG_CHOOSER_IMPL_1(arg1) FLO_LOG_1(arg1)
-#define FLO_LOG_CHOOSER_IMPL_2(arg1, arg2) FLO_LOG_2(arg1, arg2)
-#define FLO_LOG_CHOOSER(...) FLO_LOG_CHOOSER_IMPL(__VA_ARGS__, 2, 1)
-#define FLO_LOG_CHOOSER_IMPL(_1, _2, N, ...) FLO_LOG_CHOOSER_IMPL_##N
+#define LOG_CHOOSER_IMPL_1(arg1) LOG_1(arg1)
+#define LOG_CHOOSER_IMPL_2(arg1, arg2) LOG_2(arg1, arg2)
+#define LOG_CHOOSER(...) LOG_CHOOSER_IMPL(__VA_ARGS__, 2, 1)
+#define LOG_CHOOSER_IMPL(_1, _2, N, ...) LOG_CHOOSER_IMPL_##N
 
-#define FLO_LOG(...) FLO_LOG_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+#define LOG(...) LOG_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 #ifdef __cplusplus
 }

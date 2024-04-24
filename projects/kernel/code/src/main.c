@@ -32,33 +32,33 @@ __attribute__((ms_abi, section("kernel-start"))) int kernelmain() {
 
     KernelParameters *kernelParameters =
         (KernelParameters *)KERNEL_PARAMS_START;
-    flo_setupScreen(
-        (flo_ScreenDimension){.scanline = kernelParameters->fb.scanline,
-                              .size = kernelParameters->fb.size,
-                              .width = kernelParameters->fb.columns,
-                              .height = kernelParameters->fb.rows,
-                              .buffer = (uint32_t *)kernelParameters->fb.ptr});
+    setupScreen(
+        (ScreenDimension){.scanline = kernelParameters->fb.scanline,
+                          .size = kernelParameters->fb.size,
+                          .width = kernelParameters->fb.columns,
+                          .height = kernelParameters->fb.rows,
+                          .buffer = (uint32_t *)kernelParameters->fb.ptr});
 
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), FLO_NEWLINE);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), FLO_NEWLINE);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), FLO_NEWLINE);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), FLO_NEWLINE);
-    flo_printToScreen(FLO_STRING("Hello ther"), FLO_NEWLINE);
-    flo_printToScreen(FLO_STRING("Hello ther"), FLO_NEWLINE);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
-    flo_printToScreen(FLO_STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), NEWLINE);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), NEWLINE);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), NEWLINE);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), NEWLINE);
+    //   printToScreen(STRING("Hello ther"), NEWLINE);
+    //   printToScreen(STRING("Hello ther"), NEWLINE);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), 0);
+    //   printToScreen(STRING("Hello ther"), 0);
 
     while (1) {
         ;

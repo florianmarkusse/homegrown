@@ -3,6 +3,7 @@
 #include "efi/c-efi-protocol-simple-text-output.h"
 #include "efi/c-efi-system.h"
 #include "globals.h"
+#include "memory/standard.h"
 #include "printing.h"
 
 typedef enum { RSDT, XSDT, NUM_DESCRIPTION_TABLES } DescriptionTableVersion;
@@ -29,6 +30,21 @@ void printDescriptionHeaders(RSDPResult rsdp) {
     default: {
         error(u"Unrecognized RSDP revision!\r\n");
     }
+    }
+
+    printAsciSize(sdt->header.oem_table_id, 6);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+    char *descriptionHeaders = (char *)sdt->descriptionHeaders;
+    CEfiU64 addressBuffer;
+    for (CEfiU64 i = 0; i < sdt->header.length - sizeof(CAcpiSDT);
+         i += entrySize) {
+        char *entry = (descriptionHeaders + i);
+        memcpy(&addressBuffer, &entry, entrySize);
+        CAcpiDescriptionTableHeader *header =
+            (CAcpiDescriptionTableHeader *)addressBuffer;
+        printAsciSize(header->signature, ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
+        printAsciSize(header->oem_table_id, 6);
+        globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
     }
 
     //   printAsciSize(sdt->header.signature,
@@ -69,15 +85,6 @@ void printDescriptionHeaders(RSDPResult rsdp) {
     //    printAsciSize((((CEfiU8 *)*(CEfiU64 *)(sdt->descriptionHeaders + 8))),
     //                  ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
     //    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-
-    char *entries = (char *)sdt->descriptionHeaders;
-    for (CEfiU64 i = 0; i < sdt->header.length - sizeof(CAcpiSDT);
-         i += entrySize) {
-        CAcpiDescriptionTableHeader *header =
-            (CAcpiDescriptionTableHeader *)(CEfiU64 *)(entries + i);
-        printAsciSize(header->signature, ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
-        globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-    }
 }
 
 // void *acpi_get_table(char *signature, int index) {

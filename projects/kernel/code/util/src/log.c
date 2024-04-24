@@ -1,19 +1,13 @@
 #include "util/log.h"
-#include "util/assert.h"        // for FLO_ASSERT
-#include "util/memory/arena.h"  // for flo_alloc, flo_arena
-#include "util/memory/macros.h" // for FLO_ALIGNOF, FLO_SIZEOF
+#include "util/array-types.h"
+#include "util/assert.h" // for ASSERT
+#include "util/maths.h"
+#include "util/memory/arena.h"  // for alloc, arena
+#include "util/memory/macros.h" // for ALIGNOF, SIZEOF
 #include "util/memory/memory.h" // for memcpy, memset
-#include "util/ring-buffer.h"
 
-#define FLO_SCREEN_RING_BUFFER_LEN 1 << 10
-unsigned char screenRingBuf[FLO_SCREEN_RING_BUFFER_LEN];
-FLO_CREATE_RING_BUFFER(screenRingBuffer, flo_uint8_rb, screenRingBuf,
-                       FLO_SCREEN_RING_BUFFER_LEN);
-
-#define FLO_STRING_CONVERTER_BUF_LEN 1 << 10
-unsigned char stringConverterBuf[FLO_STRING_CONVERTER_BUF_LEN];
-static flo_char_a stringConverterBuffer = (flo_char_a){
-    .buf = stringConverterBuf, .len = FLO_STRING_CONVERTER_BUF_LEN};
+static uint8_t flushBuf000[128 * 64];
+static uint8_max_a flushBuf = {.buf = flushBuf000, .cap = 128 * 64, .len = 0};
 
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
@@ -48,7 +42,8 @@ extern psf2_t
     glyphs asm("_binary__home_florian_Desktop_homegrown_projects_kernel_"
                "code____resources_font_psf_start");
 
-#define PIXEL_MARGIN 20
+#define VERTICAL_PIXEL_MARGIN 20
+#define HORIZONTAL_PIXEL_MARGIN 20
 #define HAXOR_GREEN 0x0000FF00
 #define HAXOR_WHITE 0x00FFFFFF
 
@@ -57,14 +52,102 @@ typedef struct {
     uint32_t y;
 } Cursor;
 
-static flo_ScreenDimension dim;
-static Cursor cursor;
-// static psf2_t *font = (psf2_t *)glyphStart;
+static ScreenDimension dim;
 static uint32_t glyphsPerLine;
-static int bytesPerLine;
-void flo_setupScreen(flo_ScreenDimension dimension) {
+static uint32_t glyphsPerColumn;
+static uint32_t bytesPerLine;
+static uint32_t glyphStartOffset;
+static uint32_t glyphStartVerticalOffset;
+
+#define MAX_GLYPSH_PER_LINE 128
+typedef struct {
+    uint8_t chars[MAX_GLYPSH_PER_LINE]; // TODO: should be glyphsperLine ;
+    uint8_t nextChar;
+} ScreenLine;
+
+#define MAX_GLYPSH_PER_COLUMN 64
+typedef struct {
+    ScreenLine lines[MAX_GLYPSH_PER_COLUMN]; // TODO: should be glyphsperLine ;
+    int32_t lastFlushedLine;
+    int32_t currentLine;
+} ScreenBuffer;
+
+static ScreenBuffer screenBuffer;
+
+void drawLine(ScreenLine line, uint32_t rowNumber) {
+    ASSERT(dim.buffer != 0);
+    for (uint8_t i = 0; i < line.nextChar; i++) {
+        uint8_t ch = line.chars[i];
+        switch (ch) {
+            // TODO: Special cases here:
+            // \t and others?
+        default: {
+            unsigned char *glyph = &(glyphs.glyphs) + ch * glyphs.bytesperglyph;
+            uint32_t offset = glyphStartOffset +
+                              rowNumber * (dim.scanline * glyphs.height) +
+                              i * (glyphs.width);
+
+            for (uint32_t y = 0; y < glyphs.height; y++) {
+                // TODO: use SIMD instructions?
+                uint32_t line = offset;
+                uint32_t mask = 1 << (glyphs.width - 1);
+                for (uint32_t x = 0; x < glyphs.width; x++) {
+                    dim.buffer[line] =
+                        ((((uint32_t)*glyph) & (mask)) != 0) * HAXOR_WHITE;
+                    mask >>= 1;
+                    line++;
+                }
+                glyph += bytesPerLine;
+                offset += dim.scanline;
+            }
+            break;
+        }
+        }
+    }
+}
+
+// TODO: convert to using double buffer - you are reading from the graphics
+// buffer directly which is not that fast + can cause artifacts.
+void flushToScreen() {
+    uint32_t distance =
+        ABS(screenBuffer.lastFlushedLine - screenBuffer.currentLine);
+    // The line that was last flushed needs to be included when writing new
+    // lines because we cannot guarantee that it was fully written to on the
+    // previous flush.
+    uint32_t linesToRedraw = distance == 0 ? glyphsPerColumn : distance + 1;
+
+    psf2_t test = glyphs;
+
+    memmove(&dim.buffer[glyphStartVerticalOffset],
+            &dim.buffer[glyphStartVerticalOffset +
+                        (linesToRedraw - 1) * glyphs.height * dim.scanline],
+            (glyphsPerColumn - linesToRedraw) * glyphs.height * dim.scanline *
+                4);
+
+    //    for (uint32_t i = linesToRedraw; i < glyphsPerColumn; i--) {
+    //        memcpy(&(dim.buffer[glyphStartVerticalOffset +
+    //                            (glyphsPerColumn - i - 1) * glyphs.height *
+    //                                dim.scanline]),
+    //               &(dim.buffer[glyphStartVerticalOffset +
+    //                            (glyphsPerColumn - i + linesToRedraw - 2) *
+    //                                glyphs.height * dim.scanline]),
+    //               dim.scanline * glyphs.height);
+    //    }
+
+    for (uint32_t i = 0; i < linesToRedraw; i++) {
+        drawLine(screenBuffer.lines[screenBuffer.lastFlushedLine + i],
+                 glyphsPerColumn - linesToRedraw + i);
+    }
+    screenBuffer.lastFlushedLine = screenBuffer.currentLine;
+}
+
+void setupScreen(ScreenDimension dimension) {
     dim = dimension;
-    glyphsPerLine = (dim.width - PIXEL_MARGIN * 2) / (glyphs.width);
+    glyphsPerLine = (dim.width - HORIZONTAL_PIXEL_MARGIN * 2) / (glyphs.width);
+    glyphsPerColumn =
+        (dim.height - VERTICAL_PIXEL_MARGIN * 2) / (glyphs.height);
+    glyphStartVerticalOffset = dim.scanline * VERTICAL_PIXEL_MARGIN;
+    glyphStartOffset = glyphStartVerticalOffset + HORIZONTAL_PIXEL_MARGIN;
     bytesPerLine = (glyphs.width + 7) / 8;
 
     for (uint32_t y = 0; y < dim.height; y++) {
@@ -86,110 +169,133 @@ void flo_setupScreen(flo_ScreenDimension dimension) {
     for (uint32_t x = 0; x < dim.scanline; x++) {
         dim.buffer[(dim.scanline * (dim.height - 1)) + x] = HAXOR_GREEN;
     }
+
+    LOG(STRING("hi \nther"));
+    LOG(glyphsPerLine);
+    LOG(STRING(" "));
+    LOG(glyphsPerColumn);
+    LOG(STRING(" xgdhfgkjhfgiudhuir"));
+    flushBuffer(&flushBuf);
+    LOG(STRING("\n\n"));
+    LOG(STRING("I lik e dick"));
+    LOG(STRING(" "));
+    LOG(glyphsPerColumn, NEWLINE);
+    LOG(STRING(" xgdhfgkjhfgiudhuir"));
+    flushBuffer(&flushBuf);
 }
 
-// void flushToScreen() {
-//     FLO_ASSERT(dim.buffer != 0);
+void flushBuffer(uint8_max_a *buffer) {
+    // TODO: flush buffer to file system here.
+
+    for (uint64_t i = 0; i < buffer->len; i++) {
+        unsigned char ch = buffer->buf[i];
+
+        switch (ch) {
+        // TODO: Add special cases for /t and /n
+        case '\n': {
+            screenBuffer.currentLine++;
+            screenBuffer.lines[screenBuffer.currentLine].nextChar = 0;
+            break;
+        }
+        default: {
+            // TODO: SIMD this bad boy
+            ScreenLine *currentLine =
+                &screenBuffer.lines[screenBuffer.currentLine &
+                                    (MAX_GLYPSH_PER_COLUMN - 1)];
+            currentLine->chars[currentLine->nextChar] = ch;
+
+            currentLine->nextChar++;
+
+            if (currentLine->nextChar >= MAX_GLYPSH_PER_LINE) {
+                screenBuffer.currentLine++;
+                screenBuffer.lines[screenBuffer.currentLine].nextChar = 0;
+            }
+
+            break;
+        }
+        }
+    }
+    flushToScreen();
+
+    buffer->len = 0;
+}
+
+// TODO: buffer should be a variable to this function once we have actual memory
+// management set up instead of it being hardcoded.
+void appendToFlushBuffer(string data, unsigned char flags) {
+    for (uint64_t bytesWritten = 0; bytesWritten < data.len;) {
+        // the minimum of size remaining and what is left in the buffer.
+        uint64_t spaceInBuffer = (flushBuf.cap) - flushBuf.len;
+        uint64_t dataToWrite = data.len - bytesWritten;
+        uint64_t bytesToWrite = MIN(spaceInBuffer, dataToWrite);
+        memcpy(flushBuf.buf + flushBuf.len, data.buf + bytesWritten,
+               bytesToWrite);
+        flushBuf.len += bytesToWrite;
+        bytesWritten += bytesToWrite;
+        if (bytesWritten < data.len) {
+            flushBuffer(&flushBuf);
+        }
+    }
+
+    if (flags & NEWLINE) {
+        if (flushBuf.len >= flushBuf.cap) {
+            flushBuffer(&flushBuf);
+        }
+        flushBuf.buf[flushBuf.len] = '\n';
+        flushBuf.len++;
+    }
+
+    if (flags & FLUSH) {
+        flushBuffer(&flushBuf);
+    }
+}
+
+// void printToScreen(string data, uint8_t flags) {
+//     ASSERT(dim.buffer != 0);
 //
-//     static psf2_t *font = (psf2_t *)&glyphStart;
-//     uint32_t glyphsPerLine =
-//         (dim.width - PIXEL_MARGIN * 2) / (font->width + HORIZONTAL_PADDING);
-//     uint64_t glyphsPerColumn = (dim.height - PIXEL_MARGIN * 2) /
-//     (font->height);
-//
-//     static uint32_t cursor = 0;
-//
-//     int bytesPerLine = (font->width + 7) / 8;
-//     for (int64_t i = screenRingBuffer.current - 10; i < 10; i++) {
-//         uint8_t ch = screenRingBuffer.buf[screenRingBuffer.current - i];
+//     for (int64_t i = 0; i < data.len; i++) {
+//         uint8_t ch = data.buf[i];
 //         switch (ch) {
-//         case '\0': {
-//             break;
-//         }
 //         case '\n': {
-//             uint32_t line = cursor / glyphsPerLine;
-//             cursor = (line + 1) * glyphsPerLine;
+//             cursor.x = 0;
+//             cursor.y++;
 //             break;
 //         }
 //         default: {
-//             unsigned char *glyph = (unsigned char *)&glyphStart +
-//                                    font->headersize + ch *
-//                                    font->bytesperglyph;
-//             uint32_t offset =
-//                 (cursor / glyphsPerLine) * (dim.scanline * font->height) +
-//                 (cursor % glyphsPerLine) * (font->width + HORIZONTAL_PADDING)
-//                 *
-//                     BYTES_PER_PIXEL;
-//             for (uint32_t y = 0; y < font->height; y++) {
+//             unsigned char *glyph = &(glyphs.glyphs) + ch *
+//             glyphs.bytesperglyph; uint32_t offset = dim.scanline *
+//             PIXEL_MARGIN +
+//                               cursor.y * (dim.scanline * glyphs.height) +
+//                               PIXEL_MARGIN + cursor.x * (glyphs.width);
+//
+//             for (uint32_t y = 0; y < glyphs.height; y++) {
 //                 // TODO: use SIMD instructions?
 //                 uint32_t line = offset;
-//                 uint32_t mask = 1 << (font->width - 1);
-//                 for (uint32_t x = 0; x < font->width; x++) {
-//                     // NOLINTNEXTLINE
-//                     *((uint32_t *)((uint64_t)dim.buffer +
-//                                    (PIXEL_MARGIN * dim.scanline) +
-//                                    (PIXEL_MARGIN * BYTES_PER_PIXEL) + line))
-//                                    =
-//                         ((((uint32_t)*glyph) & (mask)) != 0) * 0xFFFFFF;
-//
+//                 uint32_t mask = 1 << (glyphs.width - 1);
+//                 for (uint32_t x = 0; x < glyphs.width; x++) {
+//                     dim.buffer[line] =
+//                         ((((uint32_t)*glyph) & (mask)) != 0) * HAXOR_WHITE;
 //                     mask >>= 1;
-//                     line += BYTES_PER_PIXEL;
+//                     line++;
 //                 }
 //                 glyph += bytesPerLine;
 //                 offset += dim.scanline;
 //             }
-//             cursor++;
+//
+//             cursor.x = (cursor.x < glyphsPerLine) * (cursor.x + 1);
+//             cursor.y += cursor.x == 0;
 //             break;
 //         }
 //         }
 //     }
+//
+//     if (flags & NEWLINE) {
+//         cursor.x = 0;
+//         cursor.y++;
+//     }
 // }
 
-void flo_printToScreen(flo_string data, uint8_t flags) {
-    FLO_ASSERT(dim.buffer != 0);
-
-    for (int64_t i = 0; i < data.len; i++) {
-        uint8_t ch = data.buf[i];
-        switch (ch) {
-        case '\n': {
-            cursor.x = 0;
-            cursor.y++;
-            break;
-        }
-        default: {
-            unsigned char *glyph = &(glyphs.glyphs) + ch * glyphs.bytesperglyph;
-            uint32_t offset = dim.scanline * PIXEL_MARGIN +
-                              cursor.y * (dim.scanline * glyphs.height) +
-                              PIXEL_MARGIN + cursor.x * (glyphs.width);
-
-            for (uint32_t y = 0; y < glyphs.height; y++) {
-                // TODO: use SIMD instructions?
-                uint32_t line = offset;
-                uint32_t mask = 1 << (glyphs.width - 1);
-                for (uint32_t x = 0; x < glyphs.width; x++) {
-                    dim.buffer[line] =
-                        ((((uint32_t)*glyph) & (mask)) != 0) * HAXOR_WHITE;
-                    mask >>= 1;
-                    line++;
-                }
-                glyph += bytesPerLine;
-                offset += dim.scanline;
-            }
-
-            cursor.x = (cursor.x < glyphsPerLine) * (cursor.x + 1);
-            cursor.y += cursor.x == 0;
-            break;
-        }
-        }
-    }
-
-    if (flags & FLO_NEWLINE) {
-        cursor.x = 0;
-        cursor.y++;
-    }
-}
-
-void flo_printToSerial(flo_string data, uint8_t flags) {
+void printToSerial(string data, uint8_t flags) {
     static char serinit = 0;
 #define PUTC(c)                                                                \
     __asm__ __volatile__(                                                      \
@@ -228,30 +334,29 @@ void flo_printToSerial(flo_string data, uint8_t flags) {
             : "rdx");
     }
 
-    for (int64_t i = 0; i < data.len; i++) {
+    for (uint64_t i = 0; i < data.len; i++) {
         PUTC(data.buf[i]);
     }
 
     char newline = '\n';
-    if (flags & FLO_NEWLINE) {
+    if (flags & NEWLINE) {
         PUTC(newline);
     }
 }
 
-uint32_t flo_appendToSimpleBuffer(flo_string data, flo_char_d_a *array,
-                                  flo_arena *perm) {
+uint32_t appendToSimpleBuffer(string data, char_d_a *array, arena *perm) {
     if (array->len + data.len > array->cap) {
         int64_t newCap = (array->len + data.len) * 2;
         if (array->buf == NULL) {
             array->cap = data.len;
-            array->buf = flo_alloc(perm, FLO_SIZEOF(unsigned char),
-                                   FLO_ALIGNOF(unsigned char), newCap, 0);
-        } else if (perm->end == (char *)(array->buf - array->cap)) {
-            flo_alloc(perm, FLO_SIZEOF(unsigned char),
-                      FLO_ALIGNOF(unsigned char), newCap, 0);
+            array->buf = alloc(perm, SIZEOF(unsigned char),
+                               ALIGNOF(unsigned char), newCap, 0);
+        } else if (perm->end == (uint8_t *)(array->buf - array->cap)) {
+            alloc(perm, SIZEOF(unsigned char), ALIGNOF(unsigned char), newCap,
+                  0);
         } else {
-            void *buf = flo_alloc(perm, FLO_SIZEOF(unsigned char),
-                                  FLO_ALIGNOF(unsigned char), newCap, 0);
+            void *buf = alloc(perm, SIZEOF(unsigned char),
+                              ALIGNOF(unsigned char), newCap, 0);
             memcpy(buf, array->buf, array->len);
             array->buf = buf;
         }
@@ -263,22 +368,27 @@ uint32_t flo_appendToSimpleBuffer(flo_string data, flo_char_d_a *array,
     return (uint32_t)data.len;
 }
 
-flo_string flo_charToString(char data, flo_char_a tmp) {
+#define STRING_CONVERTER_BUF_LEN 1 << 10
+unsigned char stringConverterBuf[STRING_CONVERTER_BUF_LEN];
+static char_a stringConverterBuffer =
+    (char_a){.buf = stringConverterBuf, .len = STRING_CONVERTER_BUF_LEN};
+
+string charToString(char data, char_a tmp) {
     tmp.buf[0] = data;
-    return FLO_STRING_LEN(tmp.buf, 1);
+    return STRING_LEN(tmp.buf, 1);
 }
 
-flo_string flo_charToStringDefault(char data) {
-    return flo_charToString(data, stringConverterBuffer);
+string charToStringDefault(char data) {
+    return charToString(data, stringConverterBuffer);
 }
 
-flo_string flo_stringToString(flo_string data) { return data; }
+string stringToString(string data) { return data; }
 
-flo_string flo_boolToString(bool data) {
-    return (data ? FLO_STRING("true") : FLO_STRING("false"));
+string boolToString(bool data) {
+    return (data ? STRING("true") : STRING("false"));
 }
 
-flo_string flo_ptrToString(void *data, flo_char_a tmp) {
+string ptrToString(void *data, char_a tmp) {
     tmp.buf[0] = '0';
     tmp.buf[1] = 'x';
 
@@ -288,27 +398,27 @@ flo_string flo_ptrToString(void *data, flo_char_a tmp) {
         tmp.buf[counter++] = "0123456789abcdef"[(u >> (4 * i)) & 15];
     }
 
-    return (flo_string){.len = counter - 1, .buf = tmp.buf};
+    return (string){.len = counter - 1, .buf = tmp.buf};
 }
 
-flo_string flo_ptrToStringDefault(void *data) {
-    return flo_ptrToString(data, stringConverterBuffer);
+string ptrToStringDefault(void *data) {
+    return ptrToString(data, stringConverterBuffer);
 }
 
-flo_string flo_uint64ToString(uint64_t data, flo_char_a tmp) {
+string uint64ToString(uint64_t data, char_a tmp) {
     unsigned char *end = tmp.buf + tmp.len;
     unsigned char *beg = end;
     do {
         *--beg = '0' + (unsigned char)(data % 10);
     } while (data /= 10);
-    return (FLO_STRING_PTRS(beg, end));
+    return (STRING_PTRS(beg, end));
 }
 
-flo_string flo_uint64ToStringDefault(uint64_t data) {
-    return flo_uint64ToString(data, stringConverterBuffer);
+string uint64ToStringDefault(uint64_t data) {
+    return uint64ToString(data, stringConverterBuffer);
 }
 
-flo_string flo_int64ToString(int64_t data, flo_char_a tmp) {
+string int64ToString(int64_t data, char_a tmp) {
     unsigned char *end = tmp.buf + tmp.len;
     unsigned char *beg = end;
     int64_t t = data > 0 ? -data : data;
@@ -318,14 +428,14 @@ flo_string flo_int64ToString(int64_t data, flo_char_a tmp) {
     if (data < 0) {
         *--beg = '-';
     }
-    return FLO_STRING_PTRS(beg, end);
+    return STRING_PTRS(beg, end);
 }
 
-flo_string flo_int64ToStringDefault(int64_t data) {
-    return flo_int64ToString(data, stringConverterBuffer);
+string int64ToStringDefault(int64_t data) {
+    return int64ToString(data, stringConverterBuffer);
 }
 
-flo_string flo_doubleToString(double data, flo_char_a tmp) {
+string doubleToString(double data, char_a tmp) {
     int64_t tmpLen = 0;
     uint32_t prec = 1000000; // i.e. 6 decimals
 
@@ -339,16 +449,16 @@ flo_string flo_doubleToString(double data, flo_char_a tmp) {
         tmp.buf[tmpLen++] = 'i';
         tmp.buf[tmpLen++] = 'n';
         tmp.buf[tmpLen++] = 'f';
-        return FLO_STRING_LEN(tmp.buf, tmpLen);
+        return STRING_LEN(tmp.buf, tmpLen);
     }
 
     uint64_t integral = (uint64_t)data;
     uint64_t fractional = (uint64_t)((data - (double)integral) * (double)prec);
 
     unsigned char buf2[64];
-    flo_char_a tmp2 = (flo_char_a){.buf = buf2, .len = 64};
+    char_a tmp2 = (char_a){.buf = buf2, .len = 64};
 
-    flo_string part = flo_uint64ToString(integral, tmp2);
+    string part = uint64ToString(integral, tmp2);
     memcpy(tmp.buf + tmpLen, part.buf, part.len);
     tmpLen += part.len;
 
@@ -362,19 +472,18 @@ flo_string flo_doubleToString(double data, flo_char_a tmp) {
     }
     memset(tmp.buf + tmpLen, '0', counter);
 
-    part = flo_uint64ToString(fractional, tmp2);
+    part = uint64ToString(fractional, tmp2);
     memcpy(tmp.buf + tmpLen, part.buf, part.len);
     tmpLen += part.len;
 
-    return FLO_STRING_LEN(tmp.buf, tmpLen);
+    return STRING_LEN(tmp.buf, tmpLen);
 }
 
-flo_string flo_doubleToStringDefault(double data) {
-    return flo_doubleToString(data, stringConverterBuffer);
+string doubleToStringDefault(double data) {
+    return doubleToString(data, stringConverterBuffer);
 }
 
-flo_string flo_stringWithMinSize(flo_string data, unsigned char minSize,
-                                 flo_char_a tmp) {
+string stringWithMinSize(string data, unsigned char minSize, char_a tmp) {
     if (data.len >= minSize) {
         return data;
     }
@@ -383,15 +492,14 @@ flo_string flo_stringWithMinSize(flo_string data, unsigned char minSize,
     uint32_t extraSpace = (uint32_t)(minSize - data.len);
     memset(tmp.buf + data.len, ' ', extraSpace);
 
-    return FLO_STRING_LEN(tmp.buf, data.len + extraSpace);
+    return STRING_LEN(tmp.buf, data.len + extraSpace);
 }
 
-flo_string flo_stringWithMinSizeDefault(flo_string data,
-                                        unsigned char minSize) {
-    return flo_stringWithMinSize(data, minSize, stringConverterBuffer);
+string stringWithMinSizeDefault(string data, unsigned char minSize) {
+    return stringWithMinSize(data, minSize, stringConverterBuffer);
 }
 
-flo_string flo_noAppend() {
-    FLO_ASSERT(false);
-    return FLO_EMPTY_STRING;
+string noAppend() {
+    ASSERT(false);
+    return EMPTY_STRING;
 }

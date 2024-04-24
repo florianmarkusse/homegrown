@@ -56,7 +56,7 @@ void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU64 size) {
             *pageEntry =
                 // TODO: Remove WRITE_THROUGH once figured out what is necessary
                 // for firmware to work.
-                phys | (PAGE_PRESENT | PAGE_WRITABLE | PAGE_WRITE_THROUGH);
+                phys | (PAGE_PRESENT | PAGE_WRITABLE);
         } else {
             error(u"This should not happen!\r\n");
         }
