@@ -8,6 +8,7 @@
 #include "efi/c-efi-protocol-disk-io.h"
 #include "efi/c-efi-protocol-graphics-output.h"
 #include "efi/c-efi-protocol-loaded-image.h"
+#include "efi/c-efi-protocol-mp-services.h"
 #include "efi/c-efi-protocol-simple-file-system.h"
 #include "efi/c-efi-protocol-simple-text-input.h" // for CEfiInputKey, CEfiSim...
 #include "efi/c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
@@ -438,11 +439,9 @@ void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
 }
 
 void collectAndExitEfi() {
-    CEfiGuid gop_guid = C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
     CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
-
     CEfiStatus status = globals.st->boot_services->locate_protocol(
-        &gop_guid, C_EFI_NULL, (void **)&gop);
+        &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, C_EFI_NULL, (void **)&gop);
     if (C_EFI_ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
     }
@@ -520,6 +519,46 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                                        C_EFI_BACKGROUND_RED | C_EFI_YELLOW);
 
     globals.level4PageTable = (CEfiPhysicalAddress *)allocAndZero(1);
+
+    __asm__ __volatile__("mov $0, %%eax;"
+                         "mov $0, %%ecx;"
+                         "cpuid;"
+                         "mov %%eax,%0"
+                         : "=r"(globals.maxSupportCPUID)
+                         :
+                         : "eax", "ebx", "ecx", "edx");
+
+    __asm__ __volatile__("mov $1, %%eax;"
+                         "cpuid;"
+                         "shrl $24, %%ebx;"
+                         "mov %%ebx, %0"
+                         : "=r"(globals.bootstrapProcessorID)
+                         :
+                         : "eax", "ebx", "ecx", "edx");
+
+    CEfiMPServicesProtocol *mp = C_EFI_NULL;
+    CEfiStatus status = globals.st->boot_services->locate_protocol(
+        &C_EFI_MP_SERVICES_PROTOCOL_GUID, C_EFI_NULL, (void **)&mp);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not locate locate MP services\r\n");
+    }
+
+    CEfiUSize numberOfProcessors = 0;
+    CEfiUSize numberOfEnabledProcessors = 0;
+    mp->getNumberOfProcessors(mp, &numberOfProcessors,
+                              &numberOfEnabledProcessors);
+
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"Total number of processors: ");
+    printNumber(numberOfProcessors, 10);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"Total number of enabled processors: ");
+    printNumber(numberOfEnabledProcessors, 10);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+    error(u"Waiting here \r\n");
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Going to read kernel info\r\n");
