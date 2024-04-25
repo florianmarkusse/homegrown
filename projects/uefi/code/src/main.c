@@ -261,6 +261,8 @@ void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
     /* now that we have left the firmware realm behind, we can get some real
      * work done :-) */
 
+    __asm__ __volatile__("cli;" : : :);
+
     // disable PIC and NMI
     __asm__ __volatile__("movb $0xFF, %%al;"
                          "outb %%al, $0x21;"
@@ -488,8 +490,9 @@ void collectAndExitEfi() {
                                                            memoryInfo.mapKey);
 
     if (C_EFI_ERROR(status)) {
-        globals.st->con_out->output_string(
-            globals.st->con_out, u"First exit boot services failed..\r\n");
+        //        globals.st->con_out->output_string(
+        //            globals.st->con_out, u"First exit boot services
+        //            failed..\r\n");
         status = globals.st->boot_services->free_pages(
             (CEfiPhysicalAddress)memoryInfo.memoryMap,
             EFI_SIZE_TO_PAGES(memoryInfo.memoryMapSize));
