@@ -38,9 +38,7 @@ typedef struct {
     uint8_t glyphs;
 } __attribute__((packed)) psf2_t;
 
-extern psf2_t
-    glyphs asm("_binary__home_florian_Desktop_homegrown_projects_kernel_"
-               "code____resources_font_psf_start");
+extern psf2_t glyphs asm("_binary____resources_font_psf_start");
 
 #define VERTICAL_PIXEL_MARGIN 20
 #define HORIZONTAL_PIXEL_MARGIN 20
