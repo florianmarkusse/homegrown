@@ -558,7 +558,7 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     printNumber(numberOfEnabledProcessors, 10);
     globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
-    error(u"Waiting here \r\n");
+    // error(u"Waiting here \r\n");
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Going to read kernel info\r\n");
