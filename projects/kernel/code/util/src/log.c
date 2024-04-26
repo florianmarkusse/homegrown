@@ -177,8 +177,7 @@ void setupScreen(ScreenDimension dimension) {
     LOG(STRING(" xgdhfgkjhfgiudhuir"));
     flushBuffer(&flushBuf);
     LOG(STRING("\n\n"));
-    LOG(STRING("I lik e dick"));
-    LOG(STRING(" "));
+    LOG(STRING("ghdkfhgjfkdh fhgbjkdf "));
     LOG(glyphsPerColumn, NEWLINE);
     LOG(STRING(" xgdhfgkjhfgiudhuir"));
     flushBuffer(&flushBuf);
