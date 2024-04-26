@@ -11,6 +11,10 @@ extern "C" {
     C_EFI_GUID(0x3fdda605, 0xa76e, 0x4f46, 0xad, 0x29, 0x12, 0xf4, 0x53, 0x1b, \
                0x3d, 0x08)
 
+#define C_EFI_PROCESSOR_AS_BSP_BIT 0x00000001
+#define C_EFI_PROCESSOR_ENABLED_BIT 0x00000002
+#define C_EFI_PROCESSOR_HEALTH_STATUS_BIT 0x00000004
+
 typedef struct {
     CEfiU32 package;
     CEfiU32 core;

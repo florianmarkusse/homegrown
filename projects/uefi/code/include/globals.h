@@ -8,8 +8,8 @@ typedef struct {
     CEfiSystemTable *st;
     CEfiU64 *level4PageTable;
     CEfiU32 maxSupportCPUID;
-    CEfiU32 bootstrapProcessorID;
-    CEfiU32 numberOfCores;
+    CEfiU64 bootstrapProcessorID;
+    CEfiU64 numberOfCores;
 } Globals;
 
 extern Globals globals;
