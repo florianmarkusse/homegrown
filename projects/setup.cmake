@@ -1,10 +1,13 @@
 macro(initial_setup)
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+    # TODO: remove this.
+    set(CMAKE_VERBOSE_MAKEFILE ON)
     
     set(CMAKE_C_STANDARD 23)
     set(CMAKE_C_STANDARD_REQUIRED ON)
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wconversion -Wno-sign-conversion -Wdouble-promotion -Wvla -W")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64 -Wall -Wextra -Wconversion -Wno-sign-conversion -Wdouble-promotion -Wvla -W")
 
     set(EXECUTABLE_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
     

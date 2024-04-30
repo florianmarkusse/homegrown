@@ -13,6 +13,7 @@
 #include "efi/c-efi-protocol-simple-text-input.h" // for CEfiInputKey, CEfiSim...
 #include "efi/c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
 #include "efi/c-efi-system.h"                      // for CEfiSystemTable
+#include "gdt.h"
 #include "globals.h"
 #include "memory/boot-functions.h"
 #include "memory/definitions.h"
@@ -258,11 +259,20 @@ typedef struct {
     MemoryMap *memory;
 } KernelParameters;
 
-#define APIC_ERROR_STATUS_REGISTER 0x280
-#define APIC_IPI_ICR_LOW 0x300
+#define APIC_LOCAL_ID_REGISTER 0xFEE00020
+#define APIC_SIV_REGISTER 0xFEE000F0
+#define APIC_ERROR_STATUS_REGISTER 0xFEE00280
+#define APIC_IPI_ICR_LOW 0xFEE00300
+#define APIC_IPI_ICR_HIGH 0xFEE0310
+#define APIC_LVT3_ERROR_REGISTER 0xFEE0370
+
 #define APIC_IPI_ICR_LOW_RESERVED 0xFFF32000
-#define APIC_IPI_ICR_HIGH 0x310
 #define APIC_IPI_ICR_HIGH_RESERVED 0x00FFFFFF
+
+#define APIC_SIV_ENABLE_LOCAL (1 << 7)
+
+#define APIC_INIT_IPI 0x00C4500
+#define APIC_START_UP_IPI 0x00C4600
 
 // TODO: this.
 #define APIC_ICR_DELIVERY_MODE()
@@ -296,52 +306,70 @@ typedef struct {
         APIC_IPI_ICR_SET_LOW(bottom3Bytes)                                     \
     } while (0)
 
-CEFICALL void emptyStuff(void *buffer) { __asm__ __volatile__("hlt;" : : :); }
+CEFICALL void nonBootstrapProcessor(void *buffer) {
+    __asm__ __volatile__("cli;"
+                         "hlt;"
+                         // TODO: switch to monitor mwait?
+                         //       "monitor;"
+                         //       "mwait"
+                         :
+                         :
+                         :);
+}
 
-// CEFICALL void bootstrapProcessorWork() {
-//     // disable PIC and NMI
-//     __asm__ __volatile__("movb $0xFF, %%al;"
-//                          "outb %%al, $0x21;"
-//                          "outb %%al, $0xA1;" // disable PIC
-//                          "inb $0x70, %%al;"
-//                          "orb $0x80, %%al;"
-//                          "outb %%al, $0x70;" // disable NMI
-//                          :
-//                          :
-//                          : "eax");
-//
-//     CEfiU32 a = 0;
-//     for (CEfiU64 i = 0; i < 255; i++) {
-//         if (i == globals.bootstrapProcessorID) {
-//             continue;
-//         }
-//         *((volatile CEfiU32 *)(0x280)) = 0; // clear APIC errors
-//         a = *((volatile CEfiU32 *)(0x280));
-//         send_ipi(i, 0x00C500); // trigger INIT IPI
-//         globals.st->boot_services->stall(200);
-//         // TODO: Shouldnt this be 0x008100 instead, this is still assertin?
-//         send_ipi(i, 0x008500); // deassert INIT IPI
-//     }
-//     sleep(50); // wait 10 msec
-//     for (i = 0; i < 255; i++) {
-//         if (i == globals.bootstrapProcessorID) {
-//             continue;
-//         }
-//         ap_done = 0;
-//         send_ipi(i, 0xfff0f800, 0x004608); // trigger SIPI, start at
-//         0800:0000h for (a = 250; !ap_done && a > 0; a--)
-//             sleep(1); // wait for AP with 50 msec timeout
-//         if (!ap_done) {
-//             send_ipi(i, 0xfff0f800, 0x004608);
-//             sleep(250);
-//         }
-//     }
-// }
+struct interrupt_frame;
+
+__attribute__((interrupt)) void
+interrupt_handler(struct interrupt_frame *frame) {
+    *(CEfiU32 *)globals.frameBufferAddress = 0xFFFFFFFF;
+}
+
+static inline void outb(CEfiU16 port, CEfiU8 value) {
+    asm volatile("outb %%al, %1" : : "a"(value), "Nd"(port) : "memory");
+}
+
+CEFICALL void bootstrapProcessorWork() {
+    // disable PIC and NMI
+    __asm__ __volatile__("movb $0xFF, %%al;"
+                         "outb %%al, $0x21;"
+                         "outb %%al, $0xA1;" // disable PIC
+                         "inb $0x70, %%al;"
+                         "orb $0x80, %%al;"
+                         "outb %%al, $0x70;" // disable NMI
+                         :
+                         :
+                         : "eax", "memory");
+
+    // Flush possible old PIC IRQs
+    for (int i = 0; i < 16; i++) {
+        if (i >= 8) {
+            outb(0xa0, 0x20);
+        }
+
+        outb(0x20, 0x20);
+    }
+
+    setup_gdt();
+
+    //    *((volatile CEfiU32 *)(APIC_ERROR_STATUS_REGISTER)) =
+    //        0; // clear APIC errors
+    //
+    //    *((volatile CEfiU16 *)(APIC_SIV_REGISTER)) =
+    //        *((volatile CEfiU16 *)(APIC_SIV_REGISTER)) |
+    //        APIC_SIV_ENABLE_LOCAL;
+    //
+    //    APIC_IPI_ICR_SET_LOW(APIC_INIT_IPI)
+    //    globals.st->boot_services->stall(10000);
+    //    APIC_IPI_ICR_SET_LOW(APIC_START_UP_IPI)
+    //    globals.st->boot_services->stall(200);
+    //    APIC_IPI_ICR_SET_LOW(APIC_START_UP_IPI)
+
+    globals.st->boot_services->stall(100000);
+
+    __asm__ __volatile__("pause" : : : "memory"); // memory barrier
+}
 
 CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
-    /* now that we have left the firmware realm behind, we can get some real
-     * work done :-) */
-
     __asm__ __volatile__("cli;" : : :);
 
     // enable SSE
@@ -515,6 +543,7 @@ void collectAndExitEfi() {
         error(u"Could not locate locate GOP\r\n");
     }
 
+    globals.frameBufferAddress = gop->mode->frameBufferBase;
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"The graphics buffer location is at ");
     printNumber(gop->mode->frameBufferBase, 16);
@@ -573,6 +602,7 @@ void collectAndExitEfi() {
         error(u"could not exit boot services!\r\n");
     }
 
+    bootstrapProcessorWork();
     jumpIntoKernel(stackPointer);
 }
 
@@ -615,6 +645,19 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                                        u"Total number of enabled processors: ");
     printNumber(numberOfEnabledProcessors, 10);
     globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+    __asm__ __volatile__("mov $1, %%eax;"
+                         "mov $0, %%ecx;"
+                         "cpuid;"
+                         "mov %%eax,%0;"
+                         "mov %%ecx,%1;"
+                         "mov %%edx,%2"
+                         : "=r"(globals.processorVersionInfo),
+                           "=r"(globals.ecxFeatureInfo),
+                           "=r"(globals.edxFeatureInfo)
+                         :
+                         : "eax", "ebx", "ecx", "edx");
+
     //    CEfiEvent event;
     //
     //    // Create an empty event that can wake up the other cores
@@ -625,7 +668,6 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     //    }
     //
     //    CEfiProcessorInformation procInfo;
-    //    CEfiU64 indexOfBSP = 0;
     //
     //    for (CEfiU64 i = 0; i < globals.numberOfCores; i++) {
     //        status = mp->getProcessorInfo(mp, i, &procInfo);
@@ -636,16 +678,11 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     //        if (procInfo.processorId & C_EFI_PROCESSOR_AS_BSP_BIT) {
     //            globals.bootstrapProcessorID = procInfo.processorId;
     //        } else {
-    //            mp->startupThisAP(mp, emptyStuff, i, event, 0, (void *)i,
+    //            mp->startupThisAP(mp, nonBootstrapProcessor, i, event, 0,
+    //            (void *)i,
     //                              C_EFI_NULL);
     //        }
-    //
-    //        //        uefi_call_wrapper(mp->StartupThisAP, 7, mp,
-    //        //        bootboot_startcore, i,
-    //        //                          Event, 0, (VOID *)i, NULL);
     //    }
-
-    //    error(u"Waiting here \r\n");
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Going to read kernel info\r\n");

@@ -2,14 +2,18 @@ cmake_minimum_required(VERSION 3.18)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 project(uefi LANGUAGES C ASM)
 
+
+
 include("../../setup.cmake")
 initial_setup()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -target x86_64-unknown-windows -ffreestanding -nostdlib -nostdinc -fshort-wchar -mno-red-zone")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -target x86_64-unknown-windows -mgeneral-regs-only -ffreestanding -nostdlib -nostdinc -fshort-wchar -mno-red-zone")
 
 add_executable(${EXECUTABLE_NAME} 
     "src/main.c"
     "src/globals.c"
+    "src/gdt.c"
+    "src/gdt.s"
     "src/printing.c"
     "src/data-reading.c"
     "src/memory/standard.c"

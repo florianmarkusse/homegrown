@@ -10,6 +10,10 @@ typedef struct {
     CEfiU32 maxSupportCPUID;
     CEfiU64 bootstrapProcessorID;
     CEfiU64 numberOfCores;
+    CEfiU32 processorVersionInfo;
+    CEfiU32 ecxFeatureInfo;
+    CEfiU32 edxFeatureInfo;
+    CEfiU64 frameBufferAddress;
 } Globals;
 
 extern Globals globals;
