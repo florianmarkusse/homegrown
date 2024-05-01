@@ -13,6 +13,7 @@ add_executable(${EXECUTABLE_NAME}
     "src/main.c"
     "src/globals.c"
     "src/printing.c"
+    "src/gdt.c"
     "src/data-reading.c"
     "src/memory/standard.c"
     "src/memory/boot-functions.c"

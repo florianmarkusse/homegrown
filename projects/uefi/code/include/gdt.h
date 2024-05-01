@@ -132,4 +132,6 @@ typedef struct {
 const static Descriptor_Table_Register gdtr = {.limit = sizeof(gdt_table) - 1,
                                                .base = (CEfiU64)&gdt_table};
 
+void setupNewGDT();
+
 #endif

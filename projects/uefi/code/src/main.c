@@ -368,16 +368,9 @@ CEFICALL void bootstrapProcessorWork() {
 }
 
 CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
-    gdt_table.tssDescriptor = (Tss_Descriptor){
-        .limit_15_0 = sizeof tss - 1,
-        .base_15_0 = tss_address & 0xFFFF,
-        .base_23_16 = (tss_address >> 16) & 0xFF,
-        .type = 9, // 0b1001 = 64 bit TSS (available)
-        .p_flag = 1,
-        .base_31_24 = (tss_address >> 24) & 0xFF,
-        .base_63_32 = (tss_address >> 32) & 0xFFFFFFFF,
+    __asm__ __volatile__("cli");
 
-    };
+    setupNewGDT();
 
     // enable SSE
     __asm__ __volatile__("movl $0xC0000011, %%eax;"
@@ -387,60 +380,25 @@ CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
                          "mov %%rax, %%cr4" ::
                              : "eax");
 
-    __asm__ __volatile__("cli");
-
     __asm__ __volatile__("mov %%rax, %%cr3;" ::"a"(globals.level4PageTable)
                          : "memory");
 
-    //    *(CEfiU32 *)globals.frameBufferAddress = 0xFFFFFFFF;
-    //    __asm__ __volatile__("hlt");
-
-    __asm__ __volatile__(
-        "lgdt %0;" // Load new Global Descriptor Table
-
-        "movw $0x18, %%ax;" // 0x18 = tss segment offset in gdt
-        "ltr %%ax;"         // Load task register, with tss offset
-
-        "movq $0x08, %%rax;"
-        "pushq %%rax;"           // Push kernel code segment
-        "leaq 1f(%%rip), %%rax;" // Use relative offset for label
-        "pushq %%rax;"           // Push return address
-        "lretq;"                 // Far return, pop return address into IP,
-                                 //   and pop code segment into CS
-        "1:"
-        "movw $0x10, %%ax;" // 0x10 = kernel data segment
-        "movw %%ax, %%ds;"  // Load data segment registers
-        "movw %%ax, %%es;"
-        "movw %%ax, %%fs;"
-        "movw %%ax, %%gs;"
-        "movw %%ax, %%ss;"
-
-        "movq %2, %%rsp;"
-        "movq %%rsp, %%rbp;"
-        "pushq %1;"
-        "retq"
-
-        :
-        : "m"(gdtr), "r"(KERNEL_START), "r"(stackPointer)
-        : "rax", "rsp", "rbp", "memory");
-
-    //    // This changes when multicore ofc.
-    //    // TODO: this code should change when doing multicore,
-    //    // set stack
-    //    __asm__ __volatile__(
-    //        // pass control over
-    //        "movq %1, %%rsp;"
-    //        "movq %%rsp, %%rbp;"
-    //        "pushq %0;"
-    //        "retq"
-    //        :
-    //        : "r"(KERNEL_START), "r"(stackPointer)
-    //        : "rsp", "rbp", "memory");
+    __asm__ __volatile__("movq %1, %%rsp;"
+                         "movq %%rsp, %%rbp;"
+                         "pushq %0;"
+                         //
+                         //        "movq $0xFFFFFFFF, %%rax;" // Load the
+                         //        absolute "movq %%rax, (%%rdx);"     // Store
+                         //        the value at "hlt;"
+                         //
+                         "retq"
+                         :
+                         : "r"(KERNEL_START), "r"(stackPointer)
+                         //,  "d"(globals.frameBufferAddress)
+                         : "rsp", "rbp", "memory");
 
     __builtin_unreachable();
 
-    //    //    void CEFICALL (*entry_point)(KernelParameters *) = (void
-    //    //    *)KERNEL_START; entry_point(params);
     //
     //    // Set PAT as:
     //    // PAT0 -> WB  (06)
