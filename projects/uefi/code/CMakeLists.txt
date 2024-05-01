@@ -12,8 +12,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -target x86_64-unknown-windows -mgeneral-reg
 add_executable(${EXECUTABLE_NAME} 
     "src/main.c"
     "src/globals.c"
-    "src/gdt.c"
-    "src/gdt.s"
     "src/printing.c"
     "src/data-reading.c"
     "src/memory/standard.c"

@@ -1,9 +1,6 @@
 macro(initial_setup)
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-    # TODO: remove this.
-    set(CMAKE_VERBOSE_MAKEFILE ON)
-    
     set(CMAKE_C_STANDARD 23)
     set(CMAKE_C_STANDARD_REQUIRED ON)
 
