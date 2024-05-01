@@ -383,19 +383,18 @@ CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
     __asm__ __volatile__("mov %%rax, %%cr3;" ::"a"(globals.level4PageTable)
                          : "memory");
 
-    __asm__ __volatile__("movq %1, %%rsp;"
-                         "movq %%rsp, %%rbp;"
-                         "pushq %0;"
-                         //
-                         //        "movq $0xFFFFFFFF, %%rax;" // Load the
-                         //        absolute "movq %%rax, (%%rdx);"     // Store
-                         //        the value at "hlt;"
-                         //
-                         "retq"
-                         :
-                         : "r"(KERNEL_START), "r"(stackPointer)
-                         //,  "d"(globals.frameBufferAddress)
-                         : "rsp", "rbp", "memory");
+    __asm__ __volatile__(
+        "movq %1, %%rsp;"
+        "movq %%rsp, %%rbp;"
+        "pushq %0;"
+        //
+        //        "movq $0xFFFFFFFF, %%rax;"  "movq %%rax, (%%rdx);"      "hlt;"
+        //
+        "retq"
+        :
+        : "r"(KERNEL_START), "r"(stackPointer)
+        //,  "d"(globals.frameBufferAddress)
+        : "rsp", "rbp", "memory");
 
     __builtin_unreachable();
 
