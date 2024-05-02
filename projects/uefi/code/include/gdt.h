@@ -88,7 +88,8 @@ typedef struct {
     Tss_Descriptor tssDescriptor;
 } __attribute__((aligned(4096))) gdtable;
 
-const static Task_State_Segment tss = {0};
+const static Task_State_Segment tss = {.io_map_base_address =
+                                           sizeof(Task_State_Segment)};
 const static CEfiU64 tss_address = (CEfiU64)&tss;
 
 // No other descriptors necessary afaik, no hardware switching nor privilege

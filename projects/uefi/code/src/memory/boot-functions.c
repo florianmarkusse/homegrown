@@ -71,19 +71,13 @@ void mapMemory(CEfiU64 phys, CEfiU64 size) {
 }
 
 MemoryInfo getMemoryInfo() {
-    CEfiUSize memoryMapSize = 0;
-    CEfiMemoryDescriptor *memoryMap = C_EFI_NULL;
-    CEfiUSize mapKey;
-    CEfiUSize descriptorSize;
-    CEfiU32 descriptorVersion;
-
-    CEfiPhysicalAddress memoryMapAddress;
+    MemoryInfo mmap = {0};
 
     // Call GetMemoryMap with initial buffer size of 0 to retrieve the
     // required buffer size
     CEfiStatus status = globals.st->boot_services->get_memory_map(
-        &memoryMapSize, memoryMap, &mapKey, &descriptorSize,
-        &descriptorVersion);
+        &mmap.memoryMapSize, mmap.memoryMap, &mmap.mapKey, &mmap.descriptorSize,
+        &mmap.descriptorVersion);
 
     if (status != C_EFI_BUFFER_TOO_SMALL) {
         error(u"Should have received a buffer too small error here!\r\n");
@@ -92,27 +86,22 @@ MemoryInfo getMemoryInfo() {
     // Some extra because allocating can create extra descriptors and
     // otherwise
     // exitbootservices will fail (lol)
-    memoryMapSize += descriptorSize * 2;
+    mmap.memoryMapSize += mmap.descriptorSize * 2;
     status = globals.st->boot_services->allocate_pages(
         C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
-        EFI_SIZE_TO_PAGES(memoryMapSize), &memoryMapAddress);
+        EFI_SIZE_TO_PAGES(mmap.memoryMapSize), &mmap.memoryMap);
     if (C_EFI_ERROR(status)) {
         error(u"Could not allocate data for memory map buffer\r\n");
     }
-    memoryMap = (CEfiMemoryDescriptor *)memoryMapAddress;
 
     status = globals.st->boot_services->get_memory_map(
-        &memoryMapSize, memoryMap, &mapKey, &descriptorSize,
-        &descriptorVersion);
+        &mmap.memoryMapSize, mmap.memoryMap, &mmap.mapKey, &mmap.descriptorSize,
+        &mmap.descriptorVersion);
     if (C_EFI_ERROR(status)) {
         error(u"Getting memory map failed!\r\n");
     }
 
-    return (MemoryInfo){.memoryMapSize = memoryMapSize,
-                        .memoryMap = memoryMap,
-                        .mapKey = mapKey,
-                        .descriptorSize = descriptorSize,
-                        .descriptorVersion = descriptorVersion};
+    return mmap;
 }
 
 // TODO: table 7.10 UEFI spec section 7.2 - 7.2.1 , not fully complete yet I
