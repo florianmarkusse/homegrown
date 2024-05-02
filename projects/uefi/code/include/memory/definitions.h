@@ -1,14 +1,15 @@
 #ifndef MEMORY_DEFINITIONS_H
 #define MEMORY_DEFINITIONS_H
 
+#define STACK_SIZE (1 << 14)
+#define RED_ZONE_SIZE (1 << 7)
+
 #define KERNEL_SPACE_START 0xffff800000000000
 #define KERNEL_SPACE_END 0xffffffffffffffff
 
 #define KERNEL_START 0xfffffffff8000000
+#define BOTTOM_STACK KERNEL_START - STACK_SIZE
 #define KERNEL_PARAMS_START 0xfffffffff7000000
-
-#define STACK_SIZE (1 << 14)
-#define RED_ZONE_SIZE (1 << 7)
 
 #define PAGE_ENTRY_SHIFT 9
 #define PAGE_ENTRY_SIZE (1 << PAGE_ENTRY_SHIFT)

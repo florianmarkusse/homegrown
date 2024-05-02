@@ -482,76 +482,6 @@ CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
     //        : "rcx", "rsi", "rdi");
 }
 
-void collectAndExitEfi() {
-    CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
-    CEfiStatus status = globals.st->boot_services->locate_protocol(
-        &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, C_EFI_NULL, (void **)&gop);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not locate locate GOP\r\n");
-    }
-
-    globals.frameBufferAddress = gop->mode->frameBufferBase;
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"The graphics buffer location is at ");
-    printNumber(gop->mode->frameBufferBase, 16);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-
-    CEfiPhysicalAddress kernelParams = allocAndZero(1);
-    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, PAGE_SIZE);
-    KernelParameters *params = (KernelParameters *)kernelParams;
-
-    CEfiPhysicalAddress stackEnd = allocAndZero(4);
-    mapMemory(stackEnd, STACK_SIZE);
-    CEfiPhysicalAddress stackPointer = stackEnd + STACK_SIZE - RED_ZONE_SIZE;
-
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"The stack will go down from ");
-    printNumber(stackPointer, 16);
-    globals.st->con_out->output_string(globals.st->con_out, u" to ");
-    printNumber(stackEnd, 16);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-
-    params->fb.columns = gop->mode->info->horizontalResolution;
-    params->fb.rows = gop->mode->info->verticalResolution;
-    params->fb.scanline = gop->mode->info->pixelsPerScanLine;
-    params->fb.ptr = gop->mode->frameBufferBase;
-    params->fb.size = gop->mode->frameBufferSize;
-
-    //   RSDPResult rsdp = getRSDP();
-    //   printDescriptionHeaders(rsdp);
-
-    //   error(u"Waiting here \r\n");
-
-    globals.st->con_out->output_string(
-        globals.st->con_out, u"Prepared and collected all necessary "
-                             u"information to jump to the kernel.\r\n");
-    globals.st->con_out->output_string(
-        globals.st->con_out,
-        u"Starting exit boot services process, no printing after this!\r\n");
-
-    MemoryInfo memoryInfo = getMemoryInfo();
-    status = globals.st->boot_services->exit_boot_services(globals.h,
-                                                           memoryInfo.mapKey);
-
-    if (C_EFI_ERROR(status)) {
-        status = globals.st->boot_services->free_pages(
-            (CEfiPhysicalAddress)memoryInfo.memoryMap,
-            EFI_SIZE_TO_PAGES(memoryInfo.memoryMapSize));
-        if (C_EFI_ERROR(status)) {
-            error(u"Could not free allocated memory map\r\n");
-        }
-
-        memoryInfo = getMemoryInfo();
-        status = globals.st->boot_services->exit_boot_services(
-            globals.h, memoryInfo.mapKey);
-    }
-    if (C_EFI_ERROR(status)) {
-        error(u"could not exit boot services!\r\n");
-    }
-
-    jumpIntoKernel(stackPointer);
-}
-
 CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     globals.h = handle;
     globals.st = systemtable;
@@ -644,17 +574,27 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     printNumber((CEfiUSize)kernelContent.buf, 16);
     globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
-    // MemoryInfo memoryInfo = getMemoryInfo();
-    // for (CEfiUSize i = 0;
-    //      i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
-    //     CEfiMemoryDescriptor *desc =
-    //         (CEfiMemoryDescriptor *)((CEfiU8 *)memoryInfo.memoryMap +
-    //                                  (i * memoryInfo.descriptorSize));
-    // }
+    //    MemoryInfo memoryInfo = getMemoryInfo();
+    //    for (CEfiUSize i = 0;
+    //         i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
+    //        CEfiMemoryDescriptor *desc =
+    //            (CEfiMemoryDescriptor *)((CEfiU8 *)memoryInfo.memoryMap +
+    //                                     (i * memoryInfo.descriptorSize));
+    //
+    //        globals.st->con_out->output_string(globals.st->con_out,
+    //                                           u"The descriptor: ");
+    //        printNumber(desc->physical_start, 16);
+    //        globals.st->con_out->output_string(globals.st->con_out, u" ");
+    //        printNumber(desc->virtual_start, 16);
+    //        globals.st->con_out->output_string(globals.st->con_out, u" ");
+    //        printNumber(desc->number_of_pages, 10);
+    //        globals.st->con_out->output_string(globals.st->con_out, u" ");
+    //        printNumber(desc->type, 10);
+    //        globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+    //    }
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Attempting to map memory now...\r\n");
-
     mapMemoryAt(0, 0, (1ULL << 32)); // 4 GiB ???
     mapMemoryAt((CEfiU64)kernelContent.buf, KERNEL_START,
                 (CEfiU32)kernelContent.len);
@@ -669,7 +609,72 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     globals.st->con_out->output_string(
         globals.st->con_out,
         u"Going to collect necessary info, then exit bootservices...\r\n");
-    collectAndExitEfi();
+    CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
+    status = globals.st->boot_services->locate_protocol(
+        &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, C_EFI_NULL, (void **)&gop);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not locate locate GOP\r\n");
+    }
 
+    globals.frameBufferAddress = gop->mode->frameBufferBase;
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"The graphics buffer location is at ");
+    printNumber(gop->mode->frameBufferBase, 16);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+    CEfiPhysicalAddress kernelParams = allocAndZero(1);
+    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, PAGE_SIZE);
+    KernelParameters *params = (KernelParameters *)kernelParams;
+
+    CEfiPhysicalAddress stackEnd = allocAndZero(STACK_SIZE / PAGE_SIZE);
+    mapMemoryAt(stackEnd, BOTTOM_STACK, STACK_SIZE);
+    CEfiPhysicalAddress stackPointer = stackEnd + STACK_SIZE - 1;
+
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"The stack will go down from ");
+    printNumber(stackPointer, 16);
+    globals.st->con_out->output_string(globals.st->con_out, u" to ");
+    printNumber(stackEnd, 16);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+    params->fb.columns = gop->mode->info->horizontalResolution;
+    params->fb.rows = gop->mode->info->verticalResolution;
+    params->fb.scanline = gop->mode->info->pixelsPerScanLine;
+    params->fb.ptr = gop->mode->frameBufferBase;
+    params->fb.size = gop->mode->frameBufferSize;
+
+    //   RSDPResult rsdp = getRSDP();
+    //   printDescriptionHeaders(rsdp);
+
+    //   error(u"Waiting here \r\n");
+
+    globals.st->con_out->output_string(
+        globals.st->con_out, u"Prepared and collected all necessary "
+                             u"information to jump to the kernel.\r\n");
+    globals.st->con_out->output_string(
+        globals.st->con_out,
+        u"Starting exit boot services process, no printing after this!\r\n");
+
+    MemoryInfo memoryInfo = getMemoryInfo();
+    status = globals.st->boot_services->exit_boot_services(globals.h,
+                                                           memoryInfo.mapKey);
+
+    if (C_EFI_ERROR(status)) {
+        status = globals.st->boot_services->free_pages(
+            (CEfiPhysicalAddress)memoryInfo.memoryMap,
+            EFI_SIZE_TO_PAGES(memoryInfo.memoryMapSize));
+        if (C_EFI_ERROR(status)) {
+            error(u"Could not free allocated memory map\r\n");
+        }
+
+        memoryInfo = getMemoryInfo();
+        status = globals.st->boot_services->exit_boot_services(
+            globals.h, memoryInfo.mapKey);
+    }
+    if (C_EFI_ERROR(status)) {
+        error(u"could not exit boot services!\r\n");
+    }
+
+    jumpIntoKernel(stackPointer);
     return !C_EFI_SUCCESS;
 }
