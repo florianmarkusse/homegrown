@@ -315,15 +315,15 @@ CEFICALL void bootstrapProcessorWork() {
     //    globals.st->boot_services->stall(200);
     //    APIC_IPI_ICR_SET_LOW(APIC_START_UP_IPI)
 
+    prepNewGDT();
+
     globals.st->boot_services->stall(100000);
 
     __asm__ __volatile__("pause" : : : "memory"); // memory barrier
 }
 
 CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
-    __asm__ __volatile__("cli");
-
-    setupNewGDT();
+    enableNewGDT();
 
     // enable SSE
     __asm__ __volatile__("movl $0xC0000011, %%eax;"
@@ -658,6 +658,8 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     mapMemoryAt(0, 0, (1ULL << 32)); // 4 GiB ???
     mapMemoryAt((CEfiU64)kernelContent.buf, KERNEL_START,
                 (CEfiU32)kernelContent.len);
+
+    __asm__ __volatile__("cli");
 
     globals.st->con_out->output_string(
         globals.st->con_out,
