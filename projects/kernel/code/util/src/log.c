@@ -102,6 +102,15 @@ void drawLine(ScreenLine line, uint32_t rowNumber) {
         }
         }
     }
+
+    uint32_t offset = glyphStartOffset +
+                      rowNumber * (dim.scanline * glyphs.height) +
+                      line.nextChar * (glyphs.width);
+    for (uint32_t i = 0; i < glyphs.height; i++) {
+        offset += dim.scanline;
+        memset(&dim.buffer[offset], 0,
+               (glyphsPerLine - line.nextChar) * glyphs.width * 4);
+    }
 }
 
 // TODO: convert to using double buffer - you are reading from the graphics
@@ -119,8 +128,8 @@ void flushToScreen() {
     memmove(&dim.buffer[glyphStartVerticalOffset],
             &dim.buffer[glyphStartVerticalOffset +
                         (linesToRedraw - 1) * glyphs.height * dim.scanline],
-            (glyphsPerColumn - linesToRedraw) * glyphs.height * dim.scanline *
-                4);
+            (glyphsPerColumn - (linesToRedraw - 1)) * glyphs.height *
+                dim.scanline * 4);
 
     //    for (uint32_t i = linesToRedraw; i < glyphsPerColumn; i--) {
     //        memcpy(&(dim.buffer[glyphStartVerticalOffset +
@@ -134,7 +143,7 @@ void flushToScreen() {
 
     for (uint32_t i = 0; i < linesToRedraw; i++) {
         drawLine(screenBuffer.lines[screenBuffer.lastFlushedLine + i],
-                 glyphsPerColumn - linesToRedraw + i);
+                 glyphsPerColumn - (linesToRedraw - 1) + i);
     }
     screenBuffer.lastFlushedLine = screenBuffer.currentLine;
 }
@@ -167,19 +176,9 @@ void setupScreen(ScreenDimension dimension) {
     for (uint32_t x = 0; x < dim.scanline; x++) {
         dim.buffer[(dim.scanline * (dim.height - 1)) + x] = HAXOR_GREEN;
     }
-
-    LOG(STRING("hi \nther"));
-    LOG(glyphsPerLine);
-    LOG(STRING(" "));
-    LOG(glyphsPerColumn);
-    LOG(STRING(" xgdhfgkjhfgiudhuir"));
-    flushBuffer(&flushBuf);
-    LOG(STRING("\n\n"));
-    LOG(STRING("ghdkfhgjfkdh fhgbjkdf "));
-    LOG(glyphsPerColumn, NEWLINE);
-    LOG(STRING(" xgdhfgkjhfgiudhuir"));
-    flushBuffer(&flushBuf);
 }
+
+void flushStandardBuffer() { flushBuffer(&flushBuf); }
 
 void flushBuffer(uint8_max_a *buffer) {
     // TODO: flush buffer to file system here.

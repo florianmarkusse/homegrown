@@ -39,26 +39,19 @@ __attribute__((ms_abi, section("kernel-start"))) int kernelmain() {
                           .height = kernelParameters->fb.rows,
                           .buffer = (uint32_t *)kernelParameters->fb.ptr});
 
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), NEWLINE);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), NEWLINE);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), NEWLINE);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), NEWLINE);
-    //   printToScreen(STRING("Hello ther"), NEWLINE);
-    //   printToScreen(STRING("Hello ther"), NEWLINE);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), 0);
-    //   printToScreen(STRING("Hello ther"), 0);
+    LOG(STRING("hi \nther"));
+    LOG(STRING(" "));
+    LOG(STRING(" xgdhfgkjhfgiudhuir"));
+    flushStandardBuffer();
+    LOG(STRING("XXXXXXXXXXX\n\n"));
+    LOG(STRING("ghdkfhgjfkdh fhgbjkdf "));
+    LOG(STRING(" xgdhfgkjhfgiudhuir"));
+    flushStandardBuffer();
+    LOG(STRING("hi \nther"));
+    LOG(STRING(" "));
+    LOG(STRING(" the end o"));
+
+    flushStandardBuffer();
 
     while (1) {
         ;

@@ -24,6 +24,7 @@ typedef struct {
 void setupScreen(ScreenDimension dimension);
 // TODO: needs buffer as argument when memory is set up
 void appendToFlushBuffer(string data, unsigned char flags);
+void flushStandardBuffer();
 void flushBuffer(uint8_max_a *buffer);
 
 void printToSerial(string data, uint8_t flags);
