@@ -6,6 +6,8 @@
 #include "util/memory/macros.h" // for ALIGNOF, SIZEOF
 #include "util/memory/memory.h" // for memcpy, memset
 
+// TODO: replace with correct thing using memory allocators etc.
+static uint32_t graphicsBuffer[1 << 20];
 static uint8_t flushBuf000[128 * 64];
 static uint8_max_a flushBuf = {.buf = flushBuf000, .cap = 128 * 64, .len = 0};
 
@@ -72,8 +74,12 @@ typedef struct {
 
 static ScreenBuffer screenBuffer;
 
+void switchToScreenDisplay() {
+    memcpy(dim.buffer, dim.backingBuffer, dim.scanline * dim.height * 4);
+}
+
 void drawLine(ScreenLine line, uint32_t rowNumber) {
-    ASSERT(dim.buffer != 0);
+    ASSERT(dim.backingBuffer != 0);
     for (uint8_t i = 0; i < line.nextChar; i++) {
         uint8_t ch = line.chars[i];
         switch (ch) {
@@ -90,7 +96,7 @@ void drawLine(ScreenLine line, uint32_t rowNumber) {
                 uint32_t line = offset;
                 uint32_t mask = 1 << (glyphs.width - 1);
                 for (uint32_t x = 0; x < glyphs.width; x++) {
-                    dim.buffer[line] =
+                    dim.backingBuffer[line] =
                         ((((uint32_t)*glyph) & (mask)) != 0) * HAXOR_WHITE;
                     mask >>= 1;
                     line++;
@@ -108,7 +114,7 @@ void drawLine(ScreenLine line, uint32_t rowNumber) {
                       line.nextChar * (glyphs.width);
     for (uint32_t i = 0; i < glyphs.height; i++) {
         offset += dim.scanline;
-        memset(&dim.buffer[offset], 0,
+        memset(&dim.backingBuffer[offset], 0,
                (glyphsPerLine - line.nextChar) * glyphs.width * 4);
     }
 }
@@ -125,17 +131,18 @@ void flushToScreen() {
 
     psf2_t test = glyphs;
 
-    memmove(&dim.buffer[glyphStartVerticalOffset],
-            &dim.buffer[glyphStartVerticalOffset +
-                        (linesToRedraw - 1) * glyphs.height * dim.scanline],
-            (glyphsPerColumn - (linesToRedraw - 1)) * glyphs.height *
-                dim.scanline * 4);
+    memmove(
+        &dim.backingBuffer[glyphStartVerticalOffset],
+        &dim.backingBuffer[glyphStartVerticalOffset +
+                           (linesToRedraw - 1) * glyphs.height * dim.scanline],
+        (glyphsPerColumn - (linesToRedraw - 1)) * glyphs.height * dim.scanline *
+            4);
 
     //    for (uint32_t i = linesToRedraw; i < glyphsPerColumn; i--) {
-    //        memcpy(&(dim.buffer[glyphStartVerticalOffset +
+    //        memcpy(&(dim.backingBuffer[glyphStartVerticalOffset +
     //                            (glyphsPerColumn - i - 1) * glyphs.height *
     //                                dim.scanline]),
-    //               &(dim.buffer[glyphStartVerticalOffset +
+    //               &(dim.backingBuffer[glyphStartVerticalOffset +
     //                            (glyphsPerColumn - i + linesToRedraw - 2) *
     //                                glyphs.height * dim.scanline]),
     //               dim.scanline * glyphs.height);
@@ -146,10 +153,14 @@ void flushToScreen() {
                  glyphsPerColumn - (linesToRedraw - 1) + i);
     }
     screenBuffer.lastFlushedLine = screenBuffer.currentLine;
+
+    switchToScreenDisplay();
 }
 
 void setupScreen(ScreenDimension dimension) {
     dim = dimension;
+    dim.backingBuffer = graphicsBuffer;
+
     glyphsPerLine = (dim.width - HORIZONTAL_PIXEL_MARGIN * 2) / (glyphs.width);
     glyphsPerColumn =
         (dim.height - VERTICAL_PIXEL_MARGIN * 2) / (glyphs.height);
@@ -159,23 +170,25 @@ void setupScreen(ScreenDimension dimension) {
 
     for (uint32_t y = 0; y < dim.height; y++) {
         for (uint32_t x = 0; x < dim.scanline; x++) {
-            dim.buffer[y * dim.scanline + x] = 0x00000000;
+            dim.backingBuffer[y * dim.scanline + x] = 0x00000000;
         }
     }
 
     for (uint32_t x = 0; x < dim.scanline; x++) {
-        dim.buffer[x] = HAXOR_GREEN;
+        dim.backingBuffer[x] = HAXOR_GREEN;
     }
     for (uint32_t y = 0; y < dim.height; y++) {
-        dim.buffer[y * dim.scanline] = HAXOR_GREEN;
+        dim.backingBuffer[y * dim.scanline] = HAXOR_GREEN;
     }
     for (uint32_t y = 0; y < dim.height; y++) {
-        dim.buffer[y * dim.scanline + (dim.width - 1)] = HAXOR_GREEN;
+        dim.backingBuffer[y * dim.scanline + (dim.width - 1)] = HAXOR_GREEN;
     }
 
     for (uint32_t x = 0; x < dim.scanline; x++) {
-        dim.buffer[(dim.scanline * (dim.height - 1)) + x] = HAXOR_GREEN;
+        dim.backingBuffer[(dim.scanline * (dim.height - 1)) + x] = HAXOR_GREEN;
     }
+
+    switchToScreenDisplay();
 }
 
 void flushStandardBuffer() { flushBuffer(&flushBuf); }
@@ -247,7 +260,7 @@ void appendToFlushBuffer(string data, unsigned char flags) {
 }
 
 // void printToScreen(string data, uint8_t flags) {
-//     ASSERT(dim.buffer != 0);
+//     ASSERT(dim.backingBuffer != 0);
 //
 //     for (int64_t i = 0; i < data.len; i++) {
 //         uint8_t ch = data.buf[i];
@@ -269,7 +282,7 @@ void appendToFlushBuffer(string data, unsigned char flags) {
 //                 uint32_t line = offset;
 //                 uint32_t mask = 1 << (glyphs.width - 1);
 //                 for (uint32_t x = 0; x < glyphs.width; x++) {
-//                     dim.buffer[line] =
+//                     dim.backingBuffer[line] =
 //                         ((((uint32_t)*glyph) & (mask)) != 0) * HAXOR_WHITE;
 //                     mask >>= 1;
 //                     line++;
