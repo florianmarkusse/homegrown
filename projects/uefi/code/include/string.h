@@ -5,11 +5,13 @@
 #include "memory/standard.h"
 
 typedef struct {
-    CEfiChar8 *buf;
+    unsigned char *buf;
     CEfiU64 len;
 } AsciString;
 
 #define ASCI_STRING(s) ((AsciString){(CEfiChar8 *)(s), ((sizeof(s) - 1))})
+#define ASCI_STRING_LEN(s, n)                                                  \
+    (AsciString) { (CEfiChar8 *)(s), n }
 
 typedef struct {
     AsciString string;

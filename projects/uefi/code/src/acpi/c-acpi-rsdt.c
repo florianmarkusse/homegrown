@@ -32,16 +32,11 @@ void printDescriptionHeaders(RSDPResult rsdp) {
     }
     }
 
-    printAsciSize(sdt->header.oem_table_id, 6);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
     char *descriptionHeaders = (char *)sdt->descriptionHeaders;
-    CEfiU64 addressBuffer;
     for (CEfiU64 i = 0; i < sdt->header.length - sizeof(CAcpiSDT);
          i += entrySize) {
-        char *entry = (descriptionHeaders + i);
-        memcpy(&addressBuffer, &entry, entrySize);
         CAcpiDescriptionTableHeader *header =
-            (CAcpiDescriptionTableHeader *)addressBuffer;
+            (CAcpiDescriptionTableHeader *)(descriptionHeaders + i);
         printAsciSize(header->signature, ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN);
         printAsciSize(header->oem_table_id, 6);
         globals.st->con_out->output_string(globals.st->con_out, u"\r\n");

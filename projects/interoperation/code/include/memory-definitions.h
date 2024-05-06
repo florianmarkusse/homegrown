@@ -58,6 +58,6 @@
     (1ULL << 63) // Forbid executing code on this page (the NXE bit in the EFER
                  // register must be set)
 
-#define EFI_SIZE_TO_PAGES(a) (((a) >> PAGE_SHIFT) + ((a) & PAGE_MASK ? 1 : 0))
+#define BYTES_TO_PAGES(a) (((a) >> PAGE_SHIFT) + ((a) & PAGE_MASK ? 1 : 0))
 
 #endif

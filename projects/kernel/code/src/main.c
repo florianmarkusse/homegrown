@@ -1,25 +1,8 @@
+#include "kernel-parameters.h"
+#include "memory-definitions.h"
 #include "util/log.h"
 #include "util/types.h"
 
-typedef struct {
-    uint64_t ptr;
-    uint64_t size;
-    uint32_t columns;
-    uint32_t rows;
-    uint32_t scanline;
-} FrameBuffer;
-
-typedef struct {
-    uint64_t ptr;
-    uint64_t size;
-} MemoryMap;
-
-typedef struct {
-    FrameBuffer fb;
-    MemoryMap *memory;
-} KernelParameters;
-
-#define KERNEL_PARAMS_START 0xfffffffff7000000
 __attribute__((ms_abi, section("kernel-start"))) int kernelmain() {
     //    __asm__ __volatile__("movq $0x00FF00FF, %%rax;" // Load the absolute
     //    value

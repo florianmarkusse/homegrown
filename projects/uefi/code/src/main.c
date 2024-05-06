@@ -1,6 +1,7 @@
 #include "acpi/c-acpi-madt.h"
 #include "acpi/c-acpi-rdsp.h"
 #include "acpi/c-acpi-rsdt.h"
+#include "apic.h"
 #include "data-reading.h"
 #include "efi/c-efi-base.h" // for CEfiStatus, C_EFI_SUC...
 #include "efi/c-efi-protocol-acpi.h"
@@ -8,17 +9,18 @@
 #include "efi/c-efi-protocol-disk-io.h"
 #include "efi/c-efi-protocol-graphics-output.h"
 #include "efi/c-efi-protocol-loaded-image.h"
-#include "efi/c-efi-protocol-mp-services.h"
 #include "efi/c-efi-protocol-simple-file-system.h"
 #include "efi/c-efi-protocol-simple-text-input.h" // for CEfiInputKey, CEfiSim...
 #include "efi/c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
 #include "efi/c-efi-system.h"                      // for CEfiSystemTable
 #include "gdt.h"
 #include "globals.h"
+#include "kernel-parameters.h"
+#include "memory-definitions.h"
 #include "memory/boot-functions.h"
-#include "memory/definitions.h"
 #include "memory/standard.h"
 #include "printing.h"
+#include "string.h"
 
 // static size_t max_io_apics = 0;
 //
@@ -241,24 +243,6 @@ void flo_printToScreen(CEfiPhysicalAddress graphics, CEfiU32 color) {
     }
 }
 
-typedef struct {
-    CEfiU64 ptr;
-    CEfiU64 size;
-    CEfiU32 columns;
-    CEfiU32 rows;
-    CEfiU32 scanline;
-} FrameBuffer;
-
-typedef struct {
-    CEfiU64 ptr;
-    CEfiU64 size;
-} MemoryMap;
-
-typedef struct {
-    FrameBuffer fb;
-    MemoryMap *memory;
-} KernelParameters;
-
 CEFICALL void nonBootstrapProcessor(void *buffer) {
     __asm__ __volatile__("cli;"
                          "hlt;"
@@ -282,17 +266,17 @@ static inline void outb(CEfiU16 port, CEfiU8 value) {
 }
 
 CEFICALL void bootstrapProcessorWork() {
-    // disable PIC and NMI
-    //    __asm__ __volatile__("movb $0xFF, %%al;"
-    //                         "outb %%al, $0x21;"
-    //                         "outb %%al, $0xA1;" // disable PIC
-    //                         "inb $0x70, %%al;"
-    //                         "orb $0x80, %%al;"
-    //                         "outb %%al, $0x70;" // disable NMI
-    //                         :
-    //                         :
-    //                         : "eax", "memory");
-    //
+    // dissable PIC and NMI
+    //   __asm__ __volatile__("movb $0xFF, %%al;"
+    //                        "outb %%al, $0x21;"
+    //                        "outb %%al, $0xA1;" // disable PIC
+    //                        "inb $0x70, %%al;"
+    //                        "orb $0x80, %%al;"
+    //                        "outb %%al, $0x70;" // disable NMI
+    //                        :
+    //                        :
+    //                        : "eax", "memory");
+
     //    // Flush possible old PIC IRQs
     //    for (int i = 0; i < 16; i++) {
     //        if (i >= 8) {
@@ -301,19 +285,19 @@ CEFICALL void bootstrapProcessorWork() {
     //
     //        outb(0x20, 0x20);
     //    }
-
+    //
     //    *((volatile CEfiU32 *)(APIC_ERROR_STATUS_REGISTER)) =
     //        0; // clear APIC errors
     //
     //    *((volatile CEfiU16 *)(APIC_SIV_REGISTER)) =
     //        *((volatile CEfiU16 *)(APIC_SIV_REGISTER)) |
     //        APIC_SIV_ENABLE_LOCAL;
-    //
-    //    APIC_IPI_ICR_SET_LOW(APIC_INIT_IPI)
-    //    globals.st->boot_services->stall(10000);
-    //    APIC_IPI_ICR_SET_LOW(APIC_START_UP_IPI)
-    //    globals.st->boot_services->stall(200);
-    //    APIC_IPI_ICR_SET_LOW(APIC_START_UP_IPI)
+
+    //   APIC_IPI_ICR_SET_LOW(APIC_INIT_IPI)
+    //   globals.st->boot_services->stall(10000);
+    //   APIC_IPI_ICR_SET_LOW(APIC_START_UP_IPI)
+    //   globals.st->boot_services->stall(200);
+    //   APIC_IPI_ICR_SET_LOW(APIC_START_UP_IPI)
 
     prepNewGDT();
 
@@ -322,7 +306,8 @@ CEFICALL void bootstrapProcessorWork() {
     __asm__ __volatile__("pause" : : : "memory"); // memory barrier
 }
 
-CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
+CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer,
+                             AsciString kernelContent) {
     enableNewGDT();
 
     // enable SSE
@@ -337,15 +322,16 @@ CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
                          : "memory");
 
     __asm__ __volatile__(
-        "movq %1, %%rsp;"
+        "movq %0, %%rsp;"
         "movq %%rsp, %%rbp;"
-        "pushq %0;"
+        "jmp *%1"
+        //"pushq %1;"
         //
         //        "movq $0xFFFFFFFF, %%rax;"  "movq %%rax, (%%rdx);"      "hlt;"
         //
-        "retq"
+        //"retq"
         :
-        : "r"(KERNEL_START), "r"(stackPointer)
+        : "r"(stackPointer), "r"(KERNEL_START)
         //,  "d"(globals.frameBufferAddress)
         : "rsp", "rbp", "memory");
 
@@ -482,6 +468,29 @@ CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
     //        : "rcx", "rsi", "rdi");
 }
 
+#define sleep(n)                                                               \
+    do {                                                                       \
+        __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));                      \
+        endtime = (((UINT64)b << 32) | a) + n * ncycles;                       \
+        do {                                                                   \
+            __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));                  \
+            currtime = ((UINT64)b << 32) | a;                                  \
+        } while (currtime < endtime);                                          \
+    } while (0)
+
+static CEfiU64 ncycles = 1;
+CEFICALL void wait(CEfiU64 microseconds) {
+    CEfiU32 a;
+    CEfiU32 b;
+    __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));
+    CEfiU64 endtime = (((CEfiU64)b << 32) | a) + microseconds * 200 * ncycles;
+    CEfiU64 currTime;
+    do {
+        __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));
+        currTime = ((CEfiU64)b << 32) | a;
+    } while (currTime < endtime);
+}
+
 CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     globals.h = handle;
     globals.st = systemtable;
@@ -500,28 +509,6 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                          :
                          : "eax", "ebx", "ecx", "edx");
 
-    CEfiMPServicesProtocol *mp = C_EFI_NULL;
-    CEfiStatus status = globals.st->boot_services->locate_protocol(
-        &C_EFI_MP_SERVICES_PROTOCOL_GUID, C_EFI_NULL, (void **)&mp);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not locate locate MP services\r\n");
-    }
-
-    CEfiUSize numberOfProcessors = 0;
-    CEfiUSize numberOfEnabledProcessors = 0;
-    mp->getNumberOfProcessors(mp, &numberOfProcessors,
-                              &numberOfEnabledProcessors);
-
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"Total number of processors: ");
-    printNumber(numberOfProcessors, 10);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"Total number of enabled processors: ");
-    printNumber(numberOfEnabledProcessors, 10);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-
     __asm__ __volatile__("mov $1, %%eax;"
                          "mov $0, %%ecx;"
                          "cpuid;"
@@ -534,31 +521,27 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                          :
                          : "eax", "ebx", "ecx", "edx");
 
-    //    CEfiEvent event;
-    //
-    //    // Create an empty event that can wake up the other cores
-    //    status = globals.st->boot_services->create_event(
-    //        0, C_EFI_TPL_NOTIFY, C_EFI_NULL, C_EFI_NULL, &event);
-    //    if (C_EFI_ERROR(status)) {
-    //        error(u"Failed to create event!\r\n");
-    //    }
-    //
-    //    CEfiProcessorInformation procInfo;
-    //
-    //    for (CEfiU64 i = 0; i < globals.numberOfCores; i++) {
-    //        status = mp->getProcessorInfo(mp, i, &procInfo);
-    //        if (C_EFI_ERROR(status)) {
-    //            error(u"Failed to get processor info!\r\n");
-    //        }
-    //
-    //        if (procInfo.processorId & C_EFI_PROCESSOR_AS_BSP_BIT) {
-    //            globals.bootstrapProcessorID = procInfo.processorId;
-    //        } else {
-    //            mp->startupThisAP(mp, nonBootstrapProcessor, i, event, 0,
-    //            (void *)i,
-    //                              C_EFI_NULL);
-    //        }
-    //    }
+    CEfiU32 a;
+    // should be no need to check for RDSTC, available since Pentium, therefore
+    // all long mode capable CPUs should have it. But just to be on the safe
+    // side
+    __asm__ __volatile__("mov $1, %%eax; cpuid;" : "=d"(a) : :);
+    if (a & (1 << 4)) {
+        // calibrate CPU clock cycles
+        CEfiU32 d;
+        __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));
+        CEfiU64 currtime = ((CEfiU64)d << 32) | a;
+        globals.st->boot_services->stall(1);
+        __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));
+        ncycles = ((CEfiU64)d << 32) | a;
+        ncycles -= currtime;
+        ncycles /= 5;
+        if (ncycles < 1) {
+            ncycles = 1;
+        }
+    } else {
+        error(u"RDSTC not supported\r\n");
+    }
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Going to read kernel info\r\n");
@@ -610,7 +593,7 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
         globals.st->con_out,
         u"Going to collect necessary info, then exit bootservices...\r\n");
     CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
-    status = globals.st->boot_services->locate_protocol(
+    CEfiStatus status = globals.st->boot_services->locate_protocol(
         &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, C_EFI_NULL, (void **)&gop);
     if (C_EFI_ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
@@ -643,10 +626,10 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     params->fb.ptr = gop->mode->frameBufferBase;
     params->fb.size = gop->mode->frameBufferSize;
 
-    //   RSDPResult rsdp = getRSDP();
-    //   printDescriptionHeaders(rsdp);
+    RSDPResult rsdp = getRSDP();
+    printDescriptionHeaders(rsdp);
 
-    //   error(u"Waiting here \r\n");
+    // error(u"Waiting here \r\n");
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Prepared and collected all necessary "
@@ -662,7 +645,7 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     if (C_EFI_ERROR(status)) {
         status = globals.st->boot_services->free_pages(
             (CEfiPhysicalAddress)memoryInfo.memoryMap,
-            EFI_SIZE_TO_PAGES(memoryInfo.memoryMapSize));
+            BYTES_TO_PAGES(memoryInfo.memoryMapSize));
         if (C_EFI_ERROR(status)) {
             error(u"Could not free allocated memory map\r\n");
         }
@@ -675,6 +658,6 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
         error(u"could not exit boot services!\r\n");
     }
 
-    jumpIntoKernel(stackPointer);
+    jumpIntoKernel(stackPointer, kernelContent);
     return !C_EFI_SUCCESS;
 }

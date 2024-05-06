@@ -21,6 +21,7 @@ add_executable(${EXECUTABLE_NAME}
     "src/acpi/c-acpi-rsdt.c"
     )
 
+target_include_directories(${EXECUTABLE_NAME} PUBLIC "${REPO_ROOT}/projects/interoperation/code/include")
 target_include_directories(${EXECUTABLE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE "-target x86_64-unknown-windows" "-ffreestanding" "-nostdlib" "-nostdinc" "-Wl,-entry:efi_main" "-Wl,-subsystem:efi_application" "-fuse-ld=lld-link")

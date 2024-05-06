@@ -5,7 +5,7 @@
 
 void error(CEfiU16 *string);
 void printNumber(CEfiUSize number, CEfiU8 base);
-void printAsci(char *string);
-void printAsciSize(char *string, CEfiUSize size);
+void printAsci(unsigned char *string);
+void printAsciSize(unsigned char *string, CEfiUSize size);
 
 #endif

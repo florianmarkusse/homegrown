@@ -76,7 +76,7 @@ void printNumber(CEfiUSize number, CEfiU8 base) {
 }
 
 static CEfiChar16 charstr[2] = {0};
-void printAsci(char *string) {
+void printAsci(unsigned char *string) {
     while (*string != '\0') {
         char ch = *string++;
         if (ch == '\n') {
@@ -88,7 +88,7 @@ void printAsci(char *string) {
     }
 }
 
-void printAsciSize(char *string, CEfiUSize size) {
+void printAsciSize(unsigned char *string, CEfiUSize size) {
     for (CEfiUSize i = 0; i < size; i++) {
         char ch = string[i];
         if (ch == '\n') {

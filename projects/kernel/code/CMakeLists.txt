@@ -11,6 +11,8 @@ add_library(${EXECUTABLE_NAME} OBJECT
         "src/main.c" 
         )
 
+target_include_directories(${EXECUTABLE_NAME} PUBLIC "${REPO_ROOT}/projects/interoperation/code/include")
+
 set(LINKING_LIBRARIES
     util)
 set(LINKING_LIBRARIES_LOCATIONS)

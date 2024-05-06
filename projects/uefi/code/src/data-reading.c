@@ -5,7 +5,7 @@
 #include "efi/c-efi-protocol-simple-file-system.h"
 #include "efi/c-efi-system.h"
 #include "globals.h"
-#include "memory/definitions.h"
+#include "memory-definitions.h"
 #include "printing.h"
 
 AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
@@ -61,7 +61,7 @@ AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
 
     CEfiPhysicalAddress address;
     status = globals.st->boot_services->allocate_pages(
-        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA, EFI_SIZE_TO_PAGES(bytes),
+        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA, BYTES_TO_PAGES(bytes),
         &address);
     if (C_EFI_ERROR(status)) {
         error(u"Could not allocete data for disk buffer\r\n");
@@ -165,7 +165,7 @@ DataPartitionFile getKernelInfo() {
 
     status = globals.st->boot_services->allocate_pages(
         C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
-        EFI_SIZE_TO_PAGES(dataFile.len), &dataFileAddress);
+        BYTES_TO_PAGES(dataFile.len), &dataFileAddress);
     if (C_EFI_ERROR(status) || dataFile.len != file_info.fileSize) {
         error(u"Could not allocate memory for file\r\n");
     }

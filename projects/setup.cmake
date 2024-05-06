@@ -28,8 +28,8 @@ macro(initial_setup)
         SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
     endif()
     
-    set(REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
-    set(REPO_DEPENDENCIES ${CMAKE_CURRENT_SOURCE_DIR}/../../dependencies)
+    set(REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
+    set(REPO_DEPENDENCIES ${REPO_ROOT}/dependencies)
     
     message(STATUS "=== Configuration Settings ===")
     message(STATUS "Project:                ${PROJECT_NAME}")
