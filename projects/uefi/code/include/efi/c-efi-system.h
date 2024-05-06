@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include "c-efi-base.h"
+#include "configuration-table.h"
 
 /*
  * Time Management
@@ -347,12 +348,6 @@ typedef struct CEfiOpenProtocolInformationEntry {
  * CEfiConfigurationTable structure as header.
  */
 
-#define C_EFI_EFI_ACPI_20_TABLE_GUID                                           \
-    C_EFI_GUID(0x8868e871, 0xe4f1, 0x11d3, 0xbc, 0x22, 0x00, 0x80, 0xc7, 0x3c, \
-               0x88, 0x81)
-#define C_EFI_ACPI_TABLE_GUID                                                  \
-    C_EFI_GUID(0xeb9d2d30, 0x2d88, 0x11d3, 0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f, \
-               0xc1, 0x4d)
 #define C_EFI_SAL_SYSTEM_TABLE_GUID                                            \
     C_EFI_GUID(0xeb9d2d32, 0x2d88, 0x11d3, 0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f, \
                0xc1, 0x4d)
@@ -365,11 +360,6 @@ typedef struct CEfiOpenProtocolInformationEntry {
 #define C_EFI_MPS_TABLE_GUID                                                   \
     C_EFI_GUID(0xeb9d2d2f, 0x2d88, 0x11d3, 0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f, \
                0xc1, 0x4d)
-
-typedef struct CEfiConfigurationTable {
-    CEfiGuid vendor_guid;
-    void *vendor_table;
-} CEfiConfigurationTable;
 
 #define C_EFI_PROPERTIES_TABLE_GUID                                            \
     C_EFI_GUID(0x880aaca3, 0x4adc, 0x4a04, 0x90, 0x79, 0xb7, 0x47, 0x34, 0x8,  \
@@ -637,7 +627,7 @@ typedef struct CEfiSystemTable {
     CEfiBootServices *boot_services;
 
     CEfiUSize number_of_table_entries;
-    CEfiConfigurationTable *configuration_table;
+    ConfigurationTable *configuration_table;
 } CEfiSystemTable;
 
 #ifdef __cplusplus

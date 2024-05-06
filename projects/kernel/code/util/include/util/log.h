@@ -25,8 +25,8 @@ typedef struct {
 void setupScreen(ScreenDimension dimension);
 // TODO: needs buffer as argument when memory is set up
 void appendToFlushBuffer(string data, unsigned char flags);
-void flushStandardBuffer();
-void flushBuffer(uint8_max_a *buffer);
+bool flushStandardBuffer();
+bool flushBuffer(uint8_max_a *buffer);
 
 void printToSerial(string data, uint8_t flags);
 
@@ -97,6 +97,10 @@ string noAppend();
 #define LOG_CHOOSER_IMPL(_1, _2, N, ...) LOG_CHOOSER_IMPL_##N
 
 #define LOG(...) LOG_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+
+#define FLUSH_AFTER                                                            \
+    for (uint64_t MACRO_VAR(i) = 0; MACRO_VAR(i) < 1;                          \
+         MACRO_VAR(i) = flushStandardBuffer())
 
 #ifdef __cplusplus
 }

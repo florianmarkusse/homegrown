@@ -1,22 +1,23 @@
 #ifndef ACPI_C_ACPI_RDSP_H
 #define ACPI_C_ACPI_RDSP_H
 
-#include "efi/c-efi-base.h"
+#include "configuration-table.h"
+#include "types.h"
 
 typedef struct __attribute((packed)) {
     char signature[8];
-    CEfiU8 checksum;
+    U8 checksum;
     char oem_id[6];
-    CEfiU8 rev;
-    CEfiU32 rsdt_addr;
+    U8 rev;
+    U32 rsdt_addr;
 } CAcpiRSDPV1;
 
 typedef struct __attribute__((packed)) {
     CAcpiRSDPV1 v1;
-    CEfiU32 length;
-    CEfiU64 xsdt_addr;
-    CEfiU8 ext_checksum;
-    CEfiU8 reserved[3];
+    U32 length;
+    U64 xsdt_addr;
+    U8 ext_checksum;
+    U8 reserved[3];
 } CAcpiRSDPV2;
 
 typedef enum {
@@ -34,6 +35,6 @@ typedef struct {
     RSDPRevision revision;
 } RSDPResult;
 
-RSDPResult getRSDP();
+RSDPResult getRSDP(USize tableEntries, ConfigurationTable *tables);
 
 #endif

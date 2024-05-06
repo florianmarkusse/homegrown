@@ -5,7 +5,7 @@
 #include "efi/c-efi-protocol-simple-file-system.h"
 #include "efi/c-efi-system.h"
 #include "globals.h"
-#include "memory-definitions.h"
+#include "memory/definitions.h"
 #include "printing.h"
 
 AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
@@ -15,13 +15,13 @@ AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
     // disk
     //   NOTE: This assumes the first Block IO found with logical partition
     //   false is the entire disk
-    CEfiGuid bio_guid = C_EFI_BLOCK_IO_PROTOCOL_GUID;
     CEfiBlockIoProtocol *biop;
     CEfiUSize num_handles = 0;
     CEfiHandle *handle_buffer = C_EFI_NULL;
 
     status = globals.st->boot_services->locate_handle_buffer(
-        C_EFI_BY_PROTOCOL, &bio_guid, C_EFI_NULL, &num_handles, &handle_buffer);
+        C_EFI_BY_PROTOCOL, &C_EFI_BLOCK_IO_PROTOCOL_GUID, C_EFI_NULL,
+        &num_handles, &handle_buffer);
     if (C_EFI_ERROR(status)) {
         error(u"Could not locate any Block IO Protocols.\r\n");
     }
@@ -29,8 +29,8 @@ AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
     CEfiHandle mediaHandle = C_EFI_NULL;
     for (CEfiUSize i = 0; i < num_handles && mediaHandle == C_EFI_NULL; i++) {
         status = globals.st->boot_services->open_protocol(
-            handle_buffer[i], &bio_guid, (void **)&biop, globals.h, C_EFI_NULL,
-            C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+            handle_buffer[i], &C_EFI_BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
+            globals.h, C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
         if (C_EFI_ERROR(status)) {
             error(u"Could not Open Block IO protocol on handle\r\n");
         }
@@ -40,7 +40,8 @@ AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
         }
 
         // Close open protocol when done
-        globals.st->boot_services->close_protocol(handle_buffer[i], &bio_guid,
+        globals.st->boot_services->close_protocol(handle_buffer[i],
+                                                  &C_EFI_BLOCK_IO_PROTOCOL_GUID,
                                                   globals.h, C_EFI_NULL);
     }
 
@@ -50,11 +51,10 @@ AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
     }
 
     // Get Disk IO Protocol on same handle as Block IO protocol
-    CEfiGuid dio_guid = C_EFI_DISK_IO_PROTOCOL_GUID;
     CEfiDiskIOProtocol *diop;
     status = globals.st->boot_services->open_protocol(
-        mediaHandle, &dio_guid, (void **)&diop, globals.h, C_EFI_NULL,
-        C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+        mediaHandle, &C_EFI_DISK_IO_PROTOCOL_GUID, (void **)&diop, globals.h,
+        C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
     if (C_EFI_ERROR(status)) {
         error(u"Could not Open Disk IO protocol on handle\r\n");
     }
@@ -74,8 +74,8 @@ AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
     }
 
     // Close disk IO protocol when done
-    globals.st->boot_services->close_protocol(mediaHandle, &dio_guid, globals.h,
-                                              C_EFI_NULL);
+    globals.st->boot_services->close_protocol(
+        mediaHandle, &C_EFI_DISK_IO_PROTOCOL_GUID, globals.h, C_EFI_NULL);
 
     return (AsciString){.buf = (CEfiChar8 *)address, .len = bytes};
 }
@@ -84,30 +84,29 @@ CEfiU32 getDiskImageMediaID() {
     CEfiStatus status;
 
     // Get media ID for this disk image
-    CEfiGuid lip_guid = C_EFI_LOADED_IMAGE_PROTOCOL_GUID;
     CEfiLoadedImageProtocol *lip = C_EFI_NULL;
     status = globals.st->boot_services->open_protocol(
-        globals.h, &lip_guid, (void **)&lip, globals.h, C_EFI_NULL,
-        C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
+        C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
     if (C_EFI_ERROR(status)) {
         error(u"Could not open Loaded Image Protocol\r\n");
     }
 
     CEfiBlockIoProtocol *biop;
-    CEfiGuid bio_guid = C_EFI_BLOCK_IO_PROTOCOL_GUID;
     status = globals.st->boot_services->open_protocol(
-        lip->device_handle, &bio_guid, (void **)&biop, globals.h, C_EFI_NULL,
-        C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+        lip->device_handle, &C_EFI_BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
+        globals.h, C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
     if (C_EFI_ERROR(status)) {
         error(u"Could not open Block IO Protocol for this loaded image.\r\n");
     }
 
     CEfiU32 mediaID = biop->Media->MediaId;
 
-    globals.st->boot_services->close_protocol(lip->device_handle, &bio_guid,
+    globals.st->boot_services->close_protocol(lip->device_handle,
+                                              &C_EFI_BLOCK_IO_PROTOCOL_GUID,
                                               globals.h, C_EFI_NULL);
-    globals.st->boot_services->close_protocol(globals.h, &lip_guid, globals.h,
-                                              C_EFI_NULL);
+    globals.st->boot_services->close_protocol(
+        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, globals.h, C_EFI_NULL);
 
     return mediaID;
 }
@@ -117,21 +116,20 @@ typedef enum { NAME = 0, BYTE_SIZE = 1, LBA_START = 2 } DataPartitionLayout;
 DataPartitionFile getKernelInfo() {
     // Get loaded image protocol first to grab device handle to use
     //   simple file system protocol on
-    CEfiGuid lip_guid = C_EFI_LOADED_IMAGE_PROTOCOL_GUID;
     CEfiLoadedImageProtocol *lip = 0;
     CEfiStatus status = globals.st->boot_services->open_protocol(
-        globals.h, &lip_guid, (void **)&lip, globals.h, C_EFI_NULL,
-        C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
+        C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
     if (C_EFI_ERROR(status)) {
         error(u"Could not open Loaded Image Protocol\r\n");
     }
 
     // Get Simple File System Protocol for device handle for this loaded
     //   image, to open the root directory for the ESP
-    CEfiGuid sfsp_guid = C_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
     CEfiSimpleFileSystemProtocol *sfsp = C_EFI_NULL;
     status = globals.st->boot_services->open_protocol(
-        lip->device_handle, &sfsp_guid, (void **)&sfsp, globals.h, C_EFI_NULL,
+        lip->device_handle, &C_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID,
+        (void **)&sfsp, globals.h, C_EFI_NULL,
         C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
     if (C_EFI_ERROR(status)) {
         error(u"Could not open Simple File System Protocol\r\n");
@@ -151,9 +149,9 @@ DataPartitionFile getKernelInfo() {
     }
 
     CEfiFileInfo file_info;
-    CEfiGuid fi_guid = C_EFI_FILE_INFO_ID;
     CEfiUSize file_info_size = sizeof(file_info);
-    status = file->getInfo(file, &fi_guid, &file_info_size, &file_info);
+    status =
+        file->getInfo(file, &C_EFI_FILE_INFO_ID, &file_info_size, &file_info);
     if (C_EFI_ERROR(status)) {
         error(u"Could not get file info\r\n");
     }
@@ -180,11 +178,12 @@ DataPartitionFile getKernelInfo() {
     root->close(root);
     file->close(file);
 
-    globals.st->boot_services->close_protocol(lip->device_handle, &sfsp_guid,
-                                              globals.h, C_EFI_NULL);
+    globals.st->boot_services->close_protocol(
+        lip->device_handle, &C_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, globals.h,
+        C_EFI_NULL);
 
-    globals.st->boot_services->close_protocol(globals.h, &lip_guid, globals.h,
-                                              C_EFI_NULL);
+    globals.st->boot_services->close_protocol(
+        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, globals.h, C_EFI_NULL);
 
     // Assumes the below file structure:
     // FILE_NAME=kernel.bin

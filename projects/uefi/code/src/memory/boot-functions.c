@@ -1,6 +1,6 @@
 #include "memory/boot-functions.h"
 #include "globals.h"
-#include "memory-definitions.h"
+#include "memory/definitions.h"
 #include "memory/standard.h"
 #include "printing.h"
 

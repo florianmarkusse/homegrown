@@ -191,9 +191,9 @@ void setupScreen(ScreenDimension dimension) {
     switchToScreenDisplay();
 }
 
-void flushStandardBuffer() { flushBuffer(&flushBuf); }
+bool flushStandardBuffer() { return flushBuffer(&flushBuf); }
 
-void flushBuffer(uint8_max_a *buffer) {
+bool flushBuffer(uint8_max_a *buffer) {
     // TODO: flush buffer to file system here.
 
     for (uint64_t i = 0; i < buffer->len; i++) {
@@ -227,6 +227,8 @@ void flushBuffer(uint8_max_a *buffer) {
     flushToScreen();
 
     buffer->len = 0;
+
+    return true;
 }
 
 // TODO: buffer should be a variable to this function once we have actual memory
