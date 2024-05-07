@@ -110,32 +110,42 @@ CEFICALL void bootstrapProcessorWork() {
 }
 
 CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
-    enableNewGDT();
+    //    enableNewGDT();
 
     // enable SSE
-    __asm__ __volatile__("movl $0xC0000011, %%eax;"
-                         "movq %%rax, %%cr0;"
-                         "movq %%cr4, %%rax;"
-                         "orw $3 << 8, %%ax;"
-                         "mov %%rax, %%cr4" ::
-                             : "eax");
+    //    __asm__ __volatile__("movl $0xC0000011, %%eax;"
+    //                         "movq %%rax, %%cr0;"
+    //                         "movq %%cr4, %%rax;"
+    //                         "orw $3 << 8, %%ax;"
+    //                         "mov %%rax, %%cr4" ::
+    //                             : "eax");
 
-    __asm__ __volatile__("mov %%rax, %%cr3;" ::"a"(globals.level4PageTable)
+    __asm__ __volatile__("mov %%rax, %%cr3"
+                         :
+                         : "a"(globals.level4PageTable)
                          : "memory");
 
     __asm__ __volatile__(
         "movq %0, %%rsp;"
         "movq %%rsp, %%rbp;"
         //        "movq $0xFFFFFFFF, %%rax;"  "movq %%rax, (%%rdx);"      "hlt;"
-        "jmp *%1"
+
+        "movq %%rdx, %%rdi;"
+        "movq $0xFFFFFFFFFFFFFF, %%rax;"
+        "movq $0x4000, %%rcx;"
+        "rep stosq;"
+
+        "call *%1"
         //"pushq %1;"
         //"retq"
         //
         //
+
         :
-        : "r"(stackPointer), "r"(KERNEL_START)
+        : "r"(stackPointer), "r"(KERNEL_START),
+          "d"(*(CEfiU32 *)KERNEL_PARAMS_START)
         //,  "d"(globals.frameBufferAddress)
-        : "rsp", "rbp", "memory");
+        : "rsp", "rbp", "rax", "rsi", "rcx", "memory");
 
     __builtin_unreachable();
 
@@ -172,7 +182,7 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     globals.st->con_out->set_attribute(globals.st->con_out,
                                        C_EFI_BACKGROUND_RED | C_EFI_YELLOW);
 
-    globals.level4PageTable = (CEfiPhysicalAddress *)allocAndZero(1);
+    globals.level4PageTable = allocAndZero(1);
 
     __asm__ __volatile__("mov $0, %%eax;"
                          "mov $0, %%ecx;"
@@ -232,7 +242,6 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Attempting to map memory now...\r\n");
-    mapMemoryAt(0, 0, (1ULL << 32)); // 4 GiB ???
     mapMemoryAt((CEfiU64)kernelContent.buf, KERNEL_START,
                 (CEfiU32)kernelContent.len);
 
@@ -241,7 +250,7 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     globals.st->con_out->output_string(
         globals.st->con_out,
         u"Bootstrap processor work before exiting boot services...\r\n");
-    bootstrapProcessorWork();
+    //   bootstrapProcessorWork();
 
     globals.st->con_out->output_string(
         globals.st->con_out,
@@ -252,6 +261,19 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     if (C_EFI_ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
     }
+
+    MemoryInfo memoryInfo = getMemoryInfo();
+    for (CEfiUSize i = 0;
+         i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
+        CEfiMemoryDescriptor *desc =
+            (CEfiMemoryDescriptor *)((CEfiU8 *)memoryInfo.memoryMap +
+                                     (i * memoryInfo.descriptorSize));
+        mapMemoryAt(desc->physical_start, desc->physical_start,
+                    desc->number_of_pages * PAGE_SIZE);
+    }
+
+    mapMemoryAt(gop->mode->frameBufferBase, gop->mode->frameBufferBase,
+                gop->mode->frameBufferSize);
 
     globals.frameBufferAddress = gop->mode->frameBufferBase;
     globals.st->con_out->output_string(globals.st->con_out,
@@ -280,12 +302,12 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     params->fb.ptr = gop->mode->frameBufferBase;
     params->fb.size = gop->mode->frameBufferSize;
 
-    RSDPResult rsdp = getRSDP(globals.st->number_of_table_entries,
-                              globals.st->configuration_table);
-    if (!rsdp.rsdp) {
-        error(u"Could not find an RSDP!\r\n");
-    }
-    params->rsdp = rsdp;
+    //    RSDPResult rsdp = getRSDP(globals.st->number_of_table_entries,
+    //                              globals.st->configuration_table);
+    //    if (!rsdp.rsdp) {
+    //        error(u"Could not find an RSDP!\r\n");
+    //    }
+    //    params->rsdp = rsdp;
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Prepared and collected all necessary "
@@ -294,7 +316,7 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
         globals.st->con_out,
         u"Starting exit boot services process, no printing after this!\r\n");
 
-    MemoryInfo memoryInfo = getMemoryInfo();
+    memoryInfo = getMemoryInfo();
     status = globals.st->boot_services->exit_boot_services(globals.h,
                                                            memoryInfo.mapKey);
 

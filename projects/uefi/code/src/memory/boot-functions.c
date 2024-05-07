@@ -30,7 +30,9 @@ void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU64 size) {
     for (virt &= ~(PAGE_MASK), phys &= ~(PAGE_MASK); virt < end;
          virt += PAGE_SIZE, phys += PAGE_SIZE) {
         /* 512G */
-        pageEntry = &(globals.level4PageTable[(virt >> 39L) & PAGE_ENTRY_MASK]);
+        pageEntry =
+            &(((CEfiPhysicalAddress *)
+                   globals.level4PageTable)[(virt >> 39L) & PAGE_ENTRY_MASK]);
         if (!*pageEntry) {
             CEfiPhysicalAddress addr = allocAndZero(1);
             *pageEntry = (addr | (PAGE_PRESENT | PAGE_WRITABLE));
@@ -57,9 +59,9 @@ void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU64 size) {
                 // TODO: Remove WRITE_THROUGH once figured out what is necessary
                 // for firmware to work.
                 phys | (PAGE_PRESENT | PAGE_WRITABLE);
-        } else {
-            error(u"This should not happen!\r\n");
-        }
+        } //  else {
+        //     error(u"This should not happen!\r\n");
+        // }
     }
 }
 

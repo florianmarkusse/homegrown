@@ -58,7 +58,7 @@ done
 projects/build.sh -m "${BUILD_MODE}" -c "$C_COMPILER"
 cp "projects/uefi/code/build/uefi-${BUILD_MODE}" BOOTX64.EFI
 cp "projects/kernel/code/build/kernel-${BUILD_MODE}.bin" kernel.bin
-"projects/uefi-image-creator/code/build/uefi-image-creator-${BUILD_MODE}" -ae /EFI/BOOT/ BOOTX64.EFI -ad kernel.bin
+"projects/uefi-image-creator/code/build/uefi-image-creator-${BUILD_MODE}" --data-size 32 -ae /EFI/BOOT/ BOOTX64.EFI -ad kernel.bin
 
 [ "$RUN_QEMU" = false ] && exit 0
 
