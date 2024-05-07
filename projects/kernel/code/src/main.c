@@ -61,6 +61,6 @@ __attribute__((ms_abi, section("kernel-start"))) int kernelmain() {
     flo_printToScreen(FLO_STRING("Hello ther"), 0);
 
     while (1) {
-        ;
+	    __asm__ __volatile__ ("cli; hlt" : : "a" (0xdeadbeef));	// DEBUGGING
     }
 }

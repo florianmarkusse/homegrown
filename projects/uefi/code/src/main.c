@@ -262,26 +262,28 @@ void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
      * work done :-) */
 
     // disable PIC and NMI
-    __asm__ __volatile__(
-        "movb $0xFF, %%al; outb %%al, $0x21; outb %%al, $0xA1;" // disable PIC
-        "inb $0x70, %%al; orb $0x80, %%al; outb %%al, $0x70;"   // disable NMI
-        :
-        :
-        :);
+    // DEBUGGING
+    //__asm__ __volatile__(
+    //    "movb $0xFF, %%al; outb %%al, $0x21; outb %%al, $0xA1;" // disable PIC
+    //    "inb $0x70, %%al; orb $0x80, %%al; outb %%al, $0x70;"   // disable NMI
+    //    :
+    //    :
+    //    :);
 
     // enable SSE
-    __asm__ __volatile__("movl $0xC0000011, %%eax;"
-                         "movq %%rax, %%cr0;"
-                         "movq %%cr4, %%rax;"
-                         "orw $3 << 8, %%ax;"
-                         "mov %%rax, %%cr4"
-                         :);
+    // DEBUGGING
+    //__asm__ __volatile__("movl $0xC0000011, %%eax;"
+    //                     "movq %%rax, %%cr0;"
+    //                     "movq %%cr4, %%rax;"
+    //                     "orw $3 << 8, %%ax;"
+    //                     "mov %%rax, %%cr4"
+    //                     :);
 
     // set up paging
     __asm__ __volatile__("mov %0, %%rax;"
                          "mov %%rax, %%cr3"
                          :
-                         : "b"(globals.level4PageTable)
+                         : "gm"(globals.level4PageTable)
                          : "memory");
 
     //    pic_mask_all();
@@ -295,10 +297,11 @@ void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
         // "xorq %%rsp, %%rsp;"
         // pass control over
         "movq %%rbx, %%rsp; movq %%rsp, %%rbp;;"
-        "pushq %0;"
-        "retq"
+        //"pushq %0;"
+        //"retq;"
+	"call *%%rax;"	// DEBUGGING
         :
-        : "a"(KERNEL_START)
+        : "a"(KERNEL_START), "b"(stackPointer)	// DEBUGGING
         : "memory");
 
     __builtin_unreachable();
@@ -475,7 +478,7 @@ void collectAndExitEfi() {
     RSDPResult rsdp = getRSDP();
     printDescriptionHeaders(rsdp);
 
-    error(u"Waiting here \r\n");
+    //error(u"Waiting here \r\n");
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Prepared and collected all necessary "
@@ -548,6 +551,9 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
             printNumber(iterator->number_of_pages, 16);
             globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
         }
+
+	// DEBUGGING: Identity map EFI memory for descriptor
+	mapMemoryAt(iterator->physical_start, iterator->physical_start, iterator->number_of_pages * PAGE_SIZE);
     }
 
     globals.st->con_out->output_string(globals.st->con_out,
@@ -556,6 +562,14 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     mapMemoryAt(0, 0, (1ULL << 33)); // 8 GiB ???
     mapMemoryAt((CEfiU64)kernelContent.buf, KERNEL_START,
                 (CEfiU32)kernelContent.len);
+
+    // DEBUGGING: Identity map framebuffer
+    CEfiGuid gop_guid = C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
+    CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
+    CEfiStatus status = globals.st->boot_services->locate_protocol(
+        &gop_guid, C_EFI_NULL, (void **)&gop);
+
+    mapMemoryAt(gop->mode->frameBufferBase, gop->mode->frameBufferBase, gop->mode->frameBufferSize);
 
     globals.st->con_out->output_string(
         globals.st->con_out,
