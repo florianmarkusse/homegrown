@@ -45,16 +45,6 @@ RSDPResult getRSDP(USize tableEntries, ConfigurationTable *tables) {
                 continue;
             }
 
-            //            globals.st->con_out->output_string(globals.st->con_out,
-            //                                               u"ACPI: Found ");
-            //            globals.st->con_out->output_string(globals.st->con_out,
-            //                                               possibleRsdps[i].string);
-            //            globals.st->con_out->output_string(globals.st->con_out,
-            //            u" at "); printNumber((U64)cur_table->vendor_table,
-            //            16);
-            //            globals.st->con_out->output_string(globals.st->con_out,
-            //            u"\r\n");
-
             // We want to return the newest version if it exists rather then
             // returning the older version. We need to add a check for that
             // since the table entries are not in the same order for all EFI

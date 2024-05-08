@@ -110,15 +110,15 @@ CEFICALL void bootstrapProcessorWork() {
 }
 
 CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
-    //    enableNewGDT();
+    enableNewGDT();
 
     // enable SSE
-    //    __asm__ __volatile__("movl $0xC0000011, %%eax;"
-    //                         "movq %%rax, %%cr0;"
-    //                         "movq %%cr4, %%rax;"
-    //                         "orw $3 << 8, %%ax;"
-    //                         "mov %%rax, %%cr4" ::
-    //                             : "eax");
+    __asm__ __volatile__("movl $0xC0000011, %%eax;"
+                         "movq %%rax, %%cr0;"
+                         "movq %%cr4, %%rax;"
+                         "orw $3 << 8, %%ax;"
+                         "mov %%rax, %%cr4" ::
+                             : "eax");
 
     __asm__ __volatile__("mov %%rax, %%cr3"
                          :
@@ -250,7 +250,7 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     globals.st->con_out->output_string(
         globals.st->con_out,
         u"Bootstrap processor work before exiting boot services...\r\n");
-    //   bootstrapProcessorWork();
+    bootstrapProcessorWork();
 
     globals.st->con_out->output_string(
         globals.st->con_out,
@@ -302,12 +302,12 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     params->fb.ptr = gop->mode->frameBufferBase;
     params->fb.size = gop->mode->frameBufferSize;
 
-    //    RSDPResult rsdp = getRSDP(globals.st->number_of_table_entries,
-    //                              globals.st->configuration_table);
-    //    if (!rsdp.rsdp) {
-    //        error(u"Could not find an RSDP!\r\n");
-    //    }
-    //    params->rsdp = rsdp;
+    RSDPResult rsdp = getRSDP(globals.st->number_of_table_entries,
+                              globals.st->configuration_table);
+    if (!rsdp.rsdp) {
+        error(u"Could not find an RSDP!\r\n");
+    }
+    params->rsdp = rsdp;
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Prepared and collected all necessary "
