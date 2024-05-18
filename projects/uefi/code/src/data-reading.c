@@ -1,20 +1,50 @@
 #include "data-reading.h"
+#include "acpi/c-acpi-madt.h"
+#include "acpi/c-acpi-rdsp.h"
+#include "acpi/c-acpi-rsdt.h"
+#include "apic.h"
+#include "efi/c-efi-base.h" // for CEfiStatus, C_EFI_SUC...
+#include "efi/c-efi-protocol-acpi.h"
 #include "efi/c-efi-protocol-block-io.h"
 #include "efi/c-efi-protocol-disk-io.h"
+#include "efi/c-efi-protocol-graphics-output.h"
 #include "efi/c-efi-protocol-loaded-image.h"
 #include "efi/c-efi-protocol-simple-file-system.h"
-#include "efi/c-efi-system.h"
+#include "efi/c-efi-protocol-simple-text-input.h" // for CEfiInputKey, CEfiSim...
+#include "efi/c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
+#include "efi/c-efi-system.h"                      // for CEfiSystemTable
+#include "gdt.h"
 #include "globals.h"
+#include "kernel-parameters.h"
+#include "memory/boot-functions.h"
 #include "memory/definitions.h"
+#include "memory/standard.h"
 #include "printing.h"
 
-AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
+AsciString readDiskLbasFromCurrentGlobalImage(CEfiLba diskLba,
+                                              CEfiUSize bytes) {
     CEfiStatus status;
+
+    CEfiLoadedImageProtocol *lip = C_EFI_NULL;
+    status = globals.st->boot_services->open_protocol(
+        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
+        C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not open Loaded Image Protocol\r\n");
+    }
+
+    CEfiBlockIoProtocol *imageBiop;
+    status = globals.st->boot_services->open_protocol(
+        lip->device_handle, &C_EFI_BLOCK_IO_PROTOCOL_GUID, (void **)&imageBiop,
+        globals.h, C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not open Block IO Protocol for this loaded image.\r\n");
+    }
 
     // Loop through and get Block IO protocol for input media ID, for entire
     // disk
     //   NOTE: This assumes the first Block IO found with logical partition
-    //   false is the entire disk
+    //   is the entire disk
     CEfiBlockIoProtocol *biop;
     CEfiUSize num_handles = 0;
     CEfiHandle *handle_buffer = C_EFI_NULL;
@@ -27,6 +57,94 @@ AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
     }
 
     CEfiHandle mediaHandle = C_EFI_NULL;
+    CEfiBool readBlocks = C_EFI_FALSE;
+    AsciString data;
+
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"Current Media ID: ");
+    printNumber(imageBiop->Media->MediaId, 10);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+    for (CEfiUSize i = 0; i < num_handles && mediaHandle == C_EFI_NULL; i++) {
+        status = globals.st->boot_services->open_protocol(
+            handle_buffer[i], &C_EFI_BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
+            globals.h, C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+        if (C_EFI_ERROR(status)) {
+            error(u"Could not Open Block IO protocol on handle\r\n");
+        }
+
+        CEfiU64 alignedBytes =
+            ((bytes + biop->Media->BlockSize - 1) / biop->Media->BlockSize) *
+            biop->Media->BlockSize;
+
+        CEfiPhysicalAddress address;
+        status = globals.st->boot_services->allocate_pages(
+            C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+            BYTES_TO_PAGES(alignedBytes), &address);
+        if (C_EFI_ERROR(status)) {
+            error(u"Could not allocete data for disk buffer\r\n");
+        }
+
+        if (biop->Media->MediaId == imageBiop->Media->MediaId) {
+            status = biop->readBlocks(biop, biop->Media->MediaId, diskLba,
+                                      alignedBytes, (void *)address);
+            if (!(C_EFI_ERROR(status))) {
+                data = (AsciString){.buf = (CEfiChar8 *)address,
+                                    .len = alignedBytes};
+
+                if (((CEfiU64)*data.buf) == 0x56 &&
+                    ((CEfiU64) * (data.buf + 1)) == 0x57 &&
+                    ((CEfiU64) * (data.buf + 2)) == 0x48) {
+                    readBlocks = C_EFI_TRUE;
+                }
+            }
+        }
+
+        // Close open protocol when done
+        globals.st->boot_services->close_protocol(handle_buffer[i],
+                                                  &C_EFI_BLOCK_IO_PROTOCOL_GUID,
+                                                  globals.h, C_EFI_NULL);
+
+        if (readBlocks) {
+            break;
+        }
+    }
+
+    globals.st->boot_services->close_protocol(lip->device_handle,
+                                              &C_EFI_BLOCK_IO_PROTOCOL_GUID,
+                                              globals.h, C_EFI_NULL);
+    globals.st->boot_services->close_protocol(
+        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, globals.h, C_EFI_NULL);
+
+    if (!readBlocks) {
+        error(u"\r\nERROR: Could not find Block IO protocol for disk with "
+              u"ID\r\n");
+    }
+
+    return data;
+}
+
+AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
+    CEfiStatus status;
+
+    // Loop through and get Block IO protocol for input media ID, for entire
+    // disk
+    //   NOTE: This assumes the first Block IO found with logical partition
+    //   is the entire disk
+    CEfiBlockIoProtocol *biop;
+    CEfiUSize num_handles = 0;
+    CEfiHandle *handle_buffer = C_EFI_NULL;
+
+    status = globals.st->boot_services->locate_handle_buffer(
+        C_EFI_BY_PROTOCOL, &C_EFI_BLOCK_IO_PROTOCOL_GUID, C_EFI_NULL,
+        &num_handles, &handle_buffer);
+    if (C_EFI_ERROR(status)) {
+        error(u"Could not locate any Block IO Protocols.\r\n");
+    }
+
+    CEfiHandle mediaHandle = C_EFI_NULL;
+    CEfiBool readBlocks = C_EFI_FALSE;
+    AsciString data;
     for (CEfiUSize i = 0; i < num_handles && mediaHandle == C_EFI_NULL; i++) {
         status = globals.st->boot_services->open_protocol(
             handle_buffer[i], &C_EFI_BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
@@ -36,48 +154,71 @@ AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
         }
 
         if (biop->Media->MediaId == mediaID && !biop->Media->LogicalPartition) {
-            mediaHandle = handle_buffer[i];
+            CEfiU64 alignedBytes = ((bytes + biop->Media->BlockSize - 1) /
+                                    biop->Media->BlockSize) *
+                                   biop->Media->BlockSize;
+
+            CEfiPhysicalAddress address;
+            status = globals.st->boot_services->allocate_pages(
+                C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+                BYTES_TO_PAGES(alignedBytes), &address);
+            if (C_EFI_ERROR(status)) {
+                error(u"Could not allocete data for disk buffer\r\n");
+            }
+
+            status = biop->readBlocks(biop, biop->Media->MediaId, diskLba,
+                                      alignedBytes, (void *)address);
+
+            data =
+                (AsciString){.buf = (CEfiChar8 *)address, .len = alignedBytes};
+
+            readBlocks = C_EFI_TRUE;
         }
 
         // Close open protocol when done
         globals.st->boot_services->close_protocol(handle_buffer[i],
                                                   &C_EFI_BLOCK_IO_PROTOCOL_GUID,
                                                   globals.h, C_EFI_NULL);
+
+        if (readBlocks) {
+            break;
+        }
     }
 
-    if (!mediaHandle) {
+    if (!readBlocks) {
         error(u"\r\nERROR: Could not find Block IO protocol for disk with "
               u"ID\r\n");
     }
 
-    // Get Disk IO Protocol on same handle as Block IO protocol
-    CEfiDiskIOProtocol *diop;
-    status = globals.st->boot_services->open_protocol(
-        mediaHandle, &C_EFI_DISK_IO_PROTOCOL_GUID, (void **)&diop, globals.h,
-        C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not Open Disk IO protocol on handle\r\n");
-    }
+    //    // Get Disk IO Protocol on same handle as Block IO protocol
+    //    CEfiDiskIOProtocol *diop;
+    //    status = globals.st->boot_services->open_protocol(
+    //        mediaHandle, &C_EFI_DISK_IO_PROTOCOL_GUID, (void **)&diop,
+    //        globals.h, C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    //    if (C_EFI_ERROR(status)) {
+    //        error(u"Could not Open Disk IO protocol on handle\r\n");
+    //    }
+    //
+    //    CEfiPhysicalAddress address;
+    //    status = globals.st->boot_services->allocate_pages(
+    //        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+    //        BYTES_TO_PAGES(bytes), &address);
+    //    if (C_EFI_ERROR(status)) {
+    //        error(u"Could not allocete data for disk buffer\r\n");
+    //    }
+    //
+    //    status = diop->readDisk(diop, mediaID, diskLba *
+    //    biop->Media->BlockSize,
+    //                            bytes, (void *)address);
+    //    if (C_EFI_ERROR(status)) {
+    //        error(u"Could not read Disk LBAs into buffer\r\n");
+    //    }
+    //
+    //    // Close disk IO protocol when done
+    //    globals.st->boot_services->close_protocol(
+    //        mediaHandle, &C_EFI_DISK_IO_PROTOCOL_GUID, globals.h, C_EFI_NULL);
 
-    CEfiPhysicalAddress address;
-    status = globals.st->boot_services->allocate_pages(
-        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA, BYTES_TO_PAGES(bytes),
-        &address);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not allocete data for disk buffer\r\n");
-    }
-
-    status = diop->readDisk(diop, mediaID, diskLba * biop->Media->BlockSize,
-                            bytes, (void *)address);
-    if (C_EFI_ERROR(status)) {
-        error(u"Could not read Disk LBAs into buffer\r\n");
-    }
-
-    // Close disk IO protocol when done
-    globals.st->boot_services->close_protocol(
-        mediaHandle, &C_EFI_DISK_IO_PROTOCOL_GUID, globals.h, C_EFI_NULL);
-
-    return (AsciString){.buf = (CEfiChar8 *)address, .len = bytes};
+    return data;
 }
 
 CEfiU32 getDiskImageMediaID() {

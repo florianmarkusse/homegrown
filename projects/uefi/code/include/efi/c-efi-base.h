@@ -102,6 +102,7 @@ typedef struct CEfiDevicePathProtocol CEfiDevicePathProtocol;
 typedef struct CEfiSimpleTextInputProtocol CEfiSimpleTextInputProtocol;
 typedef struct CEfiSimpleFileSystemProtocol CEfiSimpleFileSystemProtocol;
 typedef struct CEfiDiskIOProtocol CEfiDiskIOProtocol;
+typedef struct CEfiBlockIoProtocol CEfiBlockIoProtocol;
 typedef struct CEfiFileProtocol CEfiFileProtocol;
 typedef struct CEfiGraphicsOutputProtocol CEfiGraphicsOutputProtocol;
 typedef struct CEfiSimpleTextOutputProtocol CEfiSimpleTextOutputProtocol;

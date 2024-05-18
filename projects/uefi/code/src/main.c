@@ -125,6 +125,9 @@ CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
                          : "a"(globals.level4PageTable)
                          : "memory");
 
+    typedef void (*Entry)(void);
+    Entry entry = (Entry)KERNEL_START;
+
     __asm__ __volatile__(
         "movq %0, %%rsp;"
         "movq %%rsp, %%rbp;"
@@ -135,9 +138,9 @@ CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
         "movq $0x4000, %%rcx;"
         "rep stosq;"
 
-        "call *%1"
-        //"pushq %1;"
-        //"retq"
+        // "call *%1"
+        "pushq %1;"
+        "retq"
         //
         //
 
@@ -204,6 +207,15 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                          :
                          : "eax", "ebx", "ecx", "edx");
 
+    __asm__ __volatile__("mov $1, %%eax;"
+                         "mov $0, %%ecx;"
+                         "cpuid;"
+                         "shrl $24, %%ebx;"
+                         "mov %%rbx,%0;"
+                         : "=r"(globals.bootstrapProcessorID)
+                         :
+                         : "eax", "ebx", "ecx", "edx");
+
     CEfiU32 a;
     // should be no need to check for RDSTC, available since Pentium, therefore
     // all long mode capable CPUs should have it. But just to be on the safe
@@ -232,8 +244,17 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Going to load kernel\r\n");
-    AsciString kernelContent = readDiskLbas(
-        kernelFile.lbaStart, kernelFile.bytes, getDiskImageMediaID());
+    AsciString kernelContent = readDiskLbasFromCurrentGlobalImage(
+        kernelFile.lbaStart, kernelFile.bytes);
+
+    printNumber((CEfiU64)*kernelContent.buf, 16);
+    printNumber((CEfiU64) * (kernelContent.buf + 1), 16);
+    printNumber((CEfiU64) * (kernelContent.buf + 2), 16);
+    CEfiInputKey key;
+    while (globals.st->con_in->read_key_stroke(globals.st->con_in, &key) !=
+           C_EFI_SUCCESS) {
+        ;
+    }
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Read kernel content, at memory location:");

@@ -34,7 +34,7 @@ __attribute__((ms_abi, section("kernel-start"))) int kernelmain() {
 
     FLUSH_AFTER { LOG(STRING("Operating system starting ...\n")); }
 
-    FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }
+    // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }
 
     while (1) {
         ;

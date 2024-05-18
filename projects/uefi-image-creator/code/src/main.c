@@ -242,8 +242,8 @@ void write_full_options(FILE *image) {
     }
 }
 
-uint64_t next_aligned_lba(uint64_t lba) {
-    return (((lba + (align_lba - 1)) / align_lba) + 1) * align_lba;
+uint64_t next_aligned_lba(const uint64_t lba) {
+    return lba - (lba % align_lba) + align_lba;
 }
 
 // =====================================

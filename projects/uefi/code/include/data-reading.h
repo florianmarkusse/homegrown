@@ -11,6 +11,8 @@ typedef struct {
 } DataPartitionFile;
 
 AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID);
+AsciString readDiskLbasFromCurrentGlobalImage(CEfiLba diskLba, CEfiUSize bytes);
+
 CEfiU32 getDiskImageMediaID();
 DataPartitionFile getKernelInfo();
 

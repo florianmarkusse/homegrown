@@ -7,6 +7,7 @@ typedef struct {
     CEfiHandle h;
     CEfiSystemTable *st;
     CEfiU64 level4PageTable;
+    CEfiU64 highestStackAddress; // For all core stacks.
     CEfiU32 maxSupportCPUID;
     CEfiU64 bootstrapProcessorID;
     CEfiU64 numberOfCores;

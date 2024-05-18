@@ -31,7 +31,10 @@ typedef struct CEfiBlockIoProtocol {
     CEfiBlockIoMedia *Media;
     // Not implemented cause we not needed (yet)
     void *Reset;
-    void *ReadBlocks;
+    CEfiStatus(CEFICALL *readBlocks)(CEfiBlockIoProtocol *this_,
+                                     CEfiU32 mediaID, CEfiLba startingLBA,
+                                     CEfiUSize bufferSize, void *buffer);
+
     void *WriteBlocks;
     void *FlushBlocks;
 } CEfiBlockIoProtocol;

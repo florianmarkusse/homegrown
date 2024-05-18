@@ -36,16 +36,16 @@
          (APIC_IPI_ICR_LOW_RESERVED)) |                                        \
         (bottom3Bytes);
 
-#define send_ipi(destination, bottom3Bytes)                                    \
-    do {                                                                       \
-        while (*((volatile CEfiU32 *)(APIC_IPI_ICR_LOW)) &                     \
-               (APIC_ICR_DELIVERY_STATUS)) {                                   \
-            __asm__ __volatile__("pause" : : : "memory");                      \
-        }                                                                      \
-        /* Setting high is not necessary when we are setting    */             \
-        /* a desination shorthand */                                           \
-        APIC_IPI_ICR_SET_HIGH(destination)                                     \
-        APIC_IPI_ICR_SET_LOW(bottom3Bytes)                                     \
-    } while (0)
+// #define send_ipi(destination, bottom3Bytes)                                    \
+//     do {                                                                       \
+//         while (*((volatile CEfiU32 *)(APIC_IPI_ICR_LOW)) &                     \
+//                (APIC_ICR_DELIVERY_STATUS)) {                                   \
+//             __asm__ __volatile__("pause" : : : "memory");                      \
+//         }                                                                      \
+//         /* Setting high is not necessary when we are setting    */             \
+//         /* a desination shorthand */                                           \
+//         APIC_IPI_ICR_SET_HIGH(destination)                                     \
+//         APIC_IPI_ICR_SET_LOW(bottom3Bytes)                                     \
+//     } while (0)
 
 #endif

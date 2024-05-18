@@ -80,7 +80,7 @@ display_configuration
 QEMU_OPTIONS=(
 	-accel "tcg,thread=single"
 	-cpu core2duo
-	-m 128
+	-m 256
 	-machine q35
 	-no-reboot
 	-bios "${UEFI_LOCATION}"
