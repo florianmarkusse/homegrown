@@ -401,6 +401,8 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     printNumber((CEfiU64) * (kernelContent.buf + 1), 16);
     printNumber((CEfiU64) * (kernelContent.buf + 2), 16);
     CEfiInputKey key;
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"Press any key to continue...\r\n");
     while (globals.st->con_in->read_key_stroke(globals.st->con_in, &key) !=
            C_EFI_SUCCESS) {
         ;
