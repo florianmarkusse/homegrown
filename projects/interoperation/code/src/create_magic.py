@@ -1,3 +1,7 @@
+# We generate a header that contains the first 4 characters of the kernel
+# binary. I decided against just embedding a magic value at the beginning
+# because that would fuck up alignment and I didnt't want to deal with those
+# spurious issues.
 import sys
 
 def generate_header(input_file, output_header):
