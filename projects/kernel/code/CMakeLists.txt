@@ -70,13 +70,17 @@ add_custom_command(
 )
 
 set(EXECUTABLE_NAME_BIN "${EXECUTABLE_NAME}.bin")
+set(KERNEL_MAGIC_OUTPUT "${REPO_ROOT}/projects/interoperation/code/include/generated/kernel-magic.h")
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME_BIN}
         COMMAND objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME_BIN}
+        COMMAND python "${REPO_ROOT}/projects/interoperation/code/src/create_magic.py" "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME_BIN}" ${KERNEL_MAGIC_OUTPUT}
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME}
         COMMAND_EXPAND_LISTS
+        BYPRODUCTS ${KERNEL_MAGIC_OUTPUT}
         VERBATIM
         COMMENT "Copying binary data from ${EXECUTABLE_NAME} into ${EXECUTABLE_NAME_BIN}"
 )
 
-add_custom_target("${EXECUTABLE_NAME}-binary" ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME_BIN} util-${CMAKE_BUILD_TYPE})
+# TODO: check if this gets rebuilt when util or any other library changes.
+add_custom_target("${EXECUTABLE_NAME}-final" ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_NAME_BIN})

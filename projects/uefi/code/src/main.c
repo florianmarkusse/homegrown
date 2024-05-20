@@ -125,6 +125,20 @@ CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
                          : "a"(globals.level4PageTable)
                          : "memory");
 
+    AsciString data = (AsciString){.buf = (unsigned char *)KERNEL_START};
+    if (((CEfiU64)*data.buf) == 0x56 && ((CEfiU64) * (data.buf + 1)) == 0x57 &&
+        ((CEfiU64) * (data.buf + 2)) == 0x48) {
+        __asm__ __volatile__("cli;"
+
+                             "movq %%rdx, %%rdi;"
+                             "movq $0xFFFFFFFFFFFFFF, %%rax;"
+                             "movq $0x4000, %%rcx;"
+                             "rep stosq;"
+                             "hlt;"
+
+                             "hlt" ::"d"(globals.frameBufferAddress));
+    }
+
     typedef void (*Entry)(void);
     Entry entry = (Entry)KERNEL_START;
 

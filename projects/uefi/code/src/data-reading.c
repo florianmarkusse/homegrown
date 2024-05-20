@@ -14,6 +14,7 @@
 #include "efi/c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
 #include "efi/c-efi-system.h"                      // for CEfiSystemTable
 #include "gdt.h"
+#include "generated/kernel-magic.h"
 #include "globals.h"
 #include "kernel-parameters.h"
 #include "memory/boot-functions.h"
@@ -92,9 +93,9 @@ AsciString readDiskLbasFromCurrentGlobalImage(CEfiLba diskLba,
                 data = (AsciString){.buf = (CEfiChar8 *)address,
                                     .len = alignedBytes};
 
-                if (((CEfiU64)*data.buf) == 0x56 &&
-                    ((CEfiU64) * (data.buf + 1)) == 0x57 &&
-                    ((CEfiU64) * (data.buf + 2)) == 0x48) {
+                const CEfiU8 kernelMagic[] = KERNEL_MAGIC;
+                if (!memcmp(kernelMagic, data.buf,
+                            sizeof(kernelMagic) / sizeof(kernelMagic[0]))) {
                     readBlocks = C_EFI_TRUE;
                 }
             }
