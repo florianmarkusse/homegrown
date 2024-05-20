@@ -22,18 +22,6 @@
 #include "printing.h"
 #include "string.h"
 
-#define BBDEBUG 1
-// #define GOP_DEBUG BBDEBUG
-
-#if BBDEBUG
-#define DBG(fmt, ...)                                                          \
-    do {                                                                       \
-        Print(fmt, __VA_ARGS__);                                               \
-    } while (0);
-#else
-#define DBG(fmt, ...)
-#endif
-
 extern void ap_trampoline();
 CEfiU16 lapic_ids[1024];
 CEfiU64 lapic_addr = 0;
@@ -310,90 +298,6 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Going to load kernel\r\n");
 
-    //    CEfiLoadedImageProtocol *lip = C_EFI_NULL;
-    //    CEfiStatus status = globals.st->boot_services->open_protocol(
-    //        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip,
-    //        globals.h, C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    //    if (C_EFI_ERROR(status)) {
-    //        error(u"Could not open Loaded Image Protocol\r\n");
-    //    }
-    //
-    //    CEfiBlockIoProtocol *biop;
-    //    status = globals.st->boot_services->open_protocol(
-    //        lip->device_handle, &C_EFI_BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
-    //        globals.h, C_EFI_NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    //    if (C_EFI_ERROR(status)) {
-    //        error(u"Could not open Block IO Protocol for this loaded
-    //        image.\r\n");
-    //    }
-    //
-    //    CEfiU64 alignedBytes = ((kernelFile.bytes + biop->Media->BlockSize -
-    //    1) /
-    //                            biop->Media->BlockSize) *
-    //                           biop->Media->BlockSize;
-    //
-    //    CEfiPhysicalAddress address;
-    //    status = globals.st->boot_services->allocate_pages(
-    //        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
-    //        BYTES_TO_PAGES(alignedBytes), &address);
-    //    if (C_EFI_ERROR(status)) {
-    //        error(u"Could not allocete data for disk buffer\r\n");
-    //    }
-    //
-    //    printNumber(biop->Media->LastBlock, 10);
-    //    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-    //    printNumber(kernelFile.lbaStart, 10);
-    //    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-    //    printNumber(alignedBytes / biop->Media->BlockSize, 10);
-    //    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-    //    printNumber(biop->Media->BlockSize, 10);
-    //    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-    //
-    //    for (int i = 100; i < 1000; i++) {
-    //        printNumber(i, 10);
-    //        globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-    //        status = biop->readBlocks(biop, biop->Media->MediaId, i,
-    //        alignedBytes,
-    //                                  (void *)address);
-    //
-    //        AsciString kernelContent =
-    //            (AsciString){.buf = (CEfiChar8 *)address, .len =
-    //            alignedBytes};
-    //
-    //        printNumber((CEfiU64)*kernelContent.buf, 16);
-    //        printNumber((CEfiU64) * (kernelContent.buf + 1), 16);
-    //        printNumber((CEfiU64) * (kernelContent.buf + 2), 16);
-    //        CEfiInputKey key;
-    //        while (globals.st->con_in->read_key_stroke(globals.st->con_in,
-    //        &key) !=
-    //               C_EFI_SUCCESS) {
-    //            ;
-    //        }
-    //    }
-    //    if (C_EFI_ERROR(status)) {
-    //        if (status == C_EFI_DEVICE_ERROR) {
-    //            globals.st->con_out->output_string(globals.st->con_out,
-    //                                               u"Device error\r\n");
-    //        }
-    //        if (status == C_EFI_NO_MEDIA) {
-    //            globals.st->con_out->output_string(globals.st->con_out,
-    //                                               u"noMedie\r\n");
-    //        }
-    //        if (status == C_EFI_MEDIA_CHANGED) {
-    //            globals.st->con_out->output_string(globals.st->con_out,
-    //                                               u"media changedr\n");
-    //        }
-    //        if (status == C_EFI_BAD_BUFFER_SIZE) {
-    //            globals.st->con_out->output_string(globals.st->con_out,
-    //                                               u"bad buffer size\r\n");
-    //        }
-    //        if (status == C_EFI_INVALID_PARAMETER) {
-    //            globals.st->con_out->output_string(globals.st->con_out,
-    //                                               u"invalid paraneter\r\n");
-    //        }
-    //        error(u"Could not read blocks\r\n");
-    //    }
-
     AsciString kernelContent = readDiskLbasFromCurrentGlobalImage(
         kernelFile.lbaStart, kernelFile.bytes);
 
@@ -407,384 +311,6 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
            C_EFI_SUCCESS) {
         ;
     }
-
-    //    // locate InitRD in ROM
-    //    DBG(L" * Locate initrd in Option ROMs%s\n", L"");
-    //    RomTable = NULL;
-    //    initrd.ptr = NULL;
-    //    initrd.size = 0;
-    //    status = EFI_LOAD_ERROR;
-    //    // first, try RomTable
-    //    LibGetSystemConfigurationTable(&RomTableGuid, (void *)&(RomTable));
-    //    if (RomTable != NULL) {
-    //        for (i = 0; i < RomTable->PciOptionRomCount; i++) {
-    //            ret.ptr = (CEfiU8
-    //            *)RomTable->PciOptionRomDescriptors[i].RomAddress; if
-    //            (ret.ptr[0] == 0x55 && ret.ptr[1] == 0xAA &&
-    //                !CompareMem(ret.ptr + 8, (const CEfiChar8 *)"INITRD", 6))
-    //                { CopyMem(&initrd.size, ret.ptr + 16, 4); initrd.ptr =
-    //                ret.ptr + 32; status = EFI_SUCCESS; break;
-    //            }
-    //        }
-    //    }
-    //    // if not found, scan memory
-    //    if (scanmemory && (EFI_ERROR(status) || initrd.ptr == NULL)) {
-    //        status = uefi_call_wrapper(BS->GetMemoryMap, 5, &memory_map_size,
-    //                                   memory_map, NULL, &desc_size, NULL);
-    //        if (status != EFI_BUFFER_TOO_SMALL || memory_map_size == 0) {
-    //            return report(EFI_OUT_OF_RESOURCES, L"GetMemoryMap getSize");
-    //        }
-    //        memory_map_size += 2 * desc_size;
-    //        memory_map = NULL;
-    //        status = uefi_call_wrapper(BS->AllocatePages, 4, 0, 2,
-    //                                   (memory_map_size + PAGESIZE - 1) /
-    //                                   PAGESIZE, (EFI_PHYSICAL_ADDRESS
-    //                                   *)&memory_map);
-    //        if (EFI_ERROR(status) || memory_map == NULL) {
-    //            return report(EFI_OUT_OF_RESOURCES, L"AllocatePages");
-    //        }
-    //        status =
-    //            uefi_call_wrapper(BS->GetMemoryMap, 5, &memory_map_size,
-    //            memory_map,
-    //                              &map_key, &desc_size, &desc_version);
-    //        status = EFI_LOAD_ERROR;
-    //        for (mement = memory_map; mement < memory_map + memory_map_size;
-    //             mement = NextMemoryDescriptor(mement, desc_size)) {
-    //            if (mement == NULL ||
-    //                (mement->physical_start == 0 && mement->number_of_pages ==
-    //                0)) break;
-    //            // skip free and ACPI memory
-    //            if (mement->Type == 7 || (mement->Type >= 9 && mement->Type <=
-    //            13))
-    //                continue;
-    //            // according to spec, EFI Option ROMs must start on 512 bytes
-    //            // boundary, not 2048
-    //            for (ret.ptr = (CEfiU8 *)mement->physical_start;
-    //                 ret.ptr + 512 < (CEfiU8 *)mement->physical_start +
-    //                                     mement->number_of_pages * PAGESIZE;
-    //                 ret.ptr += 512) {
-    //                if (ret.ptr[0] == 0x55 && ret.ptr[1] == 0xAA &&
-    //                    !CompareMem(ret.ptr + 8, (const CEfiChar8 *)"INITRD",
-    //                    6)) { CopyMem(&initrd.size, ret.ptr + 16, 4);
-    //                    initrd.ptr = ret.ptr + 32;
-    //                    status = EFI_SUCCESS;
-    //                    goto foundinrom;
-    //                }
-    //            }
-    //        }
-    //    foundinrom:
-    //        uefi_call_wrapper(BS->FreePages, 2,
-    //        (EFI_PHYSICAL_ADDRESS)memory_map,
-    //                          (memory_map_size + PAGESIZE - 1) / PAGESIZE);
-    //    }
-    //    // try reading the initrd from serial line
-    //    if (EFI_ERROR(status) || initrd.ptr == NULL) {
-    //        status = uefi_call_wrapper(BS->LocateProtocol, 3, &SerIoGuid,
-    //        NULL,
-    //                                   (void **)&ser);
-    //        if (!EFI_ERROR(status) && ser) {
-    //            // 1000 microsec timeout, mode 115200,8,n,1
-    //            status = uefi_call_wrapper(ser->SetAttributes, 7, ser, 115200,
-    //            0,
-    //                                       1000, NoParity, 8, OneStopBit);
-    //            if (!EFI_ERROR(status)) {
-    //                i = 3;
-    //                uefi_call_wrapper(ser->Write, 3, ser, &i, "\003\003\003");
-    //                i = 4;
-    //                initrd.size = 0;
-    //                status = uefi_call_wrapper(ser->Read, 3, ser, &i,
-    //                                           (VOID *)&initrd.size);
-    //                if (!EFI_ERROR(status) && i == 4) {
-    //                    i = 2;
-    //                    if (initrd.size < 32 ||
-    //                        initrd.size >= INITRD_MAXSIZE * 1024 * 1024) {
-    //                        uefi_call_wrapper(ser->Write, 3, ser, &i, "SE");
-    //                        initrd.size = 0;
-    //                        status = EFI_LOAD_ERROR;
-    //                    } else {
-    //                        initrd.ptr = NULL;
-    //                        status = uefi_call_wrapper(
-    //                            BS->AllocatePages, 4, 0, 2,
-    //                            (initrd.size + PAGESIZE - 1) / PAGESIZE,
-    //                            (EFI_PHYSICAL_ADDRESS *)&initrd.ptr);
-    //                        if (EFI_ERROR(status) || initrd.ptr == NULL) {
-    //                            uefi_call_wrapper(ser->Write, 3, ser, &i,
-    //                            "SE"); return report(EFI_OUT_OF_RESOURCES,
-    //                                          L"AllocatePages");
-    //                        }
-    //                        uefi_call_wrapper(ser->Write, 3, ser, &i, "OK");
-    //                        i = initrd.size;
-    //                        status = uefi_call_wrapper(ser->Read, 3, ser, &i,
-    //                                                   (VOID *)initrd.ptr);
-    //                        if (EFI_ERROR(status) || i != initrd.size) {
-    //                            uefi_call_wrapper(BS->FreePages, 2,
-    //                                              (EFI_PHYSICAL_ADDRESS)initrd.ptr,
-    //                                              (initrd.size + PAGESIZE - 1)
-    //                                              /
-    //                                                  PAGESIZE);
-    //                            initrd.ptr = NULL;
-    //                            initrd.size = 0;
-    //                            status = EFI_LOAD_ERROR;
-    //                        }
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    }
-    //    // fall back to INITRD on filesystem
-    //    if (EFI_ERROR(status) || initrd.ptr == NULL) {
-    //        // if the user presses any key now, we fallback to backup initrd
-    //        for (i = 0; i < 500; i++) {
-    //            if (!uefi_call_wrapper(BS->CheckEvent, 1, CI->WaitForKey)) {
-    //                uefi_call_wrapper(CI->ReadKeyStroke, 2, CI, &key);
-    //                Print(L" * Backup initrd\n");
-    //                initrdfile = L"\\BOOTBOOT\\INITRD.BAK";
-    //                break;
-    //            }
-    //            // delay 1ms
-    //            uefi_call_wrapper(BS->Stall, 1, 1000);
-    //        }
-    //        DBG(L" * Locate initrd in %s\n", initrdfile);
-    //        // Initialize FS with the DeviceHandler from loaded image protocol
-    //        status = uefi_call_wrapper(BS->HandleProtocol, 3, image, &lipGuid,
-    //                                   (void **)&loaded_image);
-    //        if (!EFI_ERROR(status) && loaded_image != NULL) {
-    //            status = EFI_LOAD_ERROR;
-    //            RootDir = LibOpenRoot(loaded_image->DeviceHandle);
-    //            // load ramdisk
-    //            status = LoadFile(initrdfile, &initrd.ptr, &initrd.size);
-    //        }
-    //    }
-    //    // if not found, try architecture specific initrd file
-    //    if (EFI_ERROR(status) || initrd.ptr == NULL) {
-    //        initrdfile = L"\\BOOTBOOT\\X86_64";
-    //        DBG(L" * Locate initrd in %s\n", initrdfile);
-    //        status = LoadFile(initrdfile, &initrd.ptr, &initrd.size);
-    //    }
-    //    // if even that failed, look for a partition
-    //    if (status != EFI_SUCCESS || initrd.size == 0) {
-    //        DBG(L" * Locate initrd in GPT%s\n", L"");
-    //        status = uefi_call_wrapper(BS->LocateHandle, 5, ByProtocol,
-    //        &bioGuid,
-    //                                   NULL, &handle_size, handles);
-    //        if (status != EFI_BUFFER_TOO_SMALL || handle_size == 0) {
-    //            return report(EFI_OUT_OF_RESOURCES, L"LocateHandle getSize");
-    //        }
-    //        handles = NULL;
-    //        status = uefi_call_wrapper(BS->AllocatePages, 4, 0, 2,
-    //                                   (handle_size + PAGESIZE - 1) /
-    //                                   PAGESIZE, (EFI_PHYSICAL_ADDRESS
-    //                                   *)&handles);
-    //        if (EFI_ERROR(status) || handles == NULL)
-    //            return report(EFI_OUT_OF_RESOURCES, L"AllocatePages\n");
-    //        initrd.ptr = NULL;
-    //        status = uefi_call_wrapper(BS->AllocatePages, 4, 0, 2, 1,
-    //                                   (EFI_PHYSICAL_ADDRESS *)&initrd.ptr);
-    //        if (EFI_ERROR(status) || initrd.ptr == NULL)
-    //            return report(EFI_OUT_OF_RESOURCES, L"AllocatePages");
-    //        lba_s = lba_e = 0;
-    //        status = uefi_call_wrapper(BS->LocateHandle, 5, ByProtocol,
-    //        &bioGuid,
-    //                                   NULL, &handle_size, handles);
-    //        for (i = 0; i < handle_size / sizeof(EFI_HANDLE); i++) {
-    //            // we have to do it the hard way. HARDDRIVE_DEVICE_PATH does
-    //            not
-    //            // return partition type or attribs...
-    //            status = uefi_call_wrapper(BS->HandleProtocol, 3, handles[i],
-    //                                       &bioGuid, (void **)&bio);
-    //            if (status != EFI_SUCCESS || bio == NULL ||
-    //                bio->Media->BlockSize == 0)
-    //                continue;
-    //            status =
-    //                uefi_call_wrapper(bio->ReadBlocks, 5, bio,
-    //                bio->Media->MediaId,
-    //                                  1, PAGESIZE, initrd.ptr);
-    //            if (status != EFI_SUCCESS ||
-    //                CompareMem(initrd.ptr, EFI_PTAB_HEADER_ID, 8))
-    //                continue;
-    //            gptHdr = (EFI_PARTITION_TABLE_HEADER *)initrd.ptr;
-    //            if (gptHdr->NumberOfPartitionEntries > 127)
-    //                gptHdr->NumberOfPartitionEntries = 127;
-    //            // first, look for a partition with bootable flag
-    //            ret.ptr = (CEfiU8 *)(initrd.ptr + (gptHdr->PartitionEntryLBA -
-    //            1) *
-    //                                                  bio->Media->BlockSize);
-    //            for (j = 0; j < gptHdr->NumberOfPartitionEntries; j++) {
-    //                gptEnt = (EFI_PARTITION_ENTRY *)ret.ptr;
-    //                if ((ret.ptr[0] == 0 && ret.ptr[1] == 0 && ret.ptr[2] == 0
-    //                &&
-    //                     ret.ptr[3] == 0) ||
-    //                    gptEnt->StartingLBA == 0)
-    //                    break;
-    //                // use first partition with bootable flag as INITRD
-    //                if ((gptEnt->Attributes & EFI_PART_USED_BY_OS))
-    //                    goto partfound;
-    //                ret.ptr += gptHdr->SizeOfPartitionEntry;
-    //            }
-    //            // if none, look for specific partition types
-    //            ret.ptr = (CEfiU8 *)(initrd.ptr + (gptHdr->PartitionEntryLBA -
-    //            1) *
-    //                                                  bio->Media->BlockSize);
-    //            for (j = 0; j < gptHdr->NumberOfPartitionEntries; j++) {
-    //                gptEnt = (EFI_PARTITION_ENTRY *)ret.ptr;
-    //                if ((ret.ptr[0] == 0 && ret.ptr[1] == 0 && ret.ptr[2] == 0
-    //                &&
-    //                     ret.ptr[3] == 0) ||
-    //                    gptEnt->StartingLBA == 0)
-    //                    break;
-    //                // use the first OS/Z root partition for this architecture
-    //                if (!CompareMem(&gptEnt->PartitionTypeGUID.Data1, "OS/Z",
-    //                4) &&
-    //                    gptEnt->PartitionTypeGUID.Data2 == 0x8664 &&
-    //                    !CompareMem(&gptEnt->PartitionTypeGUID.Data4[4],
-    //                    "root",
-    //                                4)) {
-    //                partfound:
-    //                    lba_s = gptEnt->StartingLBA;
-    //                    lba_e = gptEnt->EndingLBA;
-    //                    initrd.size = (((lba_e - lba_s) *
-    //                    bio->Media->BlockSize +
-    //                                    PAGESIZE - 1) /
-    //                                   PAGESIZE) *
-    //                                  PAGESIZE;
-    //                    status = EFI_SUCCESS;
-    //                    goto partok;
-    //                }
-    //                ret.ptr += gptHdr->SizeOfPartitionEntry;
-    //            }
-    //        }
-    //        return report(EFI_LOAD_ERROR, L"No boot partition");
-    //    partok:
-    //        uefi_call_wrapper(BS->FreePages, 2,
-    //        (EFI_PHYSICAL_ADDRESS)initrd.ptr,
-    //                          1);
-    //        if (initrd.size > 0 && bio != NULL) {
-    //            initrd.ptr = NULL;
-    //            status = uefi_call_wrapper(BS->AllocatePages, 4, 0, 2,
-    //                                       initrd.size / PAGESIZE,
-    //                                       (EFI_PHYSICAL_ADDRESS
-    //                                       *)&initrd.ptr);
-    //            if (EFI_ERROR(status) || initrd.ptr == NULL)
-    //                return report(EFI_OUT_OF_RESOURCES, L"AllocatePages");
-    //            status =
-    //                uefi_call_wrapper(bio->ReadBlocks, 5, bio,
-    //                bio->Media->MediaId,
-    //                                  lba_s, initrd.size, initrd.ptr);
-    //        } else
-    //            status = EFI_LOAD_ERROR;
-    //    }
-    //    if (status == EFI_SUCCESS && initrd.size > 0) {
-    //        // check if initrd is gzipped
-    //        if (initrd.ptr[0] == 0x1f && initrd.ptr[1] == 0x8b) {
-    //            unsigned char *addr, f;
-    //            int len = 0, r;
-    //            TINF_DATA d;
-    //            DBG(L" * Gzip compressed initrd @%lx %d bytes\n", initrd.ptr,
-    //                initrd.size);
-    //            // skip gzip header
-    //            addr = initrd.ptr + 2;
-    //            if (*addr++ != 8)
-    //                goto gzerr;
-    //            f = *addr++;
-    //            addr += 6;
-    //            if (f & 4) {
-    //                r = *addr++;
-    //                r += (*addr++ << 8);
-    //                addr += r;
-    //            }
-    //            if (f & 8) {
-    //                while (*addr++ != 0)
-    //                    ;
-    //            }
-    //            if (f & 16) {
-    //                while (*addr++ != 0)
-    //                    ;
-    //            }
-    //            if (f & 2)
-    //                addr += 2;
-    //            d.source = addr;
-    //            // allocate destination buffer
-    //            CopyMem(&len, initrd.ptr + initrd.size - 4, 4);
-    //            addr = NULL;
-    //            status = uefi_call_wrapper(BS->AllocatePages, 4, 0, 2,
-    //                                       (len + PAGESIZE - 1) / PAGESIZE,
-    //                                       (EFI_PHYSICAL_ADDRESS *)&addr);
-    //            if (EFI_ERROR(status) || addr == NULL)
-    //                return report(EFI_OUT_OF_RESOURCES, L"AllocatePages\n");
-    //            // decompress
-    //            d.bitcount = 0;
-    //            d.bfinal = 0;
-    //            d.btype = -1;
-    //            d.dict_size = 0;
-    //            d.dict_ring = NULL;
-    //            d.dict_idx = 0;
-    //            d.curlen = 0;
-    //            d.dest = addr;
-    //            d.destSize = len;
-    //            do {
-    //                r = uzlib_uncompress(&d);
-    //            } while (!r);
-    //            if (r != TINF_DONE) {
-    //            gzerr:
-    //                return report(EFI_COMPROMISED_DATA, L"Unable to
-    //                uncompress");
-    //            }
-    //            // swap initrd.ptr with the uncompressed buffer
-    //            // if it's not page aligned, we came from ROM, no FreePages
-    //            if (((CEfiU64)initrd.ptr & (PAGESIZE - 1)) == 0)
-    //                uefi_call_wrapper(BS->FreePages, 2,
-    //                                  (EFI_PHYSICAL_ADDRESS)initrd.ptr,
-    //                                  (initrd.size + PAGESIZE - 1) /
-    //                                  PAGESIZE);
-    //            initrd.ptr = addr;
-    //            initrd.size = len;
-    //        }
-    //        DBG(L" * Initrd loaded @%lx %d bytes\n", initrd.ptr, initrd.size);
-    //        kne = env.ptr = NULL;
-    //        // if there's an environment file, load it
-    //        if (loaded_image != NULL &&
-    //            LoadFile(configfile, &env.ptr, &env.size) != EFI_SUCCESS) {
-    //            env.ptr = NULL;
-    //        }
-    //        if (env.ptr == NULL) {
-    //            // if there were no environment file on boot partition, find
-    //            it
-    //            // inside the INITRD
-    //            j = 0;
-    //            ret.ptr = NULL;
-    //            ret.size = 0;
-    //            while (ret.ptr == NULL && fsdrivers[j] != NULL) {
-    //                ret = (*fsdrivers[j++])((unsigned char *)initrd.ptr,
-    //                cfgname);
-    //            }
-    //            if (ret.ptr != NULL) {
-    //                if (ret.size > PAGESIZE - 1)
-    //                    ret.size = PAGESIZE - 1;
-    //                env.ptr = NULL;
-    //                status = uefi_call_wrapper(BS->AllocatePages, 4, 0, 2, 1,
-    //                                           (EFI_PHYSICAL_ADDRESS
-    //                                           *)&env.ptr);
-    //                if (EFI_ERROR(status) || env.ptr == NULL)
-    //                    return report(EFI_OUT_OF_RESOURCES, L"AllocatePages");
-    //                ZeroMem((void *)env.ptr, PAGESIZE);
-    //                CopyMem((void *)env.ptr, ret.ptr, ret.size);
-    //                env.size = ret.size;
-    //            }
-    //        }
-    //        if (env.ptr != NULL) {
-    //            ParseEnvironment(env.ptr, env.size, argc, argv);
-    //        } else {
-    //            // provide an empty environment for the OS
-    //            env.size = 0;
-    //            env.ptr = NULL;
-    //            status = uefi_call_wrapper(BS->AllocatePages, 4, 0, 2, 1,
-    //                                       (EFI_PHYSICAL_ADDRESS *)&env.ptr);
-    //            if (EFI_ERROR(status) || env.ptr == NULL) {
-    //                return report(EFI_OUT_OF_RESOURCES, L"AllocatePages");
-    //            }
-    //            ZeroMem((void *)env.ptr, PAGESIZE);
-    //            CopyMem((void *)env.ptr, "// N/A", 8);
-    //        }
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Retrieving Graphics output buffer...\r\n");
@@ -857,7 +383,7 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                         case 0: // found Processor Local APIC
                             if ((ptr[4] & 1) && ptr[3] != 0xFF &&
                                 lapic_ids[(CEfiISize)ptr[3]] == 0xFFFF)
-                                lapic_ids[(CEfiISize)ptr[3]] = i++;
+                                lapic_ids[(CEfiISize)ptr[3]] = (CEfiU16)i++;
                             else
                                 bad_madt++;
                             break;
@@ -908,10 +434,8 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     mapMemoryAt(stackEnd, KERNEL_STACK_START, globals.numberOfCores * PAGESIZE);
 
     // Get memory map
-    int cnt = 3, apmemfree = 0;
-
+    bool apmemfree = false;
     MemoryInfo memoryInfo = getMemoryInfo();
-
     for (CEfiUSize i = 0;
          i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
         CEfiMemoryDescriptor *mement =
@@ -926,8 +450,13 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
         if (mement->type == 7 && mement->physical_start <= (CEfiU64)0x8000 &&
             mement->physical_start + (mement->number_of_pages * PAGESIZE) >
                 (CEfiU64)0x8000) {
-            apmemfree = 1;
+            apmemfree = true;
         }
+    }
+
+    // Assuming we are going to run this on a multicore machine, right???
+    if (!apmemfree) {
+        error(u"Trampoline code for application processors is not free!\r\n");
     }
 
     // --- NO PRINT AFTER THIS POINT ---
@@ -961,7 +490,7 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
         :);
 
     // start APs
-    if (globals.numberOfCores > 1 && apmemfree) {
+    if (globals.numberOfCores > 1) {
         // copy trampoline and save UEFI's 64 bit system registers for the
         // trampoline code
         __asm__ __volatile__("movq $32, %%rcx; movq %0, %%rsi; movq "

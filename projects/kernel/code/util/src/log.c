@@ -119,8 +119,6 @@ void drawLine(ScreenLine line, uint32_t rowNumber) {
     }
 }
 
-// TODO: convert to using double buffer - you are reading from the graphics
-// buffer directly which is not that fast + can cause artifacts.
 void flushToScreen() {
     uint32_t distance =
         ABS(screenBuffer.lastFlushedLine - screenBuffer.currentLine);
@@ -128,8 +126,6 @@ void flushToScreen() {
     // lines because we cannot guarantee that it was fully written to on the
     // previous flush.
     uint32_t linesToRedraw = distance == 0 ? glyphsPerColumn : distance + 1;
-
-    psf2_t test = glyphs;
 
     memmove(
         &dim.backingBuffer[glyphStartVerticalOffset],
