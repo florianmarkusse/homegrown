@@ -125,44 +125,28 @@ CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
                          : "a"(globals.level4PageTable)
                          : "memory");
 
-    AsciString data = (AsciString){.buf = (unsigned char *)KERNEL_START};
-    if (((CEfiU64)*data.buf) == 0x56 && ((CEfiU64) * (data.buf + 1)) == 0x57 &&
-        ((CEfiU64) * (data.buf + 2)) == 0x48) {
-        __asm__ __volatile__("cli;"
-
-                             "movq %%rdx, %%rdi;"
-                             "movq $0xFFFFFFFFFFFFFF, %%rax;"
-                             "movq $0x4000, %%rcx;"
-                             "rep stosq;"
-                             "hlt;"
-
-                             "hlt" ::"d"(globals.frameBufferAddress));
-    }
-
-    typedef void (*Entry)(void);
-    Entry entry = (Entry)KERNEL_START;
-
     __asm__ __volatile__(
-        "movq %0, %%rsp;"
-        "movq %%rsp, %%rbp;"
         //        "movq $0xFFFFFFFF, %%rax;"  "movq %%rax, (%%rdx);"      "hlt;"
+        "cli;"
 
-        "movq %%rdx, %%rdi;"
-        "movq $0xFFFFFFFFFFFFFF, %%rax;"
-        "movq $0x4000, %%rcx;"
-        "rep stosq;"
+        //      "movq %%rdx, %%rdi;"
+        //      "movq $0xFFFFFFFFFFFFFF, %%rax;"
+        //      "movq $0x4000, %%rcx;"
+        //      "rep stosq;"
 
         // "call *%1"
+
+        "movq %0, %%rsp;"
+        "movq %%rsp, %%rbp;"
+
+        "cld;"
+
         "pushq %1;"
         "retq"
-        //
-        //
-
         :
-        : "r"(stackPointer), "r"(KERNEL_START),
-          "d"(*(CEfiU32 *)KERNEL_PARAMS_START)
-        //,  "d"(globals.frameBufferAddress)
-        : "rsp", "rbp", "rax", "rsi", "rcx", "memory");
+        : "r"(stackPointer), "r"(KERNEL_CODE_START)
+        // "d"(globals.frameBufferAddress)
+        : "memory");
 
     __builtin_unreachable();
 
@@ -268,7 +252,7 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Attempting to map memory now...\r\n");
-    mapMemoryAt((CEfiU64)kernelContent.buf, KERNEL_START,
+    mapMemoryAt((CEfiU64)kernelContent.buf, KERNEL_CODE_START,
                 (CEfiU32)kernelContent.len);
 
     __asm__ __volatile__("cli");
@@ -307,13 +291,18 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     printNumber(gop->mode->frameBufferBase, 16);
     globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
-    CEfiPhysicalAddress kernelParams = allocAndZero(1);
-    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, PAGE_SIZE);
+    globals.st->con_out->output_string(
+        globals.st->con_out, u"Creating space for kernel parameters...\r\n");
+    CEfiPhysicalAddress kernelParams =
+        allocAndZero(KERNEL_PARAMS_SIZE / PAGE_SIZE);
+    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, KERNEL_PARAMS_SIZE);
     KernelParameters *params = (KernelParameters *)kernelParams;
 
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"Creating space for stack...\r\n");
     CEfiPhysicalAddress stackEnd = allocAndZero(STACK_SIZE / PAGE_SIZE);
     mapMemoryAt(stackEnd, BOTTOM_STACK, STACK_SIZE);
-    CEfiPhysicalAddress stackPointer = stackEnd + STACK_SIZE - 1;
+    CEfiPhysicalAddress stackPointer = stackEnd + STACK_SIZE;
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"The stack will go down from ");

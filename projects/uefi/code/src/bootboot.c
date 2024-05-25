@@ -141,13 +141,13 @@ void CEFICALL bootboot_startcore(void *buf) {
     __asm__ __volatile__(
         // get a valid stack for the core we're running on
         "movq %0, %%rsp;"
+        "movq %%rsp, %%rbp;"
         // pass control over
         "pushq %1;"
 
         "retq"
         :
-        : "a"(stackPointer), "b"(KERNEL_START)
-        : "rsp", "rbp", "rsi", "rcx", "memory");
+        : "a"(stackPointer), "b"(KERNEL_START));
 }
 
 static CEfiU64 ncycles = 1;

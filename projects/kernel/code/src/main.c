@@ -21,11 +21,10 @@ __attribute__((ms_abi, section("kernel-start"))) int kernelmain() {
     //
     //                         "hlt;" ::"d"((*(uint32_t *)KERNEL_PARAMS_START))
     //                         : "rsp", "rbp", "rax", "rcx");
-    //
-    //    __asm__ __volatile__("cli; hlt" : : "a"(0xdeadbeef)); // DEBUGGING
 
     KernelParameters *kernelParameters =
         (KernelParameters *)KERNEL_PARAMS_START;
+
     setupScreen(
         (ScreenDimension){.scanline = kernelParameters->fb.scanline,
                           .size = kernelParameters->fb.size,
@@ -35,7 +34,7 @@ __attribute__((ms_abi, section("kernel-start"))) int kernelmain() {
 
     setupIDT();
 
-    __asm__ __volatile__("int $03");
+    __asm__ __volatile__("int $3" ::"r"(0));
 
     FLUSH_AFTER { LOG(STRING("Operating system starting ...\n")); }
 

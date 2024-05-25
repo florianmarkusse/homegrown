@@ -16,7 +16,6 @@ CEfiPhysicalAddress allocAndZero(CEfiUSize numPages) {
     return page;
 }
 
-static CEfiPhysicalAddress bumpMemory = KERNEL_SPACE_START;
 void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU64 size) {
     /* is this a canonical address? We handle virtual memory up to 256TB */
     if (!globals.level4PageTable ||
@@ -55,21 +54,11 @@ void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU64 size) {
         /* if this page is already mapped, that means the kernel has invalid,
          * overlapping segments */
         if (!*pageEntry) {
-            *pageEntry =
-                // TODO: Remove WRITE_THROUGH once figured out what is necessary
-                // for firmware to work.
-                phys | (PAGE_PRESENT | PAGE_WRITABLE);
+            *pageEntry = phys | (PAGE_PRESENT | PAGE_WRITABLE);
         } //  else {
         //     error(u"This should not happen!\r\n");
         // }
     }
-}
-
-// TODO: Need to create a safeguord for overflow ...
-void mapMemory(CEfiU64 phys, CEfiU64 size) {
-    mapMemoryAt(phys, bumpMemory, size);
-    bumpMemory += size;
-    bumpMemory += bumpMemory & PAGE_MASK ? PAGE_SIZE : 0;
 }
 
 MemoryInfo getMemoryInfo() {

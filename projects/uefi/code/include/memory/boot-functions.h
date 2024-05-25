@@ -6,7 +6,6 @@
 
 CEfiPhysicalAddress allocAndZero(CEfiUSize numPages);
 void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU64 size);
-void mapMemory(CEfiU64 phys, CEfiU64 size);
 
 typedef struct {
     CEfiUSize memoryMapSize;

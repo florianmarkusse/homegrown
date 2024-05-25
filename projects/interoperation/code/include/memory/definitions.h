@@ -1,16 +1,7 @@
 #ifndef MEMORY_DEFINITIONS_H
 #define MEMORY_DEFINITIONS_H
 
-#define STACK_SIZE (1 << 14)
 #define RED_ZONE_SIZE (1 << 7)
-
-#define KERNEL_SPACE_START 0xffff800000000000
-#define KERNEL_SPACE_END 0xffffffffffffffff
-
-#define KERNEL_START 0xfffffffff8000000
-#define BOTTOM_STACK KERNEL_START - STACK_SIZE
-#define KERNEL_PARAMS_START 0xfffffffff7000000
-#define KERNEL_STACK_START 0xfffffffff6000000
 
 #define PAGE_ENTRY_SHIFT 9
 #define PAGE_ENTRY_SIZE (1 << PAGE_ENTRY_SHIFT)
@@ -19,6 +10,20 @@
 #define PAGE_SHIFT 12
 #define PAGE_SIZE (1 << PAGE_SHIFT)
 #define PAGE_MASK (PAGE_SIZE - 1)
+
+#define KERNEL_SPACE_START 0xfffffffff8000000
+#define KERNEL_SPACE_END                                                       \
+    0xfffffffffffff000 // should be fff at the end but otherwise the memory
+                       // allocation map starts to complain
+
+#define KERNEL_CODE_START KERNEL_SPACE_START
+
+#define KERNEL_PARAMS_SIZE PAGE_SIZE
+#define KERNEL_PARAMS_START (KERNEL_SPACE_END - KERNEL_PARAMS_SIZE)
+
+#define STACK_SIZE (1 << 14)
+#define BOTTOM_STACK (KERNEL_PARAMS_START - STACK_SIZE)
+// #define KERNEL_STACK_START 0xfffffffff6000000
 
 #define PAGE_ENTRIES_SIZE_BYTES (8)
 #define PAGE_ENTRIES_NUM (PAGE_SIZE / PAGE_ENTRIES_SIZE_BYTES)

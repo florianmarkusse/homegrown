@@ -663,6 +663,15 @@ typedef struct {
 } regs __attribute__((aligned(8)));
 
 void fault_handler(regs *regs) {
-    FLUSH_AFTER { LOG(faultStrings[regs->int_no], NEWLINE); }
+    FLUSH_AFTER {
+        LOG(STRING("ISR fault handler triggered!\n"));
+        LOG(STRING("Interrupt #: "));
+        LOG(regs->int_no);
+        LOG(STRING(", Interrupt Message: "));
+        LOG(faultStrings[regs->int_no], NEWLINE);
+        LOG(STRING("Error code: "));
+        LOG(regs->err_code, NEWLINE);
+        LOG(STRING("Halting...\n"));
+    }
     __asm__ __volatile__("cli;hlt;");
 }
