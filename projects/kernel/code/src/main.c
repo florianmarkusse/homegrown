@@ -5,6 +5,7 @@
 #include "idt.h"
 #include "kernel-parameters.h"
 #include "memory/definitions.h"
+#include "test.h"
 #include "util/log.h"
 #include "util/types.h"
 
@@ -22,21 +23,21 @@ __attribute__((ms_abi, section("kernel-start"))) int kernelmain() {
     //                         "hlt;" ::"d"((*(uint32_t *)KERNEL_PARAMS_START))
     //                         : "rsp", "rbp", "rax", "rcx");
 
-    KernelParameters *kernelParameters =
-        (KernelParameters *)KERNEL_PARAMS_START;
+    drawBar();
 
-    setupScreen(
-        (ScreenDimension){.scanline = kernelParameters->fb.scanline,
-                          .size = kernelParameters->fb.size,
-                          .width = kernelParameters->fb.columns,
-                          .height = kernelParameters->fb.rows,
-                          .buffer = (uint32_t *)kernelParameters->fb.ptr});
+    //    setupScreen(
+    //        (ScreenDimension){.scanline = kernelParameters->fb.scanline,
+    //                          .size = kernelParameters->fb.size,
+    //                          .width = kernelParameters->fb.columns,
+    //                          .height = kernelParameters->fb.rows,
+    //                          .buffer = (uint32_t
+    //                          *)kernelParameters->fb.ptr});
 
-    setupIDT();
+    //    setupIDT();
+    //
+    //    __asm__ __volatile__("int $3" ::"r"(0));
 
-    __asm__ __volatile__("int $3" ::"r"(0));
-
-    FLUSH_AFTER { LOG(STRING("Operating system starting ...\n")); }
+    //    FLUSH_AFTER { LOG(STRING("Operating system starting ...\n")); }
 
     // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }
 

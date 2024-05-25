@@ -9,6 +9,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -nostdinc 
 
 add_library(${EXECUTABLE_NAME} OBJECT
         "src/main.c" 
+        "src/test.c" 
         "src/acpi/signature.c"
         "src/idt.c"
         "src/idts.S"
