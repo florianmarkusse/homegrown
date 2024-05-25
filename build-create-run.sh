@@ -67,6 +67,6 @@ RUN_QEMU_OPTIONS=(
 	-u bios.bin
 )
 
-[ "$BUILD_MODE" = "Debug" ] && RUN_QEMU_OPTIONS+=(-d)
+[ "$BUILD_MODE" = "Debug" ] && RUN_QEMU_OPTIONS+=(-d) && RUN_QEMU_OPTIONS+=(-v)
 
 ./run-qemu.sh "${RUN_QEMU_OPTIONS[@]}"

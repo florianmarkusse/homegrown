@@ -261,18 +261,6 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     AsciString kernelContent = readDiskLbasFromCurrentGlobalImage(
         kernelFile.lbaStart, kernelFile.bytes);
 
-    printNumber((CEfiU64)*kernelContent.buf, 16);
-    printNumber((CEfiU64) * (kernelContent.buf + 1), 16);
-    printNumber((CEfiU64) * (kernelContent.buf + 2), 16);
-
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"Press any key to continue...\r\n");
-    CEfiInputKey key;
-    while (globals.st->con_in->read_key_stroke(globals.st->con_in, &key) !=
-           C_EFI_SUCCESS) {
-        ;
-    }
-
     globals.st->con_out->output_string(
         globals.st->con_out, u"Read kernel content, at memory location:");
     printNumber((CEfiUSize)kernelContent.buf, 16);

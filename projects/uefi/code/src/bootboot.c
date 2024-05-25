@@ -98,6 +98,9 @@ char *cfgname = "sys/config";
  */
 void CEFICALL bootboot_startcore(void *buf) {
     (void)buf;
+
+    enableNewGDT();
+
     register CEfiU16 core_num = 0;
     if (lapic_addr) {
         // enable Local APIC
@@ -304,13 +307,15 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     printNumber((CEfiU64)*kernelContent.buf, 16);
     printNumber((CEfiU64) * (kernelContent.buf + 1), 16);
     printNumber((CEfiU64) * (kernelContent.buf + 2), 16);
-    CEfiInputKey key;
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"Press any key to continue...\r\n");
-    while (globals.st->con_in->read_key_stroke(globals.st->con_in, &key) !=
-           C_EFI_SUCCESS) {
-        ;
-    }
+    //    CEfiInputKey key;
+    //    globals.st->con_out->output_string(globals.st->con_out,
+    //                                       u"Press any key to
+    //                                       continue...\r\n");
+    //    while (globals.st->con_in->read_key_stroke(globals.st->con_in, &key)
+    //    !=
+    //           C_EFI_SUCCESS) {
+    //        ;
+    //    }
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Retrieving Graphics output buffer...\r\n");
@@ -406,6 +411,8 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
         }
     }
 
+    prepNewGDT();
+
     if (nosmp || globals.numberOfCores < 2 || !lapic_addr) {
         globals.numberOfCores = 1;
         lapic_addr = 0;
@@ -429,9 +436,23 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                 gop->mode->frameBufferSize);
 
     CEfiPhysicalAddress stackEnd = allocAndZero(globals.numberOfCores);
-    globals.highestStackAddress =
-        stackEnd + PAGESIZE * globals.numberOfCores - 1;
+    globals.highestStackAddress = stackEnd + PAGESIZE * globals.numberOfCores;
     mapMemoryAt(stackEnd, KERNEL_STACK_START, globals.numberOfCores * PAGESIZE);
+
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"Number of detected cores: ");
+    printNumber(globals.numberOfCores, 16);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"Stack space (lowest possible): ");
+    printNumber(stackEnd, 16);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+    globals.st->con_out->output_string(
+        globals.st->con_out, u"Stack space (highest/starting address): ");
+    printNumber(globals.highestStackAddress, 16);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
     // Get memory map
     bool apmemfree = false;

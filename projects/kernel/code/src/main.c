@@ -2,6 +2,7 @@
 #include "acpi/c-acpi-rsdt.h"
 #include "acpi/madt.h"
 #include "acpi/signatures.h"
+#include "idt.h"
 #include "kernel-parameters.h"
 #include "memory/definitions.h"
 #include "util/log.h"
@@ -10,36 +11,39 @@
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
 __attribute__((ms_abi, section("kernel-start"))) int kernelmain() {
-    __asm__ __volatile__("cli;"
-                         "movq %%rdx, %%rdi;"
-                         "movq $0x0F000, %%rax;"
-                         "add %%rax, %%rdi;"
-                         "movq $0xFF00FF00FF00FF00, %%rax;"
-                         "movq $0x4000, %%rcx;"
-                         "rep stosq;"
-
-                         "hlt;" ::"d"((*(uint32_t *)KERNEL_PARAMS_START))
-                         : "rsp", "rbp", "rax", "rcx");
-
-    __asm__ __volatile__("cli; hlt" : : "a"(0xdeadbeef)); // DEBUGGING
-
-    //    KernelParameters *kernelParameters =
-    //        (KernelParameters *)KERNEL_PARAMS_START;
-    //    setupScreen(
-    //        (ScreenDimension){.scanline = kernelParameters->fb.scanline,
-    //                          .size = kernelParameters->fb.size,
-    //                          .width = kernelParameters->fb.columns,
-    //                          .height = kernelParameters->fb.rows,
-    //                          .buffer = (uint32_t
-    //                          *)kernelParameters->fb.ptr});
+    //    __asm__ __volatile__("cli;"
+    //                         "movq %%rdx, %%rdi;"
+    //                         "movq $0x0F000, %%rax;"
+    //                         "add %%rax, %%rdi;"
+    //                         "movq $0xFF00FF00FF00FF00, %%rax;"
+    //                         "movq $0x4000, %%rcx;"
+    //                         "rep stosq;"
     //
-    //    FLUSH_AFTER { LOG(STRING("Operating system starting ...\n")); }
+    //                         "hlt;" ::"d"((*(uint32_t *)KERNEL_PARAMS_START))
+    //                         : "rsp", "rbp", "rax", "rcx");
     //
-    //    // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }
-    //
-    //    while (1) {
-    //        ;
-    //    }
+    //    __asm__ __volatile__("cli; hlt" : : "a"(0xdeadbeef)); // DEBUGGING
+
+    KernelParameters *kernelParameters =
+        (KernelParameters *)KERNEL_PARAMS_START;
+    setupScreen(
+        (ScreenDimension){.scanline = kernelParameters->fb.scanline,
+                          .size = kernelParameters->fb.size,
+                          .width = kernelParameters->fb.columns,
+                          .height = kernelParameters->fb.rows,
+                          .buffer = (uint32_t *)kernelParameters->fb.ptr});
+
+    setupIDT();
+
+    __asm__ __volatile__("int $03");
+
+    FLUSH_AFTER { LOG(STRING("Operating system starting ...\n")); }
+
+    // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }
+
+    while (1) {
+        ;
+    }
 }
 
 // typedef enum { RSDT, XSDT, NUM_DESCRIPTION_TABLES } DescriptionTableVersion;

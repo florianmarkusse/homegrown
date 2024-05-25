@@ -9,9 +9,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -target x86_64-unknown-windows -mgeneral-reg
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 
 add_executable(${EXECUTABLE_NAME} 
-    "src/bootboot.c"
-    "src/smp.S"
-    # "src/main.c"
+  "src/bootboot.c"
+  "src/smp.S"
+  #    "src/main.c"
     "src/globals.c"
     "src/printing.c"
     "src/gdt.c"

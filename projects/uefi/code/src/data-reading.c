@@ -62,7 +62,7 @@ AsciString readDiskLbasFromCurrentGlobalImage(CEfiLba diskLba,
     AsciString data;
 
     globals.st->con_out->output_string(globals.st->con_out,
-                                       u"Current Media ID: ");
+                                       u"Media ID UEFI loaded from: ");
     printNumber(imageBiop->Media->MediaId, 10);
     globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
