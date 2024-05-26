@@ -11,7 +11,7 @@
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
-__attribute__((ms_abi, section("kernel-start"))) int kernelmain() {
+__attribute__((section("kernel-start"))) int kernelmain() {
     //    __asm__ __volatile__("cli;"
     //                         "movq %%rdx, %%rdi;"
     //                         "movq $0x0F000, %%rax;"
