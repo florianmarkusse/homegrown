@@ -5,7 +5,7 @@ project(kernel LANGUAGES C ASM)
 include("../../setup.cmake")
 initial_setup()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector -mno-sse -mno-sse2")
 
 add_library(${EXECUTABLE_NAME} OBJECT
         "src/main.c" 

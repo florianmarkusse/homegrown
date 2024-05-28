@@ -64,13 +64,13 @@ static uint32_t bytesPerLine;
 static uint32_t glyphStartOffset;
 static uint32_t glyphStartVerticalOffset;
 
-#define MAX_GLYPSH_PER_LINE 128
+#define MAX_GLYPSH_PER_LINE 512
 typedef struct {
     uint8_t chars[MAX_GLYPSH_PER_LINE]; // TODO: should be glyphsperLine ;
     uint8_t len;
 } ScreenLine;
 
-#define MAX_GLYPSH_PER_COLUMN 64
+#define MAX_GLYPSH_PER_COLUMN 256
 typedef struct {
     ScreenLine lines[MAX_GLYPSH_PER_COLUMN]; // TODO: should be glyphsperLine ;
     uint64_t lastFlushedIndex;
@@ -136,36 +136,38 @@ void drawLine(ScreenLine *screenline, uint32_t rowNumber) {
 
 void setupScreen(ScreenDimension dimension) {
     dim = dimension;
-    dim.backingBuffer = graphicsBuffer;
+    // dim.backingBuffer = graphicsBuffer;
 
-    glyphsPerLine = (dim.width - HORIZONTAL_PIXEL_MARGIN * 2) / (glyphs.width);
-    glyphsPerColumn =
-        (dim.height - VERTICAL_PIXEL_MARGIN * 2) / (glyphs.height);
-    glyphStartVerticalOffset = dim.scanline * VERTICAL_PIXEL_MARGIN;
-    glyphStartOffset = glyphStartVerticalOffset + HORIZONTAL_PIXEL_MARGIN;
-    bytesPerLine = (glyphs.width + 7) / 8;
+    //    glyphsPerLine = (dim.width - HORIZONTAL_PIXEL_MARGIN * 2) /
+    //    (glyphs.width); glyphsPerColumn =
+    //        (dim.height - VERTICAL_PIXEL_MARGIN * 2) / (glyphs.height);
+    //    glyphStartVerticalOffset = dim.scanline * VERTICAL_PIXEL_MARGIN;
+    //    glyphStartOffset = glyphStartVerticalOffset + HORIZONTAL_PIXEL_MARGIN;
+    //    bytesPerLine = (glyphs.width + 7) / 8;
 
-    for (uint32_t y = 0; y < dim.height; y++) {
-        for (uint32_t x = 0; x < dim.scanline; x++) {
-            dim.backingBuffer[y * dim.scanline + x] = 0x00000000;
+    for (uint32_t y = 0; y < dimension.height; y++) {
+        for (uint32_t x = 0; x < dimension.scanline; x++) {
+            dimension.buffer[y * dimension.scanline + x] = 0x00000000;
         }
     }
 
-    for (uint32_t x = 0; x < dim.scanline; x++) {
-        dim.backingBuffer[x] = HAXOR_GREEN;
+    for (uint32_t x = 0; x < dimension.scanline; x++) {
+        dimension.buffer[x] = HAXOR_GREEN;
     }
-    for (uint32_t y = 0; y < dim.height; y++) {
-        dim.backingBuffer[y * dim.scanline] = HAXOR_GREEN;
+    for (uint32_t y = 0; y < dimension.height; y++) {
+        dimension.buffer[y * dimension.scanline] = HAXOR_GREEN;
     }
-    for (uint32_t y = 0; y < dim.height; y++) {
-        dim.backingBuffer[y * dim.scanline + (dim.width - 1)] = HAXOR_GREEN;
-    }
-
-    for (uint32_t x = 0; x < dim.scanline; x++) {
-        dim.backingBuffer[(dim.scanline * (dim.height - 1)) + x] = HAXOR_GREEN;
+    for (uint32_t y = 0; y < dimension.height; y++) {
+        dimension.buffer[y * dimension.scanline + (dimension.width - 1)] =
+            HAXOR_GREEN;
     }
 
-    switchToScreenDisplay();
+    for (uint32_t x = 0; x < dimension.scanline; x++) {
+        dimension.buffer[(dimension.scanline * (dimension.height - 1)) + x] =
+            HAXOR_GREEN;
+    }
+
+    //    switchToScreenDisplay();
 }
 
 bool flushStandardBuffer() { return flushBuffer(&flushBuf); }

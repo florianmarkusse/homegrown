@@ -11,18 +11,24 @@
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
+#define HAXOR_GREEN 0x0000FF00
+#define HAXOR_WHITE 0x00FFFFFF
+
+static ScreenDimension myDim;
+
 __attribute__((section("kernel-start"))) int kernelmain() {
     KernelParameters *kernelParameters =
         (KernelParameters *)KERNEL_PARAMS_START;
 
-    setupScreen(
-        (ScreenDimension){.scanline = kernelParameters->fb.scanline,
-                          .size = kernelParameters->fb.size,
-                          .width = kernelParameters->fb.columns,
-                          .height = kernelParameters->fb.rows,
-                          .buffer = (uint32_t *)kernelParameters->fb.ptr});
+    myDim = (ScreenDimension){.scanline = kernelParameters->fb.scanline,
+                              .size = kernelParameters->fb.size,
+                              .width = kernelParameters->fb.columns,
+                              .height = kernelParameters->fb.rows,
+                              .buffer = (uint32_t *)kernelParameters->fb.ptr};
 
-    setupIDT();
+    setupScreen(myDim);
+
+    //    setupIDT();
 
     //    string bssData = STRING_LEN((char *)KERNEL_SPACE_START + 0x8000,
     //    0x5490);
@@ -42,17 +48,17 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     //        LOG(nonZeroes, NEWLINE);
     //    }
 
-    FLUSH_AFTER {
-        LOG(STRING("AAAAAAAAAAA        AAAAA\n"));
-        LOG(STRING("BBBBBBBBBBB\t\t\t\t\t\t\t\tBBBBB\n"));
-        LOG(STRING("CCCCCCCCCCCCCCCCCCCCCCCC"));
-    }
-
-    FLUSH_AFTER {
-        LOG(STRING("DDDDDDDDDDDDDDDDDDDDDDDD\n"));
-        LOG(STRING("EEEEEEEEEEEEEEEEEEEEEEEE\n"));
-        LOG(STRING("FFFFFFFFFFFFFFFFFFFFFFFF\n"));
-    }
+    //    FLUSH_AFTER {
+    //        LOG(STRING("AAAAAAAAAAA        AAAAA\n"));
+    //        LOG(STRING("BBBBBBBBBBB\t\t\t\t\t\t\t\tBBBBB\n"));
+    //        LOG(STRING("CCCCCCCCCCCCCCCCCCCCCCCC"));
+    //    }
+    //
+    //    FLUSH_AFTER {
+    //        LOG(STRING("DDDDDDDDDDDDDDDDDDDDDDDD\n"));
+    //        LOG(STRING("EEEEEEEEEEEEEEEEEEEEEEEE\n"));
+    //        LOG(STRING("FFFFFFFFFFFFFFFFFFFFFFFF\n"));
+    //    }
 
     // __asm__ __volatile__("int $3" ::"r"(0));
 
