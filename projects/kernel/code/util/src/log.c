@@ -67,17 +67,21 @@ static uint32_t glyphStartVerticalOffset;
 #define MAX_GLYPSH_PER_LINE 128
 typedef struct {
     uint8_t chars[MAX_GLYPSH_PER_LINE]; // TODO: should be glyphsperLine ;
-    uint8_t nextChar;
+    uint8_t len;
 } ScreenLine;
 
 #define MAX_GLYPSH_PER_COLUMN 64
 typedef struct {
     ScreenLine lines[MAX_GLYPSH_PER_COLUMN]; // TODO: should be glyphsperLine ;
-    int32_t lastFlushedLine;
-    int32_t currentLine;
+    uint64_t lastFlushedIndex;
 } ScreenBuffer;
+typedef struct {
+    ScreenBuffer buffer_1;
+    ScreenBuffer buffer_2;
+    bool isFirst;
+} Terminal;
 
-static ScreenBuffer screenBuffer;
+static Terminal terminal;
 
 void switchToScreenDisplay() {
     memcpy(dim.buffer, dim.backingBuffer, dim.scanline * dim.height * 4);
@@ -89,7 +93,7 @@ void drawLine(ScreenLine *screenline, uint32_t rowNumber) {
     psf2_t thing = glyphs;
     uint32_t verticalStart =
         glyphStartOffset + rowNumber * (dim.scanline * glyphs.height);
-    for (uint8_t i = 0; i < screenline->nextChar; i++) {
+    for (uint8_t i = 0; i < screenline->len; i++) {
         uint8_t ch = screenline->chars[i];
         switch (ch) {
             // TODO: Special cases here:
@@ -117,57 +121,12 @@ void drawLine(ScreenLine *screenline, uint32_t rowNumber) {
     }
 
     // Zero/Black out the remaining part of the line.
-    uint32_t offset = verticalStart + screenline->nextChar * (glyphs.width);
+    uint32_t offset = verticalStart + screenline->len * (glyphs.width);
     for (uint32_t i = 0; i < glyphs.height; i++) {
         offset += dim.scanline;
         memset(&dim.backingBuffer[offset], 0,
-               (glyphsPerLine - screenline->nextChar) * glyphs.width * 4);
+               (glyphsPerLine - screenline->len) * glyphs.width * 4);
     }
-}
-
-void flushToScreen() {
-    //    uint32_t distance =
-    //        ABS(screenBuffer.lastFlushedLine - screenBuffer.currentLine);
-    //    // The line that was last flushed needs to be included when writing
-    //    new
-    //    // lines because we cannot guarantee that it was fully written to on
-    //    the
-    //    // previous flush.
-    //    uint32_t linesToRedraw = distance == 0 ? glyphsPerColumn : distance +
-    //    1;
-    //
-    //    memmove(
-    //        &dim.backingBuffer[glyphStartVerticalOffset],
-    //        &dim.backingBuffer[glyphStartVerticalOffset +
-    //                           (linesToRedraw - 1) * glyphs.height *
-    //                           dim.scanline],
-    //        (glyphsPerColumn - (linesToRedraw - 1)) * glyphs.height *
-    //        dim.scanline *
-    //            4);
-    //
-    //    //    for (uint32_t i = linesToRedraw; i < glyphsPerColumn; i--) {
-    //    //        memcpy(&(dim.backingBuffer[glyphStartVerticalOffset +
-    //    //                            (glyphsPerColumn - i - 1) *
-    //    glyphs.height *
-    //    //                                dim.scanline]),
-    //    //               &(dim.backingBuffer[glyphStartVerticalOffset +
-    //    //                            (glyphsPerColumn - i + linesToRedraw -
-    //    2) *
-    //    //                                glyphs.height * dim.scanline]),
-    //    //               dim.scanline * glyphs.height);
-    //    //    }
-    //
-    //    for (uint32_t i = 0; i < linesToRedraw; i++) {
-    //        drawLine(screenBuffer.lines[screenBuffer.lastFlushedLine + i],
-    //                 glyphsPerColumn - (linesToRedraw - 1) + i);
-    //    }
-    //    screenBuffer.lastFlushedLine = screenBuffer.currentLine;
-
-    for (uint32_t i = 0; i < glyphsPerColumn; i++) {
-        drawLine(&(screenBuffer.lines[i]), i);
-    }
-
-    switchToScreenDisplay();
 }
 
 void setupScreen(ScreenDimension dimension) {
@@ -183,28 +142,22 @@ void setupScreen(ScreenDimension dimension) {
 
     for (uint32_t y = 0; y < dim.height; y++) {
         for (uint32_t x = 0; x < dim.scanline; x++) {
-            // dim.backingBuffer[y * dim.scanline + x] = 0x00000000;
             dim.backingBuffer[y * dim.scanline + x] = 0x00000000;
         }
     }
 
     for (uint32_t x = 0; x < dim.scanline; x++) {
         dim.backingBuffer[x] = HAXOR_GREEN;
-        // dim.backingBuffer[x] = HAXOR_GREEN;
     }
     for (uint32_t y = 0; y < dim.height; y++) {
         dim.backingBuffer[y * dim.scanline] = HAXOR_GREEN;
-        // dim.backingBuffer[y * dim.scanline] = HAXOR_GREEN;
     }
     for (uint32_t y = 0; y < dim.height; y++) {
         dim.backingBuffer[y * dim.scanline + (dim.width - 1)] = HAXOR_GREEN;
-        // dim.backingBuffer[y * dim.scanline + (dim.width - 1)] = HAXOR_GREEN;
     }
 
     for (uint32_t x = 0; x < dim.scanline; x++) {
         dim.backingBuffer[(dim.scanline * (dim.height - 1)) + x] = HAXOR_GREEN;
-        // dim.backingBuffer[(dim.scanline * (dim.height - 1)) + x] =
-        // HAXOR_GREEN;
     }
 
     switchToScreenDisplay();
@@ -212,21 +165,109 @@ void setupScreen(ScreenDimension dimension) {
 
 bool flushStandardBuffer() { return flushBuffer(&flushBuf); }
 
-void writeScreenLine(uint64_t from, uint8_t numberOfChars) {
+void memcpy_fromFileBuffer(uint8_t *start, uint64_t from,
+                           uint8_t numberOfChars) {
     uint64_t toEndBuffer = FILE_BUF_LEN - from - 1;
-    memcpy(&screenBuffer.lines[screenBuffer.currentLine - 1],
-           &standinFileBuffer.buf[(from) & (FILE_BUF_LEN - 1)],
+    memcpy(start, &standinFileBuffer.buf[(from) & (FILE_BUF_LEN - 1)],
            MIN(toEndBuffer, numberOfChars));
     if (toEndBuffer < numberOfChars) {
         uint64_t fromStartBuffer = numberOfChars - toEndBuffer;
         memcpy(
-            &screenBuffer.lines[screenBuffer.currentLine - 1]
-                 .chars[toEndBuffer],
+            start,
             &standinFileBuffer.buf[(from + toEndBuffer) & (FILE_BUF_LEN - 1)],
             fromStartBuffer);
     }
+}
 
-    screenBuffer.lines[screenBuffer.currentLine - 1].nextChar = numberOfChars;
+void flushToScreen(uint64_t charactersToFlush) {
+    // We use a duplicate array herer so we can reuse the lines that were not
+    // touched in the case of a flush that did not add as many or more lines
+    // than the number of lines we have in the graphics buffer.
+    terminal.isFirst = !terminal.isFirst;
+
+    ScreenLine *newLines =
+        terminal.isFirst ? terminal.buffer_1.lines : terminal.buffer_2.lines;
+    ScreenLine *cachedLines =
+        terminal.isFirst ? terminal.buffer_2.lines : terminal.buffer_1.lines;
+
+    // TODO: this can happen based on an interrupt I think, max every 40
+    // milisceconds or smth, because I imagine we will be flushing more
+    // often than that.
+    uint64_t currentCursor = standinFileBuffer.len - 1;
+    uint8_t glyphCount = 0;
+    uint32_t currentLine = glyphsPerColumn;
+
+    while (currentLine > 0 && charactersToFlush > 0) {
+        unsigned char ch = standinFileBuffer.buf[currentCursor];
+
+        switch (ch) {
+        // TODO: Add special cases for /t
+        case '\n':
+            if (glyphCount == 0) {
+                break;
+            }
+            // Deliberate fallthrough.
+        case '\0': {
+            memcpy_fromFileBuffer(&newLines[currentLine - 1].chars[0],
+                                  (currentCursor + 1) & (FILE_BUF_LEN - 1),
+                                  glyphCount);
+            newLines[currentLine - 1].len = glyphCount;
+
+            currentLine--;
+            glyphCount = 0;
+            break;
+        }
+        default: {
+            glyphCount++;
+
+            if (glyphCount >= glyphsPerLine) {
+                memcpy_fromFileBuffer(&newLines[currentLine - 1].chars[0],
+                                      currentCursor, glyphCount);
+                newLines[currentLine - 1].len = glyphCount;
+                currentLine--;
+                glyphCount = 0;
+            }
+
+            break;
+        }
+        }
+
+        charactersToFlush--;
+        currentCursor = (currentCursor - 1) & (FILE_BUF_LEN - 1);
+    }
+
+    ScreenLine *lastCachedLine = &cachedLines[glyphsPerColumn - 1];
+    if (charactersToFlush == 0) {
+        ScreenLine *mergedLine = &newLines[currentLine - 1];
+
+        uint32_t cachedCharsToAdd =
+            MIN(glyphsPerLine - glyphCount, lastCachedLine->len);
+        uint32_t firstCachedCharToAdd = lastCachedLine->len - cachedCharsToAdd;
+        memcpy(&mergedLine->chars[0],
+               &lastCachedLine->chars[firstCachedCharToAdd], cachedCharsToAdd);
+
+        mergedLine->len = (uint8_t)cachedCharsToAdd;
+        // We still need to display all the cached chars that were not added to
+        // the merged line.
+        lastCachedLine->len -= cachedCharsToAdd;
+
+        memcpy_fromFileBuffer(&mergedLine->chars[cachedCharsToAdd],
+                              (currentCursor + 1) & (FILE_BUF_LEN - 1),
+                              glyphCount);
+        mergedLine->len += glyphCount;
+    }
+
+    uint32_t cachedLinesStartIndex =
+        glyphsPerColumn - 1 - (lastCachedLine->len == 0);
+    for (uint32_t i = 0; i < currentLine - 1; i++) {
+        drawLine(&cachedLines[cachedLinesStartIndex - i], currentLine - 2 - i);
+    }
+
+    for (uint32_t i = currentLine - 1; i < glyphsPerColumn; i++) {
+        drawLine(&newLines[i], i);
+    }
+
+    switchToScreenDisplay();
 }
 
 // We are going to flush to:
@@ -249,53 +290,9 @@ bool flushBuffer(uint8_max_a *buffer) {
         bytesWritten += bytesToWrite;
     }
 
+    flushToScreen(buffer->len);
+
     buffer->len = 0;
-
-    // TODO: Implement a caching mechanism. We are now overwriting screenBuffer
-    // which can contain data that we can just memmove/memcpy up because we are
-    // writing less than a complete page more often than not.
-    // TODO: this can happen based on an interrupt I think, max every 40
-    // milisceconds or smth, because I imagine we will be flushing more often
-    // than that.
-    uint64_t currentCursor = standinFileBuffer.len - 1;
-    uint8_t glyphCount = 0;
-    screenBuffer.currentLine = glyphsPerColumn;
-
-    while (screenBuffer.currentLine > 0) {
-        unsigned char ch = standinFileBuffer.buf[currentCursor];
-
-        switch (ch) {
-        // TODO: Add special cases for /t and /n
-        case '\n':
-            if (glyphCount == 0) {
-                break;
-            }
-            // Deliberate fallthrough.
-        case '\0': {
-            writeScreenLine(currentCursor + 1, glyphCount);
-            screenBuffer.currentLine--;
-            glyphCount = 0;
-            break;
-        }
-        default: {
-            // TODO: SIMD this bad boy
-            glyphCount++;
-
-            if (glyphCount >= glyphsPerLine) {
-                writeScreenLine(currentCursor, glyphCount);
-                screenBuffer.currentLine--;
-                glyphCount = 0;
-            }
-
-            break;
-        }
-        }
-
-        currentCursor =
-            currentCursor == 0 ? FILE_BUF_LEN - 1 : currentCursor - 1;
-    }
-
-    flushToScreen();
 
     return true;
 }
@@ -329,52 +326,6 @@ void appendToFlushBuffer(string data, unsigned char flags) {
         flushBuffer(&flushBuf);
     }
 }
-
-// void printToScreen(string data, uint8_t flags) {
-//     ASSERT(dim.backingBuffer != 0);
-//
-//     for (int64_t i = 0; i < data.len; i++) {
-//         uint8_t ch = data.buf[i];
-//         switch (ch) {
-//         case '\n': {
-//             cursor.x = 0;
-//             cursor.y++;
-//             break;
-//         }
-//         default: {
-//             unsigned char *glyph = &(glyphs.glyphs) + ch *
-//             glyphs.bytesperglyph; uint32_t offset = dim.scanline *
-//             PIXEL_MARGIN +
-//                               cursor.y * (dim.scanline * glyphs.height) +
-//                               PIXEL_MARGIN + cursor.x * (glyphs.width);
-//
-//             for (uint32_t y = 0; y < glyphs.height; y++) {
-//                 // TODO: use SIMD instructions?
-//                 uint32_t line = offset;
-//                 uint32_t mask = 1 << (glyphs.width - 1);
-//                 for (uint32_t x = 0; x < glyphs.width; x++) {
-//                     dim.backingBuffer[line] =
-//                         ((((uint32_t)*glyph) & (mask)) != 0) *
-//                         HAXOR_WHITE;
-//                     mask >>= 1;
-//                     line++;
-//                 }
-//                 glyph += bytesPerLine;
-//                 offset += dim.scanline;
-//             }
-//
-//             cursor.x = (cursor.x < glyphsPerLine) * (cursor.x + 1);
-//             cursor.y += cursor.x == 0;
-//             break;
-//         }
-//         }
-//     }
-//
-//     if (flags & NEWLINE) {
-//         cursor.x = 0;
-//         cursor.y++;
-//     }
-// }
 
 void printToSerial(string data, uint8_t flags) {
     static char serinit = 0;
