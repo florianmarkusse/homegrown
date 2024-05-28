@@ -95,28 +95,33 @@ void drawLine(ScreenLine *screenline, uint32_t rowNumber) {
         glyphStartOffset + rowNumber * (dim.scanline * glyphs.height);
     for (uint8_t i = 0; i < screenline->len; i++) {
         uint8_t ch = screenline->chars[i];
+        // TODO: Special cases here:
+        // \t and others?
         switch (ch) {
-            // TODO: Special cases here:
-            // \t and others?
-        default: {
-            unsigned char *glyph = &(glyphs.glyphs) + ch * glyphs.bytesperglyph;
-            uint32_t offset = verticalStart + i * (glyphs.width);
-
-            for (uint32_t y = 0; y < glyphs.height; y++) {
-                // TODO: use SIMD instructions?
-                uint32_t line = offset;
-                uint32_t mask = 1 << (glyphs.width - 1);
-                for (uint32_t x = 0; x < glyphs.width; x++) {
-                    dim.backingBuffer[line] =
-                        ((((uint32_t)*glyph) & (mask)) != 0) * HAXOR_WHITE;
-                    mask >>= 1;
-                    line++;
-                }
-                glyph += bytesPerLine;
-                offset += dim.scanline;
-            }
+        case '\t': {
+            ch = ' ';
             break;
         }
+        default: {
+            break;
+        }
+        }
+
+        unsigned char *glyph = &(glyphs.glyphs) + ch * glyphs.bytesperglyph;
+        uint32_t offset = verticalStart + i * (glyphs.width);
+
+        for (uint32_t y = 0; y < glyphs.height; y++) {
+            // TODO: use SIMD instructions?
+            uint32_t line = offset;
+            uint32_t mask = 1 << (glyphs.width - 1);
+            for (uint32_t x = 0; x < glyphs.width; x++) {
+                dim.backingBuffer[line] =
+                    ((((uint32_t)*glyph) & (mask)) != 0) * HAXOR_WHITE;
+                mask >>= 1;
+                line++;
+            }
+            glyph += bytesPerLine;
+            offset += dim.scanline;
         }
     }
 
@@ -201,13 +206,11 @@ void flushToScreen(uint64_t charactersToFlush) {
         unsigned char ch = standinFileBuffer.buf[currentCursor];
 
         switch (ch) {
-        // TODO: Add special cases for /t
-        case '\n':
+        case '\n': {
             if (glyphCount == 0) {
                 break;
             }
-            // Deliberate fallthrough.
-        case '\0': {
+
             memcpy_fromFileBuffer(&newLines[currentLine - 1].chars[0],
                                   (currentCursor + 1) & (FILE_BUF_LEN - 1),
                                   glyphCount);
@@ -217,6 +220,9 @@ void flushToScreen(uint64_t charactersToFlush) {
             glyphCount = 0;
             break;
         }
+            // This currently includes \t. We are reading the buffer from
+            // front to back, so we don't know how to adjust to a tab character
+            // :|
         default: {
             glyphCount++;
 
@@ -324,55 +330,6 @@ void appendToFlushBuffer(string data, unsigned char flags) {
 
     if (flags & FLUSH) {
         flushBuffer(&flushBuf);
-    }
-}
-
-void printToSerial(string data, uint8_t flags) {
-    static char serinit = 0;
-#define PUTC(c)                                                                \
-    __asm__ __volatile__(                                                      \
-        "xorl %%ebx, %%ebx; movb %0, %%bl;"                                    \
-        "movl $10000,%%ecx;"                                                   \
-        "1:inb %%dx, %%al;pause;"                                              \
-        "cmpb $0xff,%%al;je 2f;"                                               \
-        "dec %%ecx;jz 2f;"                                                     \
-        "andb $0x20,%%al;jz 1b;"                                               \
-        "subb $5,%%dl;movb %%bl, %%al;outb %%al, %%dx;2:" ::"a"(c),            \
-        "d"(0x3fd)                                                             \
-        : "rbx", "rcx");
-    /* initialize serial port */
-    if (!serinit) {
-        serinit = 1;
-        __asm__ __volatile__(
-            "movl %0, %%edx;"
-            "xorb %%al, %%al;outb %%al, %%dx;"               /* IER int off */
-            "movb $0x80, %%al;addb $2,%%dl;outb %%al, %%dx;" /* LCR set
-                                                                divisor mode
-                                                              */
-            "movb $1, %%al;subb $3,%%dl;outb %%al, %%dx;"    /* DLL divisor lo
-                                                                115200 */
-            "xorb %%al, %%al;incb %%dl;outb %%al, %%dx;"     /* DLH divisor hi
-                                                              */
-            "incb %%dl;outb %%al, %%dx;"                     /* FCR fifo off */
-            "movb $0x43, %%al;incb %%dl;outb %%al, %%dx;"    /* LCR 8N1, break
-                                                              * on
-                                                              */
-            "movb $0x8, %%al;incb %%dl;outb %%al, %%dx;"     /* MCR Aux out 2 */
-            "xorb %%al, %%al;subb $4,%%dl;inb %%dx, %%al"    /* clear
-                                                                receiver/transmitter
-                                                              */
-            :
-            : "a"(0x3f9)
-            : "rdx");
-    }
-
-    for (uint64_t i = 0; i < data.len; i++) {
-        PUTC(data.buf[i]);
-    }
-
-    char newline = '\n';
-    if (flags & NEWLINE) {
-        PUTC(newline);
     }
 }
 

@@ -43,8 +43,8 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     //    }
 
     FLUSH_AFTER {
-        LOG(STRING("AAAAAAAAAAAAAAAAAAAAAAAA\n"));
-        LOG(STRING("BBBBBBBBBBBBBBBBBBBBBBBB\n"));
+        LOG(STRING("AAAAAAAAAAA        AAAAA\n"));
+        LOG(STRING("BBBBBBBBBBB\t\t\t\t\t\t\t\tBBBBB\n"));
         LOG(STRING("CCCCCCCCCCCCCCCCCCCCCCCC"));
     }
 
