@@ -199,43 +199,6 @@ bool CpuHasFeatures(unsigned int ecx, unsigned int edx) {
 CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
     enableNewGDT();
 
-    if (CpuHasFeatures(0, CPUID_FEAT_EDX_PGE)) {
-        CpuEnableGpe();
-    } else {
-        error(u"CPU does not support global memory paging!");
-    }
-
-    // Can we enable FPU?
-    if (CpuHasFeatures(0, CPUID_FEAT_EDX_FPU)) {
-        CpuEnableFpu();
-    } else {
-        error(u"CPU does not support FPU!");
-    }
-
-    // Can we enable SSE?
-    if (CpuHasFeatures(0, CPUID_FEAT_EDX_SSE)) {
-        CpuEnableSse();
-    } else {
-        error(u"CPU does not support SSE!");
-    }
-
-    // Can we enable xsave? (and maybe avx?)
-    if (CpuHasFeatures(CPUID_FEAT_ECX_XSAVE | CPUID_FEAT_ECX_OSXSAVE, 0)) {
-        __asm__ __volatile__("movq $0xFFFFFFFF, %%rax;"
-                             "movq %%rax, (%%rdx);"
-                             "hlt;" ::"d"(globals.frameBufferAddress));
-
-        CpuEnableXSave();
-
-        if (CpuHasFeatures(CPUID_FEAT_ECX_AVX, 0)) {
-            CpuEnableAvx();
-        } else {
-            error(u"CPU does not support AVX!");
-        }
-    } else {
-        error(u"CPU does not support XSAVE!");
-    }
-
     __asm__ __volatile__("mov %%rax, %%cr3"
                          :
                          : "a"(globals.level4PageTable)
@@ -444,6 +407,52 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
         error(u"Could not find an RSDP!\r\n");
     }
     params->rsdp = rsdp;
+
+    if (CpuHasFeatures(0, CPUID_FEAT_EDX_PGE)) {
+        globals.st->con_out->output_string(globals.st->con_out,
+                                           u"Enabling GPE...\r\n");
+        CpuEnableGpe();
+    } else {
+        error(u"CPU does not support global memory paging!");
+    }
+
+    // Can we enable FPU?
+    if (CpuHasFeatures(0, CPUID_FEAT_EDX_FPU)) {
+        globals.st->con_out->output_string(globals.st->con_out,
+                                           u"Enabling FPU...\r\n");
+        CpuEnableFpu();
+    } else {
+        error(u"CPU does not support FPU!");
+    }
+
+    // Can we enable SSE?
+    if (CpuHasFeatures(0, CPUID_FEAT_EDX_SSE)) {
+        globals.st->con_out->output_string(globals.st->con_out,
+                                           u"Enabling SSE...\r\n");
+        CpuEnableSse();
+    } else {
+        error(u"CPU does not support SSE!");
+    }
+
+    //    // Can we enable xsave? (and maybe avx?)
+    //    // We are just checking for xsave and not osxsave currently. I am not
+    //    sure
+    //    // what the implications would be tbh.
+    //    if (CpuHasFeatures(CPUID_FEAT_ECX_XSAVE, 0)) {
+    //        globals.st->con_out->output_string(globals.st->con_out,
+    //                                           u"Enabling XSAVE...\r\n");
+    //        CpuEnableXSave();
+    //
+    //        if (CpuHasFeatures(CPUID_FEAT_ECX_AVX, 0)) {
+    //            globals.st->con_out->output_string(globals.st->con_out,
+    //                                               u"Enabling AVX...\r\n");
+    //            CpuEnableAvx();
+    //        } else {
+    //            error(u"CPU does not support AVX!");
+    //        }
+    //    } else {
+    //        error(u"CPU does not support XSAVE!");
+    //    }
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Prepared and collected all necessary "

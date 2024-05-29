@@ -78,8 +78,8 @@ display_configuration
 [ -z "${UEFI_LOCATION}" ] || [ -z "${OS_LOCATION}" ] && display_usage && exit 1
 
 QEMU_OPTIONS=(
-	-accel "tcg,thread=single"
-	-cpu core2duo
+	-cpu host
+	-enable-kvm
 	-m 256
 	-machine q35
 	-no-reboot

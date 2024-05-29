@@ -17,6 +17,8 @@ ASSEMBLER_INCLUDE=$(readlink -f ../dependencies/fasmg/examples/x86/include/)
 
 SELECTED_TARGETS=()
 INCLUDE_WHAT_YOU_USE=true
+USE_AVX=true
+USE_SSE=true
 
 function display_usage() {
 	echo -e "${RED}${BOLD}Usage: $0 [${YELLOW}OPTIONS${RED}]${NO_COLOR}"
@@ -25,6 +27,8 @@ function display_usage() {
 	echo -e "  -u, --no-iwyu              Opt-out of include-what-you-use."
 	echo -e "  -c, --c-compiler           Set the c-compiler. Default is ${YELLOW}${C_COMPILER}${NO_COLOR}."
 	echo -e "  -s, --select-targets       Select specific target(s, space-separated) to be built."
+	echo -e "  --no-avx                   Disable AVX. (This is applied to the operating system build only)"
+	echo -e "  --no-sse                   Disable SSE. (This is applied to the operating system build only)"
 	echo -e "  -h, --help                 Display this help message."
 	exit 1
 }
@@ -73,6 +77,8 @@ function display_configuration() {
 	fi
 
 	display_single_flag_configuration $INCLUDE_WHAT_YOU_USE "Include-What-You-Use"
+	display_single_flag_configuration $USE_AVX "AVX"
+	display_single_flag_configuration $USE_SSE "SSE"
 
 	echo ""
 }
@@ -102,6 +108,14 @@ while [[ "$#" -gt 0 ]]; do
 			shift
 		done
 		;;
+	--no-avx)
+		USE_AVX=false
+		shift
+		;;
+	--no-sse)
+		USE_SSE=false
+		shift
+		;;
 	-h | --help)
 		display_usage
 		;;
@@ -124,6 +138,8 @@ CONFIGURE_CMAKE_OPTIONS=(
 	-D CMAKE_C_COMPILER="$C_COMPILER"
 	-D CMAKE_LINKER="$LINKER"
 	-D CMAKE_BUILD_TYPE="$BUILD_MODE"
+	-D USE_AVX="$USE_AVX"
+	-D USE_SSE="$USE_SSE"
 	# 	-D CMAKE_ASM_COMPILER="$ASSEMBLER"
 	# 	-D CMAKE_ASM_INCLUDE="$ASSEMBLER_INCLUDE"
 )
@@ -188,6 +204,8 @@ CONFIGURE_CMAKE_OPTIONS=(
 	-B build/
 	-D CMAKE_C_COMPILER="clang"
 	-D CMAKE_LINKER="clang"
+	-D USE_AVX="$USE_AVX"
+	-D USE_SSE="$USE_SSE"
 	#	-D CMAKE_ASM_COMPILER="$ASSEMBLER"
 	# -D CMAKE_ASM_INCLUDE="$ASSEMBLER_INCLUDE"
 	-D CMAKE_BUILD_TYPE="$BUILD_MODE"

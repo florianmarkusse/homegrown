@@ -14,53 +14,26 @@
 #define HAXOR_GREEN 0x0000FF00
 #define HAXOR_WHITE 0x00FFFFFF
 
-static ScreenDimension myDim;
-
 __attribute__((section("kernel-start"))) int kernelmain() {
     KernelParameters *kernelParameters =
         (KernelParameters *)KERNEL_PARAMS_START;
 
-    myDim = (ScreenDimension){.scanline = kernelParameters->fb.scanline,
-                              .size = kernelParameters->fb.size,
-                              .width = kernelParameters->fb.columns,
-                              .height = kernelParameters->fb.rows,
-                              .buffer = (uint32_t *)kernelParameters->fb.ptr};
+    setupScreen(
+        (ScreenDimension){.scanline = kernelParameters->fb.scanline,
+                          .size = kernelParameters->fb.size,
+                          .width = kernelParameters->fb.columns,
+                          .height = kernelParameters->fb.rows,
+                          .buffer = (uint32_t *)kernelParameters->fb.ptr});
 
-    setupScreen(myDim);
+    setupIDT();
 
-    //    setupIDT();
+    FLUSH_AFTER {
+        LOG(STRING(
+            "Hi Alex(is), I had a nice walk & talk with you tonight.\n"));
+        LOG(STRING("Also, you have a cute smile (:\n"));
+    }
 
-    //    string bssData = STRING_LEN((char *)KERNEL_SPACE_START + 0x8000,
-    //    0x5490);
-    //
-    //    uint64_t nonZeroes = 0;
-    //    for (uint64_t i = 0; i < bssData.len; i++) {
-    //        char ele = bssData.buf[i];
-    //        if (ele != 0) {
-    //            nonZeroes++;
-    //            LOG(i);
-    //            LOG(STRING(" "));
-    //        }
-    //    }
-
-    //    FLUSH_AFTER {
-    //        LOG(STRING("The number of non-zeroes is: "));
-    //        LOG(nonZeroes, NEWLINE);
-    //    }
-
-    //    FLUSH_AFTER {
-    //        LOG(STRING("AAAAAAAAAAA        AAAAA\n"));
-    //        LOG(STRING("BBBBBBBBBBB\t\t\t\t\t\t\t\tBBBBB\n"));
-    //        LOG(STRING("CCCCCCCCCCCCCCCCCCCCCCCC"));
-    //    }
-    //
-    //    FLUSH_AFTER {
-    //        LOG(STRING("DDDDDDDDDDDDDDDDDDDDDDDD\n"));
-    //        LOG(STRING("EEEEEEEEEEEEEEEEEEEEEEEE\n"));
-    //        LOG(STRING("FFFFFFFFFFFFFFFFFFFFFFFF\n"));
-    //    }
-
-    // __asm__ __volatile__("int $3" ::"r"(0));
+    __asm__ __volatile__("int $3" ::"r"(0));
 
     // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }
 

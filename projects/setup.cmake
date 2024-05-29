@@ -4,10 +4,23 @@ macro(initial_setup)
     set(CMAKE_C_STANDARD 23)
     set(CMAKE_C_STANDARD_REQUIRED ON)
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64 -Wall -Wextra -Wconversion -Wno-sign-conversion -Wdouble-promotion -Wvla -W")
+    option(USE_AVX "Use AVX" TRUE)
+    option(USE_SSE "Use SSE" TRUE)
+    
+    # TODO: May want to use -mfpmath=sse when new processor?
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -m64 -Wall -Wextra -Wconversion -Wno-sign-conversion -Wdouble-promotion -Wvla -W")
+    if (NOT "${USE_AVX}")
+        add_compile_definitions("NO_AVX")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mno-avx")
+    endif()
+    if (NOT "${USE_SSE}")
+        add_compile_definitions("NO_SSE")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mno-sse -mno-sse2")
+    endif()
+
 
     set(EXECUTABLE_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
-    
+
     if(NOT CMAKE_BUILD_TYPE)
         set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (Debug, Release, Profiling, Fuzzing)" FORCE)
     endif()
