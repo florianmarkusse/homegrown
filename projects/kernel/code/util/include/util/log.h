@@ -15,7 +15,7 @@ extern "C" {
 // This struct implicitly assumes that there are 4 bytes per pixel, hence a
 // uint32 buffer
 typedef struct {
-    uint32_t *buffer;
+    uint32_t *screen;
     uint32_t *backingBuffer;
     uint64_t size;
     uint32_t width;

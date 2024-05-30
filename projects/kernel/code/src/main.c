@@ -23,17 +23,36 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                           .size = kernelParameters->fb.size,
                           .width = kernelParameters->fb.columns,
                           .height = kernelParameters->fb.rows,
-                          .buffer = (uint32_t *)kernelParameters->fb.ptr});
+                          .screen = (uint32_t *)kernelParameters->fb.ptr});
 
     setupIDT();
 
     FLUSH_AFTER {
-        LOG(STRING(
-            "Hi Alex(is), I had a nice walk & talk with you tonight.\n"));
-        LOG(STRING("Also, you have a cute smile (:\n"));
+        LOG(STRING("Dick size:\tlarge\n"));
+        LOG(STRING("Height:\timpressive\n"));
+        LOG(STRING("Height: impressive\n"));
+        LOG(STRING("Money:\t\tyes\n"));
+        LOG(STRING("\t\t\tlarge\n"));
     }
 
-    __asm__ __volatile__("int $3" ::"r"(0));
+    FLUSH_AFTER {
+        LOG(STRING("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n"));
+        LOG(STRING("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"));
+    }
+
+    FLUSH_AFTER { LOG(STRING("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n")); }
+
+    FLUSH_AFTER {
+        LOG(STRING("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n"));
+        LOG(STRING("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n\nhi"));
+    }
+
+    FLUSH_AFTER {
+        LOG(STRING("AAAAAAAAAAAAAAAAAAA"));
+        LOG(STRING("BBBBBBBBBBBBBBBBBBB\nCCCCCCCCCCCCCCCCCCCCC\n\n\n"));
+    }
+
+    // __asm__ __volatile__("int $3" ::"r"(0));
 
     // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }
 

@@ -78,8 +78,6 @@ display_configuration
 [ -z "${UEFI_LOCATION}" ] || [ -z "${OS_LOCATION}" ] && display_usage && exit 1
 
 QEMU_OPTIONS=(
-	-cpu host
-	-enable-kvm
 	-m 256
 	-machine q35
 	-no-reboot
@@ -96,10 +94,19 @@ if [ "$VERBOSE" = true ]; then
 		-d "int,cpu_reset"
 	)
 fi
+# For some reason i am unable to create breakpoints with qemu on cpu host, so doing it like this.
 if [ "$DEBUG" = true ]; then
 	QEMU_OPTIONS+=(
 		-s -S
+		-accel "tcg,thread=single"
+		-cpu core2duo
+	)
+else
+	QEMU_OPTIONS+=(
+		-cpu host
+		-enable-kvm
 	)
 fi
+
 echo -e "${BOLD}qemu-system-x86_64 ${QEMU_OPTIONS[*]}${NO_COLOR}"
 qemu-system-x86_64 "${QEMU_OPTIONS[@]}"
