@@ -57,7 +57,10 @@ extern psf2_t glyphs asm("_binary____resources_font_psf_start");
 #define HAXOR_GREEN 0x0000FF00
 #define HAXOR_WHITE 0x00FFFFFF
 
+#define TAB_SIZE_IN_GLYPHS 4
+
 static ScreenDimension dim;
+static bool isTailing = true;
 static uint32_t glyphsPerLine;
 static uint32_t glyphsPerColumn;
 static uint32_t maxGlyphsOnScreen;
@@ -68,13 +71,18 @@ static uint32_t glyphStartVerticalOffset;
 #define MAX_GLYPSH_PER_LINE 512
 typedef struct {
     uint8_t chars[MAX_GLYPSH_PER_LINE]; // TODO: should be glyphsperLine ;
+    // Note that the glyphCount and charCount can be different values. A tab is
+    // normally "worth" 4 glyphCounts but only 1 charCount.
     uint32_t glyphCount;
+    uint32_t charCount;
+    uint64_t charIndex; // The index in the file at which this line starts
 } ScreenLine;
 
 #define MAX_GLYPSH_PER_COLUMN 256
 typedef struct {
+    uint32_t indexes[MAX_GLYPSH_PER_COLUMN];
     ScreenLine lines[MAX_GLYPSH_PER_COLUMN]; // TODO: should be glyphsperLine ;
-    uint32_t lineIndex;
+    uint32_t currentIndex;
 } Terminal;
 
 static Terminal terminal;
@@ -166,36 +174,108 @@ void setupScreen(ScreenDimension dimension) {
     glyphStartOffset = glyphStartVerticalOffset + HORIZONTAL_PIXEL_MARGIN;
     bytesPerLine = (glyphs.width + 7) / 8;
 
+    for (uint32_t i = 0; i < MAX_GLYPSH_PER_COLUMN; i++) {
+        terminal.indexes[i] = i;
+    }
+
     screenInit();
 }
 
 bool flushStandardBuffer() { return flushBuffer(&flushBuf); }
 
-void memcpy_fromFileBuffer(uint8_t *start, uint64_t from,
-                           uint8_t numberOfChars) {
-    uint64_t toEndBuffer = FILE_BUF_LEN - from - 1;
-    memcpy(start, &standinFileBuffer.buf[(from) & (FILE_BUF_LEN - 1)],
-           MIN(toEndBuffer, numberOfChars));
-    if (toEndBuffer < numberOfChars) {
-        uint64_t fromStartBuffer = numberOfChars - toEndBuffer;
-        memcpy(
-            start,
-            &standinFileBuffer.buf[(from + toEndBuffer) & (FILE_BUF_LEN - 1)],
-            fromStartBuffer);
+#define LINE_AT(_index) (terminal.lines[terminal.indexes[_index]])
+#define CURRENT_LINE (terminal.lines[terminal.indexes[terminal.currentIndex]])
+void rewind(uint32_t lines) { lines = lines & (MAX_GLYPSH_PER_COLUMN - 1); }
+
+void prowind(uint32_t lines) {
+    //    lines = lines & (MAX_GLYPSH_PER_COLUMN - 1);
+    //
+    //    uint32_t lineToChangeIndex =
+    //        (terminal.currentIndex - (glyphsPerColumn + 1)) &
+    //        (MAX_GLYPSH_PER_COLUMN - 1);
+    //    if (LINE_AT(lineToChangeIndex).charIndex == 0) {
+    //        return;
+    //    }
+    //
+    //    // otherwise, move 'lines' * glyphsPerLine chars forward and rewrite
+    //    the
+    //    // 'lines' number of lines in the array that now need to be rewritten.
+    //    uint64_t firstNewCharIndex =
+    //        (CURRENT_LINE.charIndex + CURRENT_LINE.charCount) & (FILE_BUF_LEN
+    //        - 1);
+    //    uint64_t afterLastPossibleIndex =
+    //        (firstNewCharIndex + (lines * glyphsPerLine)) & (FILE_BUF_LEN -
+    //        1);
+    //
+    //    for (uint64_t i = firstNewCharIndex; i != afterLastPossibleIndex;
+    //         i = (i + 1) & (FILE_BUF_LEN - 1)) {
+    //        LINE_AT(lineToChangeIndex)
+    //    }
+}
+
+void addCharToLineAsASCI(uint64_t fileBufferIndex, uint32_t lineIndex) {
+    unsigned char ch = standinFileBuffer.buf[fileBufferIndex];
+    LINE_AT(lineIndex).charIndex++;
+    if (LINE_AT(lineIndex).charIndex == 1) {
+        LINE_AT(lineIndex).charIndex = fileBufferIndex;
+    }
+
+    switch (ch) {
+    case '\t': {
+        uint32_t previousCount = LINE_AT(lineIndex).glyphCount;
+        uint32_t spacesToAdd =
+            ((LINE_AT(lineIndex).glyphCount + TAB_SIZE_IN_GLYPHS) &
+             (0xFFFFFFFC)) -
+            previousCount;
+        for (uint32_t i = 0; i < spacesToAdd; i++) {
+            LINE_AT(lineIndex).chars[LINE_AT(lineIndex).glyphCount] = ' ';
+            LINE_AT(lineIndex).glyphCount++;
+
+            if (LINE_AT(lineIndex).glyphCount >= glyphsPerLine) {
+                terminal.currentIndex =
+                    (terminal.currentIndex + 1) & (MAX_GLYPSH_PER_COLUMN - 1);
+                LINE_AT(lineIndex).glyphCount = 0;
+            }
+        }
+        break;
+    }
+    case '\n': {
+        terminal.currentIndex =
+            (terminal.currentIndex + 1) & (MAX_GLYPSH_PER_COLUMN - 1);
+        LINE_AT(lineIndex).glyphCount = 0;
+        break;
+    }
+    default: {
+        LINE_AT(lineIndex).chars[LINE_AT(lineIndex).glyphCount] = ch;
+        LINE_AT(lineIndex).glyphCount++;
+
+        if (LINE_AT(lineIndex).glyphCount >= glyphsPerLine) {
+            terminal.currentIndex =
+                (terminal.currentIndex + 1) & (MAX_GLYPSH_PER_COLUMN - 1);
+            LINE_AT(lineIndex).glyphCount = 0;
+        }
+
+        break;
+    }
     }
 }
 
-#define CURRENT_LINE (terminal.lines[terminal.lineIndex])
 void flushToScreen(uint64_t charactersToFlush) {
     // This assumes FILE_BUF_LEN is larger than the number of max glyphs on
     // screen, duh
-    uint32_t startLine = terminal.lineIndex;
+    uint32_t startLine = terminal.currentIndex;
     uint32_t startGlyphCount = CURRENT_LINE.glyphCount;
+
     for (uint64_t i = (standinFileBuffer.len -
                        MIN(charactersToFlush, maxGlyphsOnScreen)) &
                       (FILE_BUF_LEN - 1);
          i != standinFileBuffer.len; i = (i + 1) & (FILE_BUF_LEN - 1)) {
+        // addCharToLineAsASCI(i, terminal.currentIndex);
         unsigned char ch = standinFileBuffer.buf[i];
+        CURRENT_LINE.charIndex++;
+        if (CURRENT_LINE.charIndex == 1) {
+            CURRENT_LINE.charIndex = i;
+        }
 
         switch (ch) {
         case '\t': {
@@ -207,16 +287,16 @@ void flushToScreen(uint64_t charactersToFlush) {
                 CURRENT_LINE.glyphCount++;
 
                 if (CURRENT_LINE.glyphCount >= glyphsPerLine) {
-                    terminal.lineIndex =
-                        (terminal.lineIndex + 1) & (MAX_GLYPSH_PER_COLUMN - 1);
+                    terminal.currentIndex = (terminal.currentIndex + 1) &
+                                            (MAX_GLYPSH_PER_COLUMN - 1);
                     CURRENT_LINE.glyphCount = 0;
                 }
             }
             break;
         }
         case '\n': {
-            terminal.lineIndex =
-                (terminal.lineIndex + 1) & (MAX_GLYPSH_PER_COLUMN - 1);
+            terminal.currentIndex =
+                (terminal.currentIndex + 1) & (MAX_GLYPSH_PER_COLUMN - 1);
             CURRENT_LINE.glyphCount = 0;
             break;
         }
@@ -225,8 +305,8 @@ void flushToScreen(uint64_t charactersToFlush) {
             CURRENT_LINE.glyphCount++;
 
             if (CURRENT_LINE.glyphCount >= glyphsPerLine) {
-                terminal.lineIndex =
-                    (terminal.lineIndex + 1) & (MAX_GLYPSH_PER_COLUMN - 1);
+                terminal.currentIndex =
+                    (terminal.currentIndex + 1) & (MAX_GLYPSH_PER_COLUMN - 1);
                 CURRENT_LINE.glyphCount = 0;
             }
 
@@ -236,10 +316,10 @@ void flushToScreen(uint64_t charactersToFlush) {
     }
     uint32_t newLinesToMove;
     if (startGlyphCount == 0) {
-        newLinesToMove = 1 + ABS(terminal.lineIndex - startLine) -
+        newLinesToMove = 1 + ABS(terminal.currentIndex - startLine) -
                          (CURRENT_LINE.glyphCount == 0);
     } else {
-        newLinesToMove = ABS(terminal.lineIndex - startLine) -
+        newLinesToMove = ABS(terminal.currentIndex - startLine) -
                          (CURRENT_LINE.glyphCount == 0);
     }
     memmove(&dim.backingBuffer[glyphStartVerticalOffset],
@@ -249,16 +329,11 @@ void flushToScreen(uint64_t charactersToFlush) {
                 (glyphsPerColumn - newLinesToMove));
 
     // We are always at least redrawing the last line.
-    uint32_t newLinesToDraw;
-    if (startGlyphCount == 0) {
-        newLinesToDraw = 1 + ABS(terminal.lineIndex - startLine) -
-                         (CURRENT_LINE.glyphCount == 0);
-    } else {
-        newLinesToDraw = 1 + ABS(terminal.lineIndex - startLine) -
-                         (CURRENT_LINE.glyphCount == 0);
-    }
+    uint32_t newLinesToDraw = 1 + ABS(terminal.currentIndex - startLine) -
+                              (CURRENT_LINE.glyphCount == 0);
     for (uint32_t i = 0; i < newLinesToDraw; i++) {
-        drawLine(&terminal.lines[(startLine + i) & (MAX_GLYPSH_PER_COLUMN - 1)],
+        drawLine(&terminal.lines[terminal.indexes[(startLine + i) &
+                                                  (MAX_GLYPSH_PER_COLUMN - 1)]],
                  (glyphsPerColumn - newLinesToDraw) + i);
     }
 
@@ -266,8 +341,8 @@ void flushToScreen(uint64_t charactersToFlush) {
 }
 
 // We are going to flush to:
-// - The in-memory standin file buffer, this will be replaced by a file buffer
-// in the future.
+// - The in-memory standin file buffer, this will be replaced by a file
+// buffer in the future.
 bool flushBuffer(uint8_max_a *buffer) {
     // TODO: flush buffer to file system here.
     // For now using a standby standinFileBuffer?
@@ -285,7 +360,9 @@ bool flushBuffer(uint8_max_a *buffer) {
         bytesWritten += bytesToWrite;
     }
 
-    flushToScreen(buffer->len);
+    if (isTailing) {
+        flushToScreen(buffer->len);
+    }
 
     buffer->len = 0;
 
