@@ -27,6 +27,8 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 
     setupIDT();
 
+    FLUSH_AFTER { LOG(STRING("\t\t\thi\n")); }
+
     FLUSH_AFTER {
         LOG(STRING("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"));
         LOG(STRING("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"));
@@ -35,8 +37,8 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 
     FLUSH_AFTER {
         LOG(STRING("Dick size:\tlarge\n"));
-        LOG(STRING("Height:\timpressive\n"));
-        LOG(STRING("Height:\timpressive\n"));
+        LOG(STRING("Height:\t\timpressive\n"));
+        LOG(STRING("Height:\t\timpressive\n"));
         LOG(STRING("Money:\t\tyes\n"));
         LOG(STRING("\t\t\tlarge\n"));
     }
