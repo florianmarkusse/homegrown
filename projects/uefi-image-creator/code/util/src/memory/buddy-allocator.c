@@ -157,7 +157,7 @@ void flo_coalesceBuddies(flo_BuddyBlock *head, flo_BuddyBlock *tail) {
     }
 }
 
-__attribute((unused, malloc, alloc_size(2, 3))) void *
+__attribute((unused, malloc)) void *
 flo_buddyAlloc(flo_BuddyAllocator *buddyAllocator, ptrdiff_t size,
                ptrdiff_t count, unsigned char flags) {
     FLO_ASSERT(size > 0);

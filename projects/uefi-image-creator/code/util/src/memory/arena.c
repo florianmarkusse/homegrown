@@ -4,7 +4,7 @@
 #include <stdint.h>             // for uintptr_t
 #include <string.h>             // for memcpy, memset
 
-__attribute((malloc, alloc_size(2, 4), alloc_align(3))) void *
+__attribute((malloc, alloc_align(3))) void *
 flo_alloc(flo_arena *a, ptrdiff_t size, ptrdiff_t align, ptrdiff_t count,
           unsigned char flags) {
     FLO_ASSERT(size > 0);
@@ -29,7 +29,7 @@ flo_alloc(flo_arena *a, ptrdiff_t size, ptrdiff_t align, ptrdiff_t count,
     return flags & FLO_ZERO_MEMORY ? memset(p, 0, total) : p;
 }
 
-__attribute((malloc, alloc_size(3, 5), alloc_align(4))) void *
+__attribute((malloc, alloc_align(4))) void *
 flo_copyToArena(flo_arena *arena, void *data, ptrdiff_t size, ptrdiff_t align,
                 ptrdiff_t count) {
     unsigned char *copy = flo_alloc(arena, size, align, count, 0);

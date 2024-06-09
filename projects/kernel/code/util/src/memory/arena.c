@@ -4,9 +4,10 @@
 #include "util/memory/memory.h"
 #include "util/types.h"
 
-__attribute((malloc, alloc_size(2, 4), alloc_align(3))) void *
-alloc(arena *a, int64_t size, uint64_t align, uint64_t count,
-      unsigned char flags) {
+__attribute((malloc, alloc_align(3))) void *alloc(arena *a, int64_t size,
+                                                  uint64_t align,
+                                                  uint64_t count,
+                                                  unsigned char flags) {
     ASSERT((align & (align - 1)) == 0);
 
     uint64_t avail = a->end - a->beg;

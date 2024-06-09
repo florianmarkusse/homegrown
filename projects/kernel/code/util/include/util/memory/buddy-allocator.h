@@ -12,15 +12,13 @@ typedef struct {
     bool isFree;
 } BuddyBlock;
 
-__attribute((unused)) static inline BuddyBlock *
-nextBuddy(BuddyBlock *block) {
+__attribute((unused)) static inline BuddyBlock *nextBuddy(BuddyBlock *block) {
     return (BuddyBlock *)((char *)block + block->size);
 }
 
 BuddyBlock *splitBuddy(BuddyBlock *block, uint64_t size);
 
-BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail,
-                                  uint64_t size);
+BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, uint64_t size);
 
 typedef struct {
     BuddyBlock *head;
@@ -33,9 +31,9 @@ BuddyAllocator createBuddyAllocator(char *data, uint64_t size);
 
 void coalesceBuddies(BuddyBlock *head, BuddyBlock *tail);
 
-__attribute((unused, malloc, alloc_size(2, 3))) void *
-buddyAlloc(BuddyAllocator *buddyAllocator, int64_t size, int64_t count,
-               unsigned char flags);
+__attribute((unused, malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator,
+                                               int64_t size, int64_t count,
+                                               unsigned char flags);
 
 void freeBuddy(BuddyAllocator *buddyAllocator, void *data);
 

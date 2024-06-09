@@ -23,12 +23,11 @@ BuddyBlock *splitBuddy(BuddyBlock *block, uint64_t size) {
     return NULL;
 }
 
-BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail,
-                                  uint64_t size) {
+BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, uint64_t size) {
     ASSERT(size > 0);
 
     BuddyBlock *bestBlock = NULL;
-    BuddyBlock *block = head;                 // Left Buddy
+    BuddyBlock *block = head;             // Left Buddy
     BuddyBlock *buddy = nextBuddy(block); // Right Buddy
 
     // The entire memory section between head and tail is free,
@@ -157,21 +156,21 @@ void coalesceBuddies(BuddyBlock *head, BuddyBlock *tail) {
     }
 }
 
-__attribute((unused, malloc, alloc_size(2, 3))) void *
-buddyAlloc(BuddyAllocator *buddyAllocator, int64_t size, int64_t count,
-               unsigned char flags) {
+__attribute((unused, malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator,
+                                               int64_t size, int64_t count,
+                                               unsigned char flags) {
     ASSERT(size > 0);
 
     uint64_t total = size * count;
     uint64_t totalSize = total + SIZEOF(BuddyBlock);
 
-    BuddyBlock *found = findBestBuddy(buddyAllocator->head,
-                                              buddyAllocator->tail, totalSize);
+    BuddyBlock *found =
+        findBestBuddy(buddyAllocator->head, buddyAllocator->tail, totalSize);
     if (found == NULL) {
         // Try to coalesce all the free buddy blocks and then search again
         coalesceBuddies(buddyAllocator->head, buddyAllocator->tail);
         found = findBestBuddy(buddyAllocator->head, buddyAllocator->tail,
-                                  totalSize);
+                              totalSize);
     }
 
     if (found != NULL) {
@@ -194,8 +193,7 @@ void freeBuddy(BuddyAllocator *buddyAllocator, void *data) {
     ASSERT((void *)buddyAllocator->head <= data);
     ASSERT(data < (void *)buddyAllocator->tail);
 
-    BuddyBlock *block =
-        (BuddyBlock *)((char *)data - SIZEOF(BuddyBlock));
+    BuddyBlock *block = (BuddyBlock *)((char *)data - SIZEOF(BuddyBlock));
     block->isFree = true;
 
     coalesceBuddies(buddyAllocator->head, buddyAllocator->tail);

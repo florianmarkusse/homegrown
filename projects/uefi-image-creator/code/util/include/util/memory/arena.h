@@ -11,11 +11,11 @@ typedef struct {
     void **jmp_buf;
 } flo_arena;
 
-__attribute((malloc, alloc_size(2, 4), alloc_align(3))) void *
+__attribute((malloc, alloc_align(3))) void *
 flo_alloc(flo_arena *a, ptrdiff_t size, ptrdiff_t align, ptrdiff_t count,
           unsigned char flags);
 
-__attribute((malloc, alloc_size(3, 5), alloc_align(4))) void *
+__attribute((malloc, alloc_align(4))) void *
 flo_copyToArena(flo_arena *arena, void *data, ptrdiff_t size, ptrdiff_t align,
                 ptrdiff_t count);
 
