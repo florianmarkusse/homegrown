@@ -11,6 +11,13 @@ extern "C" {
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define ABS(x) (((x) < 0) ? (-(x)) : (x))
 
+#define RING_RANGE(val, ringSize) (((val)) & ((ringSize) - 1))
+#define RING_INCREMENT(val, ringSize) (((val) + 1) & ((ringSize) - 1))
+#define RING_PLUS(val, amount, ringSize) (((val) + (amount)) & ((ringSize) - 1))
+#define RING_DECREMENT(val, ringSize) (((val) - 1) & ((ringSize) - 1))
+#define RING_MINUS(val, amount, ringSize)                                      \
+    (((val) - (amount)) & ((ringSize) - 1))
+
 __attribute__((unused)) static inline uint64_t power(uint64_t base,
                                                      uint64_t exponent) {
     uint64_t result = 1;

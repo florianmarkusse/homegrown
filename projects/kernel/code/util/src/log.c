@@ -21,6 +21,14 @@ static uint8_t standinFileBuf000[(FILE_BUF_LEN)];
 static uint8_max_a standinFileBuffer = {
     .buf = standinFileBuf000, .cap = (FILE_BUF_LEN), .len = 0};
 
+typedef struct {
+    uint8_t buf[FILE_BUF_LEN];
+    uint64_t newCharIndex;
+    bool hasOverrun;
+} FileBuffer;
+
+static FileBuffer fileBuffer;
+
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
 //            padding
@@ -190,34 +198,6 @@ bool flushStandardBuffer() { return flushBuffer(&flushBuf); }
 
 #define LINE_AT(_index) (terminal.lines[terminal.indexes[_index]])
 #define CURRENT_LINE (terminal.lines[terminal.indexes[terminal.lineIndex]])
-void rewind(uint32_t lines) { lines = lines & (MAX_GLYPSH_PER_COLUMN - 1); }
-
-void prowind(uint32_t lines) {
-    //    lines = lines & (MAX_GLYPSH_PER_COLUMN - 1);
-    //
-    //    uint32_t lineToChangeIndex =
-    //        (terminal.currentIndex - (glyphsPerColumn + 1)) &
-    //        (MAX_GLYPSH_PER_COLUMN - 1);
-    //    if (LINE_AT(lineToChangeIndex).charIndex == 0) {
-    //        return;
-    //    }
-    //
-    //    // otherwise, move 'lines' * glyphsPerLine chars forward and rewrite
-    //    the
-    //    // 'lines' number of lines in the array that now need to be rewritten.
-    //    uint64_t firstNewCharIndex =
-    //        (CURRENT_LINE.charIndex + CURRENT_LINE.charCount) & (FILE_BUF_LEN
-    //        - 1);
-    //    uint64_t afterLastPossibleIndex =
-    //        (firstNewCharIndex + (lines * glyphsPerLine)) & (FILE_BUF_LEN -
-    //        1);
-    //
-    //    for (uint64_t i = firstNewCharIndex; i != afterLastPossibleIndex;
-    //         i = (i + 1) & (FILE_BUF_LEN - 1)) {
-    //        LINE_AT(lineToChangeIndex)
-    //    }
-}
-
 // Returns the lineIndex where the next char should be added.
 CharAddResult addCharToLineAsASCI(uint64_t fileBufferIndex,
                                   uint32_t lineIndex) {
@@ -261,24 +241,103 @@ CharAddResult addCharToLineAsASCI(uint64_t fileBufferIndex,
     return (CharAddResult){.startSpaces = 0, .newLine = false};
 }
 
+void rewind(uint32_t lines) {
+    if ((fileBuffer.hasOverrun &&
+         LINE_AT(0).charIndex == fileBuffer.newCharIndex) ||
+        (!fileBuffer.hasOverrun && LINE_AT(0).charIndex == 0)) {
+        return;
+    }
+
+    lines = RING_RANGE(lines, MAX_GLYPSH_PER_COLUMN);
+    // Note that we are going to process this many chars as this is the upper
+    // bound of characters we can put in the lines we want to rewind. It is
+    // likely that the first lines written will be overwritten by the relatively
+    // newer characters that are read. This is intended behavior.
+    uint64_t totalCharsToRewind = lines * glyphsPerLine;
+    uint64_t firstIndexToRead =
+        RING_MINUS(terminal.lines[terminal.indexes[0]].charIndex,
+                   totalCharsToRewind, FILE_BUF_LEN);
+
+    // Reorder lines. 0 ... (max-lines - lines) has to be moved up by 'lines'
+    // each.
+    for (uint32_t i = 0; i < MAX_GLYPSH_PER_COLUMN - lines; i++) {
+        terminal.lines[i] = terminal.lines[i + lines];
+    }
+
+    uint32_t tempLineIndex = 0;
+    // Now lines 0 ... lines - 1 can be reused to write the rewound lines in.
+    for (uint64_t i = firstIndexToRead; i < totalCharsToRewind; i++) {
+        CharAddResult addResult = addCharToLineAsASCI(i, terminal.lineIndex);
+
+        if (addResult.newLine) {
+            tempLineIndex = (tempLineIndex + 1) % lines;
+            LINE_AT(tempLineIndex).glyphCount = 0;
+        }
+
+        for (uint64_t j = 0; j < addResult.startSpaces; j++) {
+            LINE_AT(tempLineIndex).chars[LINE_AT(tempLineIndex).glyphCount] =
+                ' ';
+            LINE_AT(tempLineIndex).glyphCount++;
+        }
+    }
+
+    memmove(&dim.backingBuffer[glyphStartVerticalOffset +
+                               (dim.scanline * glyphs.height * lines)],
+            &dim.backingBuffer[glyphStartVerticalOffset],
+            dim.scanline * 4 * glyphs.height * (glyphsPerColumn - lines));
+
+    for (uint32_t i = 0; i < lines; i++) {
+        drawLine(&terminal.lines[terminal.indexes[0]], 0);
+    }
+
+    switchToScreenDisplay();
+}
+
+void prowind(uint32_t lines) {
+    if (LINE_AT(glyphsPerColumn).charCount == 0) {
+        return;
+    }
+    //    lines = lines & (MAX_GLYPSH_PER_COLUMN - 1);
+    //
+    //    uint32_t lineToChangeIndex =
+    //        (terminal.currentIndex - (glyphsPerColumn + 1)) &
+    //        (MAX_GLYPSH_PER_COLUMN - 1);
+    //    if (LINE_AT(lineToChangeIndex).charIndex == 0) {
+    //        return;
+    //    }
+    //
+    //    // otherwise, move 'lines' * glyphsPerLine chars forward and rewrite
+    //    the
+    //    // 'lines' number of lines in the array that now need to be rewritten.
+    //    uint64_t firstNewCharIndex =
+    //        (CURRENT_LINE.charIndex + CURRENT_LINE.charCount) & (FILE_BUF_LEN
+    //        - 1);
+    //    uint64_t afterLastPossibleIndex =
+    //        (firstNewCharIndex + (lines * glyphsPerLine)) & (FILE_BUF_LEN -
+    //        1);
+    //
+    //    for (uint64_t i = firstNewCharIndex; i != afterLastPossibleIndex;
+    //         i = (i + 1) & (FILE_BUF_LEN - 1)) {
+    //        LINE_AT(lineToChangeIndex)
+    //    }
+}
+
 void flushToScreen(uint64_t charactersToFlush) {
     // This assumes FILE_BUF_LEN is larger than the number of max glyphs on
     // screen, duh
     uint32_t startLine = terminal.lineIndex;
     uint32_t startGlyphCount = CURRENT_LINE.glyphCount;
 
-    for (uint64_t i = (standinFileBuffer.len -
-                       MIN(charactersToFlush, maxGlyphsOnScreen)) &
-                      (FILE_BUF_LEN - 1);
-         i != standinFileBuffer.len; i = (i + 1) & (FILE_BUF_LEN - 1)) {
+    for (uint64_t i = RING_MINUS(standinFileBuffer.len,
+                                 MIN(charactersToFlush, maxGlyphsOnScreen),
+                                 FILE_BUF_LEN);
+         i != standinFileBuffer.len; i = RING_INCREMENT(i, FILE_BUF_LEN)) {
         CharAddResult addResult = addCharToLineAsASCI(i, terminal.lineIndex);
 
         if (addResult.newLine) {
             terminal.lineIndex =
-                (terminal.lineIndex + 1) & (MAX_GLYPSH_PER_COLUMN - 1);
+                RING_INCREMENT(terminal.lineIndex, MAX_GLYPSH_PER_COLUMN);
             LINE_AT(terminal.lineIndex).glyphCount = 0;
-
-            addResult.newLine = false;
         }
 
         for (uint64_t j = 0; j < addResult.startSpaces; j++) {
@@ -305,8 +364,8 @@ void flushToScreen(uint64_t charactersToFlush) {
     uint32_t newLinesToDraw = 1 + ABS(terminal.lineIndex - startLine) -
                               (CURRENT_LINE.glyphCount == 0);
     for (uint32_t i = 0; i < newLinesToDraw; i++) {
-        drawLine(&terminal.lines[terminal.indexes[(startLine + i) &
-                                                  (MAX_GLYPSH_PER_COLUMN - 1)]],
+        drawLine(&terminal.lines[terminal.indexes[RING_PLUS(
+                     startLine, i, MAX_GLYPSH_PER_COLUMN)]],
                  (glyphsPerColumn - newLinesToDraw) + i);
     }
 
@@ -318,18 +377,20 @@ void flushToScreen(uint64_t charactersToFlush) {
 // buffer in the future.
 bool flushBuffer(uint8_max_a *buffer) {
     // TODO: flush buffer to file system here.
-    // For now using a standby standinFileBuffer?
     for (uint64_t bytesWritten = 0; bytesWritten < buffer->len;) {
         // the minimum of size remaining and what is left in the buffer.
-        uint64_t spaceInBuffer =
-            (standinFileBuffer.cap) - standinFileBuffer.len;
+        uint64_t spaceInBuffer = (FILE_BUF_LEN)-fileBuffer.newCharIndex;
         uint64_t dataToWrite = buffer->len - bytesWritten;
         uint64_t bytesToWrite = MIN(spaceInBuffer, dataToWrite);
         // TODO: this should become a file write pretty sure...
-        memcpy(standinFileBuffer.buf + standinFileBuffer.len,
+        memcpy(fileBuffer.buf + fileBuffer.newCharIndex,
                buffer->buf + bytesWritten, bytesToWrite);
-        standinFileBuffer.len =
-            (standinFileBuffer.len + bytesToWrite) & (FILE_BUF_LEN - 1);
+        uint64_t before = fileBuffer.newCharIndex;
+        fileBuffer.newCharIndex =
+            RING_PLUS(fileBuffer.newCharIndex, bytesToWrite, FILE_BUF_LEN);
+        if (before >= fileBuffer.newCharIndex) {
+            fileBuffer.hasOverrun = true;
+        }
         bytesWritten += bytesToWrite;
     }
 
