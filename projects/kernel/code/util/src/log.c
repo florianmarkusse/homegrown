@@ -15,12 +15,6 @@ static uint8_t flushBuf000[128 * 64];
 static uint8_max_a flushBuf = {.buf = flushBuf000, .cap = 128 * 64, .len = 0};
 
 #define FILE_BUF_LEN (1ULL << 16LL)
-static uint8_t standinFileBuf000[(FILE_BUF_LEN)];
-// len is here more used as the index of the next char that it can write to. It
-// is used as a ring buffer.
-static uint8_max_a standinFileBuffer = {
-    .buf = standinFileBuf000, .cap = (FILE_BUF_LEN), .len = 0};
-
 typedef struct {
     uint8_t buf[FILE_BUF_LEN];
     uint64_t newCharIndex;
@@ -201,9 +195,9 @@ bool flushStandardBuffer() { return flushBuffer(&flushBuf); }
 // Returns the lineIndex where the next char should be added.
 CharAddResult addCharToLineAsASCI(uint64_t fileBufferIndex,
                                   uint32_t lineIndex) {
-    unsigned char ch = standinFileBuffer.buf[fileBufferIndex];
-    LINE_AT(lineIndex).charIndex++;
-    if (LINE_AT(lineIndex).charIndex == 1) {
+    unsigned char ch = fileBuffer.buf[fileBufferIndex];
+    LINE_AT(lineIndex).charCount++;
+    if (LINE_AT(lineIndex).charCount == 1) {
         LINE_AT(lineIndex).charIndex = fileBufferIndex;
     }
 
@@ -265,6 +259,7 @@ void rewind(uint32_t lines) {
     }
 
     uint32_t tempLineIndex = 0;
+    // TODO: want to refactor this and pull out into function for sure.
     // Now lines 0 ... lines - 1 can be reused to write the rewound lines in.
     for (uint64_t i = firstIndexToRead; i < totalCharsToRewind; i++) {
         CharAddResult addResult = addCharToLineAsASCI(i, terminal.lineIndex);
@@ -272,6 +267,7 @@ void rewind(uint32_t lines) {
         if (addResult.newLine) {
             tempLineIndex = (tempLineIndex + 1) % lines;
             LINE_AT(tempLineIndex).glyphCount = 0;
+            LINE_AT(tempLineIndex).charCount = 0;
         }
 
         for (uint64_t j = 0; j < addResult.startSpaces; j++) {
@@ -287,7 +283,7 @@ void rewind(uint32_t lines) {
             dim.scanline * 4 * glyphs.height * (glyphsPerColumn - lines));
 
     for (uint32_t i = 0; i < lines; i++) {
-        drawLine(&terminal.lines[terminal.indexes[0]], 0);
+        drawLine(&terminal.lines[terminal.indexes[i]], i);
     }
 
     switchToScreenDisplay();
@@ -328,16 +324,17 @@ void flushToScreen(uint64_t charactersToFlush) {
     uint32_t startLine = terminal.lineIndex;
     uint32_t startGlyphCount = CURRENT_LINE.glyphCount;
 
-    for (uint64_t i = RING_MINUS(standinFileBuffer.len,
+    for (uint64_t i = RING_MINUS(fileBuffer.newCharIndex,
                                  MIN(charactersToFlush, maxGlyphsOnScreen),
                                  FILE_BUF_LEN);
-         i != standinFileBuffer.len; i = RING_INCREMENT(i, FILE_BUF_LEN)) {
+         i != fileBuffer.newCharIndex; i = RING_INCREMENT(i, FILE_BUF_LEN)) {
         CharAddResult addResult = addCharToLineAsASCI(i, terminal.lineIndex);
 
         if (addResult.newLine) {
             terminal.lineIndex =
                 RING_INCREMENT(terminal.lineIndex, MAX_GLYPSH_PER_COLUMN);
             LINE_AT(terminal.lineIndex).glyphCount = 0;
+            LINE_AT(terminal.lineIndex).charCount = 0;
         }
 
         for (uint64_t j = 0; j < addResult.startSpaces; j++) {

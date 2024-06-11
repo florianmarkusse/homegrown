@@ -28,6 +28,9 @@ void appendToFlushBuffer(string data, unsigned char flags);
 bool flushStandardBuffer();
 bool flushBuffer(uint8_max_a *buffer);
 
+void rewind(uint32_t lines);
+void prowind(uint32_t lines);
+
 void printToSerial(string data, uint8_t flags);
 
 string stringWithMinSize(string data, unsigned char minSize, char_a tmp);
