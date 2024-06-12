@@ -18,7 +18,6 @@ static uint8_max_a flushBuf = {.buf = flushBuf000, .cap = 128 * 64, .len = 0};
 typedef struct {
     uint8_t buf[FILE_BUF_LEN];
     uint64_t newCharIndex;
-    bool hasOverrun;
 } FileBuffer;
 
 static FileBuffer fileBuffer;
@@ -90,6 +89,7 @@ typedef struct {
     uint32_t indexes[MAX_GLYPSH_PER_COLUMN];
     ScreenLine lines[MAX_GLYPSH_PER_COLUMN]; // TODO: should be glyphsperLine ;
     uint32_t lineIndex;
+    CharAddResult previousAdd;
 } Terminal;
 
 static Terminal terminal;
@@ -236,46 +236,45 @@ CharAddResult addCharToLineAsASCI(uint64_t fileBufferIndex,
 }
 
 void rewind(uint32_t lines) {
-    if ((fileBuffer.hasOverrun &&
-         LINE_AT(0).charIndex == fileBuffer.newCharIndex) ||
-        (!fileBuffer.hasOverrun && LINE_AT(0).charIndex == 0)) {
+    uint64_t oldestLineIndex =
+        increaseRingNonPowerOf2(terminal.lineIndex, 1, glyphsPerColumn);
+
+    if (LINE_AT(oldestLineIndex).charIndex == fileBuffer.newCharIndex ||
+        LINE_AT(oldestLineIndex).charCount == 0) {
         return;
     }
 
-    lines = RING_RANGE(lines, MAX_GLYPSH_PER_COLUMN);
+    lines = lines % glyphsPerColumn;
     // Note that we are going to process this many chars as this is the upper
     // bound of characters we can put in the lines we want to rewind. It is
     // likely that the first lines written will be overwritten by the relatively
     // newer characters that are read. This is intended behavior.
     uint64_t totalCharsToRewind = lines * glyphsPerLine;
     uint64_t firstIndexToRead =
-        RING_MINUS(terminal.lines[terminal.indexes[0]].charIndex,
+        RING_MINUS(terminal.lines[terminal.indexes[oldestLineIndex]].charIndex,
                    totalCharsToRewind, FILE_BUF_LEN);
-
-    // Reorder lines. 0 ... (max-lines - lines) has to be moved up by 'lines'
-    // each.
-    for (uint32_t i = 0; i < MAX_GLYPSH_PER_COLUMN - lines; i++) {
-        terminal.lines[i] = terminal.lines[i + lines];
-    }
 
     uint32_t tempLineIndex = 0;
     // TODO: want to refactor this and pull out into function for sure.
     // Now lines 0 ... lines - 1 can be reused to write the rewound lines in.
     for (uint64_t i = firstIndexToRead; i < totalCharsToRewind; i++) {
-        CharAddResult addResult = addCharToLineAsASCI(i, terminal.lineIndex);
-
-        if (addResult.newLine) {
+        if (terminal.previousAdd.newLine) {
             tempLineIndex = (tempLineIndex + 1) % lines;
             LINE_AT(tempLineIndex).glyphCount = 0;
             LINE_AT(tempLineIndex).charCount = 0;
         }
 
-        for (uint64_t j = 0; j < addResult.startSpaces; j++) {
+        for (uint64_t j = 0; j < terminal.previousAdd.startSpaces; j++) {
             LINE_AT(tempLineIndex).chars[LINE_AT(tempLineIndex).glyphCount] =
                 ' ';
             LINE_AT(tempLineIndex).glyphCount++;
         }
+
+        terminal.previousAdd = addCharToLineAsASCI(i, terminal.lineIndex);
     }
+
+    // Reorder oldest lines; the current content will be scrolled out of the
+    // screen.
 
     memmove(&dim.backingBuffer[glyphStartVerticalOffset +
                                (dim.scanline * glyphs.height * lines)],
@@ -321,49 +320,44 @@ void prowind(uint32_t lines) {
 void flushToScreen(uint64_t charactersToFlush) {
     // This assumes FILE_BUF_LEN is larger than the number of max glyphs on
     // screen, duh
-    uint32_t startLine = terminal.lineIndex;
-    uint32_t startGlyphCount = CURRENT_LINE.glyphCount;
-
+    uint32_t newLines = 0;
     for (uint64_t i = RING_MINUS(fileBuffer.newCharIndex,
                                  MIN(charactersToFlush, maxGlyphsOnScreen),
                                  FILE_BUF_LEN);
          i != fileBuffer.newCharIndex; i = RING_INCREMENT(i, FILE_BUF_LEN)) {
-        CharAddResult addResult = addCharToLineAsASCI(i, terminal.lineIndex);
-
-        if (addResult.newLine) {
-            terminal.lineIndex =
-                RING_INCREMENT(terminal.lineIndex, MAX_GLYPSH_PER_COLUMN);
+        if (terminal.previousAdd.newLine) {
+            newLines = newLines + (newLines < glyphsPerColumn);
+            terminal.lineIndex = (terminal.lineIndex + 1) % glyphsPerColumn;
             LINE_AT(terminal.lineIndex).glyphCount = 0;
             LINE_AT(terminal.lineIndex).charCount = 0;
         }
 
-        for (uint64_t j = 0; j < addResult.startSpaces; j++) {
+        for (uint64_t j = 0; j < terminal.previousAdd.startSpaces; j++) {
             LINE_AT(terminal.lineIndex)
                 .chars[LINE_AT(terminal.lineIndex).glyphCount] = ' ';
             LINE_AT(terminal.lineIndex).glyphCount++;
         }
+
+        terminal.previousAdd = addCharToLineAsASCI(i, terminal.lineIndex);
     }
-    uint32_t newLinesToMove;
-    if (startGlyphCount == 0) {
-        newLinesToMove = 1 + ABS(terminal.lineIndex - startLine) -
-                         (CURRENT_LINE.glyphCount == 0);
-    } else {
-        newLinesToMove = ABS(terminal.lineIndex - startLine) -
-                         (CURRENT_LINE.glyphCount == 0);
-    }
+
     memmove(&dim.backingBuffer[glyphStartVerticalOffset],
             &dim.backingBuffer[glyphStartVerticalOffset +
-                               (dim.scanline * glyphs.height * newLinesToMove)],
-            dim.scanline * 4 * glyphs.height *
-                (glyphsPerColumn - newLinesToMove));
+                               (dim.scanline * glyphs.height * newLines)],
+            dim.scanline * 4 * glyphs.height * (glyphsPerColumn - newLines));
 
-    // We are always at least redrawing the last line.
-    uint32_t newLinesToDraw = 1 + ABS(terminal.lineIndex - startLine) -
-                              (CURRENT_LINE.glyphCount == 0);
-    for (uint32_t i = 0; i < newLinesToDraw; i++) {
-        drawLine(&terminal.lines[terminal.indexes[RING_PLUS(
-                     startLine, i, MAX_GLYPSH_PER_COLUMN)]],
-                 (glyphsPerColumn - newLinesToDraw) + i);
+    // We are, always, at least redrawing the last line.
+    newLines = newLines + (newLines < glyphsPerColumn);
+    // Need to count backwards from terminal.lineIndex, the line that contains
+    // the most recent content to the oldest line that contains new content.
+    // Moreover, terminal.lineIndex already counts as a line, so we decrease
+    // by 1.
+    uint64_t firstNewLineIndex = decreaseRingNonPowerOf2(
+        terminal.lineIndex, (newLines - 1), glyphsPerColumn);
+    for (uint32_t i = 0; i < newLines; i++) {
+        drawLine(&terminal.lines[terminal.indexes[(firstNewLineIndex + i) %
+                                                  glyphsPerColumn]],
+                 (glyphsPerColumn - newLines) + i);
     }
 
     switchToScreenDisplay();
@@ -385,9 +379,6 @@ bool flushBuffer(uint8_max_a *buffer) {
         uint64_t before = fileBuffer.newCharIndex;
         fileBuffer.newCharIndex =
             RING_PLUS(fileBuffer.newCharIndex, bytesToWrite, FILE_BUF_LEN);
-        if (before >= fileBuffer.newCharIndex) {
-            fileBuffer.hasOverrun = true;
-        }
         bytesWritten += bytesToWrite;
     }
 
