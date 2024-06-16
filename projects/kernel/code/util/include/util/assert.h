@@ -7,27 +7,26 @@ extern "C" {
 
 #ifdef DEBUG
 #if _MSC_VER
-#define ASSERT(c)                                                          \
+#define ASSERT(c)                                                              \
     if (!(c))                                                                  \
         __debugbreak();
 #elif __GNUC__
-#define ASSERT_1(c)                                                        \
+#define ASSERT_1(c)                                                            \
     if (!(c)) {                                                                \
-        __builtin_trap();                                                      \
-        *(volatile int *)0 = 0;                                                \
+        __asm__ __volatile__("int $3");                                        \
     }
-#define ASSERT_2(c, text)                                                  \
+#define ASSERT_2(c, text)                                                      \
     if (!(c)) {                                                                \
-        *(volatile int *)0 = 0;                                                \
+        __asm__ __volatile__("int $3");                                        \
     }
 
 #define ASSERT_X(a, b, c, ...) c
-#define ASSERT(...)                                                        \
-    ASSERT_X(__VA_ARGS__, ASSERT_2, ASSERT_1)                      \
+#define ASSERT(...)                                                            \
+    ASSERT_X(__VA_ARGS__, ASSERT_2, ASSERT_1)                                  \
     (__VA_ARGS__)
 
 #else
-#define ASSERT(c)                                                          \
+#define ASSERT(c)                                                              \
     if (!(c))                                                                  \
         *(volatile int *)0 = 0;
 #endif

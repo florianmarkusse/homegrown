@@ -18,19 +18,6 @@ extern "C" {
 #define RING_MINUS(val, amount, ringSize)                                      \
     (((val) - (amount)) & ((ringSize) - 1))
 
-static inline uint64_t increaseRingNonPowerOf2(int64_t start, int64_t amount,
-                                               uint64_t ringSize) {
-    int64_t result = start + amount;
-    return result % ringSize;
-}
-
-static inline uint64_t decreaseRingNonPowerOf2(int64_t start, int64_t amount,
-                                               uint64_t ringSize) {
-    int64_t result = start - amount;
-    result = result % ringSize;
-    return ((result + (result < 0) * ringSize));
-}
-
 __attribute__((unused)) static inline uint64_t power(uint64_t base,
                                                      uint64_t exponent) {
     uint64_t result = 1;
