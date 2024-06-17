@@ -22,10 +22,10 @@ extern "C" {
 #define INT64_MAX (INT64_C(9223372036854775807))
 
 /* Maximum of unsigned integral types.  */
-#define UINT8_MAX (255)
-#define UINT16_MAX (65535)
-#define UINT32_MAX (4294967295U)
-#define UINT64_MAX (UINT64_C(18446744073709551615))
+#define UINT8_MAX 0xFF
+#define UINT16_MAX 0xFFFF
+#define UINT32_MAX 0xFFFFFFFF
+#define UINT64_MAX 0xFFFFFFFFFFFFFFFF
 
 typedef unsigned char uint8_t;
 typedef unsigned short int uint16_t;

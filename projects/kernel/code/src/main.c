@@ -115,7 +115,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         LOG(STRING("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n"));
     }
 
-    // rewind(4);
+    rewind(5);
 
     // __asm__ __volatile__("int $3" ::"r"(0));
 
