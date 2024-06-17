@@ -486,7 +486,52 @@ void drawLine(uint32_t screenLineIndex, uint16_t rowNumber) {
 }
 
 void rewind(uint16_t screenLines) {
-    ASSERT((screenLines & (screenLines - 1)) == 0);
+    // TODO: can add memmove optimization here. But need to take care what
+    // happens when in between flushes, the char buffer has looped in its
+    // entirety.
+    // TODO: Need to do a binary search to ensure that we not go beyond the
+    // least recent line.
+
+    terminal.window.screenLineStart = RING_MINUS(
+        terminal.window.screenLineStart, screenLines, MAX_SCROLLBACK_LINES);
+    terminal.window.screenLineEnd = RING_MINUS(
+        terminal.window.screenLineEnd, screenLines, MAX_SCROLLBACK_LINES);
+
+    terminal.isTailing = false;
+
+    for (uint16_t i = 0; i < glyphsPerColumn; i++) {
+        drawLine(
+            RING_PLUS(terminal.window.screenLineStart, i, MAX_SCROLLBACK_LINES),
+            i);
+    }
+
+    switchToScreenDisplay();
+
+    return;
+}
+
+void prowind(uint16_t screenLines) {
+    // TODO: can add memmove optimization here. But need to take care what
+    // happens when in between flushes, the char buffer has looped in its
+    // entirety.
+    // TODO: Need to do a binary search to ensure that we not go past the most
+    // recent line.
+
+    terminal.window.screenLineStart = RING_PLUS(
+        terminal.window.screenLineStart, screenLines, MAX_SCROLLBACK_LINES);
+    terminal.window.screenLineEnd = RING_PLUS(
+        terminal.window.screenLineEnd, screenLines, MAX_SCROLLBACK_LINES);
+
+    terminal.isTailing = terminal.window.screenLineEnd == terminal.toWriteLine;
+
+    for (uint16_t i = 0; i < glyphsPerColumn; i++) {
+        drawLine(
+            RING_PLUS(terminal.window.screenLineStart, i, MAX_SCROLLBACK_LINES),
+            i);
+    }
+
+    switchToScreenDisplay();
+
     return;
 }
 
@@ -617,14 +662,16 @@ bool flushBuffer(uint8_max_a *buffer) {
         }
         }
 
-        if (terminal.lastLineGlyphLen >= glyphsPerLine) {
-            CURRENT_LINE.extraSpace = terminal.lastLineGlyphLen - glyphsPerLine;
-            terminal.newLine = true;
-        }
-
         terminal.nextCharInBuf =
             RING_INCREMENT(terminal.nextCharInBuf, FILE_BUF_LEN);
         terminal.charCount++;
+
+        if (terminal.lastLineGlyphLen >= glyphsPerLine) {
+            CURRENT_LINE.extraSpace = terminal.lastLineGlyphLen - glyphsPerLine;
+            if (buffer->buf[i + 1] != '\n') {
+                terminal.newLine = true;
+            }
+        }
     }
 
     if (terminal.isTailing) {
