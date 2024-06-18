@@ -27,6 +27,18 @@ extern "C" {
 #define UINT32_MAX 0xFFFFFFFF
 #define UINT64_MAX 0xFFFFFFFFFFFFFFFF
 
+#define MAX_VALUE(x)                                                           \
+    _Generic((x),                                                              \
+        int8_t: INT8_MAX,                                                      \
+        uint8_t: UINT8_MAX,                                                    \
+        int16_t: INT16_MAX,                                                    \
+        uint16_t: UINT16_MAX,                                                  \
+        int32_t: INT32_MAX,                                                    \
+        uint32_t: UINT32_MAX,                                                  \
+        int64_t: INT64_MAX,                                                    \
+        uint64_t: UINT64_MAX,                                                  \
+        default: "unknown")
+
 typedef unsigned char uint8_t;
 typedef unsigned short int uint16_t;
 typedef unsigned int uint32_t;

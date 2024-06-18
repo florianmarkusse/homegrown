@@ -109,43 +109,6 @@ void switchToScreenDisplay() {
            dim.scanline * dim.height * BYTES_PER_PIXEL);
 }
 
-// void drawLine(ScreenLine *screenline, uint32_t rowNumber) {
-//     ASSERT(dim.backingBuffer != 0);
-//
-//     psf2_t thing = glyphs;
-//     uint32_t verticalStart =
-//         glyphStartOffset + rowNumber * (dim.scanline * glyphs.height);
-//     for (uint8_t i = 0; i < screenline->glyphCount; i++) {
-//         uint8_t ch = screenline->chars[i];
-//
-//         unsigned char *glyph = &(glyphs.glyphs) + ch * glyphs.bytesperglyph;
-//         uint32_t offset = verticalStart + i * (glyphs.width);
-//
-//         for (uint32_t y = 0; y < glyphs.height; y++) {
-//             // TODO: use SIMD instructions?
-//             uint32_t line = offset;
-//             uint32_t mask = 1 << (glyphs.width - 1);
-//             for (uint32_t x = 0; x < glyphs.width; x++) {
-//                 dim.backingBuffer[line] =
-//                     ((((uint32_t)*glyph) & (mask)) != 0) * HAXOR_WHITE;
-//                 mask >>= 1;
-//                 line++;
-//             }
-//             glyph += bytesPerLine;
-//             offset += dim.scanline;
-//         }
-//     }
-//
-//     // Zero/Black out the remaining part of the line.
-//     uint32_t offset = verticalStart + screenline->glyphCount *
-//     (glyphs.width); for (uint32_t i = 0; i < glyphs.height; i++) {
-//         offset += dim.scanline;
-//         memset(&dim.backingBuffer[offset], 0,
-//                (glyphsPerLine - screenline->glyphCount) * glyphs.width *
-//                    BYTES_PER_PIXEL);
-//     }
-// }
-
 void screenInit() {
     for (uint32_t y = 0; y < dim.height; y++) {
         for (uint32_t x = 0; x < dim.scanline; x++) {
@@ -188,222 +151,6 @@ void setupScreen(ScreenDimension dimension) {
 
 bool flushStandardBuffer() { return flushBuffer(&flushBuf); }
 
-// #define LINE_AT(_index) (terminal.indexes[_index])
-// #define CURRENT_LINE (terminal.indexes[terminal.lineIndex])
-
-// CharAddResult addCharToLineAsASCI(uint64_t fileBufferIndex, ScreenLine *line)
-// {
-//     unsigned char ch = fileBuffer.buf[fileBufferIndex];
-//     line->charCount++;
-//     if (line->charCount == 1) {
-//         line->charIndex = fileBufferIndex;
-//     }
-//
-//     switch (ch) {
-//     case '\t': {
-//         uint32_t previousCount = line->glyphCount;
-//         uint32_t spacesToAdd = ((line->glyphCount + TAB_SIZE_IN_GLYPHS) &
-//                                 (0xFFFFFFFF - (TAB_SIZE_IN_GLYPHS - 1))) -
-//                                previousCount;
-//         for (uint32_t i = 0; i < spacesToAdd; i++) {
-//             line->chars[line->glyphCount] = ' ';
-//             line->glyphCount++;
-//
-//             if (line->glyphCount >= glyphsPerLine) {
-//                 return (CharAddResult){.additionalSpace = spacesToAdd - i -
-//                 1,
-//                                        .newLine = true};
-//             }
-//         }
-//         break;
-//     }
-//     case '\n': {
-//         return (CharAddResult){.additionalSpace = 0, .newLine = true};
-//     }
-//     default: {
-//         line->chars[line->glyphCount] = ch;
-//         line->glyphCount++;
-//
-//         if (line->glyphCount >= glyphsPerLine) {
-//             return (CharAddResult){.additionalSpace = 0, .newLine = true};
-//         }
-//     }
-//     }
-//
-//     return (CharAddResult){.additionalSpace = 0, .newLine = false};
-// }
-
-// void rewind(uint32_t lines) {
-//     ASSERT((lines & (lines - 1)) == 0 && lines <= MAX_GLYPSH_PER_COLUMN);
-//
-//     uint64_t oldestLineIndex = RING_MINUS(
-//         terminal.lineIndex, glyphsPerColumn - 1, MAX_GLYPSH_PER_COLUMN);
-//
-//     uint64_t availableCharsToRewind =
-//         RING_MINUS(fileBuffer.newCharIndex,
-//         LINE_AT(oldestLineIndex)->charIndex,
-//                    FILE_BUF_LEN);
-//     if (availableCharsToRewind == 0 ||
-//         LINE_AT(oldestLineIndex)->charCount == 0) {
-//         return;
-//     }
-//     // Note that we are going to process this many chars as this is the upper
-//     // bound of characters we can put in the lines we want to rewind. It is
-//     // likely that the first lines written will be overwritten by the
-//     relatively
-//     // newer characters that are read. This is intended behavior.
-//     uint64_t totalCharsToRewind =
-//         MIN(lines * glyphsPerLine, availableCharsToRewind);
-//
-//     uint64_t firstIndexToRead =
-//     RING_MINUS(LINE_AT(oldestLineIndex)->charIndex,
-//                                            totalCharsToRewind, FILE_BUF_LEN);
-//     uint32_t tempLineIndex = 0;
-//     uint32_t linesRewound = 0;
-//     // TODO: want to refactor this and pull out into function for sure.
-//     // Now lines 0 ... lines - 1 can be reused to write the rewound lines in.
-//     for (uint64_t i = firstIndexToRead; i < totalCharsToRewind; i++) {
-//         if (terminal.previousAdd.newLine) {
-//             linesRewound = linesRewound + (linesRewound < lines);
-//             tempLineIndex = RING_INCREMENT(tempLineIndex, lines);
-//             LINE_AT(tempLineIndex)->glyphCount = 0;
-//             LINE_AT(tempLineIndex)->charCount = 0;
-//         }
-//
-//         for (uint64_t j = 0; j < terminal.previousAdd.startSpaces; j++) {
-//             LINE_AT(tempLineIndex)->chars[LINE_AT(tempLineIndex)->glyphCount]
-//             =
-//                 ' ';
-//             LINE_AT(tempLineIndex)->glyphCount++;
-//         }
-//
-//         terminal.previousAdd = addCharToLineAsASCI(i, terminal.lineIndex);
-//     }
-//
-//     //    terminal.indexes[tempLineIndex] = &terminal.lines[oldestLineIndex +
-//     //    linesRewound];
-//     //
-//     //    // Where tempLineIndes is currently, is the most recent of the
-//     lines
-//     //    in view
-//     //    // after rewinding. Make sure the indirection represents that.
-//     //    for (uint32_t i = 0; i < linesRewound; i++) {
-//     //        terminal.indexes[tempLineIndex - i] =
-//     //    }
-//
-//     // Reorder oldest lines; the current content will be scrolled out of the
-//     // screen.
-//     memmove(&dim.backingBuffer[glyphStartVerticalOffset +
-//                                (dim.scanline * glyphs.height *
-//                                linesRewound)],
-//             &dim.backingBuffer[glyphStartVerticalOffset],
-//             dim.scanline * BYTES_PER_PIXEL * glyphs.height *
-//                 (glyphsPerColumn - linesRewound));
-//
-//     for (uint32_t i = 0; i < linesRewound; i++) {
-//         drawLine(terminal.indexes[i], i);
-//     }
-//
-//     switchToScreenDisplay();
-// }
-
-// void prowind(uint32_t lines) {
-//     ASSERT((lines & (lines - 1)) == 0 && lines <= MAX_GLYPSH_PER_COLUMN);
-//
-//     //    if (LINE_AT(glyphsPerColumn).charCount == 0) {
-//     //        return;
-//     //    }
-//     //    lines = lines & (MAX_GLYPSH_PER_COLUMN - 1);
-//     //
-//     //    uint32_t lineToChangeIndex =
-//     //        (terminal.currentIndex - (glyphsPerColumn + 1)) &
-//     //        (MAX_GLYPSH_PER_COLUMN - 1);
-//     //    if (LINE_AT(lineToChangeIndex).charIndex == 0) {
-//     //        return;
-//     //    }
-//     //
-//     //    // otherwise, move 'lines' * glyphsPerLine chars forward and
-//     rewrite
-//     //    the
-//     //    // 'lines' number of lines in the array that now need to be
-//     rewritten.
-//     //    uint64_t firstNewCharIndex =
-//     //        (CURRENT_LINE.charIndex + CURRENT_LINE.charCount) &
-//     (FILE_BUF_LEN
-//     //        - 1);
-//     //    uint64_t afterLastPossibleIndex =
-//     //        (firstNewCharIndex + (lines * glyphsPerLine)) & (FILE_BUF_LEN -
-//     //        1);
-//     //
-//     //    for (uint64_t i = firstNewCharIndex; i != afterLastPossibleIndex;
-//     //         i = (i + 1) & (FILE_BUF_LEN - 1)) {
-//     //        LINE_AT(lineToChangeIndex)
-//     //    }
-// }
-
-// void flushToScreen(uint64_t charactersToFlush) {
-//     // This assumes FILE_BUF_LEN is larger than the number of max glyphs on
-//     // screen, duh
-//     uint32_t newLines = 0;
-//     for (uint64_t i = RING_MINUS(fileBuffer.newCharIndex,
-//                                  MIN(charactersToFlush, maxGlyphsOnScreen),
-//                                  FILE_BUF_LEN);
-//          i != fileBuffer.newCharIndex; i = RING_INCREMENT(i, FILE_BUF_LEN)) {
-//         if (CURRENT_LINE->previousAdd.newLine) {
-//             newLines = newLines + (newLines < glyphsPerColumn);
-//             terminal.lineIndex =
-//                 RING_INCREMENT(terminal.lineIndex, MAX_GLYPSH_PER_COLUMN);
-//             CURRENT_LINE->glyphCount = 0;
-//             CURRENT_LINE->charCount = 0;
-//         }
-//
-//         for (uint64_t j = 0; j < LINE_AT(RING_DECREMENT(terminal.lineIndex,
-//                                                         MAX_GLYPSH_PER_COLUMN))
-//                                      ->previousAdd.additionalSpace;
-//              j++) {
-//             CURRENT_LINE->chars[CURRENT_LINE->glyphCount] = ' ';
-//             CURRENT_LINE->glyphCount++;
-//         }
-//
-//         CURRENT_LINE->previousAdd = addCharToLineAsASCI(i, CURRENT_LINE);
-//     }
-//
-//     memmove(&dim.backingBuffer[glyphStartVerticalOffset],
-//             &dim.backingBuffer[glyphStartVerticalOffset +
-//                                (dim.scanline * glyphs.height * newLines)],
-//             dim.scanline * BYTES_PER_PIXEL * glyphs.height *
-//                 (glyphsPerColumn - newLines));
-//
-//     // We are, always, at least redrawing the last line.
-//     newLines = newLines + (newLines < glyphsPerColumn);
-//     // Need to count backwards from terminal.lineIndex, the line that
-//     contains
-//         // the most recent content to the oldest line that contains new
-//         content.
-//         // Moreover, terminal.lineIndex already counts as a line, so we
-//         decrease
-//         // by 1.
-//         uint64_t firstNewLineIndex =
-//             RING_MINUS(terminal.lineIndex, newLines - 1,
-//             MAX_GLYPSH_PER_COLUMN);
-//     for (uint32_t i = 0; i < newLines; i++) {
-//         drawLine(terminal.indexes[RING_PLUS(firstNewLineIndex, i,
-//                                             MAX_GLYPSH_PER_COLUMN)],
-//                  (glyphsPerColumn - newLines) + i);
-//     }
-//
-//     switchToScreenDisplay();
-// }
-
-uint64_t screenLinesOutOfGlyphs(uint64_t glyphCount) {
-    // A glyph count of 0 still counts as a single screenline:
-    //  - A line yet to be filled, or
-    //  - A line that just contains a newline
-    return ((glyphCount > 0) *
-            ((glyphCount + glyphsPerLine - 1) / glyphsPerLine)) +
-           (glyphCount == 0);
-}
-
 #define LINE_AT(index) (terminal.screenLines[index])
 #define CURRENT_LINE (terminal.screenLines[terminal.toWriteLine])
 
@@ -428,7 +175,6 @@ void drawGlyph(unsigned char ch, uint64_t topRightGlyphOffset) {
 void drawLine(uint32_t screenLineIndex, uint16_t rowNumber) {
     ASSERT(dim.backingBuffer != 0);
 
-    psf2_t thing = glyphs;
     uint32_t topRightGlyphOffset =
         glyphStartOffset + rowNumber * (dim.scanline * glyphs.height);
 
@@ -454,10 +200,9 @@ void drawLine(uint32_t screenLineIndex, uint16_t rowNumber) {
         switch (ch) {
         case '\t': {
             uint16_t newGlyphCount =
-                (extraSpace + charGlyphs + TAB_SIZE_IN_GLYPHS) &
-                // TODO: Have a way to get the max value of the value we are
-                // looking for automatically?
-                (UINT8_MAX - (TAB_SIZE_IN_GLYPHS - 1));
+                MIN(glyphsPerLine - extraSpace,
+                    (extraSpace + charGlyphs + TAB_SIZE_IN_GLYPHS) &
+                        (MAX_VALUE(newGlyphCount) - (TAB_SIZE_IN_GLYPHS - 1)));
 
             while (charGlyphs < newGlyphCount) {
                 drawGlyph(' ', topRightGlyphOffset);
@@ -485,12 +230,18 @@ void drawLine(uint32_t screenLineIndex, uint16_t rowNumber) {
     }
 }
 
-void rewind(uint16_t screenLines) {
+void rewind(uint32_t screenLines) {
     // TODO: can add memmove optimization here. But need to take care what
     // happens when in between flushes, the char buffer has looped in its
     // entirety.
-    // TODO: Need to do a binary search to ensure that we not go beyond the
-    // least recent line.
+
+    // Yes, you can scroll into the void here if the buffer is not filled yet,
+    // who does that?
+    screenLines = MIN(
+        screenLines,
+        RING_MINUS(terminal.window.screenLineStart,
+                   RING_INCREMENT(terminal.toWriteLine, MAX_SCROLLBACK_LINES),
+                   MAX_SCROLLBACK_LINES));
 
     terminal.window.screenLineStart = RING_MINUS(
         terminal.window.screenLineStart, screenLines, MAX_SCROLLBACK_LINES);
@@ -510,12 +261,14 @@ void rewind(uint16_t screenLines) {
     return;
 }
 
-void prowind(uint16_t screenLines) {
+void prowind(uint32_t screenLines) {
     // TODO: can add memmove optimization here. But need to take care what
     // happens when in between flushes, the char buffer has looped in its
     // entirety.
-    // TODO: Need to do a binary search to ensure that we not go past the most
-    // recent line.
+
+    screenLines = MIN(screenLines, RING_MINUS(terminal.toWriteLine,
+                                              terminal.window.screenLineEnd,
+                                              MAX_SCROLLBACK_LINES));
 
     terminal.window.screenLineStart = RING_PLUS(
         terminal.window.screenLineStart, screenLines, MAX_SCROLLBACK_LINES);
@@ -629,12 +382,13 @@ bool flushBuffer(uint8_max_a *buffer) {
         terminal.buf[terminal.nextCharInBuf] = buffer->buf[i];
 
         if (terminal.newLine) {
+            terminal.lastLineGlyphLen = CURRENT_LINE.extraSpace;
+
             terminal.toWriteLine =
                 RING_INCREMENT(terminal.toWriteLine, MAX_SCROLLBACK_LINES);
 
             CURRENT_LINE.start = terminal.charCount;
             CURRENT_LINE.charLen = 0;
-            terminal.lastLineGlyphLen = 0;
             terminal.newLine = false;
         }
 
@@ -649,9 +403,8 @@ bool flushBuffer(uint8_max_a *buffer) {
         case '\t': {
             terminal.lastLineGlyphLen =
                 (terminal.lastLineGlyphLen + TAB_SIZE_IN_GLYPHS) &
-                // TODO: Have a way to get the max value of the value we are
-                // looking for automatically?
-                (UINT16_MAX - (TAB_SIZE_IN_GLYPHS - 1));
+                (MAX_VALUE(terminal.lastLineGlyphLen) -
+                 (TAB_SIZE_IN_GLYPHS - 1));
             CURRENT_LINE.charLen++;
             break;
         }

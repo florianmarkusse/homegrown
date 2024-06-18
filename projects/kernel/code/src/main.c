@@ -27,21 +27,21 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 
     setupIDT();
 
-    FLUSH_AFTER { LOG(STRING("\t\t\thi\n")); }
-
-    FLUSH_AFTER {
-        LOG(STRING("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"));
-        LOG(STRING("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"));
-        LOG(STRING("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"));
-    }
-
-    FLUSH_AFTER {
-        LOG(STRING("Dick size:\tlarge\n"));
-        LOG(STRING("Height:\t\timpressive\n"));
-        LOG(STRING("Height:\t\timpressive\n"));
-        LOG(STRING("Money:\t\tyes\n"));
-        LOG(STRING("\t\t\tlarge\n"));
-    }
+    //    FLUSH_AFTER { LOG(STRING("\t\t\thi\n")); }
+    //
+    //    FLUSH_AFTER {
+    //        LOG(STRING("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"));
+    //        LOG(STRING("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"));
+    //        LOG(STRING("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"));
+    //    }
+    //
+    //    FLUSH_AFTER {
+    //        LOG(STRING("Dick size:\tlarge\n"));
+    //        LOG(STRING("Height:\t\timpressive\n"));
+    //        LOG(STRING("Height:\t\timpressive\n"));
+    //        LOG(STRING("Money:\t\tyes\n"));
+    //        LOG(STRING("\t\t\tlarge\n"));
+    //    }
 
     FLUSH_AFTER {
         LOG(STRING(
@@ -55,7 +55,6 @@ __attribute__((section("kernel-start"))) int kernelmain() {
             "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
             "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
             "BBBBBBBBBBBBBBBBBBBB\t"));
-        LOG(STRING("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"));
     }
 
     FLUSH_AFTER { LOG(STRING("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n")); }
@@ -125,26 +124,26 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         LOG(STRING("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n"));
     }
 
-    rewind(5);
+    rewind(50000);
 
-    FLUSH_AFTER {
-        LOG(STRING("5555555555555555555555555555555\n"));
-        LOG(STRING("6666666666666666666666666666666\n"));
-        LOG(STRING("7777777777777777777777777777777\n"));
-        LOG(STRING("8888888888888888888888888888888\n"));
-    }
-
-    prowind(2);
-    prowind(2);
-    prowind(3);
-    prowind(2);
-
-    FLUSH_AFTER {
-        LOG(STRING("9999999999999999999999999999999\n"));
-        LOG(STRING("9999999999999999999999999999999\n"));
-        LOG(STRING("9999999999999999999999999999999\n"));
-        LOG(STRING("9999999999999999999999999999999\n"));
-    }
+    //    FLUSH_AFTER {
+    //        LOG(STRING("5555555555555555555555555555555\n"));
+    //        LOG(STRING("6666666666666666666666666666666\n"));
+    //        LOG(STRING("7777777777777777777777777777777\n"));
+    //        LOG(STRING("8888888888888888888888888888888\n"));
+    //    }
+    //
+    //    prowind(2);
+    //    prowind(2);
+    //    prowind(3);
+    //    prowind(100);
+    //
+    //    FLUSH_AFTER {
+    //        LOG(STRING("9999999999999999999999999999999\n"));
+    //        LOG(STRING("9999999999999999999999999999999\n"));
+    //        LOG(STRING("9999999999999999999999999999999\n"));
+    //        LOG(STRING("9999999999999999999999999999999\n"));
+    //    }
 
     // __asm__ __volatile__("int $3" ::"r"(0));
 
