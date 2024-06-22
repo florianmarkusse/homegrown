@@ -27,21 +27,21 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 
     setupIDT();
 
-    //    FLUSH_AFTER { LOG(STRING("\t\t\thi\n")); }
-    //
-    //    FLUSH_AFTER {
-    //        LOG(STRING("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"));
-    //        LOG(STRING("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"));
-    //        LOG(STRING("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"));
-    //    }
-    //
-    //    FLUSH_AFTER {
-    //        LOG(STRING("Dick size:\tlarge\n"));
-    //        LOG(STRING("Height:\t\timpressive\n"));
-    //        LOG(STRING("Height:\t\timpressive\n"));
-    //        LOG(STRING("Money:\t\tyes\n"));
-    //        LOG(STRING("\t\t\tlarge\n"));
-    //    }
+    FLUSH_AFTER { LOG(STRING("\t\t\thi\n")); }
+
+    FLUSH_AFTER {
+        LOG(STRING("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"));
+        LOG(STRING("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"));
+        LOG(STRING("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"));
+    }
+
+    FLUSH_AFTER {
+        LOG(STRING("Dick size:\tlarge\n"));
+        LOG(STRING("Height:\t\timpressive\n"));
+        LOG(STRING("Height:\t\timpressive\n"));
+        LOG(STRING("Money:\t\tyes\n"));
+        LOG(STRING("\t\t\tlarge\n"));
+    }
 
     FLUSH_AFTER {
         LOG(STRING(
@@ -66,7 +66,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 
     FLUSH_AFTER {
         LOG(STRING("AAAAAAAAAAAAAAAAAAA"));
-        LOG(STRING("BBBBBBBBBBBBBBBBBBB\nCCCCCCCCCCCCCCCCCCCCC\n"));
+        LOG(STRING("BBBBBBBBBBBBBBBBBBB\nCCCCCCCCCCCCCCCCCCCCC"));
     }
 
     FLUSH_AFTER {
@@ -124,7 +124,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         LOG(STRING("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n"));
     }
 
-    rewind(50000);
+    // rewind(50000);
 
     //    FLUSH_AFTER {
     //        LOG(STRING("5555555555555555555555555555555\n"));
