@@ -103,6 +103,7 @@ typedef struct {
     uint32_t logicalLineToWrite;
     ScreenLine
         screenLines[MAX_GLYPSH_PER_COLUMN]; // TODO: Use actual heap alloc
+    uint32_t lastScreenLineIndex;
     bool newLine;
     bool isTailing;
     Window window;
@@ -227,39 +228,7 @@ void drawLine(uint32_t screenLineIndex, uint16_t rowNumber) {
         topRightGlyphOffset += dim.scanline;
     }
 }
-//
-// void rewind(uint32_t screenLines) {
-//     // TODO: can add memmove optimization here. But need to take care what
-//     // happens when in between flushes, the char buffer has looped in its
-//     // entirety.
-//
-//     // Yes, you can scroll into the void here if the buffer is not filled
-//     yet,
-//     // who does that?
-//     screenLines = MIN(
-//         screenLines,
-//         RING_MINUS(terminal.window.screenLineStart,
-//                    RING_INCREMENT(terminal.logicalLineToWrite,
-//                    MAX_SCROLLBACK_LINES), MAX_SCROLLBACK_LINES));
-//
-//     terminal.window.screenLineStart = RING_MINUS(
-//         terminal.window.screenLineStart, screenLines, MAX_SCROLLBACK_LINES);
-//     terminal.window.screenLineEnd = RING_MINUS(
-//         terminal.window.screenLineEnd, screenLines, MAX_SCROLLBACK_LINES);
-//
-//     terminal.isTailing = false;
-//
-//     for (uint16_t i = 0; i < glyphsPerColumn; i++) {
-//         drawLine(
-//             RING_PLUS(terminal.window.screenLineStart, i,
-//             MAX_SCROLLBACK_LINES), i);
-//     }
-//
-//     switchToScreenDisplay();
-//
-//     return;
-// }
-//
+
 // void prowind(uint32_t screenLines) {
 //     // TODO: can add memmove optimization here. But need to take care what
 //     // happens when in between flushes, the char buffer has looped in its
@@ -445,6 +414,9 @@ void drawWindow() {
             screenLineIndex);
     }
 
+    terminal.lastScreenLineIndex =
+        RING_DECREMENT(screenLineIndex, MAX_GLYPSH_PER_COLUMN);
+
     for (uint16_t i = 0; i < glyphsPerColumn; i++) {
         drawLine(RING_MINUS(screenLineIndex, glyphsPerColumn - i,
                             MAX_GLYPSH_PER_COLUMN),
@@ -461,6 +433,35 @@ void toTail() {
     drawWindow();
 
     switchToScreenDisplay();
+}
+
+void rewind(uint32_t screenLines) {
+    // There are 2 paths here:
+    //  - A precise rewind for all lines scrolled back <= glyphsPerColu,n
+    //  - A less precise rewind for all lines scrolled back that are more than
+    //  that.
+    //  Remember to check for possibility to even rewind to this amount.
+
+    if (screenLines <= glyphsPerLine) {
+        uint64_t startOfFirstLine =
+            terminal.screenLines[terminal.lastScreenLineIndex].start;
+
+        terminal.window.newest.logicalLine = terminal.logicalLineToWrite;
+        terminal.window.newest.charIndex = terminal.charCount - 1;
+        terminal.window.oldest =
+            calculateOldest(terminal.window.newest, glyphsPerColumn);
+
+    } else {
+    }
+
+    terminal.window.newest.logicalLine = terminal.logicalLineToWrite;
+    terminal.window.newest.charIndex = terminal.charCount - 1;
+    terminal.window.oldest =
+        calculateOldest(terminal.window.newest, glyphsPerColumn);
+
+    switchToScreenDisplay();
+
+    return;
 }
 
 // We are going to flush to:
