@@ -28,8 +28,8 @@ void appendToFlushBuffer(string data, unsigned char flags);
 bool flushStandardBuffer();
 bool flushBuffer(uint8_max_a *buffer);
 
-void rewind(uint32_t screenLines);
-void prowind(uint32_t screenLines);
+void rewind(uint16_t screenLines);
+void prowind(uint16_t screenLines);
 
 void printToSerial(string data, uint8_t flags);
 
