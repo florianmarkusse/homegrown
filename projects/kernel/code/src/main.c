@@ -128,8 +128,10 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     rewind(4);
     rewind(4);
     rewind(4);
+    prowind(5);
     rewind(4);
     rewind(4);
+    prowind(2);
     rewind(4);
     rewind(4);
     rewind(4);
