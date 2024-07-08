@@ -126,7 +126,13 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 
     rewind(4);
     rewind(4);
-    rewind(50000);
+    rewind(4);
+    rewind(4);
+    rewind(4);
+    rewind(4);
+    rewind(4);
+    rewind(4);
+    rewind(4);
 
     //    FLUSH_AFTER {
     //        LOG(STRING("5555555555555555555555555555555\n"));
