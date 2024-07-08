@@ -254,14 +254,27 @@ uint32_t charIndexToLogicalLine(uint64_t charIndex) {
     return left;
 }
 
-// TODO: fix this with older way to calculate fr fr
-uint64_t calculateOldestCharToProcess(uint64_t fromCharIndex,
+uint64_t calculateOldestCharToProcess(uint64_t fromCharIndexExclusive,
                                       uint16_t screenLinesToProcess) {
-    uint32_t logicalLineIndex = charIndexToLogicalLine(fromCharIndex);
-    uint64_t screenLinesProcessed =
-        toScreenLines(fromCharIndex - terminal.logicalLines[logicalLineIndex]);
+    uint32_t oldestLogicalLineIndex =
+        RING_INCREMENT(terminal.logicalLineToWrite, MAX_SCROLLBACK_LINES);
 
-    while (screenLinesProcessed < screenLinesToProcess) {
+    uint32_t logicalLineIndex = charIndexToLogicalLine(fromCharIndexExclusive);
+    if (logicalLineIndex == oldestLogicalLineIndex &&
+        terminal.logicalLines[logicalLineIndex] >= fromCharIndexExclusive) {
+        return fromCharIndexExclusive;
+    }
+
+    if (terminal.logicalLines[logicalLineIndex] == fromCharIndexExclusive) {
+        logicalLineIndex =
+            RING_DECREMENT(logicalLineIndex, MAX_SCROLLBACK_LINES);
+    }
+
+    uint64_t screenLinesProcessed = toScreenLines(
+        fromCharIndexExclusive - terminal.logicalLines[logicalLineIndex]);
+
+    while (screenLinesProcessed < screenLinesToProcess &&
+           logicalLineIndex != oldestLogicalLineIndex) {
         screenLinesProcessed +=
             toScreenLines(terminal.logicalLines[logicalLineIndex] -
                           terminal.logicalLines[RING_DECREMENT(
@@ -274,8 +287,8 @@ uint64_t calculateOldestCharToProcess(uint64_t fromCharIndex,
     uint64_t oldestCharToProcess = terminal.logicalLines[logicalLineIndex];
     uint64_t maxCharactersToProcess = screenLinesToProcess * glyphsPerLine * 2;
 
-    if (fromCharIndex - oldestCharToProcess > maxCharactersToProcess) {
-        oldestCharToProcess = fromCharIndex - maxCharactersToProcess;
+    if (fromCharIndexExclusive - oldestCharToProcess > maxCharactersToProcess) {
+        oldestCharToProcess = fromCharIndexExclusive - maxCharactersToProcess;
     }
 
     return oldestCharToProcess;
@@ -372,16 +385,15 @@ void toTail() {
                  .endExclusive = terminal.nextCharInTerminalWindow},
         0, (uint64_t *)&terminal.screenLines);
 
-    uint64_t endIndexExclusive = (0 + screenLinesWritten);
     uint64_t startIndex = 0;
-    if (endIndexExclusive > glyphsPerColumn) {
-        startIndex = endIndexExclusive - glyphsPerColumn;
+    if (screenLinesWritten > glyphsPerColumn) {
+        startIndex = screenLinesWritten - glyphsPerColumn;
     }
     uint16_t screenLinesWithContent =
-        (uint16_t)(endIndexExclusive - startIndex);
+        (uint16_t)(screenLinesWritten - startIndex);
 
     terminal.oldestScreenLineIndex =
-        RING_MINUS(endIndexExclusive, glyphsPerColumn, MAX_GLYPSH_PER_COLUMN);
+        RING_MINUS(screenLinesWritten, glyphsPerColumn, MAX_GLYPSH_PER_COLUMN);
 
     for (uint16_t i = 0; i < glyphsPerColumn - screenLinesWithContent; i++) {
         for (uint32_t i = 0; i < glyphs.height; i++) {
@@ -414,6 +426,75 @@ void toTail() {
 
     switchToScreenDisplay();
 }
+
+void rewind(uint16_t screenLines) {
+    if (terminal.logicalLineToWrite < glyphsPerColumn &&
+        terminal.logicalLines[RING_INCREMENT(terminal.logicalLineToWrite,
+                                             MAX_GLYPSH_PER_COLUMN)] == 0) {
+        return;
+    }
+
+    terminal.isTailing = false;
+
+    uint64_t oldestCharToProcess = calculateOldestCharToProcess(
+        terminal.screenLines[terminal.oldestScreenLineIndex], screenLines);
+
+    uint64_t screenLinesWritten = fillScreenLines(
+        (Window){.start = oldestCharToProcess,
+                 .endExclusive =
+                     terminal.screenLines[terminal.oldestScreenLineIndex]},
+        0, (uint64_t *)&terminal.screenLinesCopy);
+
+    uint64_t startIndex = 0;
+    if (screenLinesWritten > screenLines) {
+        startIndex = screenLinesWritten - screenLines;
+    }
+
+    uint16_t newLinesToDraw =
+        MIN(glyphsPerColumn, (uint16_t)(MIN(screenLines, screenLinesWritten)));
+
+    for (uint16_t i = 0; i < glyphsPerColumn - newLinesToDraw; i++) {
+        terminal.screenLines[RING_MINUS(terminal.oldestScreenLineIndex +
+                                            glyphsPerColumn - 1,
+                                        i, MAX_GLYPSH_PER_COLUMN)] =
+            terminal
+                .screenLines[RING_MINUS(terminal.oldestScreenLineIndex +
+                                            glyphsPerColumn - 1 - screenLines,
+                                        i, MAX_GLYPSH_PER_COLUMN)];
+    }
+
+    for (uint16_t i = 0; i < newLinesToDraw; i++) {
+        terminal.screenLines[RING_PLUS(terminal.oldestScreenLineIndex, i,
+                                       MAX_GLYPSH_PER_COLUMN)] =
+            terminal.screenLinesCopy[RING_PLUS(startIndex, i,
+                                               MAX_GLYPSH_PER_COLUMN)];
+    }
+
+    if (newLinesToDraw < glyphsPerColumn) {
+        uint32_t fromOffset = glyphStartVerticalOffset;
+        uint32_t toOffset =
+            fromOffset + newLinesToDraw * (dim.scanline * glyphs.height);
+
+        memmove(&dim.backingBuffer[toOffset], &dim.backingBuffer[fromOffset],
+                (glyphsPerColumn - newLinesToDraw) *
+                    (dim.scanline * glyphs.height * 4));
+    }
+
+    for (uint16_t i = 0; i < newLinesToDraw; i++) {
+        drawLine(
+            (Window){
+                .start = terminal.screenLines[RING_PLUS(
+                    terminal.oldestScreenLineIndex, i, MAX_GLYPSH_PER_COLUMN)],
+                .endExclusive =
+                    terminal
+                        .screenLines[RING_PLUS(terminal.oldestScreenLineIndex,
+                                               i + 1, MAX_GLYPSH_PER_COLUMN)]},
+            i);
+    }
+
+    switchToScreenDisplay();
+}
+
 //
 // TODO: USE terminal.setLastCharacterInWindow by having it return from
 // fillScreenLines
