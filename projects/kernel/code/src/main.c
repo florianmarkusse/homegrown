@@ -27,7 +27,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 
     setupIDT();
 
-    FLUSH_AFTER { LOG(STRING("\t\t\thi\n")); }
+    FLUSH_AFTER { LOG(STRING("\t\t\thi")); }
 
     FLUSH_AFTER {
         LOG(STRING("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"));
@@ -124,17 +124,17 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         LOG(STRING("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n"));
     }
 
-    rewind(4);
-    rewind(4);
-    rewind(4);
-    rewind(4);
-    prowind(5);
-    rewind(4);
-    rewind(4);
-    prowind(2);
-    rewind(4);
-    rewind(4);
-    rewind(4);
+    //    rewind(4);
+    //    rewind(4);
+    //    rewind(4);
+    //    rewind(4);
+    //    prowind(5);
+    //    rewind(4);
+    //    rewind(4);
+    //    prowind(2);
+    //    rewind(4);
+    //    rewind(4);
+    //    rewind(4);
 
     //    FLUSH_AFTER {
     //        LOG(STRING("5555555555555555555555555555555\n"));
