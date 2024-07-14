@@ -75,8 +75,53 @@ static uint32_t glyphStartVerticalOffset;
 // spaces the terminal has to draw when it encounters a tab at this _glyphlen_
 // position.
 // TODO: can use a uint2_t here
-// since the domain is [1, 4]
-uint8_t tabSizes[MAX_GLYPSH_PER_COLUMN][MAX_GLYPSH_PER_LINE];
+// since the domain is [1, 4], so we convert it to [0, 3]
+uint8_t tabSizes_dont_use_directly[MAX_GLYPSH_PER_COLUMN]
+                                  [(MAX_GLYPSH_PER_LINE +
+                                    (TAB_SIZE_IN_GLYPHS - 1)) /
+                                   TAB_SIZE_IN_GLYPHS];
+uint8_t tabValues[TAB_SIZE_IN_GLYPHS][TAB_SIZE_IN_GLYPHS] = {{
+                                                                 0 << 6,
+                                                                 0 << 4,
+                                                                 0 << 2,
+                                                                 0,
+                                                             },
+                                                             {
+                                                                 1 << 6,
+                                                                 1 << 4,
+                                                                 1 << 2,
+                                                                 1,
+                                                             },
+
+                                                             {
+                                                                 2,
+                                                                 2 << 6,
+                                                                 2 << 4,
+                                                                 2 << 2,
+                                                             },
+                                                             {
+                                                                 3 << 6,
+                                                                 3 << 4,
+                                                                 3 << 2,
+                                                                 3,
+                                                             }};
+uint8_t tabShifts[TAB_SIZE_IN_GLYPHS] = {
+    6,
+    4,
+    2,
+    0,
+};
+
+#define TAB_VALUE_GET(row, column)                                             \
+    RING_RANGE(                                                                \
+        tabSizes_dont_use_directly[row][(column) / TAB_SIZE_IN_GLYPHS] >>      \
+            (tabShifts[RING_RANGE(column, TAB_SIZE_IN_GLYPHS)]),               \
+        TAB_SIZE_IN_GLYPHS) +                                                  \
+        1
+
+#define TAB_VALUE_SET(row, column, value)                                      \
+    tabSizes_dont_use_directly[row][(column) / TAB_SIZE_IN_GLYPHS] |=          \
+        tabValues[((value) - 1)][RING_RANGE(column, TAB_SIZE_IN_GLYPHS)]
 
 typedef struct {
     uint64_t logicalLines[MAX_SCROLLBACK_LINES];
@@ -99,6 +144,20 @@ typedef struct {
 static Terminal terminal = {.isTailing = true};
 
 void switchToScreenDisplay() {
+    //    uint64_t column = 100;
+    //    uint64_t row = 5;
+    //
+    //    RING_RANGE(tabSizes[column][row / TAB_SIZE_IN_GLYPHS] >>
+    //                   (tabShifts[RING_RANGE(row, TAB_SIZE_IN_GLYPHS)]),
+    //               TAB_SIZE_IN_GLYPHS)
+    //
+    //        ;
+    //
+    //    uint8_t value = 3;
+    //
+    //    tabSizes[column][row / TAB_SIZE_IN_GLYPHS] |=
+    //        (value << (tabShifts[RING_RANGE(row, TAB_SIZE_IN_GLYPHS)]));
+
     memcpy(dim.screen, dim.backingBuffer,
            dim.scanline * dim.height * BYTES_PER_PIXEL);
 }
@@ -185,7 +244,7 @@ void drawLine(uint64_t startIndex, uint64_t endIndexExclusive,
             break;
         }
         case '\t': {
-            uint8_t spaceToAdd = tabSizes[tabIndex][glyphsDrawn];
+            uint8_t spaceToAdd = TAB_VALUE_GET(tabIndex, glyphsDrawn);
             for (uint32_t i = 0, glyphOffsetForSpaces = topRightGlyphOffset;
                  i < glyphs.height; i++) {
                 memset(&dim.backingBuffer[glyphOffsetForSpaces], 0,
@@ -365,7 +424,7 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
             terminal.screenLinesCopy[currentScreenLineIndex] -=
                 (carryOverTab > 0);
             terminal.screenLinesCopy[0] -= (carryOverTab > 0);
-            tabSizes[currentScreenLineIndex][0] = carryOverTab;
+            TAB_VALUE_SET(currentScreenLineIndex, 0, carryOverTab);
             currentGlyphLen = carryOverTab;
             carryOverTab = 0;
             toNext = false;
@@ -392,14 +451,14 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
             if (beforeTabGlyphLen + additionalSpace >= glyphsPerLine) {
                 uint8_t extraSpaceThisLine =
                     (uint8_t)(glyphsPerLine - beforeTabGlyphLen);
-                tabSizes[currentScreenLineIndex][currentGlyphLen] =
-                    extraSpaceThisLine;
+                TAB_VALUE_SET(currentScreenLineIndex, currentGlyphLen,
+                              extraSpaceThisLine);
 
                 carryOverTab = additionalSpace - extraSpaceThisLine;
                 toNext = true;
             } else {
-                tabSizes[currentScreenLineIndex][currentGlyphLen] =
-                    additionalSpace;
+                TAB_VALUE_SET(currentScreenLineIndex, currentGlyphLen,
+                              additionalSpace);
                 currentGlyphLen = beforeTabGlyphLen + additionalSpace;
             }
 
