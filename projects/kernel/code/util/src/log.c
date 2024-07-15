@@ -76,10 +76,13 @@ static uint32_t glyphStartVerticalOffset;
 // position.
 // TODO: can use a uint2_t here
 // since the domain is [1, 4], so we convert it to [0, 3]
-uint8_t tabSizes_dont_use_directly[MAX_GLYPSH_PER_COLUMN]
-                                  [(MAX_GLYPSH_PER_LINE +
-                                    (TAB_SIZE_IN_GLYPHS - 1)) /
-                                   TAB_SIZE_IN_GLYPHS];
+// We account for pathological input by going to the next power of 2.
+#define MAX_TABS_TO_DRAW                                                       \
+    ((MAX_GLYPSH_PER_COLUMN * MAX_GLYPSH_PER_LINE) /                           \
+     (TAB_SIZE_IN_GLYPHS / TAB_SIZE_IN_GLYPHS))
+
+// This is not accessed like a ring buffer because we never rotate it.
+uint8_t tabSizes_dont_use_directly[MAX_TABS_TO_DRAW];
 uint8_t tabValues[TAB_SIZE_IN_GLYPHS][TAB_SIZE_IN_GLYPHS] = {{
                                                                  0 << 6,
                                                                  0 << 4,
@@ -94,10 +97,10 @@ uint8_t tabValues[TAB_SIZE_IN_GLYPHS][TAB_SIZE_IN_GLYPHS] = {{
                                                              },
 
                                                              {
-                                                                 2,
                                                                  2 << 6,
                                                                  2 << 4,
                                                                  2 << 2,
+                                                                 2,
                                                              },
                                                              {
                                                                  3 << 6,
@@ -112,16 +115,19 @@ uint8_t tabShifts[TAB_SIZE_IN_GLYPHS] = {
     0,
 };
 
-#define TAB_VALUE_GET(row, column)                                             \
-    RING_RANGE(                                                                \
-        tabSizes_dont_use_directly[row][(column) / TAB_SIZE_IN_GLYPHS] >>      \
-            (tabShifts[RING_RANGE(column, TAB_SIZE_IN_GLYPHS)]),               \
-        TAB_SIZE_IN_GLYPHS) +                                                  \
+#define TAB_VALUE_GET(index)                                                   \
+    RING_RANGE(tabSizes_dont_use_directly[(index) / (TAB_SIZE_IN_GLYPHS *      \
+                                                     TAB_SIZE_IN_GLYPHS)] >>   \
+                   (tabShifts[RING_RANGE(index, TAB_SIZE_IN_GLYPHS *           \
+                                                    TAB_SIZE_IN_GLYPHS) /      \
+                              TAB_SIZE_IN_GLYPHS]),                            \
+               TAB_SIZE_IN_GLYPHS) +                                           \
         1
 
-#define TAB_VALUE_SET(row, column, value)                                      \
-    tabSizes_dont_use_directly[row][(column) / TAB_SIZE_IN_GLYPHS] |=          \
-        tabValues[((value) - 1)][RING_RANGE(column, TAB_SIZE_IN_GLYPHS)]
+#define TAB_VALUE_SET(index, value)                                            \
+    tabSizes_dont_use_directly[(index) /                                       \
+                               (TAB_SIZE_IN_GLYPHS * TAB_SIZE_IN_GLYPHS)] |=   \
+        tabValues[((value) - 1)][RING_RANGE((index), TAB_SIZE_IN_GLYPHS)]
 
 typedef struct {
     uint64_t logicalLines[MAX_SCROLLBACK_LINES];
@@ -227,6 +233,8 @@ void drawGlyph(unsigned char ch, uint64_t topRightGlyphOffset) {
 
 // Ensure that the window passed to this function contains at most
 // glyphsPerColumn glyphs, otherwise it will continue drawing
+// TODO: rewrite to take in 2 indexes of terminal.screenCopy and a start of
+// rowNumber, that should be all that's needed.
 void drawLine(uint64_t startIndex, uint64_t endIndexExclusive,
               uint16_t rowNumber, uint16_t tabIndex) {
     uint32_t topRightGlyphOffset =
@@ -398,6 +406,7 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
                                uint64_t endIndexExclusive,
                                uint16_t screenLinesToFill) {
     uint16_t currentScreenLineIndex = 0;
+    uint16_t currentTabIndex = 0;
 
     // The parsing process is as follows:
     // 1. An index is marked as a new screenline
@@ -405,14 +414,15 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
     terminal.screenLinesCopy[currentScreenLineIndex] = dryStartIndex;
     uint16_t screenLinesWritten = dryStartIndex >= startIndex;
     uint32_t currentGlyphLen = 0;
-    uint8_t carryOverTab = 0;
     // TODO: SIMD up in this bitch.
-    bool toNext = false;
     uint64_t i = dryStartIndex;
     for (; i != endIndexExclusive; i++) {
         unsigned char ch = terminal.buf[RING_RANGE(i, FILE_BUF_LEN)];
 
-        if (toNext) {
+        // What if at max length but encounter a newline?
+        if (currentGlyphLen >= glyphsPerLine &&
+            !(ch == '\n' &&
+              terminal.buf[RING_RANGE(i - 1, FILE_BUF_LEN)] != '\n')) {
             if (screenLinesToFill && screenLinesWritten >= screenLinesToFill) {
                 break;
             }
@@ -421,14 +431,7 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
                 RING_INCREMENT(currentScreenLineIndex, MAX_GLYPSH_PER_COLUMN);
             terminal.screenLinesCopy[currentScreenLineIndex] = i;
 
-            terminal.screenLinesCopy[currentScreenLineIndex] -=
-                (carryOverTab > 0);
-            terminal.screenLinesCopy[0] -= (carryOverTab > 0);
-            TAB_VALUE_SET(currentScreenLineIndex, 0, carryOverTab);
-            currentGlyphLen = carryOverTab;
-            carryOverTab = 0;
-            toNext = false;
-
+            currentGlyphLen = 0;
             screenLinesWritten += (i >= startIndex);
         }
 
@@ -437,7 +440,7 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
             break;
         }
         case '\n': {
-            toNext = true;
+            currentGlyphLen = glyphsPerLine;
             break;
         }
         case '\t': {
@@ -448,27 +451,35 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
                             (TAB_SIZE_IN_GLYPHS - 1))) -
                           beforeTabGlyphLen);
 
-            if (beforeTabGlyphLen + additionalSpace >= glyphsPerLine) {
+            uint32_t finalSize = beforeTabGlyphLen + additionalSpace;
+            if (finalSize <= glyphsPerLine) {
+                TAB_VALUE_SET(currentTabIndex, additionalSpace);
+                currentTabIndex += (i >= startIndex);
+                currentGlyphLen = finalSize;
+            } else {
                 uint8_t extraSpaceThisLine =
                     (uint8_t)(glyphsPerLine - beforeTabGlyphLen);
-                TAB_VALUE_SET(currentScreenLineIndex, currentGlyphLen,
-                              extraSpaceThisLine);
+                TAB_VALUE_SET(currentTabIndex, extraSpaceThisLine);
+                currentTabIndex += (i >= startIndex);
+                if (screenLinesToFill &&
+                    screenLinesWritten >= screenLinesToFill) {
+                    break;
+                }
 
-                carryOverTab = additionalSpace - extraSpaceThisLine;
-                toNext = true;
-            } else {
-                TAB_VALUE_SET(currentScreenLineIndex, currentGlyphLen,
-                              additionalSpace);
-                currentGlyphLen = beforeTabGlyphLen + additionalSpace;
+                currentScreenLineIndex = RING_INCREMENT(currentScreenLineIndex,
+                                                        MAX_GLYPSH_PER_COLUMN);
+                currentGlyphLen = additionalSpace - extraSpaceThisLine;
+                TAB_VALUE_SET(currentTabIndex, currentGlyphLen);
+                currentTabIndex += (i >= startIndex);
+                terminal.screenLinesCopy[currentScreenLineIndex] = i;
+
+                screenLinesWritten += (i >= startIndex);
             }
 
             break;
         }
         default: {
             currentGlyphLen++;
-            if (currentGlyphLen >= glyphsPerLine) {
-                toNext = true;
-            }
             break;
         }
         }
@@ -482,7 +493,7 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
     return (FillResult){.realScreenLinesWritten =
                             MIN(screenLinesWritten, glyphsPerColumn),
                         .currentScreenLineIndex = currentScreenLineIndex,
-                        .lastLineDone = toNext};
+                        .lastLineDone = currentGlyphLen >= glyphsPerLine};
 }
 
 void toTail() {
