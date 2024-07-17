@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "util/array-types.h" // for char_a
+#include "util/array-types.h" // for u_char_a
 #include "util/text/string.h" // for string
 #include "util/types.h"       // for int64_t, uint64_t
 
@@ -28,31 +28,31 @@ void appendToFlushBuffer(string data, unsigned char flags);
 bool flushStandardBuffer();
 bool flushBuffer(uint8_max_a *buffer);
 
-void rewind(uint16_t screenLines);
-void prowind(uint16_t screenLines);
+void rewind(uint16_t numberOfScreenLines);
+void prowind(uint16_t numberOfScreenLines);
 
 void printToSerial(string data, uint8_t flags);
 
-string stringWithMinSize(string data, unsigned char minSize, char_a tmp);
+string stringWithMinSize(string data, unsigned char minSize, u_char_a tmp);
 string stringWithMinSizeDefault(string data, unsigned char minSize);
 
 string boolToString(bool data);
 
-string ptrToString(void *data, char_a tmp);
+string ptrToString(void *data, u_char_a tmp);
 string ptrToStringDefault(void *data);
 
-string charToString(char data, char_a tmp);
+string charToString(char data, u_char_a tmp);
 string charToStringDefault(char data);
 
 string stringToString(string data);
 
-string uint64ToString(uint64_t data, char_a tmp);
+string uint64ToString(uint64_t data, u_char_a tmp);
 string uint64ToStringDefault(uint64_t data);
 
-string int64ToString(int64_t data, char_a tmp);
+string int64ToString(int64_t data, u_char_a tmp);
 string int64ToStringDefault(int64_t data);
 
-string doubleToString(double data, char_a tmp);
+string doubleToString(double data, u_char_a tmp);
 string doubleToStringDefault(double data);
 
 string noAppend();

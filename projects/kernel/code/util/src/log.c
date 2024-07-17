@@ -15,8 +15,6 @@ static uint32_t graphicsBuffer[1 << 20];
 static uint8_t flushBuf000[128 * 64];
 static uint8_max_a flushBuf = {.buf = flushBuf000, .cap = 128 * 64, .len = 0};
 
-#define FILE_BUF_LEN (1ULL << 16LL)
-
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
 //            padding
@@ -69,82 +67,25 @@ static uint32_t glyphStartVerticalOffset;
 #define MAX_GLYPSH_PER_LINE (1 << 8)
 #define MAX_SCROLLBACK_LINES (1 << 16)
 
-// Use this only when drawing, otherwise it is not needed!
-// When prowinding/toTail, ensure that you parse from the start of the logical
-// line so that you correctly know where the tabs are. This is the number of
-// spaces the terminal has to draw when it encounters a tab at this _glyphlen_
-// position.
-// since the domain is [1, 4], so we convert it to [0, 3]
-// #define MAX_TABS_TO_DRAW \
-//     ((MAX_GLYPSH_PER_COLUMN * MAX_GLYPSH_PER_LINE) / \
-//      (TAB_SIZE_IN_GLYPHS / TAB_SIZE_IN_GLYPHS))
-//
-// // This is not accessed like a ring buffer because we never rotate it.
-// static uint8_t tabSizes_dont_use_directly[MAX_TABS_TO_DRAW];
-// // TODO: Fix this, it doenst work with ORing it u dummy
-// uint8_t tabValues[TAB_SIZE_IN_GLYPHS][TAB_SIZE_IN_GLYPHS] = {{
-//                                                                  0 << 6,
-//                                                                  0 << 4,
-//                                                                  0 << 2,
-//                                                                  0,
-//                                                              },
-//                                                              {
-//                                                                  1 << 6,
-//                                                                  1 << 4,
-//                                                                  1 << 2,
-//                                                                  1,
-//                                                              },
-//
-//                                                              {
-//                                                                  2 << 6,
-//                                                                  2 << 4,
-//                                                                  2 << 2,
-//                                                                  2,
-//                                                              },
-//                                                              {
-//                                                                  3 << 6,
-//                                                                  3 << 4,
-//                                                                  3 << 2,
-//                                                                  3,
-//                                                              }};
-// uint8_t tabShifts[TAB_SIZE_IN_GLYPHS] = {
-//     6,
-//     4,
-//     2,
-//     0,
-// };
-//
-// #define TAB_VALUE_GET(index) \
-//     RING_RANGE(tabSizes_dont_use_directly[(index) / TAB_SIZE_IN_GLYPHS] >> \
-//                    (tabShifts[RING_RANGE(index, TAB_SIZE_IN_GLYPHS)]), \
-//                TAB_SIZE_IN_GLYPHS) + \
-//         1
-//
-// #define TAB_VALUE_SET(index, value) \
-//     tabSizes_dont_use_directly[(index) / TAB_SIZE_IN_GLYPHS] |= \
-//         tabValues[((value) - 1)][RING_RANGE((index), TAB_SIZE_IN_GLYPHS)]
+#define FILE_BUF_LEN (1ULL << 16LL)
 
-// TODO: Make this temp memory
-static uint32_t logicalLineLens[MAX_GLYPSH_PER_COLUMN];
-typedef struct {
-    uint64_t logicalLines[MAX_SCROLLBACK_LINES];
-    uint32_t logicalLineToWrite;
-    bool logicalNewline;
-    // This should be 1 larger than the number of screenlines because the last
-    // entry is used as the exclusive end of the window.
-    uint64_t screenLines[MAX_GLYPSH_PER_COLUMN]; // TODO: Use actual heap alloc
-
-    uint64_t screenLinesCopy[MAX_GLYPSH_PER_COLUMN]; // TODO: Replace with
-                                                     // temporary memory
-    bool lastScreenlineOpen;
-    bool isTailing;
-    uint16_t oldestScreenLineIndex;
-    uint64_t charCount;
-    uint64_t nextCharInBuf;
-    uint8_t buf[FILE_BUF_LEN];
-} Terminal;
-
-static Terminal terminal = {.isTailing = true};
+static uint64_t
+    logicalLineLens[MAX_GLYPSH_PER_COLUMN]; // TODO: Make this temp memory
+static uint64_t logicalLines[MAX_SCROLLBACK_LINES];
+static uint32_t logicalLineToWrite;
+static bool logicalNewline;
+// This should be 1 larger than the number of screenlines because the last
+// entry is used as the exclusive end of the window.
+static uint64_t
+    screenLines[MAX_GLYPSH_PER_COLUMN]; // TODO: Use actual heap alloc
+static uint16_t oldestScreenLineIndex;
+static uint64_t screenLinesCopy[MAX_GLYPSH_PER_COLUMN]; // TODO: Replace with
+                                                        // temporary memory
+static bool lastScreenlineOpen;
+static bool isTailing = true;
+static uint64_t charCount;
+static uint32_t nextCharInBuf;
+static uint8_t buf[FILE_BUF_LEN];
 
 void switchToScreenDisplay() {
     memcpy(dim.screen, dim.backingBuffer,
@@ -214,32 +155,33 @@ void drawGlyph(unsigned char ch, uint64_t topRightGlyphOffset) {
     }
 }
 
-void drawLines(uint32_t startIndex, uint16_t screenLines,
+void zeroOutGlyphs(uint32_t topRightGlyphOffset, uint16_t numberOfGlyphs) {
+    for (uint32_t i = 0; i < glyphs.height; i++) {
+        memset(&dim.backingBuffer[topRightGlyphOffset], 0,
+               numberOfGlyphs * glyphs.width * BYTES_PER_PIXEL);
+        topRightGlyphOffset += dim.scanline;
+    }
+}
+
+void drawLines(uint32_t startIndex, uint16_t screenLinesToDraw,
                uint64_t currentLogicalLineLen, uint16_t rowNumber) {
     uint16_t currentScreenLines = 0;
 
     uint32_t topRightGlyphOffset =
         glyphStartOffset + (rowNumber * (dim.scanline * glyphs.height));
-    uint32_t currentGlyphLen = 0;
+    uint16_t currentGlyphLen = 0;
     bool toNext = false;
 
-    for (uint64_t i = terminal.screenLines[startIndex]; i < terminal.charCount;
-         i++) {
-        unsigned char ch = terminal.buf[RING_RANGE(i, FILE_BUF_LEN)];
+    for (uint64_t i = screenLines[startIndex]; i < charCount; i++) {
+        unsigned char ch = buf[RING_RANGE(i, FILE_BUF_LEN)];
 
         if (toNext) {
             currentScreenLines++;
-            if (currentScreenLines >= screenLines) {
+            if (currentScreenLines >= screenLinesToDraw) {
                 break;
             }
 
-            // Zero/Black out the remaining part of the line.
-            for (uint32_t k = 0; k < glyphs.height; k++) {
-                memset(&dim.backingBuffer[topRightGlyphOffset], 0,
-                       (glyphsPerLine - currentGlyphLen) * glyphs.width *
-                           BYTES_PER_PIXEL);
-                topRightGlyphOffset += dim.scanline;
-            }
+            zeroOutGlyphs(topRightGlyphOffset, glyphsPerLine - currentGlyphLen);
 
             topRightGlyphOffset =
                 glyphStartOffset + ((rowNumber + currentScreenLines) *
@@ -266,33 +208,21 @@ void drawLines(uint32_t startIndex, uint16_t screenLines,
                           currentLogicalLineLen);
             currentLogicalLineLen += additionalSpace;
 
-            uint32_t finalSize = currentGlyphLen + additionalSpace;
+            uint16_t finalSize = currentGlyphLen + additionalSpace;
             if (finalSize <= glyphsPerLine) {
-                for (uint32_t j = 0, glyphOffsetForSpaces = topRightGlyphOffset;
-                     j < glyphs.height; j++) {
-                    memset(&dim.backingBuffer[glyphOffsetForSpaces], 0,
-                           additionalSpace * glyphs.width * BYTES_PER_PIXEL);
-                    glyphOffsetForSpaces += dim.scanline;
-                }
+                zeroOutGlyphs(topRightGlyphOffset, additionalSpace);
                 topRightGlyphOffset += additionalSpace * glyphs.width;
                 currentGlyphLen = finalSize;
-                toNext =
-                    (finalSize >= glyphsPerLine &&
-                     terminal.buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n');
+                toNext = (finalSize >= glyphsPerLine &&
+                          buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n');
             } else {
                 // The tab overflows into the next screen line.
                 uint8_t extraSpacePreviousLine =
                     (uint8_t)(glyphsPerLine - currentGlyphLen);
-                for (uint32_t j = 0, glyphOffsetForSpaces = topRightGlyphOffset;
-                     j < glyphs.height; j++) {
-                    memset(&dim.backingBuffer[glyphOffsetForSpaces], 0,
-                           extraSpacePreviousLine * glyphs.width *
-                               BYTES_PER_PIXEL);
-                    glyphOffsetForSpaces += dim.scanline;
-                }
+                zeroOutGlyphs(topRightGlyphOffset, extraSpacePreviousLine);
 
                 currentScreenLines++;
-                if (currentScreenLines >= screenLines) {
+                if (currentScreenLines >= screenLinesToDraw) {
                     break;
                 }
 
@@ -300,12 +230,8 @@ void drawLines(uint32_t startIndex, uint16_t screenLines,
                     glyphStartOffset + ((rowNumber + currentScreenLines) *
                                         (dim.scanline * glyphs.height));
                 currentGlyphLen = additionalSpace - extraSpacePreviousLine;
-                for (uint32_t j = 0, glyphOffsetForSpaces = topRightGlyphOffset;
-                     j < glyphs.height; j++) {
-                    memset(&dim.backingBuffer[glyphOffsetForSpaces], 0,
-                           currentGlyphLen * glyphs.width * BYTES_PER_PIXEL);
-                    glyphOffsetForSpaces += dim.scanline;
-                }
+
+                zeroOutGlyphs(topRightGlyphOffset, currentGlyphLen);
                 topRightGlyphOffset += currentGlyphLen * glyphs.width;
             }
 
@@ -317,7 +243,7 @@ void drawLines(uint32_t startIndex, uint16_t screenLines,
             currentGlyphLen++;
             currentLogicalLineLen++;
             if (currentGlyphLen >= glyphsPerLine &&
-                terminal.buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n') {
+                buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n') {
                 toNext = true;
             }
             break;
@@ -325,123 +251,8 @@ void drawLines(uint32_t startIndex, uint16_t screenLines,
         }
     }
 
-    // Zero/Black out the remaining part of the line.
-    for (uint32_t k = 0; k < glyphs.height; k++) {
-        memset(&dim.backingBuffer[topRightGlyphOffset], 0,
-               (glyphsPerLine - currentGlyphLen) * glyphs.width *
-                   BYTES_PER_PIXEL);
-        topRightGlyphOffset += dim.scanline;
-    }
+    zeroOutGlyphs(topRightGlyphOffset, glyphsPerLine - currentGlyphLen);
 }
-
-// void drawLines(uint32_t startIndex, uint16_t screenLines,
-//                uint16_t tabStartIndex, uint16_t rowNumber) {
-//     uint32_t tabIndex = tabStartIndex;
-//
-//     for (uint32_t i = 0; i < screenLines; i++) {
-//         uint32_t topRightGlyphOffset =
-//             glyphStartOffset +
-//             ((rowNumber + i) * (dim.scanline * glyphs.height));
-//         uint32_t glyphsDrawn = 0;
-//         uint32_t screenLineStartIndex =
-//             RING_PLUS(startIndex, i, MAX_GLYPSH_PER_COLUMN);
-//         uint32_t screenLineEndIndex =
-//             RING_INCREMENT(screenLineStartIndex, MAX_GLYPSH_PER_COLUMN);
-//
-//         for (uint64_t j = terminal.screenLines[screenLineStartIndex];
-//              j < terminal.screenLines[screenLineEndIndex]; j++) {
-//             unsigned char ch = terminal.buf[RING_RANGE(j, FILE_BUF_LEN)];
-//
-//             switch (ch) {
-//             case '\0':
-//                 // Intentional fallthrough.
-//             case '\n': {
-//                 break;
-//             }
-//             case '\t': {
-//                 uint8_t spaceToAdd = TAB_VALUE_GET(tabIndex);
-//                 tabIndex = RING_INCREMENT(tabIndex, MAX_TABS_TO_DRAW);
-//                 for (uint32_t k = 0, glyphOffsetForSpaces =
-//                 topRightGlyphOffset;
-//                      k < glyphs.height; k++) {
-//                     memset(&dim.backingBuffer[glyphOffsetForSpaces], 0,
-//                            spaceToAdd * glyphs.width * BYTES_PER_PIXEL);
-//                     glyphOffsetForSpaces += dim.scanline;
-//                 }
-//                 topRightGlyphOffset += glyphs.width * spaceToAdd;
-//                 glyphsDrawn += spaceToAdd;
-//
-//                 break;
-//             }
-//             default: {
-//                 drawGlyph(ch, topRightGlyphOffset);
-//                 glyphsDrawn++;
-//                 topRightGlyphOffset += glyphs.width;
-//                 break;
-//             }
-//             }
-//         }
-//
-//         // Zero/Black out the remaining part of the line.
-//         for (uint32_t k = 0; k < glyphs.height; k++) {
-//             memset(&dim.backingBuffer[topRightGlyphOffset], 0,
-//                    (glyphsPerLine - glyphsDrawn) * glyphs.width *
-//                        BYTES_PER_PIXEL);
-//             topRightGlyphOffset += dim.scanline;
-//         }
-//     }
-// }
-
-// // Ensure that the window passed to this function contains at most
-// // glyphsPerColumn glyphs, otherwise it will continue drawing
-// // TODO: rewrite to take in 2 indexes of terminal.screenCopy and a start of
-// // rowNumber, that should be all that's needed.
-// void drawLine(uint64_t startIndex, uint64_t endIndexExclusive,
-//               uint16_t rowNumber, uint16_t tabIndex) {
-//     uint32_t topRightGlyphOffset =
-//         glyphStartOffset + rowNumber * (dim.scanline * glyphs.height);
-//
-//     uint32_t glyphsDrawn = 0;
-//
-//     for (uint64_t i = startIndex; i < endIndexExclusive; i++) {
-//         unsigned char ch = terminal.buf[RING_RANGE(i, FILE_BUF_LEN)];
-//
-//         switch (ch) {
-//         case '\0':
-//             // Intentional fallthrough.
-//         case '\n': {
-//             break;
-//         }
-//         case '\t': {
-//             uint8_t spaceToAdd = TAB_VALUE_GET(tabIndex, glyphsDrawn);
-//             for (uint32_t i = 0, glyphOffsetForSpaces = topRightGlyphOffset;
-//                  i < glyphs.height; i++) {
-//                 memset(&dim.backingBuffer[glyphOffsetForSpaces], 0,
-//                        spaceToAdd * glyphs.width * BYTES_PER_PIXEL);
-//                 glyphOffsetForSpaces += dim.scanline;
-//             }
-//             topRightGlyphOffset += glyphs.width * spaceToAdd;
-//             glyphsDrawn += spaceToAdd;
-//
-//             break;
-//         }
-//         default: {
-//             drawGlyph(ch, topRightGlyphOffset);
-//             glyphsDrawn++;
-//             topRightGlyphOffset += glyphs.width;
-//             break;
-//         }
-//         }
-//     }
-//
-//     // Zero/Black out the remaining part of the line.
-//     for (uint32_t i = 0; i < glyphs.height; i++) {
-//         memset(&dim.backingBuffer[topRightGlyphOffset], 0,
-//                (glyphsPerLine - glyphsDrawn) * glyphs.width *
-//                BYTES_PER_PIXEL);
-//         topRightGlyphOffset += dim.scanline;
-//     }
-// }
 
 // A screenLine of 0 length still counts as a line.
 // For the observent, all our screenlines have a length > 0 except when they are
@@ -452,11 +263,11 @@ uint64_t toScreenLines(uint64_t number) {
 }
 
 uint32_t charIndexToLogicalLine(uint64_t charIndex) {
-    if (charIndex >= terminal.logicalLines[terminal.logicalLineToWrite]) {
-        return terminal.logicalLineToWrite;
+    if (charIndex >= logicalLines[logicalLineToWrite]) {
+        return logicalLineToWrite;
     }
 
-    uint32_t right = terminal.logicalLineToWrite;
+    uint32_t right = logicalLineToWrite;
     uint32_t left = RING_INCREMENT(right, MAX_SCROLLBACK_LINES);
 
     while (RING_MINUS(right, left, MAX_SCROLLBACK_LINES) > 1) {
@@ -464,7 +275,7 @@ uint32_t charIndexToLogicalLine(uint64_t charIndex) {
             RING_PLUS(left, (RING_MINUS(right, left, MAX_SCROLLBACK_LINES) / 2),
                       MAX_SCROLLBACK_LINES);
 
-        if (terminal.logicalLines[mid] > charIndex) {
+        if (logicalLines[mid] > charIndex) {
             right = mid;
         } else {
             left = mid;
@@ -477,34 +288,34 @@ uint32_t charIndexToLogicalLine(uint64_t charIndex) {
 uint64_t oldestCharToParseGivenScreenLines(uint64_t endCharExclusive,
                                            uint16_t screenLinesToProcess) {
     uint32_t oldestLogicalLineIndex =
-        RING_INCREMENT(terminal.logicalLineToWrite, MAX_SCROLLBACK_LINES);
+        RING_INCREMENT(logicalLineToWrite, MAX_SCROLLBACK_LINES);
 
     uint32_t logicalLineIndex = charIndexToLogicalLine(endCharExclusive);
     if (logicalLineIndex == oldestLogicalLineIndex &&
-        terminal.logicalLines[logicalLineIndex] >= endCharExclusive) {
+        logicalLines[logicalLineIndex] >= endCharExclusive) {
         return endCharExclusive;
     }
 
-    if (terminal.logicalLines[logicalLineIndex] == endCharExclusive) {
+    if (logicalLines[logicalLineIndex] == endCharExclusive) {
         logicalLineIndex =
             RING_DECREMENT(logicalLineIndex, MAX_SCROLLBACK_LINES);
     }
 
-    uint64_t screenLinesProcessed = toScreenLines(
-        endCharExclusive - terminal.logicalLines[logicalLineIndex]);
+    uint64_t screenLinesProcessed =
+        toScreenLines(endCharExclusive - logicalLines[logicalLineIndex]);
 
     while (screenLinesProcessed < screenLinesToProcess &&
            logicalLineIndex != oldestLogicalLineIndex) {
         screenLinesProcessed +=
-            toScreenLines(terminal.logicalLines[logicalLineIndex] -
-                          terminal.logicalLines[RING_DECREMENT(
-                              logicalLineIndex, MAX_SCROLLBACK_LINES)]);
+            toScreenLines(logicalLines[logicalLineIndex] -
+                          logicalLines[RING_DECREMENT(logicalLineIndex,
+                                                      MAX_SCROLLBACK_LINES)]);
 
         logicalLineIndex =
             RING_DECREMENT(logicalLineIndex, MAX_SCROLLBACK_LINES);
     }
 
-    uint64_t oldestCharToProcess = terminal.logicalLines[logicalLineIndex];
+    uint64_t oldestCharToProcess = logicalLines[logicalLineIndex];
 
     if (endCharExclusive - oldestCharToProcess > maxCharsToProcess) {
         oldestCharToProcess = endCharExclusive - maxCharsToProcess;
@@ -526,19 +337,19 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
     uint16_t screenLinesInWindow = dryStartIndex >= startIndex;
 
     uint16_t currentGlyphLen = 0;
-    uint32_t currentLogicalLineLen = 0;
+    uint64_t currentLogicalLineLen = 0;
 
     bool toNext = false;
     // The parsing process is as follows:
     // 1. An index is marked as a new screenline
     // 2. The screenline is parsed.
     // TODO: SIMD up in this bitch.
-    terminal.screenLinesCopy[currentScreenLineIndex] = dryStartIndex;
+    screenLinesCopy[currentScreenLineIndex] = dryStartIndex;
     logicalLineLens[currentScreenLineIndex] = currentLogicalLineLen;
 
     uint64_t i = dryStartIndex;
     for (; i < endIndexExclusive; i++) {
-        unsigned char ch = terminal.buf[RING_RANGE(i, FILE_BUF_LEN)];
+        unsigned char ch = buf[RING_RANGE(i, FILE_BUF_LEN)];
 
         if (toNext) {
             if (maxNewScreenLinesToFill &&
@@ -548,7 +359,7 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
 
             currentScreenLineIndex =
                 RING_INCREMENT(currentScreenLineIndex, MAX_GLYPSH_PER_COLUMN);
-            terminal.screenLinesCopy[currentScreenLineIndex] = i;
+            screenLinesCopy[currentScreenLineIndex] = i;
             logicalLineLens[currentScreenLineIndex] = currentLogicalLineLen;
 
             currentGlyphLen = 0;
@@ -578,9 +389,8 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
             if (finalSize <= glyphsPerLine) {
                 currentGlyphLen = finalSize;
 
-                toNext =
-                    (finalSize == glyphsPerLine &&
-                     terminal.buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n');
+                toNext = (finalSize == glyphsPerLine &&
+                          buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n');
             } else {
                 // The tab overflows into the next screen line.
                 // We mark the current screen line as having the exclusive end
@@ -600,7 +410,7 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
                 // encounter on the new line should know that part of it is
                 // already drawn in the previous line.
                 currentGlyphLen = additionalSpace - extraSpacePreviousLine;
-                terminal.screenLinesCopy[currentScreenLineIndex] = i;
+                screenLinesCopy[currentScreenLineIndex] = i;
                 logicalLineLens[currentScreenLineIndex] =
                     currentLogicalLineLen + extraSpacePreviousLine;
 
@@ -614,7 +424,7 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
             currentGlyphLen++;
             currentLogicalLineLen++;
             if (currentGlyphLen >= glyphsPerLine &&
-                terminal.buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n') {
+                buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n') {
                 toNext = true;
             }
             break;
@@ -625,7 +435,7 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
     // Add entry indicating the end of the last actual screenline
     currentScreenLineIndex =
         RING_INCREMENT(currentScreenLineIndex, MAX_GLYPSH_PER_COLUMN);
-    terminal.screenLinesCopy[currentScreenLineIndex] = i;
+    screenLinesCopy[currentScreenLineIndex] = i;
 
     return (FillResult){.realScreenLinesWritten =
                             MIN(screenLinesInWindow, glyphsPerColumn),
@@ -633,126 +443,25 @@ FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
                         .lastLineDone = toNext};
 }
 
-// FillResult fillScreenLinesCopy(uint64_t dryStartIndex, uint64_t startIndex,
-//                                uint64_t endIndexExclusive,
-//                                uint16_t maxNewScreenLinesToFill) {
-//     uint16_t currentScreenLineIndex = 0;
-//     uint16_t currentTabIndex = 0;
-//
-//     // The parsing process is as follows:
-//     // 1. An index is marked as a new screenline
-//     // 2. The screenline is parsed.
-//     terminal.screenLinesCopy[currentScreenLineIndex] = dryStartIndex;
-//     uint16_t screenLinesWritten = dryStartIndex >= startIndex;
-//     uint32_t currentGlyphLen = 0;
-//     uint64_t currentLogicalLineLen = 0;
-//     // TODO: SIMD up in this bitch.
-//     uint64_t i = dryStartIndex;
-//     for (; i != endIndexExclusive; i++) {
-//         unsigned char ch = terminal.buf[RING_RANGE(i, FILE_BUF_LEN)];
-//
-//         // What if at max length but encounter a newline?
-//         if (currentGlyphLen >= glyphsPerLine &&
-//             !(ch == '\n' &&
-//               terminal.buf[RING_RANGE(i - 1, FILE_BUF_LEN)] != '\n')) {
-//             if (maxNewScreenLinesToFill && screenLinesWritten >=
-//             maxNewScreenLinesToFill)
-//             {
-//                 break;
-//             }
-//
-//             currentScreenLineIndex =
-//                 RING_INCREMENT(currentScreenLineIndex,
-//                 MAX_GLYPSH_PER_COLUMN);
-//             terminal.screenLinesCopy[currentScreenLineIndex] = i;
-//
-//             currentGlyphLen = 0;
-//             screenLinesWritten += (i >= startIndex);
-//         }
-//
-//         switch (ch) {
-//         case '\0': {
-//             break;
-//         }
-//         case '\n': {
-//             currentGlyphLen = glyphsPerLine;
-//             break;
-//         }
-//         case '\t': {
-//             uint32_t beforeTabGlyphLen = currentGlyphLen;
-//             uint8_t additionalSpace =
-//                 (uint8_t)(((beforeTabGlyphLen + TAB_SIZE_IN_GLYPHS) &
-//                            (MAX_VALUE(additionalSpace) -
-//                             (TAB_SIZE_IN_GLYPHS - 1))) -
-//                           beforeTabGlyphLen);
-//
-//             uint32_t finalSize = beforeTabGlyphLen + additionalSpace;
-//             if (finalSize <= glyphsPerLine) {
-//                 TAB_VALUE_SET(currentTabIndex, additionalSpace);
-//                 currentTabIndex += (i >= startIndex);
-//                 currentGlyphLen = finalSize;
-//             } else {
-//                 uint8_t extraSpaceThisLine =
-//                     (uint8_t)(glyphsPerLine - beforeTabGlyphLen);
-//                 TAB_VALUE_SET(currentTabIndex, extraSpaceThisLine);
-//                 currentTabIndex += (i >= startIndex);
-//                 if (maxNewScreenLinesToFill &&
-//                     screenLinesWritten >= maxNewScreenLinesToFill) {
-//                     break;
-//                 }
-//
-//                 currentScreenLineIndex =
-//                 RING_INCREMENT(currentScreenLineIndex,
-//                                                         MAX_GLYPSH_PER_COLUMN);
-//                 currentGlyphLen = additionalSpace - extraSpaceThisLine;
-//                 TAB_VALUE_SET(currentTabIndex, currentGlyphLen);
-//                 currentTabIndex += (i >= startIndex);
-//                 terminal.screenLinesCopy[currentScreenLineIndex] = i;
-//
-//                 screenLinesWritten += (i >= startIndex);
-//             }
-//
-//             break;
-//         }
-//         default: {
-//             currentGlyphLen++;
-//             break;
-//         }
-//         }
-//     }
-//
-//     // Add entry indicating the end of the last actual screenline
-//     currentScreenLineIndex =
-//         RING_INCREMENT(currentScreenLineIndex, MAX_GLYPSH_PER_COLUMN);
-//     terminal.screenLinesCopy[currentScreenLineIndex] = i;
-//
-//     return (FillResult){.realScreenLinesWritten =
-//                             MIN(screenLinesWritten, glyphsPerColumn),
-//                         .currentScreenLineIndex = currentScreenLineIndex,
-//                         .lastLineDone = currentGlyphLen >= glyphsPerLine};
-// }
-
 void toTail() {
-    uint16_t finalScreenLineEntry = RING_PLUS(
-        terminal.oldestScreenLineIndex,
-        glyphsPerColumn - terminal.lastScreenlineOpen, MAX_GLYPSH_PER_COLUMN);
-    uint64_t firstCharOutsideWindow =
-        terminal.screenLines[finalScreenLineEntry];
-    while (firstCharOutsideWindow <=
-               terminal.screenLines[terminal.oldestScreenLineIndex] &&
-           finalScreenLineEntry != terminal.oldestScreenLineIndex) {
+    uint16_t finalScreenLineEntry =
+        RING_PLUS(oldestScreenLineIndex, glyphsPerColumn - lastScreenlineOpen,
+                  MAX_GLYPSH_PER_COLUMN);
+    uint64_t firstCharOutsideWindow = screenLines[finalScreenLineEntry];
+    while (firstCharOutsideWindow <= screenLines[oldestScreenLineIndex] &&
+           finalScreenLineEntry != oldestScreenLineIndex) {
         finalScreenLineEntry =
             RING_DECREMENT(finalScreenLineEntry, MAX_GLYPSH_PER_COLUMN);
-        firstCharOutsideWindow = terminal.screenLines[finalScreenLineEntry];
+        firstCharOutsideWindow = screenLines[finalScreenLineEntry];
     }
-    uint64_t oldestCharToProcess = MAX(
-        oldestCharToParseGivenScreenLines(terminal.charCount, glyphsPerColumn),
-        terminal.logicalLines[charIndexToLogicalLine(firstCharOutsideWindow)]);
+    uint64_t oldestCharToProcess =
+        MAX(oldestCharToParseGivenScreenLines(charCount, glyphsPerColumn),
+            logicalLines[charIndexToLogicalLine(firstCharOutsideWindow)]);
 
     FillResult fillResult = fillScreenLinesCopy(
-        oldestCharToProcess, firstCharOutsideWindow, terminal.charCount, 0);
+        oldestCharToProcess, firstCharOutsideWindow, charCount, 0);
 
-    uint64_t startIndex =
+    uint16_t startIndex =
         RING_MINUS(fillResult.currentScreenLineIndex,
                    fillResult.realScreenLinesWritten, MAX_GLYPSH_PER_COLUMN);
 
@@ -760,30 +469,27 @@ void toTail() {
         glyphsPerColumn - fillResult.realScreenLinesWritten;
     // You can write 10 new screen lines while your screen originally displayed
     // the first 40 screen lines, hence the distinction here.
-    uint16_t originalScreenLines =
-        RING_MINUS(finalScreenLineEntry, terminal.oldestScreenLineIndex,
-                   MAX_GLYPSH_PER_COLUMN);
+    uint16_t originalScreenLines = RING_MINUS(
+        finalScreenLineEntry, oldestScreenLineIndex, MAX_GLYPSH_PER_COLUMN);
 
     uint16_t totalLines =
         fillResult.realScreenLinesWritten + originalScreenLines;
     if (totalLines > glyphsPerColumn) {
-        terminal.oldestScreenLineIndex =
-            RING_PLUS(terminal.oldestScreenLineIndex,
-                      totalLines - glyphsPerColumn, MAX_GLYPSH_PER_COLUMN);
+        oldestScreenLineIndex =
+            RING_PLUS(oldestScreenLineIndex, totalLines - glyphsPerColumn,
+                      MAX_GLYPSH_PER_COLUMN);
     }
 
     for (uint16_t i = 0; i <= fillResult.realScreenLinesWritten; i++) {
-        terminal.screenLines[RING_PLUS(terminal.oldestScreenLineIndex +
-                                           oldScreenLines,
-                                       i, MAX_GLYPSH_PER_COLUMN)] =
-            terminal.screenLinesCopy[RING_PLUS(startIndex, i,
-                                               MAX_GLYPSH_PER_COLUMN)];
+        screenLines[RING_PLUS(oldestScreenLineIndex + oldScreenLines, i,
+                              MAX_GLYPSH_PER_COLUMN)] =
+            screenLinesCopy[RING_PLUS(startIndex, i, MAX_GLYPSH_PER_COLUMN)];
     }
 
     if (fillResult.realScreenLinesWritten < glyphsPerColumn) {
         uint32_t fromOffset =
             glyphStartVerticalOffset +
-            (fillResult.realScreenLinesWritten - terminal.lastScreenlineOpen) *
+            (fillResult.realScreenLinesWritten - lastScreenlineOpen) *
                 (dim.scanline * glyphs.height);
 
         memmove(&dim.backingBuffer[glyphStartVerticalOffset],
@@ -791,32 +497,30 @@ void toTail() {
                 oldScreenLines * (dim.scanline * glyphs.height * 4));
     }
 
-    uint16_t drawLineStartIndex = RING_PLUS(
-        terminal.oldestScreenLineIndex, oldScreenLines, MAX_GLYPSH_PER_COLUMN);
+    uint16_t drawLineStartIndex =
+        RING_PLUS(oldestScreenLineIndex, oldScreenLines, MAX_GLYPSH_PER_COLUMN);
     drawLines(drawLineStartIndex, fillResult.realScreenLinesWritten,
               logicalLineLens[startIndex], oldScreenLines);
 
-    terminal.lastScreenlineOpen = !fillResult.lastLineDone;
+    lastScreenlineOpen = !fillResult.lastLineDone;
 
     switchToScreenDisplay();
 }
 
 bool isWindowSmallerThanScreen() {
-    return terminal.screenLines[terminal.oldestScreenLineIndex] >=
-           terminal
-               .screenLines[RING_PLUS(terminal.oldestScreenLineIndex,
-                                      glyphsPerColumn, MAX_GLYPSH_PER_COLUMN)];
+    return screenLines[oldestScreenLineIndex] >=
+           screenLines[RING_PLUS(oldestScreenLineIndex, glyphsPerColumn,
+                                 MAX_GLYPSH_PER_COLUMN)];
 }
 
-void rewind(uint16_t screenLines) {
+void rewind(uint16_t numberOfScreenLines) {
     if (isWindowSmallerThanScreen()) {
         return;
     }
 
-    uint64_t currentOldestCharInWindow =
-        terminal.screenLines[terminal.oldestScreenLineIndex];
+    uint64_t currentOldestCharInWindow = screenLines[oldestScreenLineIndex];
     uint64_t oldestCharToProcess = oldestCharToParseGivenScreenLines(
-        currentOldestCharInWindow, screenLines);
+        currentOldestCharInWindow, numberOfScreenLines);
 
     if (oldestCharToProcess == currentOldestCharInWindow) {
         return;
@@ -826,21 +530,19 @@ void rewind(uint16_t screenLines) {
         oldestCharToProcess, oldestCharToProcess, currentOldestCharInWindow, 0);
 
     uint16_t newScreenLinesOnTop =
-        MIN(fillResult.realScreenLinesWritten, screenLines);
+        MIN(fillResult.realScreenLinesWritten, numberOfScreenLines);
 
-    uint64_t startIndex =
+    uint16_t startIndex =
         RING_MINUS(fillResult.currentScreenLineIndex, newScreenLinesOnTop,
                    MAX_GLYPSH_PER_COLUMN);
 
-    terminal.oldestScreenLineIndex =
-        RING_MINUS(terminal.oldestScreenLineIndex, newScreenLinesOnTop,
-                   MAX_GLYPSH_PER_COLUMN);
+    oldestScreenLineIndex = RING_MINUS(
+        oldestScreenLineIndex, newScreenLinesOnTop, MAX_GLYPSH_PER_COLUMN);
 
     for (uint16_t i = 0; i < newScreenLinesOnTop; i++) {
-        terminal.screenLines[RING_PLUS(terminal.oldestScreenLineIndex, i,
-                                       MAX_GLYPSH_PER_COLUMN)] =
-            terminal.screenLinesCopy[RING_PLUS(startIndex, i,
-                                               MAX_GLYPSH_PER_COLUMN)];
+        screenLines[RING_PLUS(oldestScreenLineIndex, i,
+                              MAX_GLYPSH_PER_COLUMN)] =
+            screenLinesCopy[RING_PLUS(startIndex, i, MAX_GLYPSH_PER_COLUMN)];
     }
 
     uint32_t fromOffset = glyphStartVerticalOffset +
@@ -851,25 +553,24 @@ void rewind(uint16_t screenLines) {
             (glyphsPerColumn - newScreenLinesOnTop) *
                 (dim.scanline * glyphs.height * 4));
 
-    drawLines(terminal.oldestScreenLineIndex, newScreenLinesOnTop,
+    drawLines(oldestScreenLineIndex, newScreenLinesOnTop,
               logicalLineLens[startIndex], 0);
 
-    terminal.isTailing = false;
-    terminal.lastScreenlineOpen = false;
+    isTailing = false;
+    lastScreenlineOpen = false;
 
     switchToScreenDisplay();
 }
 
-void prowind(uint16_t screenLines) {
+void prowind(uint16_t numberOfScreenLines) {
     if (isWindowSmallerThanScreen()) {
         return;
     }
 
-    uint64_t firstCharOutsideWindow =
-        terminal.screenLines[RING_PLUS(terminal.oldestScreenLineIndex,
-                                       glyphsPerColumn, MAX_GLYPSH_PER_COLUMN)];
+    uint64_t firstCharOutsideWindow = screenLines[RING_PLUS(
+        oldestScreenLineIndex, glyphsPerColumn, MAX_GLYPSH_PER_COLUMN)];
 
-    if (terminal.charCount == firstCharOutsideWindow) {
+    if (charCount == firstCharOutsideWindow) {
         return;
     }
 
@@ -878,24 +579,22 @@ void prowind(uint16_t screenLines) {
 
     FillResult fillResult =
         fillScreenLinesCopy(oldestCharToProcess, firstCharOutsideWindow,
-                            terminal.charCount, screenLines);
+                            charCount, numberOfScreenLines);
     uint16_t oldScreenLines =
         glyphsPerColumn - fillResult.realScreenLinesWritten;
 
-    uint64_t startIndex =
+    uint16_t startIndex =
         RING_MINUS(fillResult.currentScreenLineIndex,
                    fillResult.realScreenLinesWritten, MAX_GLYPSH_PER_COLUMN);
 
-    terminal.oldestScreenLineIndex =
-        RING_PLUS(terminal.oldestScreenLineIndex,
-                  fillResult.realScreenLinesWritten, MAX_GLYPSH_PER_COLUMN);
+    oldestScreenLineIndex =
+        RING_PLUS(oldestScreenLineIndex, fillResult.realScreenLinesWritten,
+                  MAX_GLYPSH_PER_COLUMN);
 
     for (uint16_t i = 0; i <= fillResult.realScreenLinesWritten; i++) {
-        terminal.screenLines[RING_PLUS(terminal.oldestScreenLineIndex +
-                                           oldScreenLines,
-                                       i, MAX_GLYPSH_PER_COLUMN)] =
-            terminal.screenLinesCopy[RING_PLUS(startIndex, i,
-                                               MAX_GLYPSH_PER_COLUMN)];
+        screenLines[RING_PLUS(oldestScreenLineIndex + oldScreenLines, i,
+                              MAX_GLYPSH_PER_COLUMN)] =
+            screenLinesCopy[RING_PLUS(startIndex, i, MAX_GLYPSH_PER_COLUMN)];
     }
 
     uint32_t fromOffset =
@@ -906,17 +605,14 @@ void prowind(uint16_t screenLines) {
             &dim.backingBuffer[fromOffset],
             oldScreenLines * (dim.scanline * glyphs.height * 4));
 
-    uint16_t drawLineStartIndex = RING_PLUS(
-        terminal.oldestScreenLineIndex, oldScreenLines, MAX_GLYPSH_PER_COLUMN);
+    uint16_t drawLineStartIndex =
+        RING_PLUS(oldestScreenLineIndex, oldScreenLines, MAX_GLYPSH_PER_COLUMN);
     drawLines(drawLineStartIndex, fillResult.realScreenLinesWritten,
               logicalLineLens[startIndex], oldScreenLines);
 
-    terminal.isTailing =
-        terminal
-            .screenLines[RING_PLUS(terminal.oldestScreenLineIndex,
-                                   glyphsPerColumn, MAX_GLYPSH_PER_COLUMN)] ==
-        terminal.charCount;
-    terminal.lastScreenlineOpen = !fillResult.lastLineDone;
+    isTailing = screenLines[RING_PLUS(oldestScreenLineIndex, glyphsPerColumn,
+                                      MAX_GLYPSH_PER_COLUMN)] == charCount;
+    lastScreenlineOpen = !fillResult.lastLineDone;
 
     switchToScreenDisplay();
 }
@@ -934,21 +630,20 @@ bool flushBuffer(uint8_max_a *buffer) {
 
     // TODO: SIMD up in this birch.
     for (uint64_t i = startIndex; i < buffer->len; i++) {
-        terminal.buf[terminal.nextCharInBuf] = buffer->buf[i];
+        buf[nextCharInBuf] = buffer->buf[i];
 
-        if (terminal.logicalNewline) {
-            terminal.logicalLineToWrite = RING_INCREMENT(
-                terminal.logicalLineToWrite, MAX_SCROLLBACK_LINES);
+        if (logicalNewline) {
+            logicalLineToWrite =
+                RING_INCREMENT(logicalLineToWrite, MAX_SCROLLBACK_LINES);
 
-            terminal.logicalLines[terminal.logicalLineToWrite] =
-                terminal.charCount;
-            terminal.logicalNewline = false;
+            logicalLines[logicalLineToWrite] = charCount;
+            logicalNewline = false;
         }
 
-        unsigned char ch = terminal.buf[terminal.nextCharInBuf];
+        unsigned char ch = buf[nextCharInBuf];
         switch (ch) {
         case '\n': {
-            terminal.logicalNewline = true;
+            logicalNewline = true;
             break;
         }
         default: {
@@ -956,12 +651,11 @@ bool flushBuffer(uint8_max_a *buffer) {
         }
         }
 
-        terminal.nextCharInBuf =
-            RING_INCREMENT(terminal.nextCharInBuf, FILE_BUF_LEN);
-        terminal.charCount++;
+        nextCharInBuf = RING_INCREMENT(nextCharInBuf, FILE_BUF_LEN);
+        charCount++;
     }
 
-    if (terminal.isTailing) {
+    if (isTailing) {
         toTail();
     }
 
@@ -1002,7 +696,7 @@ void appendToFlushBuffer(string data, unsigned char flags) {
 
 uint32_t appendToSimpleBuffer(string data, char_d_a *array, arena *perm) {
     if (array->len + data.len > array->cap) {
-        int64_t newCap = (array->len + data.len) * 2;
+        uint64_t newCap = (array->len + data.len) * 2;
         if (array->buf == NULL) {
             array->cap = data.len;
             array->buf = alloc(perm, SIZEOF(unsigned char),
@@ -1026,10 +720,10 @@ uint32_t appendToSimpleBuffer(string data, char_d_a *array, arena *perm) {
 
 #define STRING_CONVERTER_BUF_LEN 1 << 10
 unsigned char stringConverterBuf[STRING_CONVERTER_BUF_LEN];
-static char_a stringConverterBuffer =
-    (char_a){.buf = stringConverterBuf, .len = STRING_CONVERTER_BUF_LEN};
+static u_char_a stringConverterBuffer =
+    (u_char_a){.buf = stringConverterBuf, .len = STRING_CONVERTER_BUF_LEN};
 
-string charToString(char data, char_a tmp) {
+string charToString(char data, u_char_a tmp) {
     tmp.buf[0] = data;
     return STRING_LEN(tmp.buf, 1);
 }
@@ -1044,11 +738,11 @@ string boolToString(bool data) {
     return (data ? STRING("true") : STRING("false"));
 }
 
-string ptrToString(void *data, char_a tmp) {
+string ptrToString(void *data, u_char_a tmp) {
     tmp.buf[0] = '0';
     tmp.buf[1] = 'x';
 
-    int64_t counter = 2;
+    uint64_t counter = 2;
     uint64_t u = (uint64_t)data;
     for (int i = 2 * sizeof(u) - 1; i >= 0; i--) {
         tmp.buf[counter++] = "0123456789abcdef"[(u >> (4 * i)) & 15];
@@ -1061,7 +755,7 @@ string ptrToStringDefault(void *data) {
     return ptrToString(data, stringConverterBuffer);
 }
 
-string uint64ToString(uint64_t data, char_a tmp) {
+string uint64ToString(uint64_t data, u_char_a tmp) {
     unsigned char *end = tmp.buf + tmp.len;
     unsigned char *beg = end;
     do {
@@ -1074,7 +768,7 @@ string uint64ToStringDefault(uint64_t data) {
     return uint64ToString(data, stringConverterBuffer);
 }
 
-string int64ToString(int64_t data, char_a tmp) {
+string int64ToString(int64_t data, u_char_a tmp) {
     unsigned char *end = tmp.buf + tmp.len;
     unsigned char *beg = end;
     int64_t t = data > 0 ? -data : data;
@@ -1091,8 +785,8 @@ string int64ToStringDefault(int64_t data) {
     return int64ToString(data, stringConverterBuffer);
 }
 
-string doubleToString(double data, char_a tmp) {
-    int64_t tmpLen = 0;
+string doubleToString(double data, u_char_a tmp) {
+    uint64_t tmpLen = 0;
     uint32_t prec = 1000000; // i.e. 6 decimals
 
     if (data < 0) {
@@ -1112,7 +806,7 @@ string doubleToString(double data, char_a tmp) {
     uint64_t fractional = (uint64_t)((data - (double)integral) * (double)prec);
 
     unsigned char buf2[64];
-    char_a tmp2 = (char_a){.buf = buf2, .len = 64};
+    u_char_a tmp2 = (u_char_a){.buf = buf2, .len = 64};
 
     string part = uint64ToString(integral, tmp2);
     memcpy(tmp.buf + tmpLen, part.buf, part.len);
@@ -1139,7 +833,7 @@ string doubleToStringDefault(double data) {
     return doubleToString(data, stringConverterBuffer);
 }
 
-string stringWithMinSize(string data, unsigned char minSize, char_a tmp) {
+string stringWithMinSize(string data, unsigned char minSize, u_char_a tmp) {
     if (data.len >= minSize) {
         return data;
     }

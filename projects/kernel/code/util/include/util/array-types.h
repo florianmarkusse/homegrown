@@ -17,7 +17,7 @@ typedef MAX_LENGTH_ARRAY(uint64_t) uint64_max_a;
 typedef MAX_LENGTH_ARRAY(uint32_t) uint32_max_a;
 typedef MAX_LENGTH_ARRAY(uint8_t) uint8_max_a;
 typedef MAX_LENGTH_ARRAY(bool) bool_max_a;
-typedef ARRAY(unsigned char) char_a;
+typedef ARRAY(unsigned char) u_char_a;
 typedef ARRAY(char *) char_ptr_a;
 typedef ARRAY(bool) bool_a;
 
