@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "util/types.h"
+#include "types.h"
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -18,9 +18,9 @@ extern "C" {
 #define RING_MINUS(val, amount, ringSize)                                      \
     (((val) - (amount)) & ((ringSize) - 1))
 
-__attribute__((unused)) static inline uint64_t power(uint64_t base,
-                                                     uint64_t exponent) {
-    uint64_t result = 1;
+__attribute__((unused)) static inline U64 power(U64 base,
+                                                     U64 exponent) {
+    U64 result = 1;
 
     while (exponent > 0) {
         if (exponent & 1) {

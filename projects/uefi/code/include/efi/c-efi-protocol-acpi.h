@@ -14,10 +14,10 @@ extern "C" {
 typedef struct CEfiACPITableProtocol {
     CEfiStatus(CEFICALL *installACPITable)(CEfiACPITableProtocol *this_,
                                            void *ACPITableBuffer,
-                                           CEfiUSize ACPITableBufferSize,
-                                           CEfiUSize *tableKey);
+                                           USize ACPITableBufferSize,
+                                           USize *tableKey);
     CEfiStatus(CEFICALL *uninstallACPITable)(CEfiACPITableProtocol *this_,
-                                             CEfiUSize tableKey);
+                                             USize tableKey);
 } CEfiACPITableProtocol;
 
 #ifdef __cplusplus

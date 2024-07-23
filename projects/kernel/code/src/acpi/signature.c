@@ -4,7 +4,7 @@ static string signatures[] = {STRING("FACP"), STRING("APIC"), STRING("HPET"),
                               STRING("MCFG"), STRING("WAET")};
 
 ACPITable ACPITablesToEnum(string signature) {
-    for (uint64_t i = 0; i < ERROR_AND_NUM_TABLES; i++) {
+    for (U64 i = 0; i < ERROR_AND_NUM_TABLES; i++) {
         if (stringEquals(signature, signatures[i])) {
             return (ACPITable)i;
         }

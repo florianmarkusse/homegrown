@@ -16,11 +16,11 @@ typedef char char32 __attribute__((vector_size(32), aligned(1)));
 typedef char char32a __attribute__((vector_size(32), aligned(32)));
 #endif
 
-typedef uint32_t __attribute__((aligned(1))) u32;
-typedef uint64_t __attribute__((aligned(1))) u64;
+typedef U32 __attribute__((aligned(1))) u32;
+typedef U64 __attribute__((aligned(1))) u64;
 
 __attribute((nothrow, nonnull(1, 2))) void *
-memcpy(void *__restrict dest, const void *__restrict src, int64_t n) {
+memcpy(void *__restrict dest, const void *__restrict src, I64 n) {
     char *d = (char *)dest;
     const char *s = (char *)src;
 
@@ -83,7 +83,7 @@ memcpy(void *__restrict dest, const void *__restrict src, int64_t n) {
 }
 
 #ifdef __GNUC__
-typedef __attribute__((__may_alias__)) uint64_t WT;
+typedef __attribute__((__may_alias__)) U64 WT;
 #define WS (sizeof(WT))
 #endif
 
@@ -95,27 +95,27 @@ typedef __attribute__((__may_alias__)) uint64_t WT;
  * Dont use UB unless people have been doing it for decades pepelaugh.
  */
 __attribute((nothrow, nonnull(1, 2))) void *memmove(void *dest, const void *src,
-                                                    int64_t n) {
+                                                    I64 n) {
     char *d = dest;
     const char *s = src;
 
     if (d == s) {
         return d;
     }
-    if ((int64_t)((uint64_t)s - (uint64_t)d - n) <= -2 * n) {
+    if ((I64)((U64)s - (U64)d - n) <= -2 * n) {
         return memcpy(d, s, n);
     }
 
     if (d < s) {
 #ifdef __GNUC__
-        if ((uint64_t)s % WS == (uint64_t)d % WS) {
-            while ((uint64_t)d % WS) {
+        if ((U64)s % WS == (U64)d % WS) {
+            while ((U64)d % WS) {
                 if (!n--) {
                     return dest;
                 }
                 *d++ = *s++;
             }
-            for (; (uint64_t)n >= WS; n -= WS, d += WS, s += WS) {
+            for (; (U64)n >= WS; n -= WS, d += WS, s += WS) {
                 *(WT *)d = *(WT *)s;
             }
         }
@@ -125,14 +125,14 @@ __attribute((nothrow, nonnull(1, 2))) void *memmove(void *dest, const void *src,
         }
     } else {
 #ifdef __GNUC__
-        if ((uint64_t)s % WS == (uint64_t)d % WS) {
-            while ((uint64_t)(d + n) % WS) {
+        if ((U64)s % WS == (U64)d % WS) {
+            while ((U64)(d + n) % WS) {
                 if (!n--) {
                     return dest;
                 }
                 d[n] = s[n];
             }
-            while ((uint64_t)n >= WS) {
+            while ((U64)n >= WS) {
                 n -= WS, *(WT *)(d + n) = *(WT *)(s + n);
             }
         }
@@ -146,7 +146,7 @@ __attribute((nothrow, nonnull(1, 2))) void *memmove(void *dest, const void *src,
 }
 
 // Handle memsets of sizes 0..32
-static inline void *small_memset(void *s, int c, uint64_t n) {
+static inline void *small_memset(void *s, int c, U64 n) {
     if (n < 5) {
         if (n == 0)
             return s;
@@ -161,7 +161,7 @@ static inline void *small_memset(void *s, int c, uint64_t n) {
     }
 
     if (n <= 16) {
-        uint64_t val8 = ((uint64_t)0x0101010101010101L * ((uint8_t)c));
+        U64 val8 = ((U64)0x0101010101010101L * ((U8)c));
         if (n >= 8) {
             char *first = s;
             char *last = s + n - 8;
@@ -170,7 +170,7 @@ static inline void *small_memset(void *s, int c, uint64_t n) {
             return s;
         }
 
-        uint32_t val4 = (uint32_t)val8;
+        U32 val4 = (U32)val8;
         char *first = s;
         char *last = s + n - 4;
         *((u32 *)first) = val4;
@@ -187,7 +187,7 @@ static inline void *small_memset(void *s, int c, uint64_t n) {
     return s;
 }
 
-static inline void *huge_memset(void *s, int c, uint64_t n) {
+static inline void *huge_memset(void *s, int c, U64 n) {
     char *p = s;
     char X = (char)c;
     char32 val32 = {X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X,
@@ -196,7 +196,7 @@ static inline void *huge_memset(void *s, int c, uint64_t n) {
     // Stamp the first 32byte store.
     *((char32 *)p) = val32;
 
-    char *first_aligned = p + 32 - ((uint64_t)p % 32);
+    char *first_aligned = p + 32 - ((U64)p % 32);
     char *buffer_end = p + n;
     char *last_word = buffer_end - 32;
 
@@ -234,7 +234,7 @@ static inline void *huge_memset(void *s, int c, uint64_t n) {
     return s;
 }
 
-__attribute((nothrow, nonnull(1))) void *memset(void *s, int c, int64_t n) {
+__attribute((nothrow, nonnull(1))) void *memset(void *s, int c, I64 n) {
     char *p = s;
     char X = (char)c;
 
@@ -264,8 +264,8 @@ __attribute((nothrow, nonnull(1))) void *memset(void *s, int c, int64_t n) {
 
 /* Compare N bytes of S1 and S2.  */
 __attribute((nothrow, pure, nonnull(1, 2))) int
-memcmp(const void *s1, const void *s2, int64_t n) {
-    uint64_t i;
+memcmp(const void *s1, const void *s2, I64 n) {
+    U64 i;
 
     /**
      * p1 and p2 are the same memory? easy peasy! bail out
@@ -275,10 +275,10 @@ memcmp(const void *s1, const void *s2, int64_t n) {
     }
 
     // This for loop does the comparing and pointer moving...
-    for (i = 0; (i < (uint64_t)n) && (*(uint8_t *)s1 == *(uint8_t *)s2);
-         i++, s1 = 1 + (uint8_t *)s1, s2 = 1 + (uint8_t *)s2)
+    for (i = 0; (i < (U64)n) && (*(U8 *)s1 == *(U8 *)s2);
+         i++, s1 = 1 + (U8 *)s1, s2 = 1 + (U8 *)s2)
         ;
 
     // if i == length, then we have passed the test
-    return (i == (uint64_t)n) ? 0 : (*(uint8_t *)s1 - *(uint8_t *)s2);
+    return (i == (U64)n) ? 0 : (*(U8 *)s1 - *(U8 *)s2);
 }

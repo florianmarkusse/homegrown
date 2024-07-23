@@ -3,12 +3,12 @@
 #include "util/memory/macros.h" // for SIZEOF, NULL_ON_FAIL, ZE...
 #include "util/memory/memory.h"
 
-BuddyBlock *splitBuddy(BuddyBlock *block, uint64_t size) {
+BuddyBlock *splitBuddy(BuddyBlock *block, U64 size) {
     ASSERT(size > 0);
 
     if (block != NULL) {
         while (size * 2 < block->size) {
-            uint64_t halfSize = block->size >> 1;
+            U64 halfSize = block->size >> 1;
             block->size = halfSize;
             block = nextBuddy(block);
             block->size = halfSize;
@@ -23,7 +23,7 @@ BuddyBlock *splitBuddy(BuddyBlock *block, uint64_t size) {
     return NULL;
 }
 
-BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, uint64_t size) {
+BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, U64 size) {
     ASSERT(size > 0);
 
     BuddyBlock *bestBlock = NULL;
@@ -91,10 +91,10 @@ BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, uint64_t size) {
     return NULL;
 }
 
-BuddyAllocator createBuddyAllocator(char *data, uint64_t size) {
+BuddyAllocator createBuddyAllocator(char *data, U64 size) {
     ASSERT(size > 0);
     ASSERT((size & (size - 1)) == 0);
-    ASSERT(size > (uint64_t)sizeof(BuddyBlock));
+    ASSERT(size > (U64)sizeof(BuddyBlock));
 
     BuddyAllocator result;
 
@@ -157,12 +157,12 @@ void coalesceBuddies(BuddyBlock *head, BuddyBlock *tail) {
 }
 
 __attribute((unused, malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator,
-                                               int64_t size, int64_t count,
+                                               I64 size, I64 count,
                                                unsigned char flags) {
     ASSERT(size > 0);
 
-    uint64_t total = size * count;
-    uint64_t totalSize = total + SIZEOF(BuddyBlock);
+    U64 total = size * count;
+    U64 totalSize = total + SIZEOF(BuddyBlock);
 
     BuddyBlock *found =
         findBestBuddy(buddyAllocator->head, buddyAllocator->tail, totalSize);

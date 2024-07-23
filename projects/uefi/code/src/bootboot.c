@@ -48,7 +48,7 @@ typedef enum {
 typedef struct {
     U8 magic[8];
     U8 chksum;
-    CEfiChar8 oemid[6];
+    U8 oemid[6];
     U8 revision;
     U32 rsdt;
     U32 length;
@@ -63,7 +63,7 @@ typedef struct {
  */
 typedef struct {
     U8 *ptr;
-    CEfiUSize size;
+    USize size;
 } file_t;
 
 /*** common variables ***/
@@ -164,7 +164,7 @@ CEFICALL void wait(U64 microseconds) {
 }
 
 CEfiStatus getSystemConfigTable(CEfiGuid *tableGuid, void **table) {
-    CEfiUSize Index;
+    USize Index;
 
     for (Index = 0; Index < globals.st->number_of_table_entries; Index++) {
         if (memcmp(tableGuid,
@@ -203,10 +203,10 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     //    EFI_PARTITION_ENTRY *gptEnt;
     //    EFI_INPUT_KEY key;
     //    U64 ncycles = 0, currtime, endtime;
-    //    CEfiUSize bad_madt = 0;
+    //    USize bad_madt = 0;
     //    EFI_GUID SerIoGuid = EFI_SERIAL_IO_PROTOCOL_GUID;
     //    EFI_SERIAL_IO_PROTOCOL *ser = NULL;
-    //    CEfiUSize bsp_num = 0, i, j = 0, x, y, handle_size = 0,
+    //    USize bsp_num = 0, i, j = 0, x, y, handle_size = 0,
     //    memory_map_size = 0,
     //              map_key = 0, desc_size = 0;
     //    U32 desc_version = 0, a, b;
@@ -319,9 +319,9 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Retrieving Graphics output buffer...\r\n");
-    CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
+    CEfiGraphicsOutputProtocol *gop = NULL;
     CEfiStatus status = globals.st->boot_services->locate_protocol(
-        &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, C_EFI_NULL, (void **)&gop);
+        &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, (void **)&gop);
     if (C_EFI_ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
     }
@@ -361,8 +361,8 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     // Symmetric Multi Processing support
     U8 *ptr = (U8 *)acpi_ptr, *pe, *data;
     U64 r;
-    CEfiUSize bad_madt = 0;
-    CEfiUSize bsp_num = 0;
+    USize bad_madt = 0;
+    USize bsp_num = 0;
     U64 i;
     {
         for (i = 0; i < (int)(sizeof(lapic_ids) / sizeof(lapic_ids[0])); i++) {
@@ -387,8 +387,8 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                         switch (ptr[0]) {
                         case 0: // found Processor Local APIC
                             if ((ptr[4] & 1) && ptr[3] != 0xFF &&
-                                lapic_ids[(CEfiISize)ptr[3]] == 0xFFFF)
-                                lapic_ids[(CEfiISize)ptr[3]] = (U16)i++;
+                                lapic_ids[(ISize)ptr[3]] == 0xFFFF)
+                                lapic_ids[(ISize)ptr[3]] = (U16)i++;
                             else
                                 bad_madt++;
                             break;
@@ -457,7 +457,7 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     // Get memory map
     bool apmemfree = false;
     MemoryInfo memoryInfo = getMemoryInfo();
-    for (CEfiUSize i = 0;
+    for (USize i = 0;
          i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
         CEfiMemoryDescriptor *mement =
             (CEfiMemoryDescriptor *)((U8 *)memoryInfo.memoryMap +

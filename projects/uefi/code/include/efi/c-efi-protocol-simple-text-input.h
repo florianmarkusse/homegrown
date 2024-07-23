@@ -21,12 +21,12 @@ extern "C" {
 
 typedef struct CEfiInputKey {
     U16 scan_code;
-    CEfiChar16 unicode_char;
+    U16 unicode_char;
 } CEfiInputKey;
 
 typedef struct CEfiSimpleTextInputProtocol {
     CEfiStatus(CEFICALL *reset)(CEfiSimpleTextInputProtocol *this_,
-                                CEfiBool extended_verification);
+                                bool extended_verification);
     CEfiStatus(CEFICALL *read_key_stroke)(CEfiSimpleTextInputProtocol *this_,
                                           CEfiInputKey *key);
     CEfiEvent wait_for_key;

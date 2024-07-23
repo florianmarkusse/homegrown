@@ -22,9 +22,9 @@ extern "C" {
 
 typedef struct CEfiDevicePathFromTextProtocol {
     CEfiDevicePathProtocol *(CEFICALL *convert_text_to_device_node)(
-        CEfiChar16 *text_device_node);
+        U16 *text_device_node);
     CEfiDevicePathProtocol *(CEFICALL *convert_text_to_device_path)(
-        CEfiChar16 *text_device_path);
+        U16 *text_device_path);
 } CEfiDevicePathFromTextProtocol;
 
 #ifdef __cplusplus

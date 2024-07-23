@@ -7,7 +7,7 @@
 #include "memory/definitions.h"
 #include "test.h"
 #include "util/log.h"
-#include "util/types.h"
+#include "types.h"
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
@@ -23,7 +23,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                           .size = kernelParameters->fb.size,
                           .width = kernelParameters->fb.columns,
                           .height = kernelParameters->fb.rows,
-                          .screen = (uint32_t *)kernelParameters->fb.ptr});
+                          .screen = (U32 *)kernelParameters->fb.ptr});
 
     setupIDT();
 
@@ -256,8 +256,8 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 
 // typedef enum { RSDT, XSDT, NUM_DESCRIPTION_TABLES } DescriptionTableVersion;
 // static USize entrySizes[NUM_DESCRIPTION_TABLES] = {
-//     sizeof(uint32_t),
-//     sizeof(uint64_t),
+//     sizeof(U32),
+//     sizeof(U64),
 // };
 //
 // void appendDescriptionHeaders(RSDPResult rsdp) {
@@ -278,7 +278,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 //     }
 //
 //     char **descriptionHeaders = (char **)&sdt->descriptionHeaders;
-//     for (uint64_t i = 0; i < sdt->header.length - sizeof(CAcpiSDT);
+//     for (U64 i = 0; i < sdt->header.length - sizeof(CAcpiSDT);
 //          i += entrySize) {
 //         CAcpiDescriptionTableHeader *header = NULL;
 //         memcpy(&header, descriptionHeaders, entrySize);
@@ -298,7 +298,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 //
 //             InterruptControllerStructure *interruptStructures =
 //                 madt->interruptStructures;
-//             for (uint64_t j = 0;
+//             for (U64 j = 0;
 //                  j < madt->madt.header.length - sizeof(ConstantMADT);
 //                  j += interruptStructures->totalLength) {
 //                 LOG(STRING("Type: "));

@@ -7,7 +7,7 @@ extern "C" {
 
 #include "util/array-types.h" // for u_char_a
 #include "util/text/string.h" // for string
-#include "util/types.h"       // for int64_t, uint64_t
+#include "types.h"       // for I64, U64
 
 #define NEWLINE 0x01
 #define FLUSH 0x02
@@ -15,12 +15,12 @@ extern "C" {
 // This struct implicitly assumes that there are 4 bytes per pixel, hence a
 // uint32 buffer
 typedef struct {
-    uint32_t *screen;
-    uint32_t *backingBuffer;
-    uint64_t size;
-    uint32_t width;
-    uint32_t height;
-    uint32_t scanline;
+    U32 *screen;
+    U32 *backingBuffer;
+    U64 size;
+    U32 width;
+    U32 height;
+    U32 scanline;
 } ScreenDimension;
 void setupScreen(ScreenDimension dimension);
 // TODO: needs buffer as argument when memory is set up
@@ -28,10 +28,10 @@ void appendToFlushBuffer(string data, unsigned char flags);
 bool flushStandardBuffer();
 bool flushBuffer(uint8_max_a *buffer);
 
-void rewind(uint16_t numberOfScreenLines);
-void prowind(uint16_t numberOfScreenLines);
+void rewind(U16 numberOfScreenLines);
+void prowind(U16 numberOfScreenLines);
 
-void printToSerial(string data, uint8_t flags);
+void printToSerial(string data, U8 flags);
 
 string stringWithMinSize(string data, unsigned char minSize, u_char_a tmp);
 string stringWithMinSizeDefault(string data, unsigned char minSize);
@@ -46,11 +46,11 @@ string charToStringDefault(char data);
 
 string stringToString(string data);
 
-string uint64ToString(uint64_t data, u_char_a tmp);
-string uint64ToStringDefault(uint64_t data);
+string uint64ToString(U64 data, u_char_a tmp);
+string uint64ToStringDefault(U64 data);
 
-string int64ToString(int64_t data, u_char_a tmp);
-string int64ToStringDefault(int64_t data);
+string int64ToString(I64 data, u_char_a tmp);
+string int64ToStringDefault(I64 data);
 
 string doubleToString(double data, u_char_a tmp);
 string doubleToStringDefault(double data);
@@ -62,15 +62,15 @@ string noAppend();
         string: stringToString,                                                \
         void *: ptrToStringDefault,                                            \
         int *: ptrToStringDefault,                                             \
-        uint8_t *: ptrToStringDefault,                                         \
+        U8 *: ptrToStringDefault,                                         \
         unsigned int *: ptrToStringDefault,                                    \
         char: charToStringDefault,                                             \
-        int64_t: int64ToStringDefault,                                         \
+        I64: int64ToStringDefault,                                         \
         double: doubleToStringDefault,                                         \
-        uint64_t: uint64ToStringDefault,                                       \
-        uint32_t: uint64ToStringDefault,                                       \
-        uint16_t: uint64ToStringDefault,                                       \
-        uint8_t: uint64ToStringDefault,                                        \
+        U64: uint64ToStringDefault,                                       \
+        U32: uint64ToStringDefault,                                       \
+        U16: uint64ToStringDefault,                                       \
+        U8: uint64ToStringDefault,                                        \
         int: int64ToStringDefault,                                             \
         short: int64ToStringDefault,                                           \
         bool: boolToString,                                                    \
@@ -102,7 +102,7 @@ string noAppend();
 #define LOG(...) LOG_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 #define FLUSH_AFTER                                                            \
-    for (uint64_t MACRO_VAR(i) = 0; MACRO_VAR(i) < 1;                          \
+    for (U64 MACRO_VAR(i) = 0; MACRO_VAR(i) < 1;                          \
          MACRO_VAR(i) = flushStandardBuffer())
 
 #ifdef __cplusplus

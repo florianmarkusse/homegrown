@@ -13,11 +13,11 @@ extern "C" {
 
 typedef struct {
     U32 MediaId;
-    CEfiBool RemovableMedia;
-    CEfiBool MediaPresent;
-    CEfiBool LogicalPartition;
-    CEfiBool ReadOnly;
-    CEfiBool WriteCaching;
+    bool RemovableMedia;
+    bool MediaPresent;
+    bool LogicalPartition;
+    bool ReadOnly;
+    bool WriteCaching;
     U32 BlockSize;
     U32 IoAlign;
     CEfiLba LastBlock;
@@ -33,7 +33,7 @@ typedef struct CEfiBlockIoProtocol {
     void *Reset;
     CEfiStatus(CEFICALL *readBlocks)(CEfiBlockIoProtocol *this_,
                                      U32 mediaID, CEfiLba startingLBA,
-                                     CEfiUSize bufferSize, void *buffer);
+                                     USize bufferSize, void *buffer);
 
     void *WriteBlocks;
     void *FlushBlocks;

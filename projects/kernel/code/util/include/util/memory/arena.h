@@ -1,19 +1,17 @@
 #ifndef UTIL_MEMORY_ARENA_H
 #define UTIL_MEMORY_ARENA_H
 
-#include "util/types.h"
+#include "types.h"
 
 typedef struct {
-    uint8_t *beg;
-    uint8_t *end;
-    uint64_t cap;
+    U8 *beg;
+    U8 *end;
+    U64 cap;
     void **jmp_buf;
 } arena;
 
-__attribute((malloc, alloc_align(3))) void *alloc(arena *a, int64_t size,
-                                                  uint64_t align,
-                                                  uint64_t count,
-                                                  unsigned char flags);
+__attribute((malloc, alloc_align(3))) void *
+alloc(arena *a, I64 size, U64 align, U64 count, unsigned char flags);
 
 #define NEW_2(a, t) (t *)alloc(a, SIZEOF(t), ALIGNOF(t), 1, 0)
 #define NEW_3(a, t, n) (t *)alloc(a, SIZEOF(t), ALIGNOF(t), n, 0)

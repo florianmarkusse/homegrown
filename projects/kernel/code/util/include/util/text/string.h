@@ -31,7 +31,7 @@ extern "C" {
 
 typedef struct {
     unsigned char *buf;
-    uint64_t len;
+    U64 len;
 } string;
 
 __attribute__((unused)) static inline bool stringEquals(string a, string b) {
@@ -47,14 +47,14 @@ __attribute__((unused)) static inline string stringCopy(string dest,
     return dest;
 }
 __attribute__((unused)) static inline unsigned char getChar(string str,
-                                                            uint64_t index) {
+                                                            U64 index) {
     ASSERT(index < str.len);
 
     return str.buf[index];
 }
 
 __attribute__((unused)) static inline unsigned char
-getCharOr(string str, uint64_t index, char or) {
+getCharOr(string str, U64 index, char or) {
     if (index < 0 || index >= str.len) {
         return or ;
     }
@@ -62,7 +62,7 @@ getCharOr(string str, uint64_t index, char or) {
 }
 
 __attribute__((unused)) static inline unsigned char *
-getCharPtr(string str, uint64_t index) {
+getCharPtr(string str, U64 index) {
     ASSERT(index < str.len);
 
     return &str.buf[index];
@@ -70,7 +70,7 @@ getCharPtr(string str, uint64_t index) {
 
 __attribute__((unused)) static inline bool containsChar(string s,
                                                         unsigned char ch) {
-    for (uint64_t i = 0; i < s.len; i++) {
+    for (U64 i = 0; i < s.len; i++) {
         if (s.buf[i] == ch) {
             return true;
         }
@@ -79,10 +79,10 @@ __attribute__((unused)) static inline bool containsChar(string s,
 }
 
 __attribute__((unused)) static inline string
-splitString(string s, unsigned char token, uint64_t from) {
+splitString(string s, unsigned char token, U64 from) {
     ASSERT(from >= 0 && from < s.len);
 
-    for (uint64_t i = from; i < s.len; i++) {
+    for (U64 i = from; i < s.len; i++) {
         if (s.buf[i] == token) {
             return (string){.buf = getCharPtr(s, from), .len = i - from};
         }
@@ -91,26 +91,26 @@ splitString(string s, unsigned char token, uint64_t from) {
     return (string){.buf = getCharPtr(s, from), .len = s.len - from};
 }
 
-__attribute__((unused)) static inline int64_t
-firstOccurenceOfFrom(string s, unsigned char ch, uint64_t from) {
+__attribute__((unused)) static inline I64
+firstOccurenceOfFrom(string s, unsigned char ch, U64 from) {
     ASSERT(from >= 0 && from < s.len);
 
-    for (uint64_t i = from; i < s.len; i++) {
+    for (U64 i = from; i < s.len; i++) {
         if (s.buf[i] == ch) {
             return i;
         }
     }
     return -1;
 }
-__attribute__((unused)) static inline int64_t
+__attribute__((unused)) static inline I64
 firstOccurenceOf(string s, unsigned char ch) {
     return firstOccurenceOfFrom(s, ch, 0);
 }
 
-__attribute__((unused)) static inline int64_t
+__attribute__((unused)) static inline I64
 lastOccurenceOf(string s, unsigned char ch) {
     // Is uint here so it will wrap at 0
-    for (uint64_t i = s.len - 1; i >= s.len; i--) {
+    for (U64 i = s.len - 1; i >= s.len; i--) {
         if (s.buf[i] == ch) {
             return i;
         }

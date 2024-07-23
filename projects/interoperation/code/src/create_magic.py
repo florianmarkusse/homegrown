@@ -10,7 +10,7 @@ def generate_header(input_file, output_header):
         if len(data) < 4:
             raise ValueError("File is less than 4 bytes long")
         
-        # Convert bytes to a list of uint8_t values
+        # Convert bytes to a list of U8 values
         byte_values = ", ".join(f"0x{byte:02x}" for byte in data)
 
         # Generate the header file content with comments

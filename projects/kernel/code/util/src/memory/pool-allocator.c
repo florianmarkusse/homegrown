@@ -4,8 +4,8 @@
 #include "util/memory/memory.h"
 
 void freePool(PoolAllocator *pool) {
-    uint64_t chunkCount = pool->cap / pool->chunkSize;
-    uint64_t i;
+    U64 chunkCount = pool->cap / pool->chunkSize;
+    U64 i;
 
     for (i = 0; i < chunkCount; i++) {
         void *ptr = &pool->beg[i * pool->chunkSize];
@@ -18,8 +18,8 @@ void freePool(PoolAllocator *pool) {
 /*
  * Set up the pool allocator values, except for the jmp_buf!
  */
-PoolAllocator createPoolAllocator(char *buffer, int64_t cap,
-                                          int64_t chunkSize) {
+PoolAllocator createPoolAllocator(char *buffer, I64 cap,
+                                          I64 chunkSize) {
     ASSERT(cap > 0);
     ASSERT((cap & (cap - 1)) == 0);
 

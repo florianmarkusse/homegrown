@@ -21,7 +21,7 @@ extern "C" {
                0x72, 0xa4)
 
 typedef struct CEfiDevicePathUtilitiesProtocol {
-    CEfiUSize(CEFICALL *get_device_path_size)(
+    USize(CEFICALL *get_device_path_size)(
         CEfiDevicePathProtocol *device_path);
     CEfiDevicePathProtocol *(CEFICALL *duplicate_device_path)(
         CEfiDevicePathProtocol *device_path);
@@ -35,8 +35,8 @@ typedef struct CEfiDevicePathUtilitiesProtocol {
         CEfiDevicePathProtocol *device_path_instance);
     CEfiDevicePathProtocol *(CEFICALL *get_next_device_path_instance)(
         CEfiDevicePathProtocol **device_path_instance,
-        CEfiUSize *device_path_instance_size);
-    CEfiBool(CEFICALL *is_device_path_multi_instance)(
+        USize *device_path_instance_size);
+    bool(CEFICALL *is_device_path_multi_instance)(
         CEfiDevicePathProtocol *device_path);
     CEfiDevicePathProtocol *(CEFICALL *create_device_node)(U8 node_type,
                                                            U8 node_subtype,

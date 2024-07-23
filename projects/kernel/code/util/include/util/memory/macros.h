@@ -5,12 +5,12 @@
 extern "C" {
 #endif
 
-#include "util/types.h"
+#include "types.h"
 
 #define ZERO_MEMORY 0x01
 #define NULL_ON_FAIL 0x02
 
-#define SIZEOF(x) (int64_t)sizeof(x)
+#define SIZEOF(x) (I64)sizeof(x)
 #define COUNTOF(a) (SIZEOF(a) / SIZEOF(*(a)))
 #define LENGTHOF(s) (COUNTOF(s) - 1)
 #define ALIGNOF(t) (_Alignof(t))

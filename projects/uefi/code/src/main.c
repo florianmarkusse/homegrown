@@ -331,7 +331,7 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Read kernel content, at memory location:");
-    printNumber((CEfiUSize)kernelContent.buf, 16);
+    printNumber((USize)kernelContent.buf, 16);
     globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
     globals.st->con_out->output_string(globals.st->con_out,
@@ -349,15 +349,15 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     globals.st->con_out->output_string(
         globals.st->con_out,
         u"Going to collect necessary info, then exit bootservices...\r\n");
-    CEfiGraphicsOutputProtocol *gop = C_EFI_NULL;
+    CEfiGraphicsOutputProtocol *gop = NULL;
     CEfiStatus status = globals.st->boot_services->locate_protocol(
-        &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, C_EFI_NULL, (void **)&gop);
+        &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, (void **)&gop);
     if (C_EFI_ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
     }
 
     MemoryInfo memoryInfo = getMemoryInfo();
-    for (CEfiUSize i = 0;
+    for (USize i = 0;
          i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
         CEfiMemoryDescriptor *desc =
             (CEfiMemoryDescriptor *)((U8 *)memoryInfo.memoryMap +

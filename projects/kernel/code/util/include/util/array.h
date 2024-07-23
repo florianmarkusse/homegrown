@@ -8,40 +8,40 @@ extern "C" {
 #include "util/macros.h"
 #include "util/memory/arena.h"
 #include "util/memory/memory.h"
-#include "util/types.h"
+#include "types.h"
 
 #define ARRAY(T)                                                               \
     struct {                                                                   \
         T *buf;                                                                \
-        uint64_t len;                                                          \
+        U64 len;                                                          \
     }
 
 #define DYNAMIC_ARRAY(T)                                                       \
     struct {                                                                   \
         T *buf;                                                                \
-        uint64_t len;                                                          \
-        uint64_t cap;                                                          \
+        U64 len;                                                          \
+        U64 cap;                                                          \
     }
 
 #define MAX_LENGTH_ARRAY(T)                                                    \
     struct {                                                                   \
         T *buf;                                                                \
-        uint64_t len;                                                          \
-        uint64_t cap;                                                          \
+        U64 len;                                                          \
+        U64 cap;                                                          \
     }
 
 typedef struct {
-    uint8_t *buf;
-    uint64_t len;
-    uint64_t cap;
+    U8 *buf;
+    U64 len;
+    U64 cap;
 } DASlice;
 
 /**
  * Written assuming that arena bumps up! Otherwise the middle case statement
  * where we only do a times 1 alloc does not hold.
  */
-__attribute((unused)) static void grow(void *slice, uint64_t size,
-                                       uint64_t align, arena *a,
+__attribute((unused)) static void grow(void *slice, U64 size,
+                                       U64 align, arena *a,
                                        unsigned char flags) {
     DASlice *replica = (DASlice *)slice;
 

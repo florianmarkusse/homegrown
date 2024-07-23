@@ -54,23 +54,23 @@ typedef struct {
     U32 maxMode;
     U32 mode;
     CEfiGraphicsOutputModeInformation *info;
-    CEfiUSize sizeOfInfo;
+    USize sizeOfInfo;
     CEfiPhysicalAddress frameBufferBase;
-    CEfiUSize frameBufferSize;
+    USize frameBufferSize;
 } CEfiGraphicsOutputProtocolMode;
 
 typedef struct CEfiGraphicsOutputProtocol {
     CEfiStatus(CEFICALL *queryMode)(CEfiGraphicsOutputProtocol *this_,
-                                    U32 modeNumber, CEfiUSize *sizeOfInfo,
+                                    U32 modeNumber, USize *sizeOfInfo,
                                     CEfiGraphicsOutputModeInformation **info);
     CEfiStatus(CEFICALL *setMode)(CEfiGraphicsOutputProtocol *this_,
                                   U32 modeNumber);
     CEfiStatus(CEFICALL *blt)(CEfiGraphicsOutputProtocol *this_,
                               CEfiBltPixel *bltBuffer,
-                              CEfiBltOperation bltOperation, CEfiUSize sourceX,
-                              CEfiUSize sourceY, CEfiUSize destinationX,
-                              CEfiUSize destinationY, CEfiUSize width,
-                              CEfiUSize height, CEfiUSize delta);
+                              CEfiBltOperation bltOperation, USize sourceX,
+                              USize sourceY, USize destinationX,
+                              USize destinationY, USize width,
+                              USize height, USize delta);
     CEfiGraphicsOutputProtocolMode *mode;
 } CEfiGraphicsOutputProtocol;
 

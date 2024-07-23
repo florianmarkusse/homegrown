@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "util/types.h"
+#include "types.h"
 
 struct PoolHead {
     struct PoolHead *next;
@@ -14,8 +14,8 @@ typedef struct PoolHead PoolHead;
 
 typedef struct {
     char *beg;
-    int64_t cap;
-    int64_t chunkSize;
+    I64 cap;
+    I64 chunkSize;
 
     PoolHead *head;
 
@@ -27,8 +27,8 @@ void freePool(PoolAllocator *pool);
 /*
  * Set up the pool allocator values, except for the jmp_buf!
  */
-PoolAllocator createPoolAllocator(char *buffer, int64_t cap,
-                                          int64_t chunkSize);
+PoolAllocator createPoolAllocator(char *buffer, I64 cap,
+                                          I64 chunkSize);
 
 __attribute((malloc)) void *poolAlloc(PoolAllocator *pool,
                                           unsigned char flags);

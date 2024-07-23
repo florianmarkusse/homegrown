@@ -21,7 +21,7 @@ typedef struct {
     CEfiTime modificationTime;
     U64 attribute;
     // Can overflow but unlikely, oh well
-    CEfiChar16 fileName[256];
+    U16 fileName[256];
 } CEfiFileInfo;
 
 // Open Modes
@@ -42,13 +42,13 @@ typedef struct CEfiFileProtocol {
     U64 Revision;
     CEfiStatus(CEFICALL *open)(CEfiFileProtocol *this_,
                                CEfiFileProtocol **newHandle,
-                               CEfiChar16 *fileName, U64 openMode,
+                               U16 *fileName, U64 openMode,
                                U64 attributes);
     CEfiStatus(CEFICALL *close)(CEfiFileProtocol *this_);
     CEfiStatus(CEFICALL *delete)(CEfiFileProtocol *this_);
-    CEfiStatus(CEFICALL *read)(CEfiFileProtocol *this_, CEfiUSize *bufferSize,
+    CEfiStatus(CEFICALL *read)(CEfiFileProtocol *this_, USize *bufferSize,
                                void *buffer);
-    CEfiStatus(CEFICALL *write)(CEfiFileProtocol *this_, CEfiUSize *bufferSize,
+    CEfiStatus(CEFICALL *write)(CEfiFileProtocol *this_, USize *bufferSize,
                                 void *buffer);
     CEfiStatus(CEFICALL *getPosisition)(CEfiFileProtocol *this_,
                                         U64 position);
@@ -56,10 +56,10 @@ typedef struct CEfiFileProtocol {
                                         U64 position);
     CEfiStatus(CEFICALL *getInfo)(CEfiFileProtocol *this_,
                                   CEfiGuid *informationType,
-                                  CEfiUSize *bufferSize, void *buffer);
+                                  USize *bufferSize, void *buffer);
     CEfiStatus(CEFICALL *setInfo)(CEfiFileProtocol *this_,
                                   CEfiGuid *informationType,
-                                  CEfiUSize bufferSize, void *buffer);
+                                  USize bufferSize, void *buffer);
     CEfiStatus(CEFICALL *flush)(CEfiFileProtocol *this_);
 
     // the functions below are not (yet) implemented

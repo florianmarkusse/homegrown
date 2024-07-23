@@ -28,7 +28,7 @@
  *
  *  * All integers are either fixed-size, or native size. That is, either use
  *    CEfi{8,..,64} and CEfiU{8,..,64} directly, or use the native-size
- *    CEfiSize and CEfiUSize. Native size integers are sized according to the
+ *    CEfiSize and USize. Native size integers are sized according to the
  *    architecture restrictions. You should assume they are pointer-sized.
  *
  *    Whenever you refer to memory (either pointing to it, or remember the size
@@ -60,7 +60,7 @@
  *     - NULL is disallowed, unless explicitly mentioned otherwise.
  *     - Data referenced by pointers is undefined on error-return from a
  *       function.
- *     - You must not pass data larger than native-size (sizeof(CEfiUSize)) on
+ *     - You must not pass data larger than native-size (sizeof(USize)) on
  *       the stack. You must pass them by reference.
  *
  *  * Stack size is at least 128KiB and 16-byte aligned. All stack space might
@@ -113,103 +113,6 @@ typedef struct CEfiACPITableProtocol CEfiACPITableProtocol;
 typedef struct CEfiMPServicesProtocol CEfiMPServicesProtocol;
 
 /**
- * C_EFI_NULL: NULL symbol
- *
- * Since NULL is defined by stdint.h, we need an equivalent. We follow what
- * everyone else does and define it as ((void *)0).
- */
-#define C_EFI_NULL ((void *)0)
-
-/**
- * C_EFI_JOIN: Join two compiler symbols
- * @_a:		First symbol
- * @_b:		Second symbol
- *
- * This joins two compiler symbols via the `a ## b` preprocessor construct. It
- * first resolves the arguments to their values, then concatenates them.
- */
-#define C_EFI_JOIN(_a, _b) C_EFI_JOIN_LITERALS(_a, _b)
-#define C_EFI_JOIN_LITERALS(_a, _b) _a##_b
-
-/**
- * I8, U8, I16, U16,
- * I32, U32, I64, U64: Fixed size integers
- *
- * The CEfiI* and CEfiU* fixed size integers are UEFI equivalents to uint*_t
- * from stdint.h in ISO-C. Note that we rely on `__INTX_TYPE__` to be defined
- * by your compiler. This is what is used in most stdint.h implementations as
- * well.
- *
- * Other compiler-constants known from ISO-C are defined as well, including for
- * instance the UINTX_C() equivalents for fixed size integers.
- *
- * Note: UEFI provides 128-bit types as well, but most compilers lack support
- *       to expose the required types. We simply skip their definition. If the
- *       need arises, we can reconsider and add them.
- */
-
-#if defined(__INT8_C_SUFFIX__)
-#define C_EFI_I8_C(_v) C_EFI_JOIN(_v, __INT8_C_SUFFIX__)
-#define C_EFI_U8_C(_v) C_EFI_JOIN(_v, __UINT8_C_SUFFIX__)
-#define C_EFI_I16_C(_v) C_EFI_JOIN(_v, __INT16_C_SUFFIX__)
-#define C_EFI_U16_C(_v) C_EFI_JOIN(_v, __UINT16_C_SUFFIX__)
-#define C_EFI_I32_C(_v) C_EFI_JOIN(_v, __INT32_C_SUFFIX__)
-#define C_EFI_U32_C(_v) C_EFI_JOIN(_v, __UINT32_C_SUFFIX__)
-#define C_EFI_I64_C(_v) C_EFI_JOIN(_v, __INT64_C_SUFFIX__)
-#define C_EFI_U64_C(_v) C_EFI_JOIN(_v, __UINT64_C_SUFFIX__)
-#else
-#define C_EFI_I8_C(_v) __INT8_C(_v)
-#define C_EFI_U8_C(_v) __UINT8_C(_v)
-#define C_EFI_I16_C(_v) __INT16_C(_v)
-#define C_EFI_U16_C(_v) __UINT16_C(_v)
-#define C_EFI_I32_C(_v) __INT32_C(_v)
-#define C_EFI_U32_C(_v) __UINT32_C(_v)
-#define C_EFI_I64_C(_v) __INT64_C(_v)
-#define C_EFI_U64_C(_v) __UINT64_C(_v)
-#endif
-
-/**
- * CEfiISize, CEfiUSize: Native sized integers
- *
- * The CEfiISize and CEfiUSize types are native-size integer types. They
- * always have the same size as the target-architecture instruction width as
- * defined by the UEFI specification ('instruction width' is the wording of the
- * specification, and effectively means the pointer and address width).
- */
-typedef __INTPTR_TYPE__ CEfiISize;
-typedef __UINTPTR_TYPE__ CEfiUSize;
-
-/**
- * CEfiBool: Boolean Type
- *
- * The CEfiBool type corresponds to the C11 definition of the _Bool type. It
- * is a simple typedef.
- */
-typedef _Bool CEfiBool;
-
-/**
- * C_EFI_TRUE, C_EFI_FALSE: Boolean values
- *
- * Both constants, C_EFI_TRUE and C_EFI_FALSE, follow the C11 standard for
- * the `true' and `false' constants defined in `stdbool.h'.
- */
-#define C_EFI_TRUE 1
-#define C_EFI_FALSE 0
-
-/**
- * CEfiChar8, CEfiChar16: Character Types
- *
- * The CEfiChar8 type is an unsigned 8-byte integer type that stores 8-bit
- * ASCII compatible characters (or character strings), using the ISO-Latin-1
- * character set.
- *
- * The CEfiChar16 type is an unsigned 16-byte integer type that stores
- * characters (or character strings) compatible to the UCS-2 encoding.
- */
-typedef U8 CEfiChar8;
-typedef U16 CEfiChar16;
-
-/**
  * CEfiStatus: Status Codes
  *
  * The CEfiStatus type is used to indicate the return status of functions,
@@ -217,14 +120,13 @@ typedef U16 CEfiChar16;
  * values (MSB unset) indicate warnings, negative values (MSB set) indicate
  * errors. The second-MSB distinguishes OEM warnings and errors.
  */
-
-typedef CEfiUSize CEfiStatus;
+typedef USize CEfiStatus;
 
 #if __UINTPTR_MAX__ == __UINT32_MAX__
-#define C_EFI_STATUS_C C_EFI_U32_C
+#define C_EFI_STATUS_C U32_C
 #define C_EFI_STATUS_WIDTH 32
 #elif __UINTPTR_MAX__ == __UINT64_MAX__
-#define C_EFI_STATUS_C C_EFI_U64_C
+#define C_EFI_STATUS_C U64_C
 #define C_EFI_STATUS_WIDTH 64
 #else
 #error "Unsupported value of __UINTPTR_MAX__"
@@ -309,7 +211,7 @@ typedef CEfiUSize CEfiStatus;
 typedef void *CEfiHandle;
 typedef void *CEfiEvent;
 typedef U64 CEfiLba;
-typedef CEfiUSize CEfiTpl;
+typedef USize CEfiTpl;
 typedef U64 CEfiPhysicalAddress;
 typedef U64 CEfiVirtualAddress;
 

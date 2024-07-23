@@ -9,9 +9,9 @@ typedef struct {
     U64 len;
 } AsciString;
 
-#define ASCI_STRING(s) ((AsciString){(CEfiChar8 *)(s), ((sizeof(s) - 1))})
+#define ASCI_STRING(s) ((AsciString){(U8 *)(s), ((sizeof(s) - 1))})
 #define ASCI_STRING_LEN(s, n)                                                  \
-    (AsciString) { (CEfiChar8 *)(s), n }
+    (AsciString) { (U8 *)(s), n }
 
 typedef struct {
     AsciString string;
@@ -31,11 +31,11 @@ static inline bool asciStringEquals(AsciString a, AsciString b) {
          (stringIter).pos += (stringIter).string.len + 1,                      \
         (stringIter).string = splitString(_string, token, (stringIter).pos))
 
-static inline CEfiChar8 *getPtr(AsciString str, U64 index) {
+static inline U8 *getPtr(AsciString str, U64 index) {
     return &str.buf[index];
 }
 
-static inline AsciString splitString(AsciString s, CEfiChar8 token,
+static inline AsciString splitString(AsciString s, U8 token,
                                      U64 from) {
     for (U64 i = from; i < s.len; i++) {
         if (s.buf[i] == token) {

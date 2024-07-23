@@ -2,18 +2,18 @@
 #define ACPI_MADT_H
 
 #include "acpi/c-acpi-rsdt.h"
-#include "util/types.h"
+#include "types.h"
 
 typedef struct __attribute((packed)) {
-    uint8_t type;
-    uint8_t totalLength;
+    U8 type;
+    U8 totalLength;
     void *data;
 } InterruptControllerStructure;
 
 typedef struct __attribute((packed)) {
     CAcpiDescriptionTableHeader header;
-    uint32_t localInterruptControllerAddress;
-    uint32_t flags;
+    U32 localInterruptControllerAddress;
+    U32 flags;
 } ConstantMADT;
 
 typedef struct __attribute((packed)) {

@@ -20,7 +20,7 @@ extern "C" {
     C_EFI_GUID(0x5B1B31A1, 0x9562, 0x11d2, 0x8E, 0x3F, 0x00, 0xA0, 0xC9, 0x69, \
                0x72, 0x3B)
 
-#define C_EFI_LOADED_IMAGE_PROTOCOL_REVISION C_EFI_U32_C(0x1000)
+#define C_EFI_LOADED_IMAGE_PROTOCOL_REVISION U32_C(0x1000)
 
 typedef struct CEfiLoadedImageProtocol {
     U32 revision;

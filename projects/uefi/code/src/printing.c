@@ -12,15 +12,15 @@ void error(U16 *string) {
         ;
     }
     globals.st->runtime_services->reset_system(C_EFI_RESET_SHUTDOWN,
-                                               C_EFI_SUCCESS, 0, C_EFI_NULL);
+                                               C_EFI_SUCCESS, 0, NULL);
 }
 
-static const CEfiChar16 *digits = u"0123456789ABCDEF";
-void printNumber(CEfiUSize number, U8 base) {
-    CEfiChar16 buffer[24]; // Hopefully enough for UINTN_MAX (UINT64_MAX) + sign
+static const U16 *digits = u"0123456789ABCDEF";
+void printNumber(USize number, U8 base) {
+    U16 buffer[24]; // Hopefully enough for UINTN_MAX (UINT64_MAX) + sign
                            // character
-    CEfiUSize i = 0;
-    CEfiBool negative = C_EFI_FALSE;
+    USize i = 0;
+    bool negative = false;
 
     if (base > 16) {
         error(u"Invalid base specified!\r\n");
@@ -65,9 +65,9 @@ void printNumber(CEfiUSize number, U8 base) {
     buffer[i--] = u'\0';
 
     // Reverse buffer before printing
-    for (CEfiUSize j = 0; j < i; j++, i--) {
+    for (USize j = 0; j < i; j++, i--) {
         // Swap digits
-        CEfiUSize temp = buffer[i];
+        USize temp = buffer[i];
         buffer[i] = buffer[j];
         buffer[j] = temp;
     }
@@ -75,26 +75,26 @@ void printNumber(CEfiUSize number, U8 base) {
     globals.st->con_out->output_string(globals.st->con_out, buffer);
 }
 
-static CEfiChar16 charstr[2] = {0};
+static U16 charstr[2] = {0};
 void printAsci(unsigned char *string) {
     while (*string != '\0') {
         char ch = *string++;
         if (ch == '\n') {
             globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
         } else {
-            charstr[0] = (CEfiChar16)ch;
+            charstr[0] = (U16)ch;
             globals.st->con_out->output_string(globals.st->con_out, charstr);
         }
     }
 }
 
-void printAsciSize(unsigned char *string, CEfiUSize size) {
-    for (CEfiUSize i = 0; i < size; i++) {
+void printAsciSize(unsigned char *string, USize size) {
+    for (USize i = 0; i < size; i++) {
         char ch = string[i];
         if (ch == '\n') {
             globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
         } else {
-            charstr[0] = (CEfiChar16)ch;
+            charstr[0] = (U16)ch;
             globals.st->con_out->output_string(globals.st->con_out, charstr);
         }
     }

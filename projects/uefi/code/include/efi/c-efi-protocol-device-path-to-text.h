@@ -21,12 +21,12 @@ extern "C" {
                0x7f, 0x1c)
 
 typedef struct CEfiDevicePathToTextProtocol {
-    CEfiChar16 *(CEFICALL *convert_device_node_to_text)(
-        CEfiDevicePathProtocol *device_node, CEfiBool display_only,
-        CEfiBool allow_shortcuts);
-    CEfiChar16 *(CEFICALL *convert_device_path_to_text)(
-        CEfiDevicePathProtocol *device_path, CEfiBool display_only,
-        CEfiBool allow_shortcuts);
+    U16 *(CEFICALL *convert_device_node_to_text)(
+        CEfiDevicePathProtocol *device_node, bool display_only,
+        bool allow_shortcuts);
+    U16 *(CEFICALL *convert_device_path_to_text)(
+        CEfiDevicePathProtocol *device_path, bool display_only,
+        bool allow_shortcuts);
 } CEfiDevicePathToTextProtocol;
 
 #ifdef __cplusplus

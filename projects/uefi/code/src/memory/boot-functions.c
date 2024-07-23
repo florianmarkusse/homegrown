@@ -4,7 +4,7 @@
 #include "memory/standard.h"
 #include "printing.h"
 
-CEfiPhysicalAddress allocAndZero(CEfiUSize numPages) {
+CEfiPhysicalAddress allocAndZero(USize numPages) {
     CEfiPhysicalAddress page = 0;
     CEfiStatus status = globals.st->boot_services->allocate_pages(
         C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA, numPages, &page);
@@ -24,7 +24,7 @@ void mapMemoryAt(U64 phys, U64 virt, U64 size) {
     }
 
     U64 end = virt + size;
-    U64 *pageEntry = C_EFI_NULL;
+    U64 *pageEntry = NULL;
     /* walk the page tables and add the missing pieces */
     for (virt &= ~(PAGE_MASK), phys &= ~(PAGE_MASK); virt < end;
          virt += PAGE_SIZE, phys += PAGE_SIZE) {

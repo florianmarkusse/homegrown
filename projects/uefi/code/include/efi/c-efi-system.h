@@ -31,10 +31,10 @@ extern "C" {
  * helper functions to query and set the system time.
  */
 
-#define C_EFI_TIME_ADJUST_DAYLIGHT C_EFI_U8_C(0x01)
-#define C_EFI_TIME_IN_DAYLIGHT C_EFI_U8_C(0x02)
+#define C_EFI_TIME_ADJUST_DAYLIGHT U8_C(0x01)
+#define C_EFI_TIME_IN_DAYLIGHT U8_C(0x02)
 
-#define C_EFI_UNSPECIFIED_TIMEZONE C_EFI_I16_C(0x07ff)
+#define C_EFI_UNSPECIFIED_TIMEZONE I16_C(0x07ff)
 
 typedef struct CEfiTime {
     U16 year;
@@ -53,7 +53,7 @@ typedef struct CEfiTime {
 typedef struct CEfiTimeCapabilities {
     U32 resolution;
     U32 accuracy;
-    CEfiBool sets_to_zero;
+    bool sets_to_zero;
 } CEfiTimeCapabilities;
 
 /*
@@ -64,17 +64,17 @@ typedef struct CEfiTimeCapabilities {
  * but persistent storage might not be available.
  */
 
-#define C_EFI_VARIABLE_NON_VOLATILE C_EFI_U32_C(0x00000001)
-#define C_EFI_VARIABLE_BOOTSERVICE_ACCESS C_EFI_U32_C(0x00000002)
-#define C_EFI_VARIABLE_RUNTIME_ACCESS C_EFI_U32_C(0x00000004)
-#define C_EFI_VARIABLE_HARDWARE_ERROR_RECORD C_EFI_U32_C(0x00000008)
-#define C_EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS C_EFI_U32_C(0x00000010)
+#define C_EFI_VARIABLE_NON_VOLATILE U32_C(0x00000001)
+#define C_EFI_VARIABLE_BOOTSERVICE_ACCESS U32_C(0x00000002)
+#define C_EFI_VARIABLE_RUNTIME_ACCESS U32_C(0x00000004)
+#define C_EFI_VARIABLE_HARDWARE_ERROR_RECORD U32_C(0x00000008)
+#define C_EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS U32_C(0x00000010)
 #define C_EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS                   \
-    C_EFI_U32_C(0x00000020)
-#define C_EFI_VARIABLE_APPEND_WRITE C_EFI_U32_C(0x00000040)
-#define C_EFI_VARIABLE_ENHANCED_AUTHENTICATED_ACCESS C_EFI_U32_C(0x00000080)
+    U32_C(0x00000020)
+#define C_EFI_VARIABLE_APPEND_WRITE U32_C(0x00000040)
+#define C_EFI_VARIABLE_ENHANCED_AUTHENTICATED_ACCESS U32_C(0x00000080)
 
-#define C_EFI_VARIABLE_AUTHENTICATION_3_CERT_ID_SHA256 C_EFI_U32_C(1)
+#define C_EFI_VARIABLE_AUTHENTICATION_3_CERT_ID_SHA256 U32_C(1)
 
 typedef struct CEfiVariableAuthentication3CertId {
     U8 type;
@@ -92,8 +92,8 @@ typedef struct CEfiVariableAuthentication2 {
     U8 auth_info[]; /* WIN_CERTIFICATE_UEFI_ID from PE/COFF */
 } CEfiVariableAuthentication2;
 
-#define C_EFI_VARIABLE_AUTHENTICATION_3_TIMESTAMP_TYPE C_EFI_U32_C(1)
-#define C_EFI_VARIABLE_AUTHENTICATION_3_NONCE_TYPE C_EFI_U32_C(2)
+#define C_EFI_VARIABLE_AUTHENTICATION_3_TIMESTAMP_TYPE U32_C(1)
+#define C_EFI_VARIABLE_AUTHENTICATION_3_NONCE_TYPE U32_C(2)
 
 typedef struct CEfiVariableAuthentication3 {
     U8 version;
@@ -120,7 +120,7 @@ typedef struct CEfiVariableAuthentication3Nonce {
  * services).
  */
 
-#define C_EFI_OPTIONAL_POINTER C_EFI_U32_C(0x00000001)
+#define C_EFI_OPTIONAL_POINTER U32_C(0x00000001)
 
 /*
  * System Reset
@@ -164,18 +164,18 @@ typedef struct CEfiCapsuleHeader {
     U32 capsule_image_size;
 } CEfiCapsuleHeader;
 
-#define C_EFI_OS_INDICATIONS_BOOT_TO_FW_UI C_EFI_U64_C(0x0000000000000001)
+#define C_EFI_OS_INDICATIONS_BOOT_TO_FW_UI U64_C(0x0000000000000001)
 #define C_EFI_OS_INDICATIONS_TIMESTAMP_REVOCATION                              \
-    C_EFI_U64_C(0x0000000000000002)
+    U64_C(0x0000000000000002)
 #define C_EFI_OS_INDICATIONS_FILE_CAPSULE_DELIVERY_SUPPORTED                   \
-    C_EFI_U64_C(0x0000000000000004)
+    U64_C(0x0000000000000004)
 #define C_EFI_OS_INDICATIONS_FMP_CAPSULE_SUPPORTED                             \
-    C_EFI_U64_C(0x0000000000000008)
+    U64_C(0x0000000000000008)
 #define C_EFI_OS_INDICATIONS_CAPSULE_RESULT_VAR_SUPPORTED                      \
-    C_EFI_U64_C(0x0000000000000010)
-#define C_EFI_OS_INDICATIONS_START_OS_RECOVERY C_EFI_U64_C(0x0000000000000020)
+    U64_C(0x0000000000000010)
+#define C_EFI_OS_INDICATIONS_START_OS_RECOVERY U64_C(0x0000000000000020)
 #define C_EFI_OS_INDICATIONS_START_PLATFORM_RECOVERY                           \
-    C_EFI_U64_C(0x0000000000000040)
+    U64_C(0x0000000000000040)
 
 #define C_EFI_CAPSULE_REPORT_GUID                                              \
     C_EFI_GUID(0x39b68c46, 0xf7fb, 0x441b, 0xb6, 0xec, 0x16, 0xb0, 0xf6, 0x98, \
@@ -194,7 +194,7 @@ typedef struct CEfiCapsuleResultVariableFMP {
     U8 payload_index;
     U8 update_image_index;
     CEfiGuid update_image_type_id;
-    CEfiChar16 capsule_file_name_and_target[];
+    U16 capsule_file_name_and_target[];
 } CEfiCapsuleResultVariableFMP;
 
 /*
@@ -212,12 +212,12 @@ typedef struct CEfiCapsuleResultVariableFMP {
  * to adjust the priority of your callbacks and current task.
  */
 
-#define C_EFI_EVT_TIMER C_EFI_U32_C(0x80000000)
-#define C_EFI_EVT_RUNTIME C_EFI_U32_C(0x40000000)
-#define C_EFI_EVT_NOTIFY_WAIT C_EFI_U32_C(0x00000100)
-#define C_EFI_EVT_NOTIFY_SIGNAL C_EFI_U32_C(0x00000200)
-#define C_EFI_EVT_SIGNAL_EXIT_BOOT_SERVICES C_EFI_U32_C(0x00000201)
-#define C_EFI_EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE C_EFI_U32_C(0x60000202)
+#define C_EFI_EVT_TIMER U32_C(0x80000000)
+#define C_EFI_EVT_RUNTIME U32_C(0x40000000)
+#define C_EFI_EVT_NOTIFY_WAIT U32_C(0x00000100)
+#define C_EFI_EVT_NOTIFY_SIGNAL U32_C(0x00000200)
+#define C_EFI_EVT_SIGNAL_EXIT_BOOT_SERVICES U32_C(0x00000201)
+#define C_EFI_EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE U32_C(0x60000202)
 
 typedef void(CEFICALL *CEfiEventNotify)(CEfiEvent event, void *context);
 
@@ -284,20 +284,20 @@ typedef enum CEfiMemoryType {
     C_EFI_MEMORY_TYPE_N,
 } CEfiMemoryType;
 
-#define C_EFI_MEMORY_UC C_EFI_U64_C(0x0000000000000001)
-#define C_EFI_MEMORY_WC C_EFI_U64_C(0x0000000000000002)
-#define C_EFI_MEMORY_WT C_EFI_U64_C(0x0000000000000004)
-#define C_EFI_MEMORY_WB C_EFI_U64_C(0x0000000000000008)
-#define C_EFI_MEMORY_UCE C_EFI_U64_C(0x0000000000000010)
-#define C_EFI_MEMORY_WP C_EFI_U64_C(0x0000000000001000)
-#define C_EFI_MEMORY_RP C_EFI_U64_C(0x0000000000002000)
-#define C_EFI_MEMORY_XP C_EFI_U64_C(0x0000000000004000)
-#define C_EFI_MEMORY_NV C_EFI_U64_C(0x0000000000008000)
-#define C_EFI_MEMORY_MORE_RELIABLE C_EFI_U64_C(0x0000000000010000)
-#define C_EFI_MEMORY_RO C_EFI_U64_C(0x0000000000020000)
-#define C_EFI_MEMORY_RUNTIME C_EFI_U64_C(0x8000000000000000)
+#define C_EFI_MEMORY_UC U64_C(0x0000000000000001)
+#define C_EFI_MEMORY_WC U64_C(0x0000000000000002)
+#define C_EFI_MEMORY_WT U64_C(0x0000000000000004)
+#define C_EFI_MEMORY_WB U64_C(0x0000000000000008)
+#define C_EFI_MEMORY_UCE U64_C(0x0000000000000010)
+#define C_EFI_MEMORY_WP U64_C(0x0000000000001000)
+#define C_EFI_MEMORY_RP U64_C(0x0000000000002000)
+#define C_EFI_MEMORY_XP U64_C(0x0000000000004000)
+#define C_EFI_MEMORY_NV U64_C(0x0000000000008000)
+#define C_EFI_MEMORY_MORE_RELIABLE U64_C(0x0000000000010000)
+#define C_EFI_MEMORY_RO U64_C(0x0000000000020000)
+#define C_EFI_MEMORY_RUNTIME U64_C(0x8000000000000000)
 
-#define C_EFI_MEMORY_DESCRIPTOR_VERSION C_EFI_U32_C(0x00000001)
+#define C_EFI_MEMORY_DESCRIPTOR_VERSION U32_C(0x00000001)
 
 typedef struct CEfiMemoryDescriptor {
     U32 type;
@@ -326,12 +326,12 @@ typedef enum CEfiLocateSearchType {
     C_EFI_BY_PROTOCOL,
 } CEfiLocateSearchType;
 
-#define C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL C_EFI_U32_C(0x00000001)
-#define C_EFI_OPEN_PROTOCOL_GET_PROTOCOL C_EFI_U32_C(0x00000002)
-#define C_EFI_OPEN_PROTOCOL_TEST_PROTOCOL C_EFI_U32_C(0x00000004)
-#define C_EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER C_EFI_U32_C(0x00000008)
-#define C_EFI_OPEN_PROTOCOL_BY_DRIVER C_EFI_U32_C(0x00000010)
-#define C_EFI_OPEN_PROTOCOL_EXCLUSIVE C_EFI_U32_C(0x00000020)
+#define C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL U32_C(0x00000001)
+#define C_EFI_OPEN_PROTOCOL_GET_PROTOCOL U32_C(0x00000002)
+#define C_EFI_OPEN_PROTOCOL_TEST_PROTOCOL U32_C(0x00000004)
+#define C_EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER U32_C(0x00000008)
+#define C_EFI_OPEN_PROTOCOL_BY_DRIVER U32_C(0x00000010)
+#define C_EFI_OPEN_PROTOCOL_EXCLUSIVE U32_C(0x00000020)
 
 typedef struct CEfiOpenProtocolInformationEntry {
     CEfiHandle agent_handle;
@@ -364,10 +364,10 @@ typedef struct CEfiOpenProtocolInformationEntry {
 #define C_EFI_PROPERTIES_TABLE_GUID                                            \
     C_EFI_GUID(0x880aaca3, 0x4adc, 0x4a04, 0x90, 0x79, 0xb7, 0x47, 0x34, 0x8,  \
                0x25, 0xe5)
-#define C_EFI_PROPERTIES_TABLE_VERSION C_EFI_U32_C(0x00010000)
+#define C_EFI_PROPERTIES_TABLE_VERSION U32_C(0x00010000)
 
 #define C_EFI_PROPERTIES_RUNTIME_MEMORY_PROTECTION_NON_EXECUTABLE_PE_DATA      \
-    C_EFI_U64_C(0x1)
+    U64_C(0x1)
 
 typedef struct CEfiPropertiesTable {
     U32 version;
@@ -378,7 +378,7 @@ typedef struct CEfiPropertiesTable {
 #define C_EFI_MEMORY_ATTRIBUTES_TABLE_GUID                                     \
     C_EFI_GUID(0xdcfa911d, 0x26eb, 0x469f, 0xa2, 0x20, 0x38, 0xb7, 0xdc, 0x46, \
                0x12, 0x20)
-#define C_EFI_MEMORY_ATTRIBUTES_TABLE_VERSION C_EFI_U32_C(0x00000001)
+#define C_EFI_MEMORY_ATTRIBUTES_TABLE_VERSION U32_C(0x00000001)
 
 typedef struct CEfiMemoryAttributesTable {
     U32 version;
@@ -423,7 +423,7 @@ typedef struct CEfiTableHeader {
 } CEfiTableHeader;
 
 #define C_EFI_RUNTIME_TABLE_SIGNATURE                                          \
-    C_EFI_U64_C(0x56524553544e5552) /* "RUNTSERV" */
+    U64_C(0x56524553544e5552) /* "RUNTSERV" */
 
 typedef struct CEfiRuntimeServices {
     CEfiTableHeader hdr;
@@ -433,38 +433,38 @@ typedef struct CEfiRuntimeServices {
 
     );
     CEfiStatus(CEFICALL *set_time)(CEfiTime *time);
-    CEfiStatus(CEFICALL *get_wakeup_time)(CEfiBool *enabled, CEfiBool *pending,
+    CEfiStatus(CEFICALL *get_wakeup_time)(bool *enabled, bool *pending,
                                           CEfiTime *time);
-    CEfiStatus(CEFICALL *set_wakeup_time)(CEfiBool enable, CEfiTime *time);
+    CEfiStatus(CEFICALL *set_wakeup_time)(bool enable, CEfiTime *time);
 
     CEfiStatus(CEFICALL *set_virtual_address_map)(
-        CEfiUSize memory_map_size, CEfiUSize descriptor_size,
+        USize memory_map_size, USize descriptor_size,
         U32 descriptor_version, CEfiMemoryDescriptor *virtual_map);
-    CEfiStatus(CEFICALL *convert_pointer)(CEfiUSize debug_disposition,
+    CEfiStatus(CEFICALL *convert_pointer)(USize debug_disposition,
                                           void **address);
 
-    CEfiStatus(CEFICALL *get_variable)(CEfiChar16 *variable_name,
+    CEfiStatus(CEFICALL *get_variable)(U16 *variable_name,
                                        CEfiGuid *vendor_guid,
                                        U32 *attributes,
-                                       CEfiUSize *data_size, void *data);
-    CEfiStatus(CEFICALL *get_next_variable_name)(CEfiUSize *variable_name_size,
-                                                 CEfiChar16 *variable_name,
+                                       USize *data_size, void *data);
+    CEfiStatus(CEFICALL *get_next_variable_name)(USize *variable_name_size,
+                                                 U16 *variable_name,
                                                  CEfiGuid *vendor_guid);
-    CEfiStatus(CEFICALL *set_variable)(CEfiChar16 *variable_name,
+    CEfiStatus(CEFICALL *set_variable)(U16 *variable_name,
                                        CEfiGuid *vendor_guid,
-                                       U32 attributes, CEfiUSize data_size,
+                                       U32 attributes, USize data_size,
                                        void *data);
 
     CEfiStatus(CEFICALL *get_next_high_mono_count)(U32 *high_count);
     void(CEFICALL *reset_system)(CEfiResetType reset_type,
-                                 CEfiStatus reset_status, CEfiUSize data_size,
+                                 CEfiStatus reset_status, USize data_size,
                                  void *reset_data);
 
     CEfiStatus(CEFICALL *update_capsule)(
-        CEfiCapsuleHeader **capsule_header_array, CEfiUSize capsule_count,
+        CEfiCapsuleHeader **capsule_header_array, USize capsule_count,
         CEfiPhysicalAddress scatter_gather_list);
     CEfiStatus(CEFICALL *query_capsule_capabilities)(
-        CEfiCapsuleHeader **capsule_header_array, CEfiUSize capsule_count,
+        CEfiCapsuleHeader **capsule_header_array, USize capsule_count,
         U64 *maximum_capsule_size, CEfiResetType *reset_type);
 
     CEfiStatus(CEFICALL *query_variable_info)(
@@ -474,7 +474,7 @@ typedef struct CEfiRuntimeServices {
 } CEfiRuntimeServices;
 
 #define C_EFI_BOOT_SERVICES_SIGNATURE                                          \
-    C_EFI_U64_C(0x56524553544f4f42) /* "BOOTSERV" */
+    U64_C(0x56524553544f4f42) /* "BOOTSERV" */
 
 typedef struct CEfiBootServices {
     CEfiTableHeader hdr;
@@ -484,17 +484,17 @@ typedef struct CEfiBootServices {
 
     CEfiStatus(CEFICALL *allocate_pages)(CEfiAllocateType type,
                                          CEfiMemoryType memory_type,
-                                         CEfiUSize pages,
+                                         USize pages,
                                          CEfiPhysicalAddress *memory);
     CEfiStatus(CEFICALL *free_pages)(CEfiPhysicalAddress memory,
-                                     CEfiUSize pages);
-    CEfiStatus(CEFICALL *get_memory_map)(CEfiUSize *memory_map_size,
+                                     USize pages);
+    CEfiStatus(CEFICALL *get_memory_map)(USize *memory_map_size,
                                          CEfiMemoryDescriptor *memory_map,
-                                         CEfiUSize *map_key,
-                                         CEfiUSize *descriptor_size,
+                                         USize *map_key,
+                                         USize *descriptor_size,
                                          U32 *descriptor_version);
     CEfiStatus(CEFICALL *allocate_pool)(CEfiMemoryType pool_type,
-                                        CEfiUSize size, void **buffer);
+                                        USize size, void **buffer);
     CEfiStatus(CEFICALL *free_pool)(void *buffer);
 
     CEfiStatus(CEFICALL *create_event)(U32 type, CEfiTpl notify_tpl,
@@ -502,8 +502,8 @@ typedef struct CEfiBootServices {
                                        void *notify_context, CEfiEvent *event);
     CEfiStatus(CEFICALL *set_timer)(CEfiEvent event, CEfiTimerDelay type,
                                     U64 trigger_time);
-    CEfiStatus(CEFICALL *wait_for_event)(CEfiUSize number_of_events,
-                                         CEfiEvent *event, CEfiUSize *index);
+    CEfiStatus(CEFICALL *wait_for_event)(USize number_of_events,
+                                         CEfiEvent *event, USize *index);
     CEfiStatus(CEFICALL *signal_event)(CEfiEvent event);
     CEfiStatus(CEFICALL *close_event)(CEfiEvent event);
     CEfiStatus(CEFICALL *check_event)(CEfiEvent event);
@@ -526,7 +526,7 @@ typedef struct CEfiBootServices {
                                                    void **registration);
     CEfiStatus(CEFICALL *locate_handle)(CEfiLocateSearchType search_type,
                                         CEfiGuid *protocol, void *search_key,
-                                        CEfiUSize *buffer_size,
+                                        USize *buffer_size,
                                         CEfiHandle *buffer);
     CEfiStatus(CEFICALL *locate_device_path)(
         CEfiGuid *protocol, CEfiDevicePathProtocol **device_path,
@@ -535,32 +535,32 @@ typedef struct CEfiBootServices {
     CEfiStatus(CEFICALL *install_configuration_table)(CEfiGuid *guid,
                                                       void *table);
 
-    CEfiStatus(CEFICALL *load_image)(CEfiBool boot_policy,
+    CEfiStatus(CEFICALL *load_image)(bool boot_policy,
                                      CEfiHandle parent_image_handle,
                                      CEfiDevicePathProtocol *device_path,
-                                     void *source_buffer, CEfiUSize source_size,
+                                     void *source_buffer, USize source_size,
                                      CEfiHandle *image_handle);
     CEfiStatus(CEFICALL *start_image)(CEfiHandle image_handle,
-                                      CEfiUSize *exit_data_size,
-                                      CEfiChar16 **exit_data);
+                                      USize *exit_data_size,
+                                      U16 **exit_data);
     CEfiStatus(CEFICALL *exit)(CEfiHandle image_handle, CEfiStatus exit_status,
-                               CEfiUSize exit_data_size, CEfiChar16 *exit_data);
+                               USize exit_data_size, U16 *exit_data);
     CEfiStatus(CEFICALL *unload_image)(CEfiHandle image_handle);
     CEfiStatus(CEFICALL *exit_boot_services)(CEfiHandle image_handle,
-                                             CEfiUSize map_key);
+                                             USize map_key);
 
     CEfiStatus(CEFICALL *get_next_monotonic_count)(U64 *count);
-    CEfiStatus(CEFICALL *stall)(CEfiUSize microseconds);
-    CEfiStatus(CEFICALL *set_watchdog_timer)(CEfiUSize timeout,
+    CEfiStatus(CEFICALL *stall)(USize microseconds);
+    CEfiStatus(CEFICALL *set_watchdog_timer)(USize timeout,
                                              U64 watchdog_code,
-                                             CEfiUSize data_size,
-                                             CEfiChar16 *watchdog_data);
+                                             USize data_size,
+                                             U16 *watchdog_data);
 
     /* 1.1+ */
 
     CEfiStatus(CEFICALL *connect_controller)(
         CEfiHandle controller_handle, CEfiHandle *driver_image_handle,
-        CEfiDevicePathProtocol *remaining_device_path, CEfiBool recursive);
+        CEfiDevicePathProtocol *remaining_device_path, bool recursive);
     CEfiStatus(CEFICALL *disconnect_controller)(CEfiHandle controller_handle,
                                                 CEfiHandle driver_image_handle,
                                                 CEfiHandle child_handle);
@@ -576,15 +576,15 @@ typedef struct CEfiBootServices {
     CEfiStatus(CEFICALL *open_protocol_information)(
         CEfiHandle handle, CEfiGuid *protocol,
         CEfiOpenProtocolInformationEntry **entry_buffer,
-        CEfiUSize *entry_count);
+        USize *entry_count);
 
     CEfiStatus(CEFICALL *protocols_per_handle)(
         CEfiHandle handle, CEfiGuid ***protocol_buffer,
-        CEfiUSize *protocol_buffer_count);
+        USize *protocol_buffer_count);
     CEfiStatus(CEFICALL *locate_handle_buffer)(CEfiLocateSearchType search_type,
                                                CEfiGuid *protocol,
                                                void *search_key,
-                                               CEfiUSize *no_handles,
+                                               USize *no_handles,
                                                CEfiHandle **buffer);
     CEfiStatus(CEFICALL *locate_protocol)(CEfiGuid *protocol,
                                           void *registration, void **interface);
@@ -593,11 +593,11 @@ typedef struct CEfiBootServices {
     CEfiStatus(CEFICALL *uninstall_multiple_protocol_interfaces)(
         CEfiHandle handle, ...);
 
-    CEfiStatus(CEFICALL *calculate_crc32)(void *data, CEfiUSize data_size,
+    CEfiStatus(CEFICALL *calculate_crc32)(void *data, USize data_size,
                                           U32 *crc32);
 
-    void(CEFICALL *copy_mem)(void *destination, void *source, CEfiUSize length);
-    void(CEFICALL *set_mem)(void *buffer, CEfiUSize size, U8 value);
+    void(CEFICALL *copy_mem)(void *destination, void *source, USize length);
+    void(CEFICALL *set_mem)(void *buffer, USize size, U8 value);
 
     /* 2.0+ */
 
@@ -609,11 +609,11 @@ typedef struct CEfiBootServices {
 } CEfiBootServices;
 
 #define C_EFI_SYSTEM_TABLE_SIGNATURE                                           \
-    C_EFI_U64_C(0x5453595320494249) /* "IBI SYST" */
+    U64_C(0x5453595320494249) /* "IBI SYST" */
 
 typedef struct CEfiSystemTable {
     CEfiTableHeader hdr;
-    CEfiChar16 *firmware_vendor;
+    U16 *firmware_vendor;
     U32 firmware_revision;
 
     CEfiHandle console_in_handle;
@@ -626,7 +626,7 @@ typedef struct CEfiSystemTable {
     CEfiRuntimeServices *runtime_services;
     CEfiBootServices *boot_services;
 
-    CEfiUSize number_of_table_entries;
+    USize number_of_table_entries;
     ConfigurationTable *configuration_table;
 } CEfiSystemTable;
 

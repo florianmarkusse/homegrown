@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-#include "util/types.h"
+#include "types.h"
 
 typedef struct {
-    uint64_t size;
+    U64 size;
     bool isFree;
 } BuddyBlock;
 
@@ -16,9 +16,9 @@ __attribute((unused)) static inline BuddyBlock *nextBuddy(BuddyBlock *block) {
     return (BuddyBlock *)((char *)block + block->size);
 }
 
-BuddyBlock *splitBuddy(BuddyBlock *block, uint64_t size);
+BuddyBlock *splitBuddy(BuddyBlock *block, U64 size);
 
-BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, uint64_t size);
+BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, U64 size);
 
 typedef struct {
     BuddyBlock *head;
@@ -27,12 +27,12 @@ typedef struct {
     void **jmp_buf;
 } BuddyAllocator;
 
-BuddyAllocator createBuddyAllocator(char *data, uint64_t size);
+BuddyAllocator createBuddyAllocator(char *data, U64 size);
 
 void coalesceBuddies(BuddyBlock *head, BuddyBlock *tail);
 
 __attribute((unused, malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator,
-                                               int64_t size, int64_t count,
+                                               I64 size, I64 count,
                                                unsigned char flags);
 
 void freeBuddy(BuddyAllocator *buddyAllocator, void *data);
