@@ -24,7 +24,7 @@ typedef struct {
 } ScreenDimension;
 void setupScreen(ScreenDimension dimension);
 // TODO: needs buffer as argument when memory is set up
-void appendToFlushBuffer(string data, unsigned char flags);
+void appendToFlushBuffer(string data, U8 flags);
 bool flushStandardBuffer();
 bool flushBuffer(uint8_max_a *buffer);
 
@@ -33,8 +33,8 @@ void prowind(U16 numberOfScreenLines);
 
 void printToSerial(string data, U8 flags);
 
-string stringWithMinSize(string data, unsigned char minSize, u_char_a tmp);
-string stringWithMinSizeDefault(string data, unsigned char minSize);
+string stringWithMinSize(string data, U8 minSize, u_char_a tmp);
+string stringWithMinSizeDefault(string data, U8 minSize);
 
 string boolToString(bool data);
 

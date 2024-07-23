@@ -1,5 +1,5 @@
-#ifndef EFI_C_EFI_PROTOCOL_ACPI_H
-#define EFI_C_EFI_PROTOCOL_ACPI_H
+#ifndef EFI_PROTOCOL_ACPI_H
+#define EFI_PROTOCOL_ACPI_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,16 +7,16 @@ extern "C" {
 
 #include "c-efi-base.h"
 
-#define C_EFI_ACPI_TABLE_PROTOCOL_GUID                                         \
+#define ACPI_TABLE_PROTOCOL_GUID                                         \
     EFI_GUID(0xffe06bdd, 0x6107, 0x46a6, 0x7b, 0xb2, 0x5a, 0x9c, 0x7e, 0xc5, \
                0x27, 0x5c)
 
 typedef struct ACPITableProtocol {
-    Status(CEFICALL *installACPITable)(ACPITableProtocol *this_,
+    Status(EFICALL *installACPITable)(ACPITableProtocol *this_,
                                            void *ACPITableBuffer,
                                            USize ACPITableBufferSize,
                                            USize *tableKey);
-    Status(CEFICALL *uninstallACPITable)(ACPITableProtocol *this_,
+    Status(EFICALL *uninstallACPITable)(ACPITableProtocol *this_,
                                              USize tableKey);
 } ACPITableProtocol;
 

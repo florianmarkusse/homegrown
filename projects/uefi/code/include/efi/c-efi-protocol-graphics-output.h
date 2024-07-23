@@ -1,5 +1,5 @@
-#ifndef EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
-#define EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
+#ifndef EFI_PROTOCOL_GRAPHICS_OUTPUT_H
+#define EFI_PROTOCOL_GRAPHICS_OUTPUT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,7 +7,7 @@ extern "C" {
 
 #include "c-efi-base.h"
 
-#define C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID                                    \
+#define GRAPHICS_OUTPUT_PROTOCOL_GUID                                    \
     EFI_GUID(0x9042a9de, 0x23dc, 0x4a38, 0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, \
                0x51, 0x6a)
 
@@ -60,12 +60,12 @@ typedef struct {
 } GraphicsOutputProtocolMode;
 
 typedef struct GraphicsOutputProtocol {
-    Status(CEFICALL *queryMode)(GraphicsOutputProtocol *this_,
+    Status(EFICALL *queryMode)(GraphicsOutputProtocol *this_,
                                     U32 modeNumber, USize *sizeOfInfo,
                                     GraphicsOutputModeInformation **info);
-    Status(CEFICALL *setMode)(GraphicsOutputProtocol *this_,
+    Status(EFICALL *setMode)(GraphicsOutputProtocol *this_,
                                   U32 modeNumber);
-    Status(CEFICALL *blt)(GraphicsOutputProtocol *this_,
+    Status(EFICALL *blt)(GraphicsOutputProtocol *this_,
                               BltPixel *bltBuffer,
                               BltOperation bltOperation, USize sourceX,
                               USize sourceY, USize destinationX,

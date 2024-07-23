@@ -5,7 +5,7 @@
 #include "memory/standard.h"
 
 typedef struct {
-    unsigned char *buf;
+    U8 *buf;
     U64 len;
 } AsciString;
 

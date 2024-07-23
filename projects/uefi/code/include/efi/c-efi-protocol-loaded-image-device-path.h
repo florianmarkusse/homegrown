@@ -1,5 +1,5 @@
-#ifndef EFI_C_EFI_PROTOCOL_LOADED_IMAGE_DEVICE_PATH_H
-#define EFI_C_EFI_PROTOCOL_LOADED_IMAGE_DEVICE_PATH_H
+#ifndef EFI_PROTOCOL_LOADED_IMAGE_DEVICE_PATH_H
+#define EFI_PROTOCOL_LOADED_IMAGE_DEVICE_PATH_H
 
 #pragma once
 
@@ -15,7 +15,7 @@ extern "C" {
 
 #include "c-efi-base.h"
 
-#define C_EFI_LOADED_IMAGE_DEVICE_PATH_PROTOCOL_GUID                           \
+#define LOADED_IMAGE_DEVICE_PATH_PROTOCOL_GUID                           \
     EFI_GUID(0xbc62157e, 0x3e33, 0x4fec, 0x99, 0x20, 0x2d, 0x3b, 0x36, 0xd7, \
                0x50, 0xdf)
 

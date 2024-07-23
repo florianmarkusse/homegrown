@@ -43,7 +43,7 @@ PoolAllocator createPoolAllocator(char *buffer, I64 cap,
 }
 
 __attribute((malloc)) void *poolAlloc(PoolAllocator *pool,
-                                          unsigned char flags) {
+                                          U8 flags) {
     PoolHead *node = pool->head;
 
     if (node == NULL) {

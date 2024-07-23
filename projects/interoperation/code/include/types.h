@@ -49,14 +49,14 @@ extern "C" {
 
 #define MAX_VALUE(x)                                                           \
     _Generic((x),                                                              \
-        I8: INT8_MAX,                                                      \
-        U8: UINT8_MAX,                                                    \
-        I16: INT16_MAX,                                                    \
-        U16: UINT16_MAX,                                                  \
-        I32: INT32_MAX,                                                    \
-        U32: UINT32_MAX,                                                  \
-        I64: INT64_MAX,                                                    \
-        U64: UINT64_MAX,                                                  \
+        I8: INT8_MAX,                                                          \
+        U8: UINT8_MAX,                                                         \
+        I16: INT16_MAX,                                                        \
+        U16: UINT16_MAX,                                                       \
+        I32: INT32_MAX,                                                        \
+        U32: UINT32_MAX,                                                       \
+        I64: INT64_MAX,                                                        \
+        U64: UINT64_MAX,                                                       \
         default: "unknown")
 
 typedef __INT8_TYPE__ I8;

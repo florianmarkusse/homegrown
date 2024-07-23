@@ -33,7 +33,7 @@ void coalesceBuddies(BuddyBlock *head, BuddyBlock *tail);
 
 __attribute((unused, malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator,
                                                I64 size, I64 count,
-                                               unsigned char flags);
+                                               U8 flags);
 
 void freeBuddy(BuddyAllocator *buddyAllocator, void *data);
 

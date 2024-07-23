@@ -31,7 +31,7 @@ PoolAllocator createPoolAllocator(char *buffer, I64 cap,
                                           I64 chunkSize);
 
 __attribute((malloc)) void *poolAlloc(PoolAllocator *pool,
-                                          unsigned char flags);
+                                          U8 flags);
 
 void freePoolNode(PoolAllocator *pool, void *ptr);
 

@@ -8,11 +8,11 @@ void error(U16 *string) {
     globals.st->con_out->output_string(globals.st->con_out, string);
     InputKey key;
     while (globals.st->con_in->read_key_stroke(globals.st->con_in, &key) !=
-           C_EFI_SUCCESS) {
+           SUCCESS) {
         ;
     }
-    globals.st->runtime_services->reset_system(C_EFI_RESET_SHUTDOWN,
-                                               C_EFI_SUCCESS, 0, NULL);
+    globals.st->runtime_services->reset_system(RESET_SHUTDOWN,
+                                               SUCCESS, 0, NULL);
 }
 
 static const U16 *digits = u"0123456789ABCDEF";
@@ -76,7 +76,7 @@ void printNumber(USize number, U8 base) {
 }
 
 static U16 charstr[2] = {0};
-void printAsci(unsigned char *string) {
+void printAsci(U8 *string) {
     while (*string != '\0') {
         char ch = *string++;
         if (ch == '\n') {
@@ -88,7 +88,7 @@ void printAsci(unsigned char *string) {
     }
 }
 
-void printAsciSize(unsigned char *string, USize size) {
+void printAsciSize(U8 *string, USize size) {
     for (USize i = 0; i < size; i++) {
         char ch = string[i];
         if (ch == '\n') {

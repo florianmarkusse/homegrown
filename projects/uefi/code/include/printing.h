@@ -5,7 +5,7 @@
 
 void error(U16 *string);
 void printNumber(USize number, U8 base);
-void printAsci(unsigned char *string);
-void printAsciSize(unsigned char *string, USize size);
+void printAsci(U8 *string);
+void printAsciSize(U8 *string, USize size);
 
 #endif

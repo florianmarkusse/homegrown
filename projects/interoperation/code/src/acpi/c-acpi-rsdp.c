@@ -18,11 +18,11 @@ typedef struct {
 } RSDPStruct;
 
 static RSDPStruct possibleRsdps[2] = {
-    {.guid = C_EFI_ACPI_TABLE_GUID,
+    {.guid = ACPI_TABLE_GUID,
      .size = sizeof(CAcpiRSDPV1),
      .revision = RSDP_REVISION_1,
      .string = u"RSDP REVISION 1"},
-    {.guid = C_EFI_EFI_ACPI_20_TABLE_GUID,
+    {.guid = EFI_ACPI_20_TABLE_GUID,
      .size = sizeof(CAcpiRSDPV2),
      .revision = RSDP_REVISION_2,
      .string = u"RSDP REVISION 2"},

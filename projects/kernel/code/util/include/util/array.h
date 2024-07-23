@@ -42,7 +42,7 @@ typedef struct {
  */
 __attribute((unused)) static void grow(void *slice, U64 size,
                                        U64 align, arena *a,
-                                       unsigned char flags) {
+                                       U8 flags) {
     DASlice *replica = (DASlice *)slice;
 
     if (replica->buf == NULL) {

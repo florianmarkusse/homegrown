@@ -1,5 +1,5 @@
-#ifndef EFI_C_EFI_PROTOCOL_SIMPLE_TEXT_INPUT_H
-#define EFI_C_EFI_PROTOCOL_SIMPLE_TEXT_INPUT_H
+#ifndef EFI_PROTOCOL_SIMPLE_TEXT_INPUT_H
+#define EFI_PROTOCOL_SIMPLE_TEXT_INPUT_H
 
 #pragma once
 
@@ -15,7 +15,7 @@ extern "C" {
 
 #include "c-efi-base.h"
 
-#define C_EFI_SIMPLE_TEXT_INPUT_PROTOCOL_GUID                                  \
+#define SIMPLE_TEXT_INPUT_PROTOCOL_GUID                                  \
     EFI_GUID(0x387477c1, 0x69c7, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
                0x72, 0x3b)
 
@@ -25,9 +25,9 @@ typedef struct InputKey {
 } InputKey;
 
 typedef struct SimpleTextInputProtocol {
-    Status(CEFICALL *reset)(SimpleTextInputProtocol *this_,
+    Status(EFICALL *reset)(SimpleTextInputProtocol *this_,
                                 bool extended_verification);
-    Status(CEFICALL *read_key_stroke)(SimpleTextInputProtocol *this_,
+    Status(EFICALL *read_key_stroke)(SimpleTextInputProtocol *this_,
                                           InputKey *key);
     Event wait_for_key;
 } SimpleTextInputProtocol;

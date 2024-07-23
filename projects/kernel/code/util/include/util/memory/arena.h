@@ -11,7 +11,7 @@ typedef struct {
 } arena;
 
 __attribute((malloc, alloc_align(3))) void *
-alloc(arena *a, I64 size, U64 align, U64 count, unsigned char flags);
+alloc(arena *a, I64 size, U64 align, U64 count, U8 flags);
 
 #define NEW_2(a, t) (t *)alloc(a, SIZEOF(t), ALIGNOF(t), 1, 0)
 #define NEW_3(a, t, n) (t *)alloc(a, SIZEOF(t), ALIGNOF(t), n, 0)

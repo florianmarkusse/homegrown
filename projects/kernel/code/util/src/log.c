@@ -137,8 +137,8 @@ void setupScreen(ScreenDimension dimension) {
 
 bool flushStandardBuffer() { return flushBuffer(&flushBuf); }
 
-void drawGlyph(unsigned char ch, U64 topRightGlyphOffset) {
-    unsigned char *glyph = &(glyphs.glyphs) + ch * glyphs.bytesperglyph;
+void drawGlyph(U8 ch, U64 topRightGlyphOffset) {
+    U8 *glyph = &(glyphs.glyphs) + ch * glyphs.bytesperglyph;
     U64 glyphOffset = topRightGlyphOffset;
     for (U32 y = 0; y < glyphs.height; y++) {
         // TODO: use SIMD instructions?
@@ -173,7 +173,7 @@ void drawLines(U32 startIndex, U16 screenLinesToDraw,
     bool toNext = false;
 
     for (U64 i = screenLines[startIndex]; i < charCount; i++) {
-        unsigned char ch = buf[RING_RANGE(i, FILE_BUF_LEN)];
+        U8 ch = buf[RING_RANGE(i, FILE_BUF_LEN)];
 
         if (toNext) {
             currentScreenLines++;
@@ -349,7 +349,7 @@ FillResult fillScreenLinesCopy(U64 dryStartIndex, U64 startIndex,
 
     U64 i = dryStartIndex;
     for (; i < endIndexExclusive; i++) {
-        unsigned char ch = buf[RING_RANGE(i, FILE_BUF_LEN)];
+        U8 ch = buf[RING_RANGE(i, FILE_BUF_LEN)];
 
         if (toNext) {
             if (maxNewScreenLinesToFill &&
@@ -640,7 +640,7 @@ bool flushBuffer(uint8_max_a *buffer) {
             logicalNewline = false;
         }
 
-        unsigned char ch = buf[nextCharInBuf];
+        U8 ch = buf[nextCharInBuf];
         switch (ch) {
         case '\n': {
             logicalNewline = true;
@@ -666,7 +666,7 @@ bool flushBuffer(uint8_max_a *buffer) {
 
 // TODO: buffer should be a variable to this function once we have actual
 // memory management set up instead of it being hardcoded.
-void appendToFlushBuffer(string data, unsigned char flags) {
+void appendToFlushBuffer(string data, U8 flags) {
     for (U64 bytesWritten = 0; bytesWritten < data.len;) {
         // the minimum of size remaining and what is left in the buffer.
         U64 spaceInBuffer = (flushBuf.cap) - flushBuf.len;
@@ -699,14 +699,14 @@ U32 appendToSimpleBuffer(string data, char_d_a *array, arena *perm) {
         U64 newCap = (array->len + data.len) * 2;
         if (array->buf == NULL) {
             array->cap = data.len;
-            array->buf = alloc(perm, SIZEOF(unsigned char),
-                               ALIGNOF(unsigned char), newCap, 0);
+            array->buf = alloc(perm, SIZEOF(U8),
+                               ALIGNOF(U8), newCap, 0);
         } else if (perm->end == (U8 *)(array->buf - array->cap)) {
-            alloc(perm, SIZEOF(unsigned char), ALIGNOF(unsigned char), newCap,
+            alloc(perm, SIZEOF(U8), ALIGNOF(U8), newCap,
                   0);
         } else {
-            void *buf = alloc(perm, SIZEOF(unsigned char),
-                              ALIGNOF(unsigned char), newCap, 0);
+            void *buf = alloc(perm, SIZEOF(U8),
+                              ALIGNOF(U8), newCap, 0);
             memcpy(buf, array->buf, array->len);
             array->buf = buf;
         }
@@ -719,7 +719,7 @@ U32 appendToSimpleBuffer(string data, char_d_a *array, arena *perm) {
 }
 
 #define STRING_CONVERTER_BUF_LEN 1 << 10
-unsigned char stringConverterBuf[STRING_CONVERTER_BUF_LEN];
+U8 stringConverterBuf[STRING_CONVERTER_BUF_LEN];
 static u_char_a stringConverterBuffer =
     (u_char_a){.buf = stringConverterBuf, .len = STRING_CONVERTER_BUF_LEN};
 
@@ -756,10 +756,10 @@ string ptrToStringDefault(void *data) {
 }
 
 string uint64ToString(U64 data, u_char_a tmp) {
-    unsigned char *end = tmp.buf + tmp.len;
-    unsigned char *beg = end;
+    U8 *end = tmp.buf + tmp.len;
+    U8 *beg = end;
     do {
-        *--beg = '0' + (unsigned char)(data % 10);
+        *--beg = '0' + (U8)(data % 10);
     } while (data /= 10);
     return (STRING_PTRS(beg, end));
 }
@@ -769,11 +769,11 @@ string uint64ToStringDefault(U64 data) {
 }
 
 string int64ToString(I64 data, u_char_a tmp) {
-    unsigned char *end = tmp.buf + tmp.len;
-    unsigned char *beg = end;
+    U8 *end = tmp.buf + tmp.len;
+    U8 *beg = end;
     I64 t = data > 0 ? -data : data;
     do {
-        *--beg = '0' - (unsigned char)(t % 10);
+        *--beg = '0' - (U8)(t % 10);
     } while (t /= 10);
     if (data < 0) {
         *--beg = '-';
@@ -805,7 +805,7 @@ string doubleToString(double data, u_char_a tmp) {
     U64 integral = (U64)data;
     U64 fractional = (U64)((data - (double)integral) * (double)prec);
 
-    unsigned char buf2[64];
+    U8 buf2[64];
     u_char_a tmp2 = (u_char_a){.buf = buf2, .len = 64};
 
     string part = uint64ToString(integral, tmp2);
@@ -814,7 +814,7 @@ string doubleToString(double data, u_char_a tmp) {
 
     tmp.buf[tmpLen++] = '.';
 
-    unsigned char counter = 0;
+    U8 counter = 0;
     for (U32 i = prec / 10; i > 1; i /= 10) {
         if (i > fractional) {
             counter++;
@@ -833,7 +833,7 @@ string doubleToStringDefault(double data) {
     return doubleToString(data, stringConverterBuffer);
 }
 
-string stringWithMinSize(string data, unsigned char minSize, u_char_a tmp) {
+string stringWithMinSize(string data, U8 minSize, u_char_a tmp) {
     if (data.len >= minSize) {
         return data;
     }
@@ -845,7 +845,7 @@ string stringWithMinSize(string data, unsigned char minSize, u_char_a tmp) {
     return STRING_LEN(tmp.buf, data.len + extraSpace);
 }
 
-string stringWithMinSizeDefault(string data, unsigned char minSize) {
+string stringWithMinSizeDefault(string data, U8 minSize) {
     return stringWithMinSize(data, minSize, stringConverterBuffer);
 }
 

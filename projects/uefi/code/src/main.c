@@ -3,7 +3,7 @@
 #include "acpi/c-acpi-rsdt.h"
 #include "apic.h"
 #include "data-reading.h"
-#include "efi/c-efi-base.h" // for Status, C_EFI_SUC...
+#include "efi/c-efi-base.h" // for Status, SUC...
 #include "efi/c-efi-protocol-acpi.h"
 #include "efi/c-efi-protocol-block-io.h"
 #include "efi/c-efi-protocol-disk-io.h"
@@ -46,7 +46,7 @@ void flo_printToScreen(PhysicalAddress graphics, U32 color) {
     }
 }
 
-CEFICALL void nonBootstrapProcessor(void *buffer) {
+EFICALL void nonBootstrapProcessor(void *buffer) {
     __asm__ __volatile__("cli;"
                          "hlt;"
                          // TODO: switch to monitor mwait?
@@ -68,7 +68,7 @@ static inline void outb(U16 port, U8 value) {
     asm volatile("outb %%al, %1" : : "a"(value), "Nd"(port) : "memory");
 }
 
-CEFICALL void bootstrapProcessorWork() {
+EFICALL void bootstrapProcessorWork() {
     // dissable PIC and NMI
     __asm__ __volatile__("movb $0xFF, %%al;"
                          "outb %%al, $0x21;"
@@ -196,7 +196,7 @@ bool CpuHasFeatures(unsigned int ecx, unsigned int edx) {
     return true;
 }
 
-CEFICALL void jumpIntoKernel(PhysicalAddress stackPointer) {
+EFICALL void jumpIntoKernel(PhysicalAddress stackPointer) {
     enableNewGDT();
 
     __asm__ __volatile__("mov %%rax, %%cr3"
@@ -242,7 +242,7 @@ CEFICALL void jumpIntoKernel(PhysicalAddress stackPointer) {
 }
 
 static U64 ncycles = 1;
-CEFICALL void wait(U64 microseconds) {
+EFICALL void wait(U64 microseconds) {
     U32 a;
     U32 b;
     __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));
@@ -254,13 +254,13 @@ CEFICALL void wait(U64 microseconds) {
     } while (currTime < endtime);
 }
 
-CEFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
+EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.h = handle;
     globals.st = systemtable;
 
     globals.st->con_out->reset(globals.st->con_out, false);
     globals.st->con_out->set_attribute(globals.st->con_out,
-                                       C_EFI_BACKGROUND_RED | C_EFI_YELLOW);
+                                       BACKGROUND_RED | YELLOW);
 
     globals.level4PageTable = allocAndZero(1);
 
@@ -351,8 +351,8 @@ CEFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
         u"Going to collect necessary info, then exit bootservices...\r\n");
     GraphicsOutputProtocol *gop = NULL;
     Status status = globals.st->boot_services->locate_protocol(
-        &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, (void **)&gop);
-    if (C_EFI_ERROR(status)) {
+        &GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, (void **)&gop);
+    if (ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
     }
 
@@ -465,11 +465,11 @@ CEFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     status = globals.st->boot_services->exit_boot_services(globals.h,
                                                            memoryInfo.mapKey);
 
-    if (C_EFI_ERROR(status)) {
+    if (ERROR(status)) {
         status = globals.st->boot_services->free_pages(
             (PhysicalAddress)memoryInfo.memoryMap,
             BYTES_TO_PAGES(memoryInfo.memoryMapSize));
-        if (C_EFI_ERROR(status)) {
+        if (ERROR(status)) {
             error(u"Could not free allocated memory map\r\n");
         }
 
@@ -477,10 +477,10 @@ CEFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
         status = globals.st->boot_services->exit_boot_services(
             globals.h, memoryInfo.mapKey);
     }
-    if (C_EFI_ERROR(status)) {
+    if (ERROR(status)) {
         error(u"could not exit boot services!\r\n");
     }
 
     jumpIntoKernel(stackPointer);
-    return !C_EFI_SUCCESS;
+    return !SUCCESS;
 }

@@ -7,8 +7,8 @@
 PhysicalAddress allocAndZero(USize numPages) {
     PhysicalAddress page = 0;
     Status status = globals.st->boot_services->allocate_pages(
-        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA, numPages, &page);
-    if (C_EFI_ERROR(status)) {
+        ALLOCATE_ANY_PAGES, LOADER_DATA, numPages, &page);
+    if (ERROR(status)) {
         error(u"unable to allocate pages!\r\n");
     }
 
@@ -70,7 +70,7 @@ MemoryInfo getMemoryInfo() {
         &mmap.memoryMapSize, mmap.memoryMap, &mmap.mapKey, &mmap.descriptorSize,
         &mmap.descriptorVersion);
 
-    if (status != C_EFI_BUFFER_TOO_SMALL) {
+    if (status != BUFFER_TOO_SMALL) {
         error(u"Should have received a buffer too small error here!\r\n");
     }
 
@@ -79,16 +79,16 @@ MemoryInfo getMemoryInfo() {
     // exitbootservices will fail (lol)
     mmap.memoryMapSize += mmap.descriptorSize * 2;
     status = globals.st->boot_services->allocate_pages(
-        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+        ALLOCATE_ANY_PAGES, LOADER_DATA,
         BYTES_TO_PAGES(mmap.memoryMapSize), &mmap.memoryMap);
-    if (C_EFI_ERROR(status)) {
+    if (ERROR(status)) {
         error(u"Could not allocate data for memory map buffer\r\n");
     }
 
     status = globals.st->boot_services->get_memory_map(
         &mmap.memoryMapSize, mmap.memoryMap, &mmap.mapKey, &mmap.descriptorSize,
         &mmap.descriptorVersion);
-    if (C_EFI_ERROR(status)) {
+    if (ERROR(status)) {
         error(u"Getting memory map failed!\r\n");
     }
 
@@ -99,10 +99,10 @@ MemoryInfo getMemoryInfo() {
 // think?
 bool needsTobeMappedByOS(MemoryType type) {
     switch (type) {
-    case C_EFI_RUNTIME_SERVICES_DATA:
-        //    case C_EFI_ACPI_RECLAIM_MEMORY:
-        //    case C_EFI_ACPI_MEMORY_NVS:
-        //    case C_EFI_PAL_CODE:
+    case RUNTIME_SERVICES_DATA:
+        //    case ACPI_RECLAIM_MEMORY:
+        //    case ACPI_MEMORY_NVS:
+        //    case PAL_CODE:
         return true;
     default:
         return false;

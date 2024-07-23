@@ -7,7 +7,7 @@
 __attribute((malloc, alloc_align(3))) void *alloc(arena *a, I64 size,
                                                   U64 align,
                                                   U64 count,
-                                                  unsigned char flags) {
+                                                  U8 flags) {
     ASSERT((align & (align - 1)) == 0);
 
     U64 avail = a->end - a->beg;

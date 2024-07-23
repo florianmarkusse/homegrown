@@ -1,5 +1,5 @@
-#ifndef EFI_C_EFI_PROTOCOL_BLOCK_IO_H
-#define EFI_C_EFI_PROTOCOL_BLOCK_IO_H
+#ifndef EFI_PROTOCOL_BLOCK_IO_H
+#define EFI_PROTOCOL_BLOCK_IO_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,7 +7,7 @@ extern "C" {
 
 #include "c-efi-base.h"
 
-#define C_EFI_BLOCK_IO_PROTOCOL_GUID                                           \
+#define BLOCK_IO_PROTOCOL_GUID                                           \
     EFI_GUID(0x964e5b21, 0x6459, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
                0x72, 0x3b)
 
@@ -31,7 +31,7 @@ typedef struct BlockIoProtocol {
     BlockIoMedia *Media;
     // Not implemented cause we not needed (yet)
     void *Reset;
-    Status(CEFICALL *readBlocks)(BlockIoProtocol *this_,
+    Status(EFICALL *readBlocks)(BlockIoProtocol *this_,
                                      U32 mediaID, Lba startingLBA,
                                      USize bufferSize, void *buffer);
 

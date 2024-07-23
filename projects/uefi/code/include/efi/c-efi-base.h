@@ -1,5 +1,5 @@
-#ifndef EFI_C_EFI_BASE_H
-#define EFI_C_EFI_BASE_H
+#ifndef EFI_BASE_H
+#define EFI_BASE_H
 
 #pragma once
 
@@ -20,7 +20,7 @@
  *
  * This header provides the base types and macros used throughout the project.
  * It provides basic fixed-size integers, a NULL-equivalent, booleans, standard
- * UEFI types, and more. All symbols are prefixed with `C_EFI_*` or `*`.
+ * UEFI types, and more. All symbols are prefixed with `*` or `*`.
  *
  * You are highly recommended to conduct the UEFI Specification for details on
  * the programming environment. Following a summary of key parts from the
@@ -75,7 +75,7 @@ extern "C" {
 #endif
 
 /**
- * CEFICALL: Annotate Functions with UEFI Calling-Convention
+ * EFICALL: Annotate Functions with UEFI Calling-Convention
  *
  * This macro annotates function declarations with the correct calling
  * convention. The UEFI Specification defines the calling-convention for each
@@ -83,15 +83,15 @@ extern "C" {
  * calling-convention used on Microsoft Windows.
  */
 #if defined(__arm__) || defined(_M_ARM)
-#define CEFICALL __attribute__((pcs("aapcs")))
+#define EFICALL __attribute__((pcs("aapcs")))
 #elif defined(__aarch64__) || defined(_M_ARM64)
-#define CEFICALL /* XXX: No ABI-specifier supported so far */
+#define EFICALL /* XXX: No ABI-specifier supported so far */
 #elif defined(__i386__) || defined(_M_IX86)
-#define CEFICALL __attribute__((cdecl))
+#define EFICALL __attribute__((cdecl))
 #elif defined(__x86_64__) || defined(_M_X64)
-#define CEFICALL __attribute__((ms_abi))
+#define EFICALL __attribute__((ms_abi))
 #else
-#define CEFICALL /* Use native ABI; assume it matches the host. */
+#define EFICALL /* Use native ABI; assume it matches the host. */
 #endif
 
 /*
@@ -123,77 +123,77 @@ typedef struct MPServicesProtocol MPServicesProtocol;
 typedef USize Status;
 
 #if __UINTPTR_MAX__ == __UINT32_MAX__
-#define C_EFI_STATUS_C U32_C
-#define C_EFI_STATUS_WIDTH 32
+#define STATUS_C U32_C
+#define STATUS_WIDTH 32
 #elif __UINTPTR_MAX__ == __UINT64_MAX__
-#define C_EFI_STATUS_C U64_C
-#define C_EFI_STATUS_WIDTH 64
+#define STATUS_C U64_C
+#define STATUS_WIDTH 64
 #else
 #error "Unsupported value of __UINTPTR_MAX__"
 #endif
 
-#define C_EFI_STATUS_ERROR_MASK                                                \
-    (C_EFI_STATUS_C(0x80) << (C_EFI_STATUS_WIDTH - 8))
-#define C_EFI_STATUS_ERROR_OEM_MASK                                            \
-    (C_EFI_STATUS_C(0xc0) << (C_EFI_STATUS_WIDTH - 8))
-#define C_EFI_STATUS_WARNING_MASK                                              \
-    (C_EFI_STATUS_C(0x00) << (C_EFI_STATUS_WIDTH - 8))
-#define C_EFI_STATUS_WARNING_OEM_MASK                                          \
-    (C_EFI_STATUS_C(0x40) << (C_EFI_STATUS_WIDTH - 8))
+#define STATUS_ERROR_MASK                                                \
+    (STATUS_C(0x80) << (STATUS_WIDTH - 8))
+#define STATUS_ERROR_OEM_MASK                                            \
+    (STATUS_C(0xc0) << (STATUS_WIDTH - 8))
+#define STATUS_WARNING_MASK                                              \
+    (STATUS_C(0x00) << (STATUS_WIDTH - 8))
+#define STATUS_WARNING_OEM_MASK                                          \
+    (STATUS_C(0x40) << (STATUS_WIDTH - 8))
 
-#define C_EFI_STATUS_ERROR_C(_x) (C_EFI_STATUS_C(_x) | C_EFI_STATUS_ERROR_MASK)
-#define C_EFI_STATUS_ERROR_OEM_C(_x)                                           \
-    (C_EFI_STATUS_C(_x) | C_EFI_STATUS_ERROR_OEM_MASK)
-#define C_EFI_STATUS_WARNING_C(_x)                                             \
-    (C_EFI_STATUS_C(_x) | C_EFI_STATUS_WARNING_MASK)
-#define C_EFI_STATUS_WARNING_OEM_C(_x)                                         \
-    (C_EFI_STATUS_C(_x) | C_EFI_STATUS_WARNING_OEM_MASK)
+#define STATUS_ERROR_C(_x) (STATUS_C(_x) | STATUS_ERROR_MASK)
+#define STATUS_ERROR_OEM_C(_x)                                           \
+    (STATUS_C(_x) | STATUS_ERROR_OEM_MASK)
+#define STATUS_WARNING_C(_x)                                             \
+    (STATUS_C(_x) | STATUS_WARNING_MASK)
+#define STATUS_WARNING_OEM_C(_x)                                         \
+    (STATUS_C(_x) | STATUS_WARNING_OEM_MASK)
 
-#define C_EFI_ERROR(_x) (!!((_x) & C_EFI_STATUS_ERROR_MASK))
+#define ERROR(_x) (!!((_x) & STATUS_ERROR_MASK))
 
-#define C_EFI_SUCCESS C_EFI_STATUS_C(0)
+#define SUCCESS STATUS_C(0)
 
-#define C_EFI_LOAD_ERROR C_EFI_STATUS_ERROR_C(1)
-#define C_EFI_INVALID_PARAMETER C_EFI_STATUS_ERROR_C(2)
-#define C_EFI_UNSUPPORTED C_EFI_STATUS_ERROR_C(3)
-#define C_EFI_BAD_BUFFER_SIZE C_EFI_STATUS_ERROR_C(4)
-#define C_EFI_BUFFER_TOO_SMALL C_EFI_STATUS_ERROR_C(5)
-#define C_EFI_NOT_READY C_EFI_STATUS_ERROR_C(6)
-#define C_EFI_DEVICE_ERROR C_EFI_STATUS_ERROR_C(7)
-#define C_EFI_WRITE_PROTECTED C_EFI_STATUS_ERROR_C(8)
-#define C_EFI_OUT_OF_RESOURCES C_EFI_STATUS_ERROR_C(9)
-#define C_EFI_VOLUME_CORRUPTED C_EFI_STATUS_ERROR_C(10)
-#define C_EFI_VOLUME_FULL C_EFI_STATUS_ERROR_C(11)
-#define C_EFI_NO_MEDIA C_EFI_STATUS_ERROR_C(12)
-#define C_EFI_MEDIA_CHANGED C_EFI_STATUS_ERROR_C(13)
-#define C_EFI_NOT_FOUND C_EFI_STATUS_ERROR_C(14)
-#define C_EFI_ACCESS_DENIED C_EFI_STATUS_ERROR_C(15)
-#define C_EFI_NO_RESPONSE C_EFI_STATUS_ERROR_C(16)
-#define C_EFI_NO_MAPPING C_EFI_STATUS_ERROR_C(17)
-#define C_EFI_TIMEOUT C_EFI_STATUS_ERROR_C(18)
-#define C_EFI_NOT_STARTED C_EFI_STATUS_ERROR_C(19)
-#define C_EFI_ALREADY_STARTED C_EFI_STATUS_ERROR_C(20)
-#define C_EFI_ABORTED C_EFI_STATUS_ERROR_C(21)
-#define C_EFI_ICMP_ERROR C_EFI_STATUS_ERROR_C(22)
-#define C_EFI_TFTP_ERROR C_EFI_STATUS_ERROR_C(23)
-#define C_EFI_PROTOCOL_ERROR C_EFI_STATUS_ERROR_C(24)
-#define C_EFI_INCOMPATIBLE_VERSION C_EFI_STATUS_ERROR_C(25)
-#define C_EFI_SECURITY_VIOLATION C_EFI_STATUS_ERROR_C(26)
-#define C_EFI_CRC_ERROR C_EFI_STATUS_ERROR_C(27)
-#define C_EFI_END_OF_MEDIA C_EFI_STATUS_ERROR_C(28)
-#define C_EFI_END_OF_FILE C_EFI_STATUS_ERROR_C(31)
-#define C_EFI_INVALID_LANGUAGE C_EFI_STATUS_ERROR_C(32)
-#define C_EFI_COMPROMISED_DATA C_EFI_STATUS_ERROR_C(33)
-#define C_EFI_IP_ADDRESS_CONFLICT C_EFI_STATUS_ERROR_C(34)
-#define C_EFI_HTTP_ERROR C_EFI_STATUS_ERROR_C(35)
+#define LOAD_ERROR STATUS_ERROR_C(1)
+#define INVALID_PARAMETER STATUS_ERROR_C(2)
+#define UNSUPPORTED STATUS_ERROR_C(3)
+#define BAD_BUFFER_SIZE STATUS_ERROR_C(4)
+#define BUFFER_TOO_SMALL STATUS_ERROR_C(5)
+#define NOT_READY STATUS_ERROR_C(6)
+#define DEVICE_ERROR STATUS_ERROR_C(7)
+#define WRITE_PROTECTED STATUS_ERROR_C(8)
+#define OUT_OF_RESOURCES STATUS_ERROR_C(9)
+#define VOLUME_CORRUPTED STATUS_ERROR_C(10)
+#define VOLUME_FULL STATUS_ERROR_C(11)
+#define NO_MEDIA STATUS_ERROR_C(12)
+#define MEDIA_CHANGED STATUS_ERROR_C(13)
+#define NOT_FOUND STATUS_ERROR_C(14)
+#define ACCESS_DENIED STATUS_ERROR_C(15)
+#define NO_RESPONSE STATUS_ERROR_C(16)
+#define NO_MAPPING STATUS_ERROR_C(17)
+#define TIMEOUT STATUS_ERROR_C(18)
+#define NOT_STARTED STATUS_ERROR_C(19)
+#define ALREADY_STARTED STATUS_ERROR_C(20)
+#define ABORTED STATUS_ERROR_C(21)
+#define ICMP_ERROR STATUS_ERROR_C(22)
+#define TFTP_ERROR STATUS_ERROR_C(23)
+#define PROTOCOL_ERROR STATUS_ERROR_C(24)
+#define INCOMPATIBLE_VERSION STATUS_ERROR_C(25)
+#define SECURITY_VIOLATION STATUS_ERROR_C(26)
+#define CRC_ERROR STATUS_ERROR_C(27)
+#define END_OF_MEDIA STATUS_ERROR_C(28)
+#define END_OF_FILE STATUS_ERROR_C(31)
+#define INVALID_LANGUAGE STATUS_ERROR_C(32)
+#define COMPROMISED_DATA STATUS_ERROR_C(33)
+#define IP_ADDRESS_CONFLICT STATUS_ERROR_C(34)
+#define HTTP_ERROR STATUS_ERROR_C(35)
 
-#define C_EFI_WARN_UNKNOWN_GLYPH C_EFI_STATUS_WARNING_C(1)
-#define C_EFI_WARN_DELETE_FAILURE C_EFI_STATUS_WARNING_C(2)
-#define C_EFI_WARN_WRITE_FAILURE C_EFI_STATUS_WARNING_C(3)
-#define C_EFI_WARN_BUFFER_TOO_SMALL C_EFI_STATUS_WARNING_C(4)
-#define C_EFI_WARN_STALE_DATA C_EFI_STATUS_WARNING_C(5)
-#define C_EFI_WARN_FILE_SYSTEM C_EFI_STATUS_WARNING_C(6)
-#define C_EFI_WARN_RESET_REQUIRED C_EFI_STATUS_WARNING_C(7)
+#define WARN_UNKNOWN_GLYPH STATUS_WARNING_C(1)
+#define WARN_DELETE_FAILURE STATUS_WARNING_C(2)
+#define WARN_WRITE_FAILURE STATUS_WARNING_C(3)
+#define WARN_BUFFER_TOO_SMALL STATUS_WARNING_C(4)
+#define WARN_STALE_DATA STATUS_WARNING_C(5)
+#define WARN_FILE_SYSTEM STATUS_WARNING_C(6)
+#define WARN_RESET_REQUIRED STATUS_WARNING_C(7)
 
 /**
  * Handle, Event, Lba, Tpl, PhysicalAddress,
@@ -227,7 +227,7 @@ typedef U64 VirtualAddress;
  * applications are unloaded when this function returns. Drivers might stay in
  * memory, depending on the return type. See the specification for details.
  */
-typedef Status(CEFICALL *ImageEntryPoint)(Handle image, SystemTable *st);
+typedef Status(EFICALL *ImageEntryPoint)(Handle image, SystemTable *st);
 
 /**
  * MacAddress, Ipv4Address,

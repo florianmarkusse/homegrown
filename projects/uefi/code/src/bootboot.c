@@ -82,7 +82,7 @@ typedef struct {
 // EFI_FILE_HANDLE                 RootDir;
 // EFI_FILE_PROTOCOL               *Root;
 // SIMPLE_INPUT_INTERFACE          *CI;
-unsigned char *kne, nosmp = 0;
+U8 *kne, nosmp = 0;
 volatile char bsp_done = 0, ap_done = 0;
 
 // default environment variables. M$ states that 1024x768 must be supported
@@ -341,7 +341,7 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
     getSystemConfigTable(&C_EFI_MPS_TABLE_GUID, (void *)&sysptr);
     mp_ptr = sysptr;
 
-    unsigned char *acpiThing = (unsigned char *)acpi_ptr;
+    U8 *acpiThing = (U8 *)acpi_ptr;
     if (memcmp(acpiThing, "RSDT", 4) && memcmp(acpiThing, "XSDT", 4)) {
         for (U64 i = 1; i < 256; i++) {
             if (!memcmp(acpiThing + i, "RSD PTR ", 8)) {

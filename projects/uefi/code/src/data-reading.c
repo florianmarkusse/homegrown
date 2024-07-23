@@ -3,7 +3,7 @@
 #include "acpi/c-acpi-rdsp.h"
 #include "acpi/c-acpi-rsdt.h"
 #include "apic.h"
-#include "efi/c-efi-base.h" // for Status, C_EFI_SUC...
+#include "efi/c-efi-base.h" // for Status, SUC...
 #include "efi/c-efi-protocol-acpi.h"
 #include "efi/c-efi-protocol-block-io.h"
 #include "efi/c-efi-protocol-disk-io.h"
@@ -28,17 +28,17 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba,
 
     LoadedImageProtocol *lip = NULL;
     status = globals.st->boot_services->open_protocol(
-        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
-        NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (C_EFI_ERROR(status)) {
+        globals.h, &LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
+        NULL, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    if (ERROR(status)) {
         error(u"Could not open Loaded Image Protocol\r\n");
     }
 
     BlockIoProtocol *imageBiop;
     status = globals.st->boot_services->open_protocol(
-        lip->device_handle, &C_EFI_BLOCK_IO_PROTOCOL_GUID, (void **)&imageBiop,
-        globals.h, NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (C_EFI_ERROR(status)) {
+        lip->device_handle, &BLOCK_IO_PROTOCOL_GUID, (void **)&imageBiop,
+        globals.h, NULL, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    if (ERROR(status)) {
         error(u"Could not open Block IO Protocol for this loaded image.\r\n");
     }
 
@@ -51,9 +51,9 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba,
     Handle *handle_buffer = NULL;
 
     status = globals.st->boot_services->locate_handle_buffer(
-        C_EFI_BY_PROTOCOL, &C_EFI_BLOCK_IO_PROTOCOL_GUID, NULL,
+        BY_PROTOCOL, &BLOCK_IO_PROTOCOL_GUID, NULL,
         &num_handles, &handle_buffer);
-    if (C_EFI_ERROR(status)) {
+    if (ERROR(status)) {
         error(u"Could not locate any Block IO Protocols.\r\n");
     }
 
@@ -68,9 +68,9 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba,
 
     for (USize i = 0; i < num_handles && mediaHandle == NULL; i++) {
         status = globals.st->boot_services->open_protocol(
-            handle_buffer[i], &C_EFI_BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
-            globals.h, NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-        if (C_EFI_ERROR(status)) {
+            handle_buffer[i], &BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
+            globals.h, NULL, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+        if (ERROR(status)) {
             error(u"Could not Open Block IO protocol on handle\r\n");
         }
 
@@ -80,16 +80,16 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba,
 
         PhysicalAddress address;
         status = globals.st->boot_services->allocate_pages(
-            C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+            ALLOCATE_ANY_PAGES, LOADER_DATA,
             BYTES_TO_PAGES(alignedBytes), &address);
-        if (C_EFI_ERROR(status)) {
+        if (ERROR(status)) {
             error(u"Could not allocete data for disk buffer\r\n");
         }
 
         if (biop->Media->MediaId == imageBiop->Media->MediaId) {
             status = biop->readBlocks(biop, biop->Media->MediaId, diskLba,
                                       alignedBytes, (void *)address);
-            if (!(C_EFI_ERROR(status))) {
+            if (!(ERROR(status))) {
                 data = (AsciString){.buf = (U8 *)address,
                                     .len = alignedBytes};
 
@@ -103,7 +103,7 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba,
 
         // Close open protocol when done
         globals.st->boot_services->close_protocol(handle_buffer[i],
-                                                  &C_EFI_BLOCK_IO_PROTOCOL_GUID,
+                                                  &BLOCK_IO_PROTOCOL_GUID,
                                                   globals.h, NULL);
 
         if (readBlocks) {
@@ -112,10 +112,10 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba,
     }
 
     globals.st->boot_services->close_protocol(lip->device_handle,
-                                              &C_EFI_BLOCK_IO_PROTOCOL_GUID,
+                                              &BLOCK_IO_PROTOCOL_GUID,
                                               globals.h, NULL);
     globals.st->boot_services->close_protocol(
-        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, globals.h, NULL);
+        globals.h, &LOADED_IMAGE_PROTOCOL_GUID, globals.h, NULL);
 
     if (!readBlocks) {
         error(u"\r\nERROR: Could not find Block IO protocol for disk with "
@@ -137,9 +137,9 @@ AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
     Handle *handle_buffer = NULL;
 
     status = globals.st->boot_services->locate_handle_buffer(
-        C_EFI_BY_PROTOCOL, &C_EFI_BLOCK_IO_PROTOCOL_GUID, NULL,
+        BY_PROTOCOL, &BLOCK_IO_PROTOCOL_GUID, NULL,
         &num_handles, &handle_buffer);
-    if (C_EFI_ERROR(status)) {
+    if (ERROR(status)) {
         error(u"Could not locate any Block IO Protocols.\r\n");
     }
 
@@ -148,9 +148,9 @@ AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
     AsciString data;
     for (USize i = 0; i < num_handles && mediaHandle == NULL; i++) {
         status = globals.st->boot_services->open_protocol(
-            handle_buffer[i], &C_EFI_BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
-            globals.h, NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-        if (C_EFI_ERROR(status)) {
+            handle_buffer[i], &BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
+            globals.h, NULL, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+        if (ERROR(status)) {
             error(u"Could not Open Block IO protocol on handle\r\n");
         }
 
@@ -161,9 +161,9 @@ AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
 
             PhysicalAddress address;
             status = globals.st->boot_services->allocate_pages(
-                C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+                ALLOCATE_ANY_PAGES, LOADER_DATA,
                 BYTES_TO_PAGES(alignedBytes), &address);
-            if (C_EFI_ERROR(status)) {
+            if (ERROR(status)) {
                 error(u"Could not allocete data for disk buffer\r\n");
             }
 
@@ -178,7 +178,7 @@ AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
 
         // Close open protocol when done
         globals.st->boot_services->close_protocol(handle_buffer[i],
-                                                  &C_EFI_BLOCK_IO_PROTOCOL_GUID,
+                                                  &BLOCK_IO_PROTOCOL_GUID,
                                                   globals.h, NULL);
 
         if (readBlocks) {
@@ -194,30 +194,30 @@ AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
     //    // Get Disk IO Protocol on same handle as Block IO protocol
     //    DiskIOProtocol *diop;
     //    status = globals.st->boot_services->open_protocol(
-    //        mediaHandle, &C_EFI_DISK_IO_PROTOCOL_GUID, (void **)&diop,
-    //        globals.h, NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    //    if (C_EFI_ERROR(status)) {
+    //        mediaHandle, &DISK_IO_PROTOCOL_GUID, (void **)&diop,
+    //        globals.h, NULL, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    //    if (ERROR(status)) {
     //        error(u"Could not Open Disk IO protocol on handle\r\n");
     //    }
     //
     //    PhysicalAddress address;
     //    status = globals.st->boot_services->allocate_pages(
-    //        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+    //        ALLOCATE_ANY_PAGES, LOADER_DATA,
     //        BYTES_TO_PAGES(bytes), &address);
-    //    if (C_EFI_ERROR(status)) {
+    //    if (ERROR(status)) {
     //        error(u"Could not allocete data for disk buffer\r\n");
     //    }
     //
     //    status = diop->readDisk(diop, mediaID, diskLba *
     //    biop->Media->BlockSize,
     //                            bytes, (void *)address);
-    //    if (C_EFI_ERROR(status)) {
+    //    if (ERROR(status)) {
     //        error(u"Could not read Disk LBAs into buffer\r\n");
     //    }
     //
     //    // Close disk IO protocol when done
     //    globals.st->boot_services->close_protocol(
-    //        mediaHandle, &C_EFI_DISK_IO_PROTOCOL_GUID, globals.h, NULL);
+    //        mediaHandle, &DISK_IO_PROTOCOL_GUID, globals.h, NULL);
 
     return data;
 }
@@ -228,27 +228,27 @@ U32 getDiskImageMediaID() {
     // Get media ID for this disk image
     LoadedImageProtocol *lip = NULL;
     status = globals.st->boot_services->open_protocol(
-        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
-        NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (C_EFI_ERROR(status)) {
+        globals.h, &LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
+        NULL, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    if (ERROR(status)) {
         error(u"Could not open Loaded Image Protocol\r\n");
     }
 
     BlockIoProtocol *biop;
     status = globals.st->boot_services->open_protocol(
-        lip->device_handle, &C_EFI_BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
-        globals.h, NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (C_EFI_ERROR(status)) {
+        lip->device_handle, &BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
+        globals.h, NULL, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    if (ERROR(status)) {
         error(u"Could not open Block IO Protocol for this loaded image.\r\n");
     }
 
     U32 mediaID = biop->Media->MediaId;
 
     globals.st->boot_services->close_protocol(lip->device_handle,
-                                              &C_EFI_BLOCK_IO_PROTOCOL_GUID,
+                                              &BLOCK_IO_PROTOCOL_GUID,
                                               globals.h, NULL);
     globals.st->boot_services->close_protocol(
-        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, globals.h, NULL);
+        globals.h, &LOADED_IMAGE_PROTOCOL_GUID, globals.h, NULL);
 
     return mediaID;
 }
@@ -260,9 +260,9 @@ DataPartitionFile getKernelInfo() {
     //   simple file system protocol on
     LoadedImageProtocol *lip = 0;
     Status status = globals.st->boot_services->open_protocol(
-        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
-        NULL, C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (C_EFI_ERROR(status)) {
+        globals.h, &LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
+        NULL, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    if (ERROR(status)) {
         error(u"Could not open Loaded Image Protocol\r\n");
     }
 
@@ -270,31 +270,31 @@ DataPartitionFile getKernelInfo() {
     //   image, to open the root directory for the ESP
     SimpleFileSystemProtocol *sfsp = NULL;
     status = globals.st->boot_services->open_protocol(
-        lip->device_handle, &C_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID,
+        lip->device_handle, &SIMPLE_FILE_SYSTEM_PROTOCOL_GUID,
         (void **)&sfsp, globals.h, NULL,
-        C_EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (C_EFI_ERROR(status)) {
+        OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    if (ERROR(status)) {
         error(u"Could not open Simple File System Protocol\r\n");
     }
 
     FileProtocol *root = NULL;
     status = sfsp->openVolume(sfsp, &root);
-    if (C_EFI_ERROR(status)) {
+    if (ERROR(status)) {
         error(u"Could not Open Volume for root directory in ESP\r\n");
     }
 
     FileProtocol *file = NULL;
     status = root->open(root, &file, u"\\EFI\\BOOT\\DATAFLS.INF",
-                        C_EFI_FILE_MODE_READ, 0);
-    if (C_EFI_ERROR(status)) {
+                        FILE_MODE_READ, 0);
+    if (ERROR(status)) {
         error(u"Could not Open File\r\n");
     }
 
     FileInfo file_info;
     USize file_info_size = sizeof(file_info);
     status =
-        file->getInfo(file, &C_EFI_FILE_INFO_ID, &file_info_size, &file_info);
-    if (C_EFI_ERROR(status)) {
+        file->getInfo(file, &FILE_INFO_ID, &file_info_size, &file_info);
+    if (ERROR(status)) {
         error(u"Could not get file info\r\n");
     }
 
@@ -304,16 +304,16 @@ DataPartitionFile getKernelInfo() {
     PhysicalAddress dataFileAddress;
 
     status = globals.st->boot_services->allocate_pages(
-        C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA,
+        ALLOCATE_ANY_PAGES, LOADER_DATA,
         BYTES_TO_PAGES(dataFile.len), &dataFileAddress);
-    if (C_EFI_ERROR(status) || dataFile.len != file_info.fileSize) {
+    if (ERROR(status) || dataFile.len != file_info.fileSize) {
         error(u"Could not allocate memory for file\r\n");
     }
 
     dataFile.buf = (U8 *)dataFileAddress;
 
     status = file->read(file, &dataFile.len, dataFile.buf);
-    if (C_EFI_ERROR(status) || dataFile.len != file_info.fileSize) {
+    if (ERROR(status) || dataFile.len != file_info.fileSize) {
         error(u"Could not read file into buffer\r\n");
     }
 
@@ -321,11 +321,11 @@ DataPartitionFile getKernelInfo() {
     file->close(file);
 
     globals.st->boot_services->close_protocol(
-        lip->device_handle, &C_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, globals.h,
+        lip->device_handle, &SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, globals.h,
         NULL);
 
     globals.st->boot_services->close_protocol(
-        globals.h, &C_EFI_LOADED_IMAGE_PROTOCOL_GUID, globals.h, NULL);
+        globals.h, &LOADED_IMAGE_PROTOCOL_GUID, globals.h, NULL);
 
     // Assumes the below file structure:
     // FILE_NAME=kernel.bin
