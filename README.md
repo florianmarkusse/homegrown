@@ -6,6 +6,9 @@ run
 ./build-create-run.sh
 ```
 
+## Other dependencies to manually install for the moment
+- Cmake (new version)
+- Include-what-you-use
 
 ## To run as a standalone operating system
 ```
