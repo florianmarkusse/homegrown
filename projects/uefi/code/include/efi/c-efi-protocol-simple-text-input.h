@@ -16,21 +16,21 @@ extern "C" {
 #include "c-efi-base.h"
 
 #define C_EFI_SIMPLE_TEXT_INPUT_PROTOCOL_GUID                                  \
-    C_EFI_GUID(0x387477c1, 0x69c7, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
+    EFI_GUID(0x387477c1, 0x69c7, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
                0x72, 0x3b)
 
-typedef struct CEfiInputKey {
+typedef struct InputKey {
     U16 scan_code;
     U16 unicode_char;
-} CEfiInputKey;
+} InputKey;
 
-typedef struct CEfiSimpleTextInputProtocol {
-    CEfiStatus(CEFICALL *reset)(CEfiSimpleTextInputProtocol *this_,
+typedef struct SimpleTextInputProtocol {
+    Status(CEFICALL *reset)(SimpleTextInputProtocol *this_,
                                 bool extended_verification);
-    CEfiStatus(CEFICALL *read_key_stroke)(CEfiSimpleTextInputProtocol *this_,
-                                          CEfiInputKey *key);
-    CEfiEvent wait_for_key;
-} CEfiSimpleTextInputProtocol;
+    Status(CEFICALL *read_key_stroke)(SimpleTextInputProtocol *this_,
+                                          InputKey *key);
+    Event wait_for_key;
+} SimpleTextInputProtocol;
 
 #ifdef __cplusplus
 }

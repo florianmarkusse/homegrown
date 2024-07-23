@@ -6,7 +6,7 @@
 
 void error(U16 *string) {
     globals.st->con_out->output_string(globals.st->con_out, string);
-    CEfiInputKey key;
+    InputKey key;
     while (globals.st->con_in->read_key_stroke(globals.st->con_in, &key) !=
            C_EFI_SUCCESS) {
         ;

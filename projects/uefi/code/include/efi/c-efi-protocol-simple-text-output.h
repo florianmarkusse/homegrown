@@ -16,17 +16,17 @@ extern "C" {
 #include "c-efi-base.h"
 
 #define C_EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL_GUID                                 \
-    C_EFI_GUID(0x387477c2, 0x69c7, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
+    EFI_GUID(0x387477c2, 0x69c7, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
                0x72, 0x3b)
 
-typedef struct CEfiSimpleTextOutputMode {
+typedef struct SimpleTextOutputMode {
     I32 max_mode;
     I32 mode;
     I32 attribute;
     I32 cursor_column;
     I32 cursor_row;
     bool cursor_visible;
-} CEfiSimpleTextOutputMode;
+} SimpleTextOutputMode;
 
 #define C_EFI_BLACK U8_C(0x00)
 #define C_EFI_BLUE U8_C(0x01)
@@ -55,27 +55,27 @@ typedef struct CEfiSimpleTextOutputMode {
 #define C_EFI_BACKGROUND_BROWN U8_C(0x60)
 #define C_EFI_BACKGROUND_LIGHTGRAY U8_C(0x70)
 
-typedef struct CEfiSimpleTextOutputProtocol {
-    CEfiStatus(CEFICALL *reset)(CEfiSimpleTextOutputProtocol *this_,
+typedef struct SimpleTextOutputProtocol {
+    Status(CEFICALL *reset)(SimpleTextOutputProtocol *this_,
                                 bool extended_verification);
-    CEfiStatus(CEFICALL *output_string)(CEfiSimpleTextOutputProtocol *this_,
+    Status(CEFICALL *output_string)(SimpleTextOutputProtocol *this_,
                                         U16 *string);
-    CEfiStatus(CEFICALL *test_string)(CEfiSimpleTextOutputProtocol *this_,
+    Status(CEFICALL *test_string)(SimpleTextOutputProtocol *this_,
                                       U16 *string);
-    CEfiStatus(CEFICALL *query_mode)(CEfiSimpleTextOutputProtocol *this_,
+    Status(CEFICALL *query_mode)(SimpleTextOutputProtocol *this_,
                                      USize mode_number, USize *columns,
                                      USize *rows);
-    CEfiStatus(CEFICALL *set_mode)(CEfiSimpleTextOutputProtocol *this_,
+    Status(CEFICALL *set_mode)(SimpleTextOutputProtocol *this_,
                                    USize mode_number);
-    CEfiStatus(CEFICALL *set_attribute)(CEfiSimpleTextOutputProtocol *this_,
+    Status(CEFICALL *set_attribute)(SimpleTextOutputProtocol *this_,
                                         USize attribute);
-    CEfiStatus(CEFICALL *clear_screen)(CEfiSimpleTextOutputProtocol *this_);
-    CEfiStatus(CEFICALL *set_cursor_position)(
-        CEfiSimpleTextOutputProtocol *this_, USize column, USize row);
-    CEfiStatus(CEFICALL *enable_cursor)(CEfiSimpleTextOutputProtocol *this_,
+    Status(CEFICALL *clear_screen)(SimpleTextOutputProtocol *this_);
+    Status(CEFICALL *set_cursor_position)(
+        SimpleTextOutputProtocol *this_, USize column, USize row);
+    Status(CEFICALL *enable_cursor)(SimpleTextOutputProtocol *this_,
                                         bool visible);
-    CEfiSimpleTextOutputMode *mode;
-} CEfiSimpleTextOutpuProtocol;
+    SimpleTextOutputMode *mode;
+} SimpleTextOutpuProtocol;
 
 #ifdef __cplusplus
 }

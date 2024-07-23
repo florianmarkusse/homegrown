@@ -3,16 +3,16 @@
 #include "acpi/c-acpi-rsdt.h"
 #include "apic.h"
 #include "data-reading.h"
-#include "efi/c-efi-base.h" // for CEfiStatus, C_EFI_SUC...
+#include "efi/c-efi-base.h" // for Status, C_EFI_SUC...
 #include "efi/c-efi-protocol-acpi.h"
 #include "efi/c-efi-protocol-block-io.h"
 #include "efi/c-efi-protocol-disk-io.h"
 #include "efi/c-efi-protocol-graphics-output.h"
 #include "efi/c-efi-protocol-loaded-image.h"
 #include "efi/c-efi-protocol-simple-file-system.h"
-#include "efi/c-efi-protocol-simple-text-input.h" // for CEfiInputKey, CEfiSim...
-#include "efi/c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
-#include "efi/c-efi-system.h"                      // for CEfiSystemTable
+#include "efi/c-efi-protocol-simple-text-input.h" // for InputKey, Sim...
+#include "efi/c-efi-protocol-simple-text-output.h" // for SimpleTextOutputP...
+#include "efi/c-efi-system.h"                      // for SystemTable
 #include "gdt.h"
 #include "globals.h"
 #include "kernel-parameters.h"
@@ -40,7 +40,7 @@ void fw_exc(U8 excno, U64 exccode, U64 rip, U64 rsp) {
 #define HAXOR_GREEN 0x0000FF00
 #define HAXOR_WHITE 0x00FFFFFF
 
-void flo_printToScreen(CEfiPhysicalAddress graphics, U32 color) {
+void flo_printToScreen(PhysicalAddress graphics, U32 color) {
     for (U64 x = 0; x < 100; x++) {
         ((U32 *)graphics)[x] = color;
     }
@@ -196,7 +196,7 @@ bool CpuHasFeatures(unsigned int ecx, unsigned int edx) {
     return true;
 }
 
-CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
+CEFICALL void jumpIntoKernel(PhysicalAddress stackPointer) {
     enableNewGDT();
 
     __asm__ __volatile__("mov %%rax, %%cr3"
@@ -254,7 +254,7 @@ CEFICALL void wait(U64 microseconds) {
     } while (currTime < endtime);
 }
 
-CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
+CEFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.h = handle;
     globals.st = systemtable;
 
@@ -349,8 +349,8 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     globals.st->con_out->output_string(
         globals.st->con_out,
         u"Going to collect necessary info, then exit bootservices...\r\n");
-    CEfiGraphicsOutputProtocol *gop = NULL;
-    CEfiStatus status = globals.st->boot_services->locate_protocol(
+    GraphicsOutputProtocol *gop = NULL;
+    Status status = globals.st->boot_services->locate_protocol(
         &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, (void **)&gop);
     if (C_EFI_ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
@@ -359,8 +359,8 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     MemoryInfo memoryInfo = getMemoryInfo();
     for (USize i = 0;
          i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
-        CEfiMemoryDescriptor *desc =
-            (CEfiMemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
+        MemoryDescriptor *desc =
+            (MemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
                                      (i * memoryInfo.descriptorSize));
         mapMemoryAt(desc->physical_start, desc->physical_start,
                     desc->number_of_pages * PAGE_SIZE);
@@ -377,16 +377,16 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Creating space for kernel parameters...\r\n");
-    CEfiPhysicalAddress kernelParams =
+    PhysicalAddress kernelParams =
         allocAndZero(KERNEL_PARAMS_SIZE / PAGE_SIZE);
     mapMemoryAt(kernelParams, KERNEL_PARAMS_START, KERNEL_PARAMS_SIZE);
     KernelParameters *params = (KernelParameters *)kernelParams;
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Creating space for stack...\r\n");
-    CEfiPhysicalAddress stackEnd = allocAndZero(STACK_SIZE / PAGE_SIZE);
+    PhysicalAddress stackEnd = allocAndZero(STACK_SIZE / PAGE_SIZE);
     mapMemoryAt(stackEnd, BOTTOM_STACK, STACK_SIZE);
-    CEfiPhysicalAddress stackPointer = stackEnd + STACK_SIZE;
+    PhysicalAddress stackPointer = stackEnd + STACK_SIZE;
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"The stack will go down from ");
@@ -467,7 +467,7 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     if (C_EFI_ERROR(status)) {
         status = globals.st->boot_services->free_pages(
-            (CEfiPhysicalAddress)memoryInfo.memoryMap,
+            (PhysicalAddress)memoryInfo.memoryMap,
             BYTES_TO_PAGES(memoryInfo.memoryMapSize));
         if (C_EFI_ERROR(status)) {
             error(u"Could not free allocated memory map\r\n");

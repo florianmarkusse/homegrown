@@ -20,15 +20,15 @@
  *
  * This header provides the base types and macros used throughout the project.
  * It provides basic fixed-size integers, a NULL-equivalent, booleans, standard
- * UEFI types, and more. All symbols are prefixed with `C_EFI_*` or `CEfi*`.
+ * UEFI types, and more. All symbols are prefixed with `C_EFI_*` or `*`.
  *
  * You are highly recommended to conduct the UEFI Specification for details on
  * the programming environment. Following a summary of key parts from the
  * specification:
  *
  *  * All integers are either fixed-size, or native size. That is, either use
- *    CEfi{8,..,64} and CEfiU{8,..,64} directly, or use the native-size
- *    CEfiSize and USize. Native size integers are sized according to the
+ *    {8,..,64} and U{8,..,64} directly, or use the native-size
+ *    Size and USize. Native size integers are sized according to the
  *    architecture restrictions. You should assume they are pointer-sized.
  *
  *    Whenever you refer to memory (either pointing to it, or remember the size
@@ -37,7 +37,7 @@
  *
  *  * Even though the CPU might run in any endianness, all stored data is
  *    little-endian. That means, if you encounter integers split into
- *    byte-arrays (e.g., `CEfiDevicePathProtocol.length`), you must assume it
+ *    byte-arrays (e.g., `DevicePathProtocol.length`), you must assume it
  *    is little-endian encoded. But if you encounter native integers, you must
  *    assume they are encoded in native endianness.
  *    For now the UEFI specification only defines little-endian architectures,
@@ -100,27 +100,27 @@ extern "C" {
  * limit the number of circular type dependencies, so make sure to only add
  * them here if really necessary.
  */
-typedef struct CEfiDevicePathProtocol CEfiDevicePathProtocol;
-typedef struct CEfiSimpleTextInputProtocol CEfiSimpleTextInputProtocol;
-typedef struct CEfiSimpleFileSystemProtocol CEfiSimpleFileSystemProtocol;
-typedef struct CEfiDiskIOProtocol CEfiDiskIOProtocol;
-typedef struct CEfiBlockIoProtocol CEfiBlockIoProtocol;
-typedef struct CEfiFileProtocol CEfiFileProtocol;
-typedef struct CEfiGraphicsOutputProtocol CEfiGraphicsOutputProtocol;
-typedef struct CEfiSimpleTextOutputProtocol CEfiSimpleTextOutputProtocol;
-typedef struct CEfiSystemTable CEfiSystemTable;
-typedef struct CEfiACPITableProtocol CEfiACPITableProtocol;
-typedef struct CEfiMPServicesProtocol CEfiMPServicesProtocol;
+typedef struct DevicePathProtocol DevicePathProtocol;
+typedef struct SimpleTextInputProtocol SimpleTextInputProtocol;
+typedef struct SimpleFileSystemProtocol SimpleFileSystemProtocol;
+typedef struct DiskIOProtocol DiskIOProtocol;
+typedef struct BlockIoProtocol BlockIoProtocol;
+typedef struct FileProtocol FileProtocol;
+typedef struct GraphicsOutputProtocol GraphicsOutputProtocol;
+typedef struct SimpleTextOutputProtocol SimpleTextOutputProtocol;
+typedef struct SystemTable SystemTable;
+typedef struct ACPITableProtocol ACPITableProtocol;
+typedef struct MPServicesProtocol MPServicesProtocol;
 
 /**
- * CEfiStatus: Status Codes
+ * Status: Status Codes
  *
- * The CEfiStatus type is used to indicate the return status of functions,
+ * The Status type is used to indicate the return status of functions,
  * operations, and internal state. A value of 0 indicates success. Positive
  * values (MSB unset) indicate warnings, negative values (MSB set) indicate
  * errors. The second-MSB distinguishes OEM warnings and errors.
  */
-typedef USize CEfiStatus;
+typedef USize Status;
 
 #if __UINTPTR_MAX__ == __UINT32_MAX__
 #define C_EFI_STATUS_C U32_C
@@ -196,27 +196,27 @@ typedef USize CEfiStatus;
 #define C_EFI_WARN_RESET_REQUIRED C_EFI_STATUS_WARNING_C(7)
 
 /**
- * CEfiHandle, CEfiEvent, CEfiLba, CEfiTpl, CEfiPhysicalAddress,
- * CEfiVirtualAddress: Common UEFI Aliases
+ * Handle, Event, Lba, Tpl, PhysicalAddress,
+ * VirtualAddress: Common UEFI Aliases
  *
  * These types are all aliases as defined by the UEFI specification. They are
  * solely meant for documentational purposes.
  *
- * CEfiHandle represents handles to allocated objects. CEfiEvent represents
- * slots that can be waited on (like Windows events). CEfiLba represents
- * logical block addresses. CEfiTpl represents thread priority levels.
- * CEfiPhysicalAddress, and CEfiVirtualAddress are used to denote physical,
+ * Handle represents handles to allocated objects. Event represents
+ * slots that can be waited on (like Windows events). Lba represents
+ * logical block addresses. Tpl represents thread priority levels.
+ * PhysicalAddress, and VirtualAddress are used to denote physical,
  * and virtual addresses.
  */
-typedef void *CEfiHandle;
-typedef void *CEfiEvent;
-typedef U64 CEfiLba;
-typedef USize CEfiTpl;
-typedef U64 CEfiPhysicalAddress;
-typedef U64 CEfiVirtualAddress;
+typedef void *Handle;
+typedef void *Event;
+typedef U64 Lba;
+typedef USize Tpl;
+typedef U64 PhysicalAddress;
+typedef U64 VirtualAddress;
 
 /**
- * CEfiImageEntryPoint: Type of image entry points
+ * ImageEntryPoint: Type of image entry points
  *
  * All loaded images must have an entry point of this type. The entry point is
  * pointed to in the PE/COFF header. No particular symbol-name is required,
@@ -227,80 +227,34 @@ typedef U64 CEfiVirtualAddress;
  * applications are unloaded when this function returns. Drivers might stay in
  * memory, depending on the return type. See the specification for details.
  */
-typedef CEfiStatus(CEFICALL *CEfiImageEntryPoint)(CEfiHandle image,
-                                                  CEfiSystemTable *st);
+typedef Status(CEFICALL *ImageEntryPoint)(Handle image, SystemTable *st);
 
 /**
- * CEfiGuid: Globally Unique Identifier Type
+ * MacAddress, Ipv4Address,
+ * Ipv6Address, IpAddress: Networking Types
  *
- * The CEfiGuid type represents a GUID. It is always 128bit in size and
- * aligned to 64bit. Only its binary representation is guaranteed to be stable.
- * You are highly recommended to only ever access the `u8' version of it.
- *
- * The @ms1 to @ms4 fields can be used to encode Microsoft-style GUIDs, where
- * @ms1, @ms2, and @ms3 are little-endian encoded.
- */
-typedef struct CEfiGuid {
-    union {
-        _Alignas(8) U8 u8[16];
-        _Alignas(8) U16 u16[8];
-        _Alignas(8) U32 u32[4];
-        _Alignas(8) U64 u64[2];
-        struct {
-            _Alignas(8) U32 ms1;
-            U16 ms2;
-            U16 ms3;
-            U8 ms4[8];
-        };
-    };
-} CEfiGuid;
-
-#define C_EFI_GUID(_ms1, _ms2, _ms3, _ms4, _ms5, _ms6, _ms7, _ms8, _ms9,       \
-                   _ms10, _ms11)                                               \
-    ((struct CEfiGuid){                                                        \
-        .ms1 = (_ms1),                                                         \
-        .ms2 = (_ms2),                                                         \
-        .ms3 = (_ms3),                                                         \
-        .ms4 =                                                                 \
-            {                                                                  \
-                (_ms4),                                                        \
-                (_ms5),                                                        \
-                (_ms6),                                                        \
-                (_ms7),                                                        \
-                (_ms8),                                                        \
-                (_ms9),                                                        \
-                (_ms10),                                                       \
-                (_ms11),                                                       \
-            },                                                                 \
-    })
-
-/**
- * CEfiMacAddress, CEfiIpv4Address,
- * CEfiIpv6Address, CEfiIpAddress: Networking Types
- *
- * These types represent the corresponding networking entities. CEfiMacAddress,
- * CEfiIpv4Address, and CEfiIpv6Address are mere byte-buffers. CEfiIpAddress is
+ * These types represent the corresponding networking entities. MacAddress,
+ * Ipv4Address, and Ipv6Address are mere byte-buffers. IpAddress is
  * a 16-byte buffer, but required to be 4-byte aligned.
  */
-
-typedef struct CEfiMacAddress {
+typedef struct MacAddress {
     U8 u8[32];
-} CEfiMacAddress;
+} MacAddress;
 
-typedef struct CEfiIpv4Address {
+typedef struct Ipv4Address {
     U8 u8[4];
-} CEfiIpv4Address;
+} Ipv4Address;
 
-typedef struct CEfiIpv6Address {
+typedef struct Ipv6Address {
     U8 u8[16];
-} CEfiIpv6Address;
+} Ipv6Address;
 
-typedef struct CEfiIpAddress {
+typedef struct IpAddress {
     union {
-        _Alignas(4) CEfiIpv4Address ipv4;
-        _Alignas(4) CEfiIpv6Address ipv6;
+        _Alignas(4) Ipv4Address ipv4;
+        _Alignas(4) Ipv6Address ipv6;
     };
-} CEfiIpAddress;
+} IpAddress;
 
 #ifdef __cplusplus
 }

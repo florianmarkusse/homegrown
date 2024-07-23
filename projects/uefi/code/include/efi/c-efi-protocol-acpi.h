@@ -8,17 +8,17 @@ extern "C" {
 #include "c-efi-base.h"
 
 #define C_EFI_ACPI_TABLE_PROTOCOL_GUID                                         \
-    C_EFI_GUID(0xffe06bdd, 0x6107, 0x46a6, 0x7b, 0xb2, 0x5a, 0x9c, 0x7e, 0xc5, \
+    EFI_GUID(0xffe06bdd, 0x6107, 0x46a6, 0x7b, 0xb2, 0x5a, 0x9c, 0x7e, 0xc5, \
                0x27, 0x5c)
 
-typedef struct CEfiACPITableProtocol {
-    CEfiStatus(CEFICALL *installACPITable)(CEfiACPITableProtocol *this_,
+typedef struct ACPITableProtocol {
+    Status(CEFICALL *installACPITable)(ACPITableProtocol *this_,
                                            void *ACPITableBuffer,
                                            USize ACPITableBufferSize,
                                            USize *tableKey);
-    CEfiStatus(CEFICALL *uninstallACPITable)(CEfiACPITableProtocol *this_,
+    Status(CEFICALL *uninstallACPITable)(ACPITableProtocol *this_,
                                              USize tableKey);
-} CEfiACPITableProtocol;
+} ACPITableProtocol;
 
 #ifdef __cplusplus
 }

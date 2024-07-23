@@ -4,18 +4,18 @@
 #include "efi/c-efi-base.h"
 #include "efi/c-efi-system.h"
 
-CEfiPhysicalAddress allocAndZero(USize numPages);
+PhysicalAddress allocAndZero(USize numPages);
 void mapMemoryAt(U64 phys, U64 virt, U64 size);
 
 typedef struct {
     USize memoryMapSize;
-    CEfiMemoryDescriptor *memoryMap;
+    MemoryDescriptor *memoryMap;
     USize mapKey;
     USize descriptorSize;
     U32 descriptorVersion;
 } MemoryInfo;
 MemoryInfo getMemoryInfo();
 
-bool needsTobeMappedByOS(CEfiMemoryType type);
+bool needsTobeMappedByOS(MemoryType type);
 
 #endif

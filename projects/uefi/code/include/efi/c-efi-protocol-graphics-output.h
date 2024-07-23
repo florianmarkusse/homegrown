@@ -8,7 +8,7 @@ extern "C" {
 #include "c-efi-base.h"
 
 #define C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID                                    \
-    C_EFI_GUID(0x9042a9de, 0x23dc, 0x4a38, 0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, \
+    EFI_GUID(0x9042a9de, 0x23dc, 0x4a38, 0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, \
                0x51, 0x6a)
 
 typedef struct {
@@ -16,7 +16,7 @@ typedef struct {
     U8 Green;
     U8 Red;
     U8 Reserved;
-} CEfiBltPixel;
+} BltPixel;
 
 typedef enum {
     EfiBltVideoFill,
@@ -24,14 +24,14 @@ typedef enum {
     EfiBltBufferToVideo,
     EfiBltVideoToVideo,
     EfiGraphicsOutputBltOperationMax
-} CEfiBltOperation;
+} BltOperation;
 
 typedef struct {
     U32 redMask;
     U32 greenMask;
     U32 blueMask;
     U32 reservedMask;
-} CEfiPixelBitmask;
+} PixelBitmask;
 
 typedef enum {
     PixelRedGreenBlueReserved8BitPerColor,
@@ -39,40 +39,40 @@ typedef enum {
     PixelBitMask,
     PixelBltOnly,
     PixelFormatMax
-} CEfiGraphicsPixelFormat;
+} GraphicsPixelFormat;
 
 typedef struct {
     U32 version;
     U32 horizontalResolution;
     U32 verticalResolution;
-    CEfiGraphicsPixelFormat pixelFormat;
-    CEfiPixelBitmask pixelInformation;
+    GraphicsPixelFormat pixelFormat;
+    PixelBitmask pixelInformation;
     U32 pixelsPerScanLine;
-} CEfiGraphicsOutputModeInformation;
+} GraphicsOutputModeInformation;
 
 typedef struct {
     U32 maxMode;
     U32 mode;
-    CEfiGraphicsOutputModeInformation *info;
+    GraphicsOutputModeInformation *info;
     USize sizeOfInfo;
-    CEfiPhysicalAddress frameBufferBase;
+    PhysicalAddress frameBufferBase;
     USize frameBufferSize;
-} CEfiGraphicsOutputProtocolMode;
+} GraphicsOutputProtocolMode;
 
-typedef struct CEfiGraphicsOutputProtocol {
-    CEfiStatus(CEFICALL *queryMode)(CEfiGraphicsOutputProtocol *this_,
+typedef struct GraphicsOutputProtocol {
+    Status(CEFICALL *queryMode)(GraphicsOutputProtocol *this_,
                                     U32 modeNumber, USize *sizeOfInfo,
-                                    CEfiGraphicsOutputModeInformation **info);
-    CEfiStatus(CEFICALL *setMode)(CEfiGraphicsOutputProtocol *this_,
+                                    GraphicsOutputModeInformation **info);
+    Status(CEFICALL *setMode)(GraphicsOutputProtocol *this_,
                                   U32 modeNumber);
-    CEfiStatus(CEFICALL *blt)(CEfiGraphicsOutputProtocol *this_,
-                              CEfiBltPixel *bltBuffer,
-                              CEfiBltOperation bltOperation, USize sourceX,
+    Status(CEFICALL *blt)(GraphicsOutputProtocol *this_,
+                              BltPixel *bltBuffer,
+                              BltOperation bltOperation, USize sourceX,
                               USize sourceY, USize destinationX,
                               USize destinationY, USize width,
                               USize height, USize delta);
-    CEfiGraphicsOutputProtocolMode *mode;
-} CEfiGraphicsOutputProtocol;
+    GraphicsOutputProtocolMode *mode;
+} GraphicsOutputProtocol;
 
 #ifdef __cplusplus
 }

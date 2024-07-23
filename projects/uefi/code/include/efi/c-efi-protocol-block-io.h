@@ -8,7 +8,7 @@ extern "C" {
 #include "c-efi-base.h"
 
 #define C_EFI_BLOCK_IO_PROTOCOL_GUID                                           \
-    C_EFI_GUID(0x964e5b21, 0x6459, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
+    EFI_GUID(0x964e5b21, 0x6459, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
                0x72, 0x3b)
 
 typedef struct {
@@ -20,24 +20,24 @@ typedef struct {
     bool WriteCaching;
     U32 BlockSize;
     U32 IoAlign;
-    CEfiLba LastBlock;
-    CEfiLba LowestAlignedLba;                 // added in Revision 2
+    Lba LastBlock;
+    Lba LowestAlignedLba;                 // added in Revision 2
     U32 LogicalBlocksPerPhysicalBlock;    // added in Revision 2
     U32 OptimalTransferLengthGranularity; // added in Revision 3
-} CEfiBlockIoMedia;
+} BlockIoMedia;
 
-typedef struct CEfiBlockIoProtocol {
+typedef struct BlockIoProtocol {
     U64 Revision;
-    CEfiBlockIoMedia *Media;
+    BlockIoMedia *Media;
     // Not implemented cause we not needed (yet)
     void *Reset;
-    CEfiStatus(CEFICALL *readBlocks)(CEfiBlockIoProtocol *this_,
-                                     U32 mediaID, CEfiLba startingLBA,
+    Status(CEFICALL *readBlocks)(BlockIoProtocol *this_,
+                                     U32 mediaID, Lba startingLBA,
                                      USize bufferSize, void *buffer);
 
     void *WriteBlocks;
     void *FlushBlocks;
-} CEfiBlockIoProtocol;
+} BlockIoProtocol;
 
 #ifdef __cplusplus
 }

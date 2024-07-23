@@ -17,31 +17,31 @@ extern "C" {
 #include "c-efi-protocol-device-path.h"
 
 #define C_EFI_DEVICE_PATH_UTILITIES_PROTOCOL_GUID                              \
-    C_EFI_GUID(0x379be4e, 0xd706, 0x437d, 0xb0, 0x37, 0xed, 0xb8, 0x2f, 0xb7,  \
+    EFI_GUID(0x379be4e, 0xd706, 0x437d, 0xb0, 0x37, 0xed, 0xb8, 0x2f, 0xb7,  \
                0x72, 0xa4)
 
-typedef struct CEfiDevicePathUtilitiesProtocol {
+typedef struct DevicePathUtilitiesProtocol {
     USize(CEFICALL *get_device_path_size)(
-        CEfiDevicePathProtocol *device_path);
-    CEfiDevicePathProtocol *(CEFICALL *duplicate_device_path)(
-        CEfiDevicePathProtocol *device_path);
-    CEfiDevicePathProtocol *(CEFICALL *append_device_path)(
-        CEfiDevicePathProtocol *src1, CEfiDevicePathProtocol *src2);
-    CEfiDevicePathProtocol *(CEFICALL *append_device_node)(
-        CEfiDevicePathProtocol *device_path,
-        CEfiDevicePathProtocol *device_node);
-    CEfiDevicePathProtocol *(CEFICALL *append_device_path_instance)(
-        CEfiDevicePathProtocol *device_path,
-        CEfiDevicePathProtocol *device_path_instance);
-    CEfiDevicePathProtocol *(CEFICALL *get_next_device_path_instance)(
-        CEfiDevicePathProtocol **device_path_instance,
+        DevicePathProtocol *device_path);
+    DevicePathProtocol *(CEFICALL *duplicate_device_path)(
+        DevicePathProtocol *device_path);
+    DevicePathProtocol *(CEFICALL *append_device_path)(
+        DevicePathProtocol *src1, DevicePathProtocol *src2);
+    DevicePathProtocol *(CEFICALL *append_device_node)(
+        DevicePathProtocol *device_path,
+        DevicePathProtocol *device_node);
+    DevicePathProtocol *(CEFICALL *append_device_path_instance)(
+        DevicePathProtocol *device_path,
+        DevicePathProtocol *device_path_instance);
+    DevicePathProtocol *(CEFICALL *get_next_device_path_instance)(
+        DevicePathProtocol **device_path_instance,
         USize *device_path_instance_size);
     bool(CEFICALL *is_device_path_multi_instance)(
-        CEfiDevicePathProtocol *device_path);
-    CEfiDevicePathProtocol *(CEFICALL *create_device_node)(U8 node_type,
+        DevicePathProtocol *device_path);
+    DevicePathProtocol *(CEFICALL *create_device_node)(U8 node_type,
                                                            U8 node_subtype,
                                                            U16 node_length);
-} CEfiDevicePathUtilitiesProtocol;
+} DevicePathUtilitiesProtocol;
 
 #ifdef __cplusplus
 }

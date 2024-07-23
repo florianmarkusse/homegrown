@@ -8,18 +8,18 @@ extern "C" {
 #include "c-efi-base.h"
 
 #define C_EFI_DISK_IO_PROTOCOL_GUID                                            \
-    C_EFI_GUID(0xCE345171, 0xBA0B, 0x11d2, 0x8e, 0x4F, 0x00, 0xa0, 0xc9, 0x69, \
+    EFI_GUID(0xCE345171, 0xBA0B, 0x11d2, 0x8e, 0x4F, 0x00, 0xa0, 0xc9, 0x69, \
                0x72, 0x3b)
 
-typedef struct CEfiDiskIOProtocol {
+typedef struct DiskIOProtocol {
     U64 Revision;
-    USize(CEFICALL *readDisk)(CEfiDiskIOProtocol *this_, U32 mediaId,
+    USize(CEFICALL *readDisk)(DiskIOProtocol *this_, U32 mediaId,
                                   U64 offset, USize bufferSize,
                                   void *buffer);
-    USize(CEFICALL *writeDisk)(CEfiDiskIOProtocol *this_, U32 mediaId,
+    USize(CEFICALL *writeDisk)(DiskIOProtocol *this_, U32 mediaId,
                                    U64 offset, USize bufferSize,
                                    void *buffer);
-} CEfiDiskIOProtocol;
+} DiskIOProtocol;
 
 #ifdef __cplusplus
 }

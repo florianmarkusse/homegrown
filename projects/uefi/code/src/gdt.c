@@ -96,7 +96,7 @@ typedef struct {
 Descriptor_Table_Register *new_gdtr;
 
 void prepNewGDT() {
-    CEfiPhysicalAddress zeroPage = allocAndZero(1);
+    PhysicalAddress zeroPage = allocAndZero(1);
     Task_State_Segment *new_tss = (Task_State_Segment *)zeroPage;
     new_tss->io_map_base_address = sizeof(Task_State_Segment);
     U64 new_tss_address = zeroPage;

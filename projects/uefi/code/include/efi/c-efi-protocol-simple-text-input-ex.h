@@ -15,10 +15,10 @@ extern "C" {
 
 #include "c-efi-base.h"
 
-typedef struct CEfiSimpleTextInputExProtocol CEfiSimpleTextInputExProtocol;
+typedef struct SimpleTextInputExProtocol SimpleTextInputExProtocol;
 
 #define C_EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL_GUID                               \
-    C_EFI_GUID(0xdd9e7534, 0x7762, 0x4698, 0x8c, 0x14, 0xf5, 0x85, 0x17, 0xa6, \
+    EFI_GUID(0xdd9e7534, 0x7762, 0x4698, 0x8c, 0x14, 0xf5, 0x85, 0x17, 0xa6, \
                0x25, 0xaa)
 
 #define C_EFI_TOGGLE_STATE_VALID U8_C(0x80)
@@ -27,7 +27,7 @@ typedef struct CEfiSimpleTextInputExProtocol CEfiSimpleTextInputExProtocol;
 #define C_EFI_NUM_LOCK_ACTIVE U8_C(0x02)
 #define C_EFI_CAPS_LOCK_ACTIVE U8_C(0x04)
 
-typedef U8 CEfiKeyToggleState;
+typedef U8 KeyToggleState;
 
 #define C_EFI_SHIFT_STATE_VALID U32_C(0x80000000)
 #define C_EFI_RIGHT_SHIFT_PRESSED U32_C(0x00000001)
@@ -41,32 +41,32 @@ typedef U8 CEfiKeyToggleState;
 #define C_EFI_MENU_KEY_PRESSED U32_C(0x00000100)
 #define C_EFI_SYS_REQ_PRESSED U32_C(0x00000200)
 
-typedef struct CEfiKeyState {
+typedef struct KeyState {
     U32 key_shift_state;
-    CEfiKeyToggleState key_toggle_state;
-} CEfiKeyState;
+    KeyToggleState key_toggle_state;
+} KeyState;
 
-typedef struct CEfiKeyData {
-    CEfiInputKey key;
-    CEfiKeyState key_state;
-} CEfiKeyData;
+typedef struct KeyData {
+    InputKey key;
+    KeyState key_state;
+} KeyData;
 
-typedef CEfiStatus(CEFICALL *CEfiKeyNotifyFunction)(CEfiKeyData *key_data);
+typedef Status(CEFICALL *KeyNotifyFunction)(KeyData *key_data);
 
-typedef struct CEfiSimpleTextInputExProtocol {
-    CEfiStatus(CEFICALL *reset)(CEfiSimpleTextInputExProtocol *this_,
+typedef struct SimpleTextInputExProtocol {
+    Status(CEFICALL *reset)(SimpleTextInputExProtocol *this_,
                                 bool extended_verification);
-    CEfiStatus(CEFICALL *read_key_stroke_ex)(
-        CEfiSimpleTextInputExProtocol *this_, CEfiKeyData *key_data);
-    CEfiEvent wait_for_key_ex;
-    CEfiStatus(CEFICALL *set_state)(CEfiSimpleTextInputExProtocol *this_,
-                                    CEfiKeyToggleState *key_toggle_state);
-    CEfiStatus(CEFICALL *register_key_notify)(
-        CEfiSimpleTextInputExProtocol *this_, CEfiKeyData *key_data,
-        CEfiKeyNotifyFunction key_notification_function, void **notify_handle);
-    CEfiStatus(CEFICALL *unregister_key_notify)(
-        CEfiSimpleTextInputExProtocol *this_, void *notification_handle);
-} CEfiSimpleTextInputExProtocol;
+    Status(CEFICALL *read_key_stroke_ex)(
+        SimpleTextInputExProtocol *this_, KeyData *key_data);
+    Event wait_for_key_ex;
+    Status(CEFICALL *set_state)(SimpleTextInputExProtocol *this_,
+                                    KeyToggleState *key_toggle_state);
+    Status(CEFICALL *register_key_notify)(
+        SimpleTextInputExProtocol *this_, KeyData *key_data,
+        KeyNotifyFunction key_notification_function, void **notify_handle);
+    Status(CEFICALL *unregister_key_notify)(
+        SimpleTextInputExProtocol *this_, void *notification_handle);
+} SimpleTextInputExProtocol;
 
 #ifdef __cplusplus
 }

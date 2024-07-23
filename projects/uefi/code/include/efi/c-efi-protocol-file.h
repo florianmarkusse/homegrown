@@ -9,20 +9,20 @@ extern "C" {
 #include "c-efi-system.h"
 
 #define C_EFI_FILE_INFO_ID                                                     \
-    C_EFI_GUID(0x09576e92, 0x6d3f, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
+    EFI_GUID(0x09576e92, 0x6d3f, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
                0x72, 0x3b)
 
 typedef struct {
     U64 size;
     U64 fileSize;
     U64 physicalSize;
-    CEfiTime createTime;
-    CEfiTime lastAccessTime;
-    CEfiTime modificationTime;
+    Time createTime;
+    Time lastAccessTime;
+    Time modificationTime;
     U64 attribute;
     // Can overflow but unlikely, oh well
     U16 fileName[256];
-} CEfiFileInfo;
+} FileInfo;
 
 // Open Modes
 #define C_EFI_FILE_MODE_READ 0x0000000000000001
@@ -38,29 +38,29 @@ typedef struct {
 #define C_EFI_FILE_ARCHIVE 0x0000000000000020
 #define C_EFI_FILE_VALID_ATTR 0x0000000000000037
 
-typedef struct CEfiFileProtocol {
+typedef struct FileProtocol {
     U64 Revision;
-    CEfiStatus(CEFICALL *open)(CEfiFileProtocol *this_,
-                               CEfiFileProtocol **newHandle,
+    Status(CEFICALL *open)(FileProtocol *this_,
+                               FileProtocol **newHandle,
                                U16 *fileName, U64 openMode,
                                U64 attributes);
-    CEfiStatus(CEFICALL *close)(CEfiFileProtocol *this_);
-    CEfiStatus(CEFICALL *delete)(CEfiFileProtocol *this_);
-    CEfiStatus(CEFICALL *read)(CEfiFileProtocol *this_, USize *bufferSize,
+    Status(CEFICALL *close)(FileProtocol *this_);
+    Status(CEFICALL *delete)(FileProtocol *this_);
+    Status(CEFICALL *read)(FileProtocol *this_, USize *bufferSize,
                                void *buffer);
-    CEfiStatus(CEFICALL *write)(CEfiFileProtocol *this_, USize *bufferSize,
+    Status(CEFICALL *write)(FileProtocol *this_, USize *bufferSize,
                                 void *buffer);
-    CEfiStatus(CEFICALL *getPosisition)(CEfiFileProtocol *this_,
+    Status(CEFICALL *getPosisition)(FileProtocol *this_,
                                         U64 position);
-    CEfiStatus(CEFICALL *setPosisition)(CEfiFileProtocol *this_,
+    Status(CEFICALL *setPosisition)(FileProtocol *this_,
                                         U64 position);
-    CEfiStatus(CEFICALL *getInfo)(CEfiFileProtocol *this_,
-                                  CEfiGuid *informationType,
+    Status(CEFICALL *getInfo)(FileProtocol *this_,
+                                  Guid *informationType,
                                   USize *bufferSize, void *buffer);
-    CEfiStatus(CEFICALL *setInfo)(CEfiFileProtocol *this_,
-                                  CEfiGuid *informationType,
+    Status(CEFICALL *setInfo)(FileProtocol *this_,
+                                  Guid *informationType,
                                   USize bufferSize, void *buffer);
-    CEfiStatus(CEFICALL *flush)(CEfiFileProtocol *this_);
+    Status(CEFICALL *flush)(FileProtocol *this_);
 
     // the functions below are not (yet) implemented
     // EFI_FILE_OPEN_EX  OpenEx;  // Added for revision 2
@@ -71,7 +71,7 @@ typedef struct CEfiFileProtocol {
     void *WriteEx;
     // EFI_FILE_FLUSH_EX FlushEx; // Added for revision 2
     void *FlushEx;
-} CEfiFileProtocol;
+} FileProtocol;
 
 #ifdef __cplusplus
 }

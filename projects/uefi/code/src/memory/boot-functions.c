@@ -4,9 +4,9 @@
 #include "memory/standard.h"
 #include "printing.h"
 
-CEfiPhysicalAddress allocAndZero(USize numPages) {
-    CEfiPhysicalAddress page = 0;
-    CEfiStatus status = globals.st->boot_services->allocate_pages(
+PhysicalAddress allocAndZero(USize numPages) {
+    PhysicalAddress page = 0;
+    Status status = globals.st->boot_services->allocate_pages(
         C_EFI_ALLOCATE_ANY_PAGES, C_EFI_LOADER_DATA, numPages, &page);
     if (C_EFI_ERROR(status)) {
         error(u"unable to allocate pages!\r\n");
@@ -30,26 +30,26 @@ void mapMemoryAt(U64 phys, U64 virt, U64 size) {
          virt += PAGE_SIZE, phys += PAGE_SIZE) {
         /* 512G */
         pageEntry =
-            &(((CEfiPhysicalAddress *)
+            &(((PhysicalAddress *)
                    globals.level4PageTable)[(virt >> 39L) & PAGE_ENTRY_MASK]);
         if (!*pageEntry) {
-            CEfiPhysicalAddress addr = allocAndZero(1);
+            PhysicalAddress addr = allocAndZero(1);
             *pageEntry = (addr | (PAGE_PRESENT | PAGE_WRITABLE));
         }
         /* 1G */
-        pageEntry = (CEfiPhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
+        pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
         pageEntry = &(pageEntry[(virt >> 30L) & PAGE_ENTRY_MASK]);
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (PAGE_PRESENT | PAGE_WRITABLE));
         }
         /* 2M  */
-        pageEntry = (CEfiPhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
+        pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
         pageEntry = &(pageEntry[(virt >> 21L) & PAGE_ENTRY_MASK]);
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (PAGE_PRESENT | PAGE_WRITABLE));
         }
         /* 4K */
-        pageEntry = (CEfiPhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
+        pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
         pageEntry = &(pageEntry[(virt >> 12L) & PAGE_ENTRY_MASK]);
         /* if this page is already mapped, that means the kernel has invalid,
          * overlapping segments */
@@ -66,7 +66,7 @@ MemoryInfo getMemoryInfo() {
 
     // Call GetMemoryMap with initial buffer size of 0 to retrieve the
     // required buffer size
-    CEfiStatus status = globals.st->boot_services->get_memory_map(
+    Status status = globals.st->boot_services->get_memory_map(
         &mmap.memoryMapSize, mmap.memoryMap, &mmap.mapKey, &mmap.descriptorSize,
         &mmap.descriptorVersion);
 
@@ -97,7 +97,7 @@ MemoryInfo getMemoryInfo() {
 
 // TODO: table 7.10 UEFI spec section 7.2 - 7.2.1 , not fully complete yet I
 // think?
-bool needsTobeMappedByOS(CEfiMemoryType type) {
+bool needsTobeMappedByOS(MemoryType type) {
     switch (type) {
     case C_EFI_RUNTIME_SERVICES_DATA:
         //    case C_EFI_ACPI_RECLAIM_MEMORY:

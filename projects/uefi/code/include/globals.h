@@ -4,8 +4,8 @@
 #include "efi/c-efi-base.h"
 
 typedef struct {
-    CEfiHandle h;
-    CEfiSystemTable *st;
+    Handle h;
+    SystemTable *st;
     U64 level4PageTable;
     U64 highestStackAddress; // For all core stacks.
     U32 maxSupportCPUID;

@@ -16,7 +16,7 @@ extern "C" {
 #include "c-efi-base.h"
 
 #define C_EFI_DEVICE_PATH_PROTOCOL_GUID                                        \
-    C_EFI_GUID(0x09576e91, 0x6d3f, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
+    EFI_GUID(0x09576e91, 0x6d3f, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
                0x72, 0x3b)
 
 #define C_EFI_DEVICE_PATH_TYPE_HARDWARE U8_C(0x01)
@@ -27,7 +27,7 @@ extern "C" {
 #define C_EFI_DEVICE_PATH_TYPE_END U8_C(0x7f)
 
 /**
- * CEfiDevicePathProtocol: Device Paths
+ * DevicePathProtocol: Device Paths
  * @type:               type of this device node
  * @subtype:            subtype of this device node
  * @length:             length of this device node (including this header)
@@ -45,11 +45,11 @@ extern "C" {
  * the UEFI Specification contradicts itself there and uses NULL in several
  * cases. Make sure to check each of these use-cases carefully.
  */
-typedef struct CEfiDevicePathProtocol {
+typedef struct DevicePathProtocol {
     U8 type;
     U8 subtype;
     U8 length[2];
-} CEfiDevicePathProtocol;
+} DevicePathProtocol;
 
 #define C_EFI_DEVICE_PATH_SUBTYPE_END_ALL U8_C(0xff)
 #define C_EFI_DEVICE_PATH_SUBTYPE_END_INSTANCE U8_C(0x01)

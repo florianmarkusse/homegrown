@@ -3,16 +3,16 @@
 #include "acpi/c-acpi-rsdt.h"
 #include "apic.h"
 #include "data-reading.h"
-#include "efi/c-efi-base.h" // for CEfiStatus, C_EFI_SUC...
+#include "efi/c-efi-base.h" // for Status, C_EFI_SUC...
 #include "efi/c-efi-protocol-acpi.h"
 #include "efi/c-efi-protocol-block-io.h"
 #include "efi/c-efi-protocol-disk-io.h"
 #include "efi/c-efi-protocol-graphics-output.h"
 #include "efi/c-efi-protocol-loaded-image.h"
 #include "efi/c-efi-protocol-simple-file-system.h"
-#include "efi/c-efi-protocol-simple-text-input.h" // for CEfiInputKey, CEfiSim...
-#include "efi/c-efi-protocol-simple-text-output.h" // for CEfiSimpleTextOutputP...
-#include "efi/c-efi-system.h"                      // for CEfiSystemTable
+#include "efi/c-efi-protocol-simple-text-input.h" // for InputKey, Sim...
+#include "efi/c-efi-protocol-simple-text-output.h" // for SimpleTextOutputP...
+#include "efi/c-efi-system.h"                      // for SystemTable
 #include "gdt.h"
 #include "globals.h"
 #include "kernel-parameters.h"
@@ -163,13 +163,13 @@ CEFICALL void wait(U64 microseconds) {
     } while (currTime < endtime);
 }
 
-CEfiStatus getSystemConfigTable(CEfiGuid *tableGuid, void **table) {
+Status getSystemConfigTable(Guid *tableGuid, void **table) {
     USize Index;
 
     for (Index = 0; Index < globals.st->number_of_table_entries; Index++) {
         if (memcmp(tableGuid,
                    &(globals.st->configuration_table[Index].vendor_guid),
-                   sizeof(CEfiGuid)) == 0) {
+                   sizeof(Guid)) == 0) {
             *table = globals.st->configuration_table[Index].vendor_table;
             return C_EFI_SUCCESS;
         }
@@ -180,7 +180,7 @@ CEfiStatus getSystemConfigTable(CEfiGuid *tableGuid, void **table) {
 /**
  * Main EFI application entry point
  */
-CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
+Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.h = handle;
     globals.st = systemtable;
 
@@ -197,7 +197,7 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     //    EFI_GUID bioGuid = BLOCK_IO_PROTOCOL;
     //    EFI_BLOCK_IO *bio;
     //    EFI_HANDLE *handles = NULL;
-    //    CEfiStatus status = EFI_SUCCESS;
+    //    Status status = EFI_SUCCESS;
     //    EFI_MEMORY_DESCRIPTOR *memory_map = NULL, *mement;
     //    EFI_PARTITION_TABLE_HEADER *gptHdr;
     //    EFI_PARTITION_ENTRY *gptEnt;
@@ -307,7 +307,7 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     printNumber((U64)*kernelContent.buf, 16);
     printNumber((U64) * (kernelContent.buf + 1), 16);
     printNumber((U64) * (kernelContent.buf + 2), 16);
-    //    CEfiInputKey key;
+    //    InputKey key;
     //    globals.st->con_out->output_string(globals.st->con_out,
     //                                       u"Press any key to
     //                                       continue...\r\n");
@@ -319,8 +319,8 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Retrieving Graphics output buffer...\r\n");
-    CEfiGraphicsOutputProtocol *gop = NULL;
-    CEfiStatus status = globals.st->boot_services->locate_protocol(
+    GraphicsOutputProtocol *gop = NULL;
+    Status status = globals.st->boot_services->locate_protocol(
         &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, (void **)&gop);
     if (C_EFI_ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
@@ -423,7 +423,7 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     mapMemoryAt((U64)kernelContent.buf, KERNEL_START,
                 (U32)kernelContent.len);
 
-    CEfiPhysicalAddress kernelParams = allocAndZero(1);
+    PhysicalAddress kernelParams = allocAndZero(1);
     mapMemoryAt(kernelParams, KERNEL_PARAMS_START, PAGE_SIZE);
     KernelParameters *params = (KernelParameters *)kernelParams;
     params->fb.columns = gop->mode->info->horizontalResolution;
@@ -435,7 +435,7 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     mapMemoryAt(gop->mode->frameBufferBase, gop->mode->frameBufferBase,
                 gop->mode->frameBufferSize);
 
-    CEfiPhysicalAddress stackEnd = allocAndZero(globals.numberOfCores);
+    PhysicalAddress stackEnd = allocAndZero(globals.numberOfCores);
     globals.highestStackAddress = stackEnd + PAGESIZE * globals.numberOfCores;
     mapMemoryAt(stackEnd, KERNEL_STACK_START, globals.numberOfCores * PAGESIZE);
 
@@ -459,8 +459,8 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     MemoryInfo memoryInfo = getMemoryInfo();
     for (USize i = 0;
          i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
-        CEfiMemoryDescriptor *mement =
-            (CEfiMemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
+        MemoryDescriptor *mement =
+            (MemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
                                      (i * memoryInfo.descriptorSize));
 
         if (mement == NULL ||
@@ -487,7 +487,7 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     if (C_EFI_ERROR(status)) {
         status = globals.st->boot_services->free_pages(
-            (CEfiPhysicalAddress)memoryInfo.memoryMap,
+            (PhysicalAddress)memoryInfo.memoryMap,
             BYTES_TO_PAGES(memoryInfo.memoryMapSize));
         if (C_EFI_ERROR(status)) {
             error(u"Could not free allocated memory map\r\n");
