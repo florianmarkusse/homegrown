@@ -74,7 +74,7 @@ AsciString readDiskLbasFromCurrentGlobalImage(CEfiLba diskLba,
             error(u"Could not Open Block IO protocol on handle\r\n");
         }
 
-        CEfiU64 alignedBytes =
+        U64 alignedBytes =
             ((bytes + biop->Media->BlockSize - 1) / biop->Media->BlockSize) *
             biop->Media->BlockSize;
 
@@ -93,7 +93,7 @@ AsciString readDiskLbasFromCurrentGlobalImage(CEfiLba diskLba,
                 data = (AsciString){.buf = (CEfiChar8 *)address,
                                     .len = alignedBytes};
 
-                const CEfiU8 kernelMagic[] = KERNEL_MAGIC;
+                const U8 kernelMagic[] = KERNEL_MAGIC;
                 if (!memcmp(kernelMagic, data.buf,
                             sizeof(kernelMagic) / sizeof(kernelMagic[0]))) {
                     readBlocks = C_EFI_TRUE;
@@ -125,7 +125,7 @@ AsciString readDiskLbasFromCurrentGlobalImage(CEfiLba diskLba,
     return data;
 }
 
-AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
+AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, U32 mediaID) {
     CEfiStatus status;
 
     // Loop through and get Block IO protocol for input media ID, for entire
@@ -155,7 +155,7 @@ AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
         }
 
         if (biop->Media->MediaId == mediaID && !biop->Media->LogicalPartition) {
-            CEfiU64 alignedBytes = ((bytes + biop->Media->BlockSize - 1) /
+            U64 alignedBytes = ((bytes + biop->Media->BlockSize - 1) /
                                     biop->Media->BlockSize) *
                                    biop->Media->BlockSize;
 
@@ -222,7 +222,7 @@ AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID) {
     return data;
 }
 
-CEfiU32 getDiskImageMediaID() {
+U32 getDiskImageMediaID() {
     CEfiStatus status;
 
     // Get media ID for this disk image
@@ -242,7 +242,7 @@ CEfiU32 getDiskImageMediaID() {
         error(u"Could not open Block IO Protocol for this loaded image.\r\n");
     }
 
-    CEfiU32 mediaID = biop->Media->MediaId;
+    U32 mediaID = biop->Media->MediaId;
 
     globals.st->boot_services->close_protocol(lip->device_handle,
                                               &C_EFI_BLOCK_IO_PROTOCOL_GUID,
@@ -352,16 +352,16 @@ DataPartitionFile getKernelInfo() {
                         break;
                     }
                     case BYTE_SIZE: {
-                        CEfiU64 bytes = 0;
-                        for (CEfiU64 i = 0; i < tokens.string.len; i++) {
+                        U64 bytes = 0;
+                        for (U64 i = 0; i < tokens.string.len; i++) {
                             bytes = bytes * 10 + (tokens.string.buf[i] - '0');
                         }
                         kernelFile.bytes = bytes;
                         break;
                     }
                     case LBA_START: {
-                        CEfiU64 lbaStart = 0;
-                        for (CEfiU64 i = 0; i < tokens.string.len; i++) {
+                        U64 lbaStart = 0;
+                        for (U64 i = 0; i < tokens.string.len; i++) {
                             lbaStart =
                                 lbaStart * 10 + (tokens.string.buf[i] - '0');
                         }

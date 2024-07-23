@@ -6,14 +6,14 @@
 
 typedef struct {
     AsciString name;
-    CEfiU64 bytes;
-    CEfiU64 lbaStart;
+    U64 bytes;
+    U64 lbaStart;
 } DataPartitionFile;
 
-AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, CEfiU32 mediaID);
+AsciString readDiskLbas(CEfiLba diskLba, CEfiUSize bytes, U32 mediaID);
 AsciString readDiskLbasFromCurrentGlobalImage(CEfiLba diskLba, CEfiUSize bytes);
 
-CEfiU32 getDiskImageMediaID();
+U32 getDiskImageMediaID();
 DataPartitionFile getKernelInfo();
 
 #endif

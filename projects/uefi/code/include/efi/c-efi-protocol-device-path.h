@@ -46,9 +46,9 @@ extern "C" {
  * cases. Make sure to check each of these use-cases carefully.
  */
 typedef struct CEfiDevicePathProtocol {
-    CEfiU8 type;
-    CEfiU8 subtype;
-    CEfiU8 length[2];
+    U8 type;
+    U8 subtype;
+    U8 length[2];
 } CEfiDevicePathProtocol;
 
 #define C_EFI_DEVICE_PATH_SUBTYPE_END_ALL C_EFI_U8_C(0xff)

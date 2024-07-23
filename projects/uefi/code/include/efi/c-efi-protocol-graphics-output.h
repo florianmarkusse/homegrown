@@ -12,10 +12,10 @@ extern "C" {
                0x51, 0x6a)
 
 typedef struct {
-    CEfiU8 Blue;
-    CEfiU8 Green;
-    CEfiU8 Red;
-    CEfiU8 Reserved;
+    U8 Blue;
+    U8 Green;
+    U8 Red;
+    U8 Reserved;
 } CEfiBltPixel;
 
 typedef enum {
@@ -27,10 +27,10 @@ typedef enum {
 } CEfiBltOperation;
 
 typedef struct {
-    CEfiU32 redMask;
-    CEfiU32 greenMask;
-    CEfiU32 blueMask;
-    CEfiU32 reservedMask;
+    U32 redMask;
+    U32 greenMask;
+    U32 blueMask;
+    U32 reservedMask;
 } CEfiPixelBitmask;
 
 typedef enum {
@@ -42,17 +42,17 @@ typedef enum {
 } CEfiGraphicsPixelFormat;
 
 typedef struct {
-    CEfiU32 version;
-    CEfiU32 horizontalResolution;
-    CEfiU32 verticalResolution;
+    U32 version;
+    U32 horizontalResolution;
+    U32 verticalResolution;
     CEfiGraphicsPixelFormat pixelFormat;
     CEfiPixelBitmask pixelInformation;
-    CEfiU32 pixelsPerScanLine;
+    U32 pixelsPerScanLine;
 } CEfiGraphicsOutputModeInformation;
 
 typedef struct {
-    CEfiU32 maxMode;
-    CEfiU32 mode;
+    U32 maxMode;
+    U32 mode;
     CEfiGraphicsOutputModeInformation *info;
     CEfiUSize sizeOfInfo;
     CEfiPhysicalAddress frameBufferBase;
@@ -61,10 +61,10 @@ typedef struct {
 
 typedef struct CEfiGraphicsOutputProtocol {
     CEfiStatus(CEFICALL *queryMode)(CEfiGraphicsOutputProtocol *this_,
-                                    CEfiU32 modeNumber, CEfiUSize *sizeOfInfo,
+                                    U32 modeNumber, CEfiUSize *sizeOfInfo,
                                     CEfiGraphicsOutputModeInformation **info);
     CEfiStatus(CEFICALL *setMode)(CEfiGraphicsOutputProtocol *this_,
-                                  CEfiU32 modeNumber);
+                                  U32 modeNumber);
     CEfiStatus(CEFICALL *blt)(CEfiGraphicsOutputProtocol *this_,
                               CEfiBltPixel *bltBuffer,
                               CEfiBltOperation bltOperation, CEfiUSize sourceX,

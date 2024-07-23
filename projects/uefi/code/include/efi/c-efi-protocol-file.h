@@ -13,13 +13,13 @@ extern "C" {
                0x72, 0x3b)
 
 typedef struct {
-    CEfiU64 size;
-    CEfiU64 fileSize;
-    CEfiU64 physicalSize;
+    U64 size;
+    U64 fileSize;
+    U64 physicalSize;
     CEfiTime createTime;
     CEfiTime lastAccessTime;
     CEfiTime modificationTime;
-    CEfiU64 attribute;
+    U64 attribute;
     // Can overflow but unlikely, oh well
     CEfiChar16 fileName[256];
 } CEfiFileInfo;
@@ -39,11 +39,11 @@ typedef struct {
 #define C_EFI_FILE_VALID_ATTR 0x0000000000000037
 
 typedef struct CEfiFileProtocol {
-    CEfiU64 Revision;
+    U64 Revision;
     CEfiStatus(CEFICALL *open)(CEfiFileProtocol *this_,
                                CEfiFileProtocol **newHandle,
-                               CEfiChar16 *fileName, CEfiU64 openMode,
-                               CEfiU64 attributes);
+                               CEfiChar16 *fileName, U64 openMode,
+                               U64 attributes);
     CEfiStatus(CEFICALL *close)(CEfiFileProtocol *this_);
     CEfiStatus(CEFICALL *delete)(CEfiFileProtocol *this_);
     CEfiStatus(CEFICALL *read)(CEfiFileProtocol *this_, CEfiUSize *bufferSize,
@@ -51,9 +51,9 @@ typedef struct CEfiFileProtocol {
     CEfiStatus(CEFICALL *write)(CEfiFileProtocol *this_, CEfiUSize *bufferSize,
                                 void *buffer);
     CEfiStatus(CEFICALL *getPosisition)(CEfiFileProtocol *this_,
-                                        CEfiU64 position);
+                                        U64 position);
     CEfiStatus(CEFICALL *setPosisition)(CEfiFileProtocol *this_,
-                                        CEfiU64 position);
+                                        U64 position);
     CEfiStatus(CEFICALL *getInfo)(CEfiFileProtocol *this_,
                                   CEfiGuid *informationType,
                                   CEfiUSize *bufferSize, void *buffer);

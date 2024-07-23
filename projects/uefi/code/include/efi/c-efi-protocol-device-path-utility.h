@@ -38,9 +38,9 @@ typedef struct CEfiDevicePathUtilitiesProtocol {
         CEfiUSize *device_path_instance_size);
     CEfiBool(CEFICALL *is_device_path_multi_instance)(
         CEfiDevicePathProtocol *device_path);
-    CEfiDevicePathProtocol *(CEFICALL *create_device_node)(CEfiU8 node_type,
-                                                           CEfiU8 node_subtype,
-                                                           CEfiU16 node_length);
+    CEfiDevicePathProtocol *(CEFICALL *create_device_node)(U8 node_type,
+                                                           U8 node_subtype,
+                                                           U16 node_length);
 } CEfiDevicePathUtilitiesProtocol;
 
 #ifdef __cplusplus

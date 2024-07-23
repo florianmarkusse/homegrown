@@ -16,15 +16,15 @@ CEfiPhysicalAddress allocAndZero(CEfiUSize numPages) {
     return page;
 }
 
-void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU64 size) {
+void mapMemoryAt(U64 phys, U64 virt, U64 size) {
     /* is this a canonical address? We handle virtual memory up to 256TB */
     if (!globals.level4PageTable ||
         ((virt >> 48L) != 0x0000 && (virt >> 48L) != 0xffff)) {
         error(u"Incorrect address mapped or no page table set up yet!\r\n");
     }
 
-    CEfiU64 end = virt + size;
-    CEfiU64 *pageEntry = C_EFI_NULL;
+    U64 end = virt + size;
+    U64 *pageEntry = C_EFI_NULL;
     /* walk the page tables and add the missing pieces */
     for (virt &= ~(PAGE_MASK), phys &= ~(PAGE_MASK); virt < end;
          virt += PAGE_SIZE, phys += PAGE_SIZE) {

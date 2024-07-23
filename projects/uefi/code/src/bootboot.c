@@ -23,10 +23,10 @@
 #include "string.h"
 
 extern void ap_trampoline();
-CEfiU16 lapic_ids[1024];
-CEfiU64 lapic_addr = 0;
+U16 lapic_ids[1024];
+U64 lapic_addr = 0;
 
-CEfiU64 *paging; // paging table for MMU
+U64 *paging; // paging table for MMU
 
 typedef enum {
     DefaultParity,
@@ -46,14 +46,14 @@ typedef enum {
 
 /*** other defines and structs ***/
 typedef struct {
-    CEfiU8 magic[8];
-    CEfiU8 chksum;
+    U8 magic[8];
+    U8 chksum;
     CEfiChar8 oemid[6];
-    CEfiU8 revision;
-    CEfiU32 rsdt;
-    CEfiU32 length;
-    CEfiU64 xsdt;
-    CEfiU32 echksum;
+    U8 revision;
+    U32 rsdt;
+    U32 length;
+    U64 xsdt;
+    U32 echksum;
 } __attribute__((packed)) ACPI_RSDPTR;
 
 #define PAGESIZE 4096
@@ -62,7 +62,7 @@ typedef struct {
  * return type for fs drivers
  */
 typedef struct {
-    CEfiU8 *ptr;
+    U8 *ptr;
     CEfiUSize size;
 } file_t;
 
@@ -71,12 +71,12 @@ typedef struct {
 // file_t initrd;      // initrd file descriptor
 // file_t core;        // kernel file descriptor
 // BOOTBOOT *bootboot; // the BOOTBOOT structure
-// CEfiU64 *paging;     // paging table for MMU
-// CEfiU64 entrypoint;  // kernel entry point
-// CEfiU64 fb_addr = BOOTBOOT_FB;       // virtual addresses
-// CEfiU64 bb_addr = BOOTBOOT_INFO;
-// CEfiU64 env_addr= BOOTBOOT_ENV;
-// CEfiU64 core_addr=BOOTBOOT_CORE;
+// U64 *paging;     // paging table for MMU
+// U64 entrypoint;  // kernel entry point
+// U64 fb_addr = BOOTBOOT_FB;       // virtual addresses
+// U64 bb_addr = BOOTBOOT_INFO;
+// U64 env_addr= BOOTBOOT_ENV;
+// U64 core_addr=BOOTBOOT_CORE;
 
 // EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *Volume;
 // EFI_FILE_HANDLE                 RootDir;
@@ -101,12 +101,12 @@ void CEFICALL bootboot_startcore(void *buf) {
 
     enableNewGDT();
 
-    register CEfiU16 core_num = 0;
+    register U16 core_num = 0;
     if (lapic_addr) {
         // enable Local APIC
-        *((volatile CEfiU32 *)(lapic_addr + 0x0F0)) =
-            *((volatile CEfiU32 *)(lapic_addr + 0x0F0)) | 0x100;
-        core_num = lapic_ids[*((volatile CEfiU32 *)(lapic_addr + 0x20)) >> 24];
+        *((volatile U32 *)(lapic_addr + 0x0F0)) =
+            *((volatile U32 *)(lapic_addr + 0x0F0)) | 0x100;
+        core_num = lapic_ids[*((volatile U32 *)(lapic_addr + 0x20)) >> 24];
     }
     ap_done = 1;
 
@@ -130,7 +130,7 @@ void CEFICALL bootboot_startcore(void *buf) {
                          : "a"(globals.level4PageTable)
                          : "memory");
 
-    CEfiU64 stackPointer = globals.highestStackAddress - core_num * PAGESIZE;
+    U64 stackPointer = globals.highestStackAddress - core_num * PAGESIZE;
 
     //    __asm__ __volatile__("movq $0xFFFFFFFF, %%rax;"
     //                         "movq %%rax, (%%rdx);"
@@ -150,16 +150,16 @@ void CEFICALL bootboot_startcore(void *buf) {
         : "a"(stackPointer), "b"(KERNEL_START));
 }
 
-static CEfiU64 ncycles = 1;
-CEFICALL void wait(CEfiU64 microseconds) {
-    CEfiU32 a;
-    CEfiU32 b;
+static U64 ncycles = 1;
+CEFICALL void wait(U64 microseconds) {
+    U32 a;
+    U32 b;
     __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));
-    CEfiU64 endtime = (((CEfiU64)b << 32) | a) + microseconds * 200 * ncycles;
-    CEfiU64 currTime;
+    U64 endtime = (((U64)b << 32) | a) + microseconds * 200 * ncycles;
+    U64 currTime;
     do {
         __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));
-        currTime = ((CEfiU64)b << 32) | a;
+        currTime = ((U64)b << 32) | a;
     } while (currTime < endtime);
 }
 
@@ -202,15 +202,15 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     //    EFI_PARTITION_TABLE_HEADER *gptHdr;
     //    EFI_PARTITION_ENTRY *gptEnt;
     //    EFI_INPUT_KEY key;
-    //    CEfiU64 ncycles = 0, currtime, endtime;
+    //    U64 ncycles = 0, currtime, endtime;
     //    CEfiUSize bad_madt = 0;
     //    EFI_GUID SerIoGuid = EFI_SERIAL_IO_PROTOCOL_GUID;
     //    EFI_SERIAL_IO_PROTOCOL *ser = NULL;
     //    CEfiUSize bsp_num = 0, i, j = 0, x, y, handle_size = 0,
     //    memory_map_size = 0,
     //              map_key = 0, desc_size = 0;
-    //    CEfiU32 desc_version = 0, a, b;
-    //    CEfiU64 lba_s = 0, lba_e = 0, sysptr;
+    //    U32 desc_version = 0, a, b;
+    //    U64 lba_s = 0, lba_e = 0, sysptr;
     //    MMapEnt *mmapent, *last = NULL, *sort;
     //    file_t ret = {NULL, 0};
 
@@ -224,19 +224,19 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                          :
                          : "eax", "ecx", "edx");
 
-    CEfiU32 a;
+    U32 a;
     // should be no need to check for RDSTC, available since Pentium, therefore
     // all long mode capable CPUs should have it. But just to be on the safe
     // side
     __asm__ __volatile__("mov $1, %%eax; cpuid;" : "=d"(a) : :);
     if (a & (1 << 4)) {
         // calibrate CPU clock cycles
-        CEfiU32 d;
+        U32 d;
         __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));
-        CEfiU64 currtime = ((CEfiU64)d << 32) | a;
+        U64 currtime = ((U64)d << 32) | a;
         globals.st->boot_services->stall(1);
         __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));
-        ncycles = ((CEfiU64)d << 32) | a;
+        ncycles = ((U64)d << 32) | a;
         ncycles -= currtime;
         ncycles /= 5;
         if (ncycles < 1) {
@@ -252,12 +252,12 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     __asm__ __volatile__("mov $1, %%eax; cpuid;" : "=d"(a) : :);
     if (a & (1 << 4)) {
         // calibrate CPU clock cycles
-        CEfiU32 d;
+        U32 d;
         __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));
-        CEfiU64 currtime = ((CEfiU64)d << 32) | a;
+        U64 currtime = ((U64)d << 32) | a;
         globals.st->boot_services->stall(1);
         __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));
-        ncycles = ((CEfiU64)d << 32) | a;
+        ncycles = ((U64)d << 32) | a;
         ncycles -= currtime;
         ncycles /= 5;
         if (ncycles < 1) {
@@ -271,10 +271,10 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     do {                                                                       \
         if (ncycles) {                                                         \
             __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));                  \
-            endtime = (((CEfiU64)b << 32) | a) + (n) * ncycles;                \
+            endtime = (((U64)b << 32) | a) + (n) * ncycles;                \
             do {                                                               \
                 __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));              \
-                currtime = ((CEfiU64)b << 32) | a;                             \
+                currtime = ((U64)b << 32) | a;                             \
             } while (currtime < endtime);                                      \
         } else                                                                 \
             __asm__ __volatile__(                                              \
@@ -285,13 +285,13 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     } while (0)
 #define send_ipi(a, m, v)                                                      \
     do {                                                                       \
-        while (*((volatile CEfiU32 *)(lapic_addr + 0x300)) & (1 << 12))        \
+        while (*((volatile U32 *)(lapic_addr + 0x300)) & (1 << 12))        \
             __asm__ __volatile__("pause" : : : "memory");                      \
-        *((volatile CEfiU32 *)(lapic_addr + 0x310)) =                          \
-            (*((volatile CEfiU32 *)(lapic_addr + 0x310)) & 0x00ffffff) |       \
+        *((volatile U32 *)(lapic_addr + 0x310)) =                          \
+            (*((volatile U32 *)(lapic_addr + 0x310)) & 0x00ffffff) |       \
             ((a) << 24);                                                       \
-        *((volatile CEfiU32 *)(lapic_addr + 0x300)) =                          \
-            (*((volatile CEfiU32 *)(lapic_addr + 0x300)) & (m)) | (v);         \
+        *((volatile U32 *)(lapic_addr + 0x300)) =                          \
+            (*((volatile U32 *)(lapic_addr + 0x300)) & (m)) | (v);         \
     } while (0)
 
     globals.st->con_out->output_string(globals.st->con_out,
@@ -304,9 +304,9 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     AsciString kernelContent = readDiskLbasFromCurrentGlobalImage(
         kernelFile.lbaStart, kernelFile.bytes);
 
-    printNumber((CEfiU64)*kernelContent.buf, 16);
-    printNumber((CEfiU64) * (kernelContent.buf + 1), 16);
-    printNumber((CEfiU64) * (kernelContent.buf + 2), 16);
+    printNumber((U64)*kernelContent.buf, 16);
+    printNumber((U64) * (kernelContent.buf + 1), 16);
+    printNumber((U64) * (kernelContent.buf + 2), 16);
     //    CEfiInputKey key;
     //    globals.st->con_out->output_string(globals.st->con_out,
     //                                       u"Press any key to
@@ -328,10 +328,10 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     globals.frameBufferAddress = gop->mode->frameBufferBase;
 
-    CEfiU64 sysptr = 0;
-    CEfiU64 acpi_ptr = 0;
-    CEfiU64 smbi_ptr = 0;
-    CEfiU64 mp_ptr = 0;
+    U64 sysptr = 0;
+    U64 acpi_ptr = 0;
+    U64 smbi_ptr = 0;
+    U64 mp_ptr = 0;
     getSystemConfigTable(&C_EFI_ACPI_TABLE_GUID, (void *)&sysptr);
     acpi_ptr = sysptr;
     sysptr = 0;
@@ -343,7 +343,7 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     unsigned char *acpiThing = (unsigned char *)acpi_ptr;
     if (memcmp(acpiThing, "RSDT", 4) && memcmp(acpiThing, "XSDT", 4)) {
-        for (CEfiU64 i = 1; i < 256; i++) {
+        for (U64 i = 1; i < 256; i++) {
             if (!memcmp(acpiThing + i, "RSD PTR ", 8)) {
                 acpiThing += i;
                 break;
@@ -354,16 +354,16 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
         if (rsd->xsdt != 0) {
             acpi_ptr = rsd->xsdt;
         } else {
-            acpi_ptr = (CEfiU64)((CEfiU32)rsd->rsdt);
+            acpi_ptr = (U64)((U32)rsd->rsdt);
         }
     }
 
     // Symmetric Multi Processing support
-    CEfiU8 *ptr = (CEfiU8 *)acpi_ptr, *pe, *data;
-    CEfiU64 r;
+    U8 *ptr = (U8 *)acpi_ptr, *pe, *data;
+    U64 r;
     CEfiUSize bad_madt = 0;
     CEfiUSize bsp_num = 0;
-    CEfiU64 i;
+    U64 i;
     {
         for (i = 0; i < (int)(sizeof(lapic_ids) / sizeof(lapic_ids[0])); i++) {
             lapic_ids[i] = 0xFFFF;
@@ -373,14 +373,14 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
             pe = ptr;
             ptr += 36;
             // iterate on ACPI table pointers
-            for (r = *((CEfiU32 *)(pe + 4)); ptr < pe + r;
+            for (r = *((U32 *)(pe + 4)); ptr < pe + r;
                  ptr += pe[0] == 'X' ? 8 : 4) {
-                data = (CEfiU8 *)(CEfiU64)(pe[0] == 'X' ? *((CEfiU64 *)ptr)
-                                                        : *((CEfiU32 *)ptr));
+                data = (U8 *)(U64)(pe[0] == 'X' ? *((U64 *)ptr)
+                                                        : *((U32 *)ptr));
                 if (!memcmp(data, "APIC", 4)) {
                     // found MADT, iterate on its variable length entries
-                    lapic_addr = (CEfiU64)(*((CEfiU32 *)(data + 0x24)));
-                    for (r = *((CEfiU32 *)(data + 4)), ptr = data + 44, i = 0;
+                    lapic_addr = (U64)(*((U32 *)(data + 0x24)));
+                    for (r = *((U32 *)(data + 4)), ptr = data + 44, i = 0;
                          ptr < data + r &&
                          i < (int)(sizeof(lapic_ids) / sizeof(lapic_ids[0]));
                          ptr += ptr[1]) {
@@ -388,12 +388,12 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                         case 0: // found Processor Local APIC
                             if ((ptr[4] & 1) && ptr[3] != 0xFF &&
                                 lapic_ids[(CEfiISize)ptr[3]] == 0xFFFF)
-                                lapic_ids[(CEfiISize)ptr[3]] = (CEfiU16)i++;
+                                lapic_ids[(CEfiISize)ptr[3]] = (U16)i++;
                             else
                                 bad_madt++;
                             break;
                         case 5:
-                            lapic_addr = *((CEfiU64 *)(ptr + 4));
+                            lapic_addr = *((U64 *)(ptr + 4));
                             break; // found 64 bit Local APIC Address
                         }
                     }
@@ -420,8 +420,8 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     mapMemoryAt(0, 0, (1ULL << 34)); // First 16 GiB
 
-    mapMemoryAt((CEfiU64)kernelContent.buf, KERNEL_START,
-                (CEfiU32)kernelContent.len);
+    mapMemoryAt((U64)kernelContent.buf, KERNEL_START,
+                (U32)kernelContent.len);
 
     CEfiPhysicalAddress kernelParams = allocAndZero(1);
     mapMemoryAt(kernelParams, KERNEL_PARAMS_START, PAGE_SIZE);
@@ -460,7 +460,7 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     for (CEfiUSize i = 0;
          i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
         CEfiMemoryDescriptor *mement =
-            (CEfiMemoryDescriptor *)((CEfiU8 *)memoryInfo.memoryMap +
+            (CEfiMemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
                                      (i * memoryInfo.descriptorSize));
 
         if (mement == NULL ||
@@ -468,9 +468,9 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
             break;
         }
         // check if the AP trampoline code's memory is free
-        if (mement->type == 7 && mement->physical_start <= (CEfiU64)0x8000 &&
+        if (mement->type == 7 && mement->physical_start <= (U64)0x8000 &&
             mement->physical_start + (mement->number_of_pages * PAGESIZE) >
-                (CEfiU64)0x8000) {
+                (U64)0x8000) {
             apmemfree = true;
         }
     }
@@ -522,19 +522,19 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                              "movq %%rbx, 0x80D8;"
                              "sgdt 0x80E0;"
                              :
-                             : "d"((CEfiU64)&ap_trampoline),
-                               "b"((CEfiU64)&bootboot_startcore)
+                             : "d"((U64)&ap_trampoline),
+                               "b"((U64)&bootboot_startcore)
                              : "rcx", "rsi", "rdi", "rax", "memory");
 
         // enable Local APIC
-        *((volatile CEfiU32 *)(lapic_addr + 0x0D0)) = (1 << 24);
-        *((volatile CEfiU32 *)(lapic_addr + 0x0E0)) = 0xFFFFFFFF;
-        *((volatile CEfiU32 *)(lapic_addr + 0x0F0)) =
-            *((volatile CEfiU32 *)(lapic_addr + 0x0F0)) | 0x1FF;
-        *((volatile CEfiU32 *)(lapic_addr + 0x080)) = 0;
+        *((volatile U32 *)(lapic_addr + 0x0D0)) = (1 << 24);
+        *((volatile U32 *)(lapic_addr + 0x0E0)) = 0xFFFFFFFF;
+        *((volatile U32 *)(lapic_addr + 0x0F0)) =
+            *((volatile U32 *)(lapic_addr + 0x0F0)) | 0x1FF;
+        *((volatile U32 *)(lapic_addr + 0x080)) = 0;
         // make sure we use the correct Local APIC ID for the BSP
         globals.bootstrapProcessorID =
-            *((volatile CEfiU32 *)(lapic_addr + 0x20)) >> 24;
+            *((volatile U32 *)(lapic_addr + 0x20)) >> 24;
 
         {
             // supports up to 255 cores (lapicid 255 is bcast address),
@@ -542,9 +542,9 @@ CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
             for (i = 0; i < 255; i++) {
                 if (i == globals.bootstrapProcessorID || lapic_ids[i] == 0xFFFF)
                     continue;
-                *((volatile CEfiU32 *)(lapic_addr + 0x280)) =
+                *((volatile U32 *)(lapic_addr + 0x280)) =
                     0; // clear APIC errors
-                a = *((volatile CEfiU32 *)(lapic_addr + 0x280));
+                a = *((volatile U32 *)(lapic_addr + 0x280));
                 send_ipi(i, 0xfff00000, 0x00C500); // trigger INIT IPI
                 wait(1);
                 send_ipi(i, 0xfff00000, 0x008500); // deassert INIT IPI

@@ -22,11 +22,11 @@
 #include "printing.h"
 #include "string.h"
 
-static CEfiU8 in_exc = 0;
+static U8 in_exc = 0;
 
 // Not sure what we are doing when we encounter an exception tbh.
-void fw_exc(CEfiU8 excno, CEfiU64 exccode, CEfiU64 rip, CEfiU64 rsp) {
-    CEfiU64 cr2, cr3;
+void fw_exc(U8 excno, U64 exccode, U64 rip, U64 rsp) {
+    U64 cr2, cr3;
     if (!in_exc) {
         in_exc++;
         __asm__ __volatile__("movq %%cr2, %%rax;movq %%cr3, %%rbx;"
@@ -40,9 +40,9 @@ void fw_exc(CEfiU8 excno, CEfiU64 exccode, CEfiU64 rip, CEfiU64 rsp) {
 #define HAXOR_GREEN 0x0000FF00
 #define HAXOR_WHITE 0x00FFFFFF
 
-void flo_printToScreen(CEfiPhysicalAddress graphics, CEfiU32 color) {
-    for (CEfiU64 x = 0; x < 100; x++) {
-        ((CEfiU32 *)graphics)[x] = color;
+void flo_printToScreen(CEfiPhysicalAddress graphics, U32 color) {
+    for (U64 x = 0; x < 100; x++) {
+        ((U32 *)graphics)[x] = color;
     }
 }
 
@@ -61,10 +61,10 @@ struct interrupt_frame;
 
 __attribute__((interrupt)) void
 interrupt_handler(struct interrupt_frame *frame) {
-    *(CEfiU32 *)globals.frameBufferAddress = 0xFFFFFFFF;
+    *(U32 *)globals.frameBufferAddress = 0xFFFFFFFF;
 }
 
-static inline void outb(CEfiU16 port, CEfiU8 value) {
+static inline void outb(U16 port, U8 value) {
     asm volatile("outb %%al, %1" : : "a"(value), "Nd"(port) : "memory");
 }
 
@@ -89,11 +89,11 @@ CEFICALL void bootstrapProcessorWork() {
     //        outb(0x20, 0x20);
     //    }
     //
-    //    *((volatile CEfiU32 *)(APIC_ERROR_STATUS_REGISTER)) =
+    //    *((volatile U32 *)(APIC_ERROR_STATUS_REGISTER)) =
     //        0; // clear APIC errors
     //
-    //    *((volatile CEfiU16 *)(APIC_SIV_REGISTER)) =
-    //        *((volatile CEfiU16 *)(APIC_SIV_REGISTER)) |
+    //    *((volatile U16 *)(APIC_SIV_REGISTER)) =
+    //        *((volatile U16 *)(APIC_SIV_REGISTER)) |
     //        APIC_SIV_ENABLE_LOCAL;
 
     //   APIC_IPI_ICR_SET_LOW(APIC_INIT_IPI)
@@ -237,20 +237,20 @@ CEFICALL void jumpIntoKernel(CEfiPhysicalAddress stackPointer) {
     //    // PAT3 -> UC  (00)
     //    // PAT4 -> WP  (05)
     //    // PAT5 -> WC  (01)
-    //    CEfiU64 pat = (CEfiU64)0x010500070406;
+    //    U64 pat = (U64)0x010500070406;
     //    wrmsr(0x277, pat);
 }
 
-static CEfiU64 ncycles = 1;
-CEFICALL void wait(CEfiU64 microseconds) {
-    CEfiU32 a;
-    CEfiU32 b;
+static U64 ncycles = 1;
+CEFICALL void wait(U64 microseconds) {
+    U32 a;
+    U32 b;
     __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));
-    CEfiU64 endtime = (((CEfiU64)b << 32) | a) + microseconds * 200 * ncycles;
-    CEfiU64 currTime;
+    U64 endtime = (((U64)b << 32) | a) + microseconds * 200 * ncycles;
+    U64 currTime;
     do {
         __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));
-        currTime = ((CEfiU64)b << 32) | a;
+        currTime = ((U64)b << 32) | a;
     } while (currTime < endtime);
 }
 
@@ -298,19 +298,19 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
                          :
                          : "eax", "ebx", "ecx", "edx");
 
-    CEfiU32 a;
+    U32 a;
     // should be no need to check for RDSTC, available since Pentium, therefore
     // all long mode capable CPUs should have it. But just to be on the safe
     // side
     __asm__ __volatile__("mov $1, %%eax; cpuid;" : "=d"(a) : :);
     if (a & (1 << 4)) {
         // calibrate CPU clock cycles
-        CEfiU32 d;
+        U32 d;
         __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));
-        CEfiU64 currtime = ((CEfiU64)d << 32) | a;
+        U64 currtime = ((U64)d << 32) | a;
         globals.st->boot_services->stall(1);
         __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));
-        ncycles = ((CEfiU64)d << 32) | a;
+        ncycles = ((U64)d << 32) | a;
         ncycles -= currtime;
         ncycles /= 5;
         if (ncycles < 1) {
@@ -336,8 +336,8 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Attempting to map memory now...\r\n");
-    mapMemoryAt((CEfiU64)kernelContent.buf, KERNEL_CODE_START,
-                (CEfiU32)kernelContent.len);
+    mapMemoryAt((U64)kernelContent.buf, KERNEL_CODE_START,
+                (U32)kernelContent.len);
 
     __asm__ __volatile__("cli");
 
@@ -360,7 +360,7 @@ CEFICALL CEfiStatus efi_main(CEfiHandle handle, CEfiSystemTable *systemtable) {
     for (CEfiUSize i = 0;
          i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
         CEfiMemoryDescriptor *desc =
-            (CEfiMemoryDescriptor *)((CEfiU8 *)memoryInfo.memoryMap +
+            (CEfiMemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
                                      (i * memoryInfo.descriptorSize));
         mapMemoryAt(desc->physical_start, desc->physical_start,
                     desc->number_of_pages * PAGE_SIZE);

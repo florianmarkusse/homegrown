@@ -12,27 +12,27 @@ extern "C" {
                0x72, 0x3b)
 
 typedef struct {
-    CEfiU32 MediaId;
+    U32 MediaId;
     CEfiBool RemovableMedia;
     CEfiBool MediaPresent;
     CEfiBool LogicalPartition;
     CEfiBool ReadOnly;
     CEfiBool WriteCaching;
-    CEfiU32 BlockSize;
-    CEfiU32 IoAlign;
+    U32 BlockSize;
+    U32 IoAlign;
     CEfiLba LastBlock;
     CEfiLba LowestAlignedLba;                 // added in Revision 2
-    CEfiU32 LogicalBlocksPerPhysicalBlock;    // added in Revision 2
-    CEfiU32 OptimalTransferLengthGranularity; // added in Revision 3
+    U32 LogicalBlocksPerPhysicalBlock;    // added in Revision 2
+    U32 OptimalTransferLengthGranularity; // added in Revision 3
 } CEfiBlockIoMedia;
 
 typedef struct CEfiBlockIoProtocol {
-    CEfiU64 Revision;
+    U64 Revision;
     CEfiBlockIoMedia *Media;
     // Not implemented cause we not needed (yet)
     void *Reset;
     CEfiStatus(CEFICALL *readBlocks)(CEfiBlockIoProtocol *this_,
-                                     CEfiU32 mediaID, CEfiLba startingLBA,
+                                     U32 mediaID, CEfiLba startingLBA,
                                      CEfiUSize bufferSize, void *buffer);
 
     void *WriteBlocks;

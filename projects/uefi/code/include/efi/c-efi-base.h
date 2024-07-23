@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "types.h"
+
 /**
  * UEFI Base Environment
  *
@@ -130,8 +132,8 @@ typedef struct CEfiMPServicesProtocol CEfiMPServicesProtocol;
 #define C_EFI_JOIN_LITERALS(_a, _b) _a##_b
 
 /**
- * CEfiI8, CEfiU8, CEfiI16, CEfiU16,
- * CEfiI32, CEfiU32, CEfiI64, CEfiU64: Fixed size integers
+ * I8, U8, I16, U16,
+ * I32, U32, I64, U64: Fixed size integers
  *
  * The CEfiI* and CEfiU* fixed size integers are UEFI equivalents to uint*_t
  * from stdint.h in ISO-C. Note that we rely on `__INTX_TYPE__` to be defined
@@ -145,30 +147,6 @@ typedef struct CEfiMPServicesProtocol CEfiMPServicesProtocol;
  *       to expose the required types. We simply skip their definition. If the
  *       need arises, we can reconsider and add them.
  */
-
-#if !defined(__INT8_TYPE__) || !defined(__UINT8_TYPE__) ||                     \
-    !defined(__INT16_TYPE__) || !defined(__UINT16_TYPE__) ||                   \
-    !defined(__INT32_TYPE__) || !defined(__UINT32_TYPE__) ||                   \
-    !defined(__INT64_TYPE__) || !defined(__UINT64_TYPE__) ||                   \
-    (!defined(__INT8_C) && !defined(__INT8_C_SUFFIX__)) ||                     \
-    (!defined(__INT16_C) && !defined(__INT16_C_SUFFIX__)) ||                   \
-    (!defined(__INT32_C) && !defined(__INT32_C_SUFFIX__)) ||                   \
-    (!defined(__INT64_C) && !defined(__INT64_C_SUFFIX__)) ||                   \
-    (!defined(__UINT8_C) && !defined(__UINT8_C_SUFFIX__)) ||                   \
-    (!defined(__UINT16_C) && !defined(__UINT16_C_SUFFIX__)) ||                 \
-    (!defined(__UINT32_C) && !defined(__UINT32_C_SUFFIX__)) ||                 \
-    (!defined(__UINT64_C) && !defined(__UINT64_C_SUFFIX__))
-#error "Compiler does not provide fixed-size integer macros."
-#endif
-
-typedef __INT8_TYPE__ CEfiI8;
-typedef __UINT8_TYPE__ CEfiU8;
-typedef __INT16_TYPE__ CEfiI16;
-typedef __UINT16_TYPE__ CEfiU16;
-typedef __INT32_TYPE__ CEfiI32;
-typedef __UINT32_TYPE__ CEfiU32;
-typedef __INT64_TYPE__ CEfiI64;
-typedef __UINT64_TYPE__ CEfiU64;
 
 #if defined(__INT8_C_SUFFIX__)
 #define C_EFI_I8_C(_v) C_EFI_JOIN(_v, __INT8_C_SUFFIX__)
@@ -228,8 +206,8 @@ typedef _Bool CEfiBool;
  * The CEfiChar16 type is an unsigned 16-byte integer type that stores
  * characters (or character strings) compatible to the UCS-2 encoding.
  */
-typedef CEfiU8 CEfiChar8;
-typedef CEfiU16 CEfiChar16;
+typedef U8 CEfiChar8;
+typedef U16 CEfiChar16;
 
 /**
  * CEfiStatus: Status Codes
@@ -330,10 +308,10 @@ typedef CEfiUSize CEfiStatus;
  */
 typedef void *CEfiHandle;
 typedef void *CEfiEvent;
-typedef CEfiU64 CEfiLba;
+typedef U64 CEfiLba;
 typedef CEfiUSize CEfiTpl;
-typedef CEfiU64 CEfiPhysicalAddress;
-typedef CEfiU64 CEfiVirtualAddress;
+typedef U64 CEfiPhysicalAddress;
+typedef U64 CEfiVirtualAddress;
 
 /**
  * CEfiImageEntryPoint: Type of image entry points
@@ -362,15 +340,15 @@ typedef CEfiStatus(CEFICALL *CEfiImageEntryPoint)(CEfiHandle image,
  */
 typedef struct CEfiGuid {
     union {
-        _Alignas(8) CEfiU8 u8[16];
-        _Alignas(8) CEfiU16 u16[8];
-        _Alignas(8) CEfiU32 u32[4];
-        _Alignas(8) CEfiU64 u64[2];
+        _Alignas(8) U8 u8[16];
+        _Alignas(8) U16 u16[8];
+        _Alignas(8) U32 u32[4];
+        _Alignas(8) U64 u64[2];
         struct {
-            _Alignas(8) CEfiU32 ms1;
-            CEfiU16 ms2;
-            CEfiU16 ms3;
-            CEfiU8 ms4[8];
+            _Alignas(8) U32 ms1;
+            U16 ms2;
+            U16 ms3;
+            U8 ms4[8];
         };
     };
 } CEfiGuid;
@@ -404,15 +382,15 @@ typedef struct CEfiGuid {
  */
 
 typedef struct CEfiMacAddress {
-    CEfiU8 u8[32];
+    U8 u8[32];
 } CEfiMacAddress;
 
 typedef struct CEfiIpv4Address {
-    CEfiU8 u8[4];
+    U8 u8[4];
 } CEfiIpv4Address;
 
 typedef struct CEfiIpv6Address {
-    CEfiU8 u8[16];
+    U8 u8[16];
 } CEfiIpv6Address;
 
 typedef struct CEfiIpAddress {

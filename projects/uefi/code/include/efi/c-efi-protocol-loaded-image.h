@@ -23,7 +23,7 @@ extern "C" {
 #define C_EFI_LOADED_IMAGE_PROTOCOL_REVISION C_EFI_U32_C(0x1000)
 
 typedef struct CEfiLoadedImageProtocol {
-    CEfiU32 revision;
+    U32 revision;
     CEfiHandle parent_handle;
     CEfiSystemTable *system_table;
 
@@ -31,11 +31,11 @@ typedef struct CEfiLoadedImageProtocol {
     CEfiDevicePathProtocol *file_path;
     void *reserved;
 
-    CEfiU32 load_options_size;
+    U32 load_options_size;
     void *load_options;
 
     void *image_base;
-    CEfiU64 image_size;
+    U64 image_size;
     CEfiMemoryType image_code_type;
     CEfiMemoryType image_data_type;
 

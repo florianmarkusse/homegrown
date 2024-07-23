@@ -6,79 +6,79 @@
 typedef struct {
     union {
         struct {
-            CEfiU64 limit_15_0 : 16;
-            CEfiU64 base_15_0 : 16;
-            CEfiU64 base_23_16 : 8;
-            CEfiU64 type : 4;
-            CEfiU64 s_flag : 1;
-            CEfiU64 dpl : 2;
-            CEfiU64 p_flag : 1;
-            CEfiU64 limit_19_16 : 4;
-            CEfiU64 avl : 1;
-            CEfiU64 l_flag : 1;
-            CEfiU64 db_flag : 1;
-            CEfiU64 g_flag : 1;
-            CEfiU64 base_31_24 : 8;
+            U64 limit_15_0 : 16;
+            U64 base_15_0 : 16;
+            U64 base_23_16 : 8;
+            U64 type : 4;
+            U64 s_flag : 1;
+            U64 dpl : 2;
+            U64 p_flag : 1;
+            U64 limit_19_16 : 4;
+            U64 avl : 1;
+            U64 l_flag : 1;
+            U64 db_flag : 1;
+            U64 g_flag : 1;
+            U64 base_31_24 : 8;
         };
-        CEfiU64 value;
+        U64 value;
     };
 } __attribute__((packed)) Segment_Descriptor;
 
 typedef struct {
     union {
         struct {
-            CEfiU64 limit_15_0 : 16;
-            CEfiU64 base_15_0 : 16;
-            CEfiU64 base_23_16 : 8;
-            CEfiU64 type : 4;
-            CEfiU64 zero_1 : 1;
-            CEfiU64 dpl : 2;
-            CEfiU64 p_flag : 1;
-            CEfiU64 limit_19_16 : 4;
-            CEfiU64 avl : 1;
-            CEfiU64 zero_2 : 1;
-            CEfiU64 zero_3 : 1;
-            CEfiU64 g_flag : 1;
-            CEfiU64 base_31_24 : 8;
+            U64 limit_15_0 : 16;
+            U64 base_15_0 : 16;
+            U64 base_23_16 : 8;
+            U64 type : 4;
+            U64 zero_1 : 1;
+            U64 dpl : 2;
+            U64 p_flag : 1;
+            U64 limit_19_16 : 4;
+            U64 avl : 1;
+            U64 zero_2 : 1;
+            U64 zero_3 : 1;
+            U64 g_flag : 1;
+            U64 base_31_24 : 8;
         };
-        CEfiU64 value;
+        U64 value;
     };
 
-    CEfiU64 base_63_32 : 32;
-    CEfiU64 reserved_1 : 8;
-    CEfiU64 zero_4 : 5;
-    CEfiU64 reserved_2 : 19;
+    U64 base_63_32 : 32;
+    U64 reserved_1 : 8;
+    U64 zero_4 : 5;
+    U64 reserved_2 : 19;
 } __attribute__((packed)) Tss_Descriptor;
 
 // Task state segment - 64 bit
 typedef struct {
-    CEfiU32 reserved_0;
-    CEfiU32 rsp0_low;
-    CEfiU32 rsp0_high;
-    CEfiU32 rsp1_low;
-    CEfiU32 rsp1_high;
-    CEfiU32 rsp2_low;
-    CEfiU32 rsp2_high;
-    CEfiU32 reserved_1;
-    CEfiU32 reserved_2;
-    CEfiU32 ist1_low;
-    CEfiU32 ist1_high;
-    CEfiU32 ist2_low;
-    CEfiU32 ist2_high;
-    CEfiU32 ist3_low;
-    CEfiU32 ist3_high;
-    CEfiU32 ist4_low;
-    CEfiU32 ist4_high;
-    CEfiU32 ist5_low;
-    CEfiU32 ist5_high;
-    CEfiU32 ist6_low;
-    CEfiU32 ist6_high;
-    CEfiU32 ist7_low;
-    CEfiU32 ist7_high;
-    CEfiU32 reserved_3;
-    CEfiU32 reserved_4;
-    CEfiU16 reserved_5;
-    CEfiU16 io_map_base_address;
+    U32 reserved_0;
+    U32 rsp0_low;
+    U32 rsp0_high;
+    U32 rsp1_low;
+    U32 rsp1_high;
+    U32 rsp2_low;
+    U32 rsp2_high;
+    U32 reserved_1;
+    U32 reserved_2;
+    U32 ist1_low;
+    U32 ist1_high;
+    U32 ist2_low;
+    U32 ist2_high;
+    U32 ist3_low;
+    U32 ist3_high;
+    U32 ist4_low;
+    U32 ist4_high;
+    U32 ist5_low;
+    U32 ist5_high;
+    U32 ist6_low;
+    U32 ist6_high;
+    U32 ist7_low;
+    U32 ist7_high;
+    U32 reserved_3;
+    U32 reserved_4;
+    U16 reserved_5;
+    U16 io_map_base_address;
 } __attribute__((packed)) Task_State_Segment;
 
 typedef struct {
@@ -89,8 +89,8 @@ typedef struct {
 } __attribute__((packed)) gdtable;
 
 typedef struct {
-    CEfiU16 limit;
-    CEfiU64 base;
+    U16 limit;
+    U64 base;
 } __attribute__((packed)) Descriptor_Table_Register;
 
 Descriptor_Table_Register *new_gdtr;
@@ -99,7 +99,7 @@ void prepNewGDT() {
     CEfiPhysicalAddress zeroPage = allocAndZero(1);
     Task_State_Segment *new_tss = (Task_State_Segment *)zeroPage;
     new_tss->io_map_base_address = sizeof(Task_State_Segment);
-    CEfiU64 new_tss_address = zeroPage;
+    U64 new_tss_address = zeroPage;
 
     zeroPage = allocAndZero(1);
     gdtable *new_gdt = (gdtable *)zeroPage;
@@ -144,7 +144,7 @@ void prepNewGDT() {
     zeroPage = allocAndZero(1);
     new_gdtr = (Descriptor_Table_Register *)zeroPage;
     *new_gdtr = (Descriptor_Table_Register){.limit = sizeof(gdtable) - 1,
-                                            .base = (CEfiU64)new_gdt};
+                                            .base = (U64)new_gdt};
 }
 void enableNewGDT() {
     __asm__ __volatile__(

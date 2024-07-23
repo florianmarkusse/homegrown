@@ -27,7 +27,7 @@ typedef struct CEfiSimpleTextInputExProtocol CEfiSimpleTextInputExProtocol;
 #define C_EFI_NUM_LOCK_ACTIVE C_EFI_U8_C(0x02)
 #define C_EFI_CAPS_LOCK_ACTIVE C_EFI_U8_C(0x04)
 
-typedef CEfiU8 CEfiKeyToggleState;
+typedef U8 CEfiKeyToggleState;
 
 #define C_EFI_SHIFT_STATE_VALID C_EFI_U32_C(0x80000000)
 #define C_EFI_RIGHT_SHIFT_PRESSED C_EFI_U32_C(0x00000001)
@@ -42,7 +42,7 @@ typedef CEfiU8 CEfiKeyToggleState;
 #define C_EFI_SYS_REQ_PRESSED C_EFI_U32_C(0x00000200)
 
 typedef struct CEfiKeyState {
-    CEfiU32 key_shift_state;
+    U32 key_shift_state;
     CEfiKeyToggleState key_toggle_state;
 } CEfiKeyState;
 

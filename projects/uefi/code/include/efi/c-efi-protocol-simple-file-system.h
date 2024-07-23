@@ -15,7 +15,7 @@ extern "C" {
 #define C_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION C_EFI_U32_C(0x00010000)
 
 typedef struct CEfiSimpleFileSystemProtocol {
-    CEfiU64 revision;
+    U64 revision;
     CEfiStatus(CEFICALL *openVolume)(CEfiSimpleFileSystemProtocol *this_,
                                      CEfiFileProtocol **Root);
 } CEfiSimpleFileSystemProtocol;

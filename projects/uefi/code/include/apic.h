@@ -25,20 +25,20 @@
 // - Local Destination Register
 // - Destination Format Register
 #define APIC_IPI_ICR_SET_HIGH(destination)                                     \
-    *((volatile CEfiU32 *)(APIC_IPI_ICR_HIGH)) =                               \
-        (*((volatile CEfiU32 *)(APIC_IPI_ICR_HIGH)) &                          \
+    *((volatile U32 *)(APIC_IPI_ICR_HIGH)) =                               \
+        (*((volatile U32 *)(APIC_IPI_ICR_HIGH)) &                          \
          APIC_IPI_ICR_HIGH_RESERVED) |                                         \
         ((destination) << 24);
 
 #define APIC_IPI_ICR_SET_LOW(bottom3Bytes)                                     \
-    *((volatile CEfiU32 *)(APIC_IPI_ICR_LOW)) =                                \
-        (*((volatile CEfiU32 *)(APIC_IPI_ICR_LOW)) &                           \
+    *((volatile U32 *)(APIC_IPI_ICR_LOW)) =                                \
+        (*((volatile U32 *)(APIC_IPI_ICR_LOW)) &                           \
          (APIC_IPI_ICR_LOW_RESERVED)) |                                        \
         (bottom3Bytes);
 
 // #define send_ipi(destination, bottom3Bytes)                                    \
 //     do {                                                                       \
-//         while (*((volatile CEfiU32 *)(APIC_IPI_ICR_LOW)) &                     \
+//         while (*((volatile U32 *)(APIC_IPI_ICR_LOW)) &                     \
 //                (APIC_ICR_DELIVERY_STATUS)) {                                   \
 //             __asm__ __volatile__("pause" : : : "memory");                      \
 //         }                                                                      \

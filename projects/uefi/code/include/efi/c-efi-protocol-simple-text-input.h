@@ -20,7 +20,7 @@ extern "C" {
                0x72, 0x3b)
 
 typedef struct CEfiInputKey {
-    CEfiU16 scan_code;
+    U16 scan_code;
     CEfiChar16 unicode_char;
 } CEfiInputKey;
 

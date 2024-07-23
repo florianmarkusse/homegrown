@@ -20,11 +20,11 @@ extern "C" {
                0x72, 0x3b)
 
 typedef struct CEfiSimpleTextOutputMode {
-    CEfiI32 max_mode;
-    CEfiI32 mode;
-    CEfiI32 attribute;
-    CEfiI32 cursor_column;
-    CEfiI32 cursor_row;
+    I32 max_mode;
+    I32 mode;
+    I32 attribute;
+    I32 cursor_column;
+    I32 cursor_row;
     CEfiBool cursor_visible;
 } CEfiSimpleTextOutputMode;
 

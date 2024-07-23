@@ -5,14 +5,14 @@
 #include "efi/c-efi-system.h"
 
 CEfiPhysicalAddress allocAndZero(CEfiUSize numPages);
-void mapMemoryAt(CEfiU64 phys, CEfiU64 virt, CEfiU64 size);
+void mapMemoryAt(U64 phys, U64 virt, U64 size);
 
 typedef struct {
     CEfiUSize memoryMapSize;
     CEfiMemoryDescriptor *memoryMap;
     CEfiUSize mapKey;
     CEfiUSize descriptorSize;
-    CEfiU32 descriptorVersion;
+    U32 descriptorVersion;
 } MemoryInfo;
 MemoryInfo getMemoryInfo();
 

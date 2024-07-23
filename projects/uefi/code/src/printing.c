@@ -4,7 +4,7 @@
 #include "efi/c-efi-system.h"
 #include "globals.h"
 
-void error(CEfiU16 *string) {
+void error(U16 *string) {
     globals.st->con_out->output_string(globals.st->con_out, string);
     CEfiInputKey key;
     while (globals.st->con_in->read_key_stroke(globals.st->con_in, &key) !=
@@ -16,7 +16,7 @@ void error(CEfiU16 *string) {
 }
 
 static const CEfiChar16 *digits = u"0123456789ABCDEF";
-void printNumber(CEfiUSize number, CEfiU8 base) {
+void printNumber(CEfiUSize number, U8 base) {
     CEfiChar16 buffer[24]; // Hopefully enough for UINTN_MAX (UINT64_MAX) + sign
                            // character
     CEfiUSize i = 0;
