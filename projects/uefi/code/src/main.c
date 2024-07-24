@@ -1,41 +1,32 @@
-#include "acpi/c-acpi-madt.h"
-#include "acpi/c-acpi-rdsp.h"
-#include "acpi/c-acpi-rsdt.h"
-#include "apic.h"
-#include "data-reading.h"
-#include "efi/c-efi-base.h" // for Status, SUC...
-#include "efi/c-efi-protocol-acpi.h"
-#include "efi/c-efi-protocol-block-io.h"
-#include "efi/c-efi-protocol-disk-io.h"
-#include "efi/c-efi-protocol-graphics-output.h"
-#include "efi/c-efi-protocol-loaded-image.h"
-#include "efi/c-efi-protocol-simple-file-system.h"
-#include "efi/c-efi-protocol-simple-text-input.h" // for InputKey, Sim...
+#include "acpi/c-acpi-rdsp.h"                      // for getRSDP, RSDPResult
+#include "data-reading.h"                          // for getKernelInfo
+#include "efi/c-efi-base.h"                        // for PhysicalAddress
+#include "efi/c-efi-protocol-graphics-output.h"    // for GRAPHICS_OUTPUT_P...
 #include "efi/c-efi-protocol-simple-text-output.h" // for SimpleTextOutputP...
-#include "efi/c-efi-system.h"                      // for SystemTable
-#include "gdt.h"
-#include "globals.h"
-#include "kernel-parameters.h"
-#include "memory/boot-functions.h"
-#include "memory/definitions.h"
-#include "memory/standard.h"
-#include "printing.h"
-#include "string.h"
+#include "efi/c-efi-system.h"                      // for MemoryDescriptor
+#include "gdt.h"                                   // for enableNewGDT, pre...
+#include "globals.h"                               // for globals
+#include "kernel-parameters.h"                     // for KernelParameters
+#include "memory/boot-functions.h"                 // for mapMemoryAt, allo...
+#include "memory/definitions.h"                    // for PAGE_SIZE, STACK_...
+#include "printing.h"                              // for error, printNumber
+#include "string.h"                                // for AsciString
+#include "types.h"                                 // for U64, U32, NULL
 
-static U8 in_exc = 0;
+// static U8 in_exc = 0;
 
-// Not sure what we are doing when we encounter an exception tbh.
-void fw_exc(U8 excno, U64 exccode, U64 rip, U64 rsp) {
-    U64 cr2, cr3;
-    if (!in_exc) {
-        in_exc++;
-        __asm__ __volatile__("movq %%cr2, %%rax;movq %%cr3, %%rbx;"
-                             : "=a"(cr2), "=b"(cr3)::);
-        error(u"Ran into the first exception?\r\n");
-    }
-    error(u"Ran into the second exception????\r\n");
-    __asm__ __volatile__("1: cli; hlt; jmp 1b");
-}
+// // Not sure what we are doing when we encounter an exception tbh.
+// void fw_exc(U8 excno, U64 exccode, U64 rip, U64 rsp) {
+//     U64 cr2, cr3;
+//     if (!in_exc) {
+//         in_exc++;
+//         __asm__ __volatile__("movq %%cr2, %%rax;movq %%cr3, %%rbx;"
+//                              : "=a"(cr2), "=b"(cr3)::);
+//         error(u"Ran into the first exception?\r\n");
+//     }
+//     error(u"Ran into the second exception????\r\n");
+//     __asm__ __volatile__("1: cli; hlt; jmp 1b");
+// }
 
 #define HAXOR_GREEN 0x0000FF00
 #define HAXOR_WHITE 0x00FFFFFF
@@ -46,27 +37,27 @@ void flo_printToScreen(PhysicalAddress graphics, U32 color) {
     }
 }
 
-EFICALL void nonBootstrapProcessor(void *buffer) {
-    __asm__ __volatile__("cli;"
-                         "hlt;"
-                         // TODO: switch to monitor mwait?
-                         //       "monitor;"
-                         //       "mwait"
-                         :
-                         :
-                         :);
-}
+// EFICALL void nonBootstrapProcessor(void *buffer) {
+//     __asm__ __volatile__("cli;"
+//                          "hlt;"
+//                          // TODO: switch to monitor mwait?
+//                          //       "monitor;"
+//                          //       "mwait"
+//                          :
+//                          :
+//                          :);
+// }
 
-struct interrupt_frame;
+// struct interrupt_frame;
+//
+// __attribute__((interrupt)) void
+// interrupt_handler(struct interrupt_frame *frame) {
+//     *(U32 *)globals.frameBufferAddress = 0xFFFFFFFF;
+// }
 
-__attribute__((interrupt)) void
-interrupt_handler(struct interrupt_frame *frame) {
-    *(U32 *)globals.frameBufferAddress = 0xFFFFFFFF;
-}
-
-static inline void outb(U16 port, U8 value) {
-    asm volatile("outb %%al, %1" : : "a"(value), "Nd"(port) : "memory");
-}
+// static inline void outb(U16 port, U8 value) {
+//     asm volatile("outb %%al, %1" : : "a"(value), "Nd"(port) : "memory");
+// }
 
 EFICALL void bootstrapProcessorWork() {
     // dissable PIC and NMI
@@ -357,11 +348,11 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     }
 
     MemoryInfo memoryInfo = getMemoryInfo();
-    for (USize i = 0;
-         i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
+    for (USize i = 0; i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize;
+         i++) {
         MemoryDescriptor *desc =
             (MemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
-                                     (i * memoryInfo.descriptorSize));
+                                 (i * memoryInfo.descriptorSize));
         mapMemoryAt(desc->physical_start, desc->physical_start,
                     desc->number_of_pages * PAGE_SIZE);
     }
@@ -377,8 +368,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Creating space for kernel parameters...\r\n");
-    PhysicalAddress kernelParams =
-        allocAndZero(KERNEL_PARAMS_SIZE / PAGE_SIZE);
+    PhysicalAddress kernelParams = allocAndZero(KERNEL_PARAMS_SIZE / PAGE_SIZE);
     mapMemoryAt(kernelParams, KERNEL_PARAMS_START, KERNEL_PARAMS_SIZE);
     KernelParameters *params = (KernelParameters *)kernelParams;
 

@@ -1,8 +1,9 @@
 #ifndef MEMORY_BOOT_FUNCTIONS_H
 #define MEMORY_BOOT_FUNCTIONS_H
 
-#include "efi/c-efi-base.h"
-#include "efi/c-efi-system.h"
+#include "efi/c-efi-base.h"   // for PhysicalAddress
+#include "efi/c-efi-system.h" // for MemoryDescriptor, MemoryType
+#include "types.h"            // for USize, U64, U32
 
 PhysicalAddress allocAndZero(USize numPages);
 void mapMemoryAt(U64 phys, U64 virt, U64 size);

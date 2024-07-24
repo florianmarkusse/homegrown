@@ -79,8 +79,8 @@ MemoryInfo getMemoryInfo() {
     // exitbootservices will fail (lol)
     mmap.memoryMapSize += mmap.descriptorSize * 2;
     status = globals.st->boot_services->allocate_pages(
-        ALLOCATE_ANY_PAGES, LOADER_DATA,
-        BYTES_TO_PAGES(mmap.memoryMapSize), &mmap.memoryMap);
+        ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGES(mmap.memoryMapSize),
+        (PhysicalAddress *)&mmap.memoryMap);
     if (ERROR(status)) {
         error(u"Could not allocate data for memory map buffer\r\n");
     }

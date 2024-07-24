@@ -3,7 +3,6 @@
 #include "util/hash/hashes.h"               // for flo_hashStringDjb2
 #include "util/hash/trie/common-iterator.h" // for FLO_TRIE_ITERATOR_SOURCE...
 #include "util/memory/macros.h"             // for FLO_ZERO_MEMORY
-#include <stdbool.h>                        // for true
 #include <stddef.h>                         // for NULL
 
 uint16_t flo_trie_insertStringUint16Map(flo_string key, uint16_t value,

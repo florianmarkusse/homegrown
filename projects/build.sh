@@ -146,7 +146,7 @@ CONFIGURE_CMAKE_OPTIONS=(
 
 if [ "$INCLUDE_WHAT_YOU_USE" = true ]; then
 	CONFIGURE_CMAKE_OPTIONS+=(
-		-D CMAKE_C_INCLUDE_WHAT_YOU_USE="include-what-you-use;-w;--Xiwyu;--no_default_mappings"
+		-D CMAKE_C_INCLUDE_WHAT_YOU_USE="include-what-you-use;-w;-Xiwyu;--no_default_mappings"
 	)
 fi
 
@@ -181,7 +181,7 @@ CONFIGURE_CMAKE_OPTIONS=(
 
 if [ "$INCLUDE_WHAT_YOU_USE" = true ]; then
 	CONFIGURE_CMAKE_OPTIONS+=(
-		-D CMAKE_C_INCLUDE_WHAT_YOU_USE="include-what-you-use;-w;-Xiwyu;--verbose=1"
+		-D CMAKE_C_INCLUDE_WHAT_YOU_USE="include-what-you-use;-w;-Xiwyu;"
 	)
 fi
 
@@ -213,7 +213,7 @@ CONFIGURE_CMAKE_OPTIONS=(
 
 if [ "$INCLUDE_WHAT_YOU_USE" = true ]; then
 	CONFIGURE_CMAKE_OPTIONS+=(
-		-D CMAKE_C_INCLUDE_WHAT_YOU_USE="include-what-you-use;-w;-Xiwyu;--no_default_mappings;--verbose=1"
+		-D CMAKE_C_INCLUDE_WHAT_YOU_USE="include-what-you-use;-w;-Xiwyu;--no_default_mappings"
 	)
 fi
 

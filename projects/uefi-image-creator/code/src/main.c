@@ -1,14 +1,24 @@
-#include "crc32-table.h"
-#include "util/log.h"
-#include <errno.h>    // for errno
-#include <inttypes.h> // for uint32_t, uint8_t, uint16_t, uint64_t, int32_t
-#include <stdbool.h>  // for true, false, bool
-#include <stdio.h>    // for fwrite, fprintf, fseek, stderr, fclose, fopen
-#include <stdlib.h>   // for free, calloc, malloc, strtol, EXIT_FAILURE, rand
-#include <string.h>   // for strcmp, memcpy, strlen, strcpy, strncat, strncpy
-#include <sys/mman.h> // for mmap, munmap, MAP_ANONYMOUS, MAP_...
+#include "crc32-table.h"       // for calculateCRC32
+#include "util/array.h"        // for FLO_MAX_LENGTH_ARRAY
+#include "util/assert.h"       // for FLO_ASSERT
+#include "util/log.h"          // for FLO_LOG_CHOOSER_IMPL_2, FLO_INFO, FLO...
+#include "util/memory/arena.h" // for flo_arena
+#include "util/text/string.h"  // for FLO_STRING
+#include <errno.h>
+#include <inttypes.h> // for uint32_t, uint8_t, uint16_t, uint64_t
+#include <stddef.h>   // for ptrdiff_t
+#include <stdio.h>    // for fseek, fprintf, FILE, SEEK_SET, fclose
+#include <stdlib.h>   // for calloc, strtol, rand, srand
+#include <string.h>   // for strcmp, memcpy, strlen, strcpy, strncat
+#include <sys/mman.h> // for mmap, munmap, MAP_ANONYMOUS, MAP_FAILED
 #include <time.h>     // for tm, time, localtime, time_t
 #include <uchar.h>    // for char16_t
+
+#define FLO_APPEND_ERRNO                                                       \
+    FLO_ERROR(FLO_STRING("Error code: "));                                     \
+    FLO_ERROR(errno, FLO_NEWLINE);                                             \
+    FLO_ERROR(FLO_STRING("Error message: "));                                  \
+    FLO_ERROR(strerror(errno), FLO_NEWLINE);
 
 size_t memoryCap = (size_t)1 << 21;
 // Note: we open files in this program which need to be closed when a program
@@ -947,7 +957,7 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
     return true;
 }
 
-void writeUEFIImage(flo_arena scratch) {
+void writeUEFIImage() {
     FILE *image = NULL, *fp = NULL;
 
     // Set sizes & LBA values
@@ -1376,7 +1386,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    writeUEFIImage(arena);
+    writeUEFIImage();
 
     return 0;
 }

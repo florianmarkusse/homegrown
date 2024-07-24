@@ -1,10 +1,10 @@
 #include "util/log.h"
-#include "util/array-types.h"
-#include "util/assert.h" // for ASSERT
-#include "util/maths.h"
+#include "util/array-types.h"   // for u_I8_a, uint8_max_a, I8_d_a
+#include "util/assert.h"        // for ASSERT
+#include "util/maths.h"         // for RING_PLUS, RING_INCREMENT, RING_MINUS
 #include "util/memory/arena.h"  // for alloc, arena
 #include "util/memory/macros.h" // for ALIGNOF, SIZEOF
-#include "util/memory/memory.h" // for memcpy, memset
+#include "util/memory/memory.h" // for memcpy, memmove, memset
 
 // TODO: replace with correct thing using memory allocators etc.
 static U32 graphicsBuffer[1 << 20];
@@ -76,11 +76,10 @@ static U32 logicalLineToWrite;
 static bool logicalNewline;
 // This should be 1 larger than the number of screenlines because the last
 // entry is used as the exclusive end of the window.
-static U64
-    screenLines[MAX_GLYPSH_PER_COLUMN]; // TODO: Use actual heap alloc
+static U64 screenLines[MAX_GLYPSH_PER_COLUMN]; // TODO: Use actual heap alloc
 static U16 oldestScreenLineIndex;
 static U64 screenLinesCopy[MAX_GLYPSH_PER_COLUMN]; // TODO: Replace with
-                                                        // temporary memory
+                                                   // temporary memory
 static bool lastScreenlineOpen;
 static bool isTailing = true;
 static U64 I8Count;
@@ -163,8 +162,8 @@ void zeroOutGlyphs(U32 topRightGlyphOffset, U16 numberOfGlyphs) {
     }
 }
 
-void drawLines(U32 startIndex, U16 screenLinesToDraw,
-               U64 currentLogicalLineLen, U16 rowNumber) {
+void drawLines(U32 startIndex, U16 screenLinesToDraw, U64 currentLogicalLineLen,
+               U16 rowNumber) {
     U16 currentScreenLines = 0;
 
     U32 topRightGlyphOffset =
@@ -203,9 +202,8 @@ void drawLines(U32 startIndex, U16 screenLinesToDraw,
         case '\t': {
             U8 additionalSpace =
                 (U8)(((currentLogicalLineLen + TAB_SIZE_IN_GLYPHS) &
-                           (MAX_VALUE(additionalSpace) -
-                            (TAB_SIZE_IN_GLYPHS - 1))) -
-                          currentLogicalLineLen);
+                      (MAX_VALUE(additionalSpace) - (TAB_SIZE_IN_GLYPHS - 1))) -
+                     currentLogicalLineLen);
             currentLogicalLineLen += additionalSpace;
 
             U16 finalSize = currentGlyphLen + additionalSpace;
@@ -286,7 +284,7 @@ U32 I8IndexToLogicalLine(U64 I8Index) {
 }
 
 U64 oldestCharToParseGivenScreenLines(U64 endCharExclusive,
-                                           U16 screenLinesToProcess) {
+                                      U16 screenLinesToProcess) {
     U32 oldestLogicalLineIndex =
         RING_INCREMENT(logicalLineToWrite, MAX_SCROLLBACK_LINES);
 
@@ -381,9 +379,8 @@ FillResult fillScreenLinesCopy(U64 dryStartIndex, U64 startIndex,
         case '\t': {
             U8 additionalSpace =
                 (U8)(((currentLogicalLineLen + TAB_SIZE_IN_GLYPHS) &
-                           (MAX_VALUE(additionalSpace) -
-                            (TAB_SIZE_IN_GLYPHS - 1))) -
-                          currentLogicalLineLen);
+                      (MAX_VALUE(additionalSpace) - (TAB_SIZE_IN_GLYPHS - 1))) -
+                     currentLogicalLineLen);
             U16 finalSize = currentGlyphLen + additionalSpace;
 
             if (finalSize <= glyphsPerLine) {
@@ -465,15 +462,13 @@ void toTail() {
         RING_MINUS(fillResult.currentScreenLineIndex,
                    fillResult.realScreenLinesWritten, MAX_GLYPSH_PER_COLUMN);
 
-    U16 oldScreenLines =
-        glyphsPerColumn - fillResult.realScreenLinesWritten;
+    U16 oldScreenLines = glyphsPerColumn - fillResult.realScreenLinesWritten;
     // You can write 10 new screen lines while your screen originally displayed
     // the first 40 screen lines, hence the distinction here.
     U16 originalScreenLines = RING_MINUS(
         finalScreenLineEntry, oldestScreenLineIndex, MAX_GLYPSH_PER_COLUMN);
 
-    U16 totalLines =
-        fillResult.realScreenLinesWritten + originalScreenLines;
+    U16 totalLines = fillResult.realScreenLinesWritten + originalScreenLines;
     if (totalLines > glyphsPerColumn) {
         oldestScreenLineIndex =
             RING_PLUS(oldestScreenLineIndex, totalLines - glyphsPerColumn,
@@ -532,9 +527,8 @@ void rewind(U16 numberOfScreenLines) {
     U16 newScreenLinesOnTop =
         MIN(fillResult.realScreenLinesWritten, numberOfScreenLines);
 
-    U16 startIndex =
-        RING_MINUS(fillResult.currentScreenLineIndex, newScreenLinesOnTop,
-                   MAX_GLYPSH_PER_COLUMN);
+    U16 startIndex = RING_MINUS(fillResult.currentScreenLineIndex,
+                                newScreenLinesOnTop, MAX_GLYPSH_PER_COLUMN);
 
     oldestScreenLineIndex = RING_MINUS(
         oldestScreenLineIndex, newScreenLinesOnTop, MAX_GLYPSH_PER_COLUMN);
@@ -546,7 +540,7 @@ void rewind(U16 numberOfScreenLines) {
     }
 
     U32 fromOffset = glyphStartVerticalOffset +
-                          newScreenLinesOnTop * (dim.scanline * glyphs.height);
+                     newScreenLinesOnTop * (dim.scanline * glyphs.height);
 
     memmove(&dim.backingBuffer[fromOffset],
             &dim.backingBuffer[glyphStartVerticalOffset],
@@ -580,8 +574,7 @@ void prowind(U16 numberOfScreenLines) {
     FillResult fillResult =
         fillScreenLinesCopy(oldestCharToProcess, firstCharOutsideWindow,
                             I8Count, numberOfScreenLines);
-    U16 oldScreenLines =
-        glyphsPerColumn - fillResult.realScreenLinesWritten;
+    U16 oldScreenLines = glyphsPerColumn - fillResult.realScreenLinesWritten;
 
     U16 startIndex =
         RING_MINUS(fillResult.currentScreenLineIndex,
@@ -699,14 +692,11 @@ U32 appendToSimpleBuffer(string data, I8_d_a *array, arena *perm) {
         U64 newCap = (array->len + data.len) * 2;
         if (array->buf == NULL) {
             array->cap = data.len;
-            array->buf = alloc(perm, SIZEOF(U8),
-                               ALIGNOF(U8), newCap, 0);
+            array->buf = alloc(perm, SIZEOF(U8), ALIGNOF(U8), newCap, 0);
         } else if (perm->end == (U8 *)(array->buf - array->cap)) {
-            alloc(perm, SIZEOF(U8), ALIGNOF(U8), newCap,
-                  0);
+            alloc(perm, SIZEOF(U8), ALIGNOF(U8), newCap, 0);
         } else {
-            void *buf = alloc(perm, SIZEOF(U8),
-                              ALIGNOF(U8), newCap, 0);
+            void *buf = alloc(perm, SIZEOF(U8), ALIGNOF(U8), newCap, 0);
             memcpy(buf, array->buf, array->len);
             array->buf = buf;
         }

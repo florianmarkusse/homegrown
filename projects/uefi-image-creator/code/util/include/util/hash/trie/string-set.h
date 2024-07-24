@@ -9,7 +9,6 @@ extern "C" {
 #include "util/macros.h"       // for FLO_MACRO_VAR
 #include "util/memory/arena.h" // for flo_arena
 #include "util/text/string.h"  // for flo_string
-#include <stdbool.h>           // for false, true, bool
 
 typedef struct flo_trie_StringSet flo_trie_StringSet;
 struct flo_trie_StringSet {

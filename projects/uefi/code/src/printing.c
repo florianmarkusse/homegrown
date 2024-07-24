@@ -1,8 +1,9 @@
 #include "printing.h"
-#include "efi/c-efi-protocol-simple-text-input.h"
-#include "efi/c-efi-protocol-simple-text-output.h"
-#include "efi/c-efi-system.h"
-#include "globals.h"
+#include "efi/c-efi-base.h"                        // for SUCCESS
+#include "efi/c-efi-protocol-simple-text-input.h"  // for InputKey
+#include "efi/c-efi-protocol-simple-text-output.h" // for SimpleTextOutputP...
+#include "efi/c-efi-system.h"                      // for ResetType
+#include "globals.h"                               // for globals
 
 void error(U16 *string) {
     globals.st->con_out->output_string(globals.st->con_out, string);
@@ -11,14 +12,14 @@ void error(U16 *string) {
            SUCCESS) {
         ;
     }
-    globals.st->runtime_services->reset_system(RESET_SHUTDOWN,
-                                               SUCCESS, 0, NULL);
+    globals.st->runtime_services->reset_system(RESET_SHUTDOWN, SUCCESS, 0,
+                                               NULL);
 }
 
 static const U16 *digits = u"0123456789ABCDEF";
 void printNumber(USize number, U8 base) {
     U16 buffer[24]; // Hopefully enough for UINTN_MAX (UINT64_MAX) + sign
-                           // I8acter
+                    // I8acter
     USize i = 0;
     bool negative = false;
 
@@ -65,9 +66,9 @@ void printNumber(USize number, U8 base) {
     buffer[i--] = u'\0';
 
     // Reverse buffer before printing
-    for (USize j = 0; j < i; j++, i--) {
+    for (U16 j = 0; j < i; j++, i--) {
         // Swap digits
-        USize temp = buffer[i];
+        U16 temp = buffer[i];
         buffer[i] = buffer[j];
         buffer[j] = temp;
     }

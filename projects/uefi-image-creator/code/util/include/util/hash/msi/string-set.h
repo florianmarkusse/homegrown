@@ -9,7 +9,6 @@ extern "C" {
 #include "util/hash/hash-comparison-status.h" // for flo_HashComparisonStatus
 #include "util/macros.h"                      // for FLO_MACRO_VAR
 #include "util/text/string.h"                 // for flo_string
-#include <stdbool.h>                          // for true
 #include <stddef.h>                           // for ptrdiff_t, size_t
 
 typedef FLO_MSI_SET(flo_string) flo_msi_String;

@@ -5,9 +5,10 @@
 extern "C" {
 #endif
 
-#include "util/array-types.h" // for u_I8_a
+#include "types.h"            // for U32, U8, U64, I64, I8, U16
+#include "util/array-types.h" // for u_I8_a, uint8_max_a
+#include "util/macros.h"      // for MACRO_VAR
 #include "util/text/string.h" // for string
-#include "types.h"       // for I64, U64
 
 #define NEWLINE 0x01
 #define FLUSH 0x02
@@ -62,15 +63,15 @@ string noAppend();
         string: stringToString,                                                \
         void *: ptrToStringDefault,                                            \
         int *: ptrToStringDefault,                                             \
-        U8 *: ptrToStringDefault,                                         \
+        U8 *: ptrToStringDefault,                                              \
         unsigned int *: ptrToStringDefault,                                    \
-        I8: I8ToStringDefault,                                             \
-        I64: int64ToStringDefault,                                         \
+        I8: I8ToStringDefault,                                                 \
+        I64: int64ToStringDefault,                                             \
         double: doubleToStringDefault,                                         \
-        U64: uint64ToStringDefault,                                       \
-        U32: uint64ToStringDefault,                                       \
-        U16: uint64ToStringDefault,                                       \
-        U8: uint64ToStringDefault,                                        \
+        U64: uint64ToStringDefault,                                            \
+        U32: uint64ToStringDefault,                                            \
+        U16: uint64ToStringDefault,                                            \
+        U8: uint64ToStringDefault,                                             \
         int: int64ToStringDefault,                                             \
         short: int64ToStringDefault,                                           \
         bool: boolToString,                                                    \
@@ -102,7 +103,7 @@ string noAppend();
 #define LOG(...) LOG_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 #define FLUSH_AFTER                                                            \
-    for (U64 MACRO_VAR(i) = 0; MACRO_VAR(i) < 1;                          \
+    for (U64 MACRO_VAR(i) = 0; MACRO_VAR(i) < 1;                               \
          MACRO_VAR(i) = flushStandardBuffer())
 
 #ifdef __cplusplus

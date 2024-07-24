@@ -5,11 +5,10 @@
 extern "C" {
 #endif
 
+#include "types.h"             // for flo_char_a, flo_char_d_a
 #include "util/macros.h"       // for FLO_MACRO_VAR
 #include "util/memory/arena.h" // for flo_arena
-#include "util/text/string.h"  // for flo_string
-#include "types.h"        // for flo_char_a, flo_char_d_a
-#include <stdbool.h>           // for false, true, bool
+#include "util/text/string.h"  // for flo_string, FLO_STRING
 #include <stddef.h>            // for ptrdiff_t
 #include <stdint.h>            // for uint32_t, uint64_t
 
@@ -130,11 +129,6 @@ flo_string flo_noAppend();
 #define FLO_INFO(data, ...) FLO_LOG(data, FLO_STDOUT, ##__VA_ARGS__)
 
 #define FLO_ERROR(data, ...) FLO_LOG(data, FLO_STDERR, ##__VA_ARGS__)
-#define FLO_APPEND_ERRNO                                                       \
-    FLO_ERROR(FLO_STRING("Error code: "));                                     \
-    FLO_ERROR(errno, FLO_NEWLINE);                                             \
-    FLO_ERROR(FLO_STRING("Error message: "));                                  \
-    FLO_ERROR(strerror(errno), FLO_NEWLINE);
 #define FLO_APPEND_ERRNO_RAW(value)                                            \
     FLO_ERROR(FLO_STRING("Error code: "));                                     \
     FLO_ERROR(value, FLO_NEWLINE);                                             \

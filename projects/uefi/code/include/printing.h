@@ -1,7 +1,7 @@
 #ifndef PRINTING_H
 #define PRINTING_H
 
-#include "efi/c-efi-base.h"
+#include "types.h" // for U8, USize, U16
 
 void error(U16 *string);
 void printNumber(USize number, U8 base);

@@ -1,7 +1,8 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include "efi/c-efi-base.h"
+#include "efi/c-efi-base.h" // for Handle, SystemTable
+#include "types.h"          // for U64, U32
 
 typedef struct {
     Handle h;

@@ -4,7 +4,6 @@
 #include "common-iterator.h"   // for FLO_TRIE_ITERATOR_HEADER_FILE
 #include "util/memory/arena.h" // for flo_arena
 #include "util/text/string.h"  // for flo_string
-#include <stdbool.h>           // for false, true, bool
 #include <stdint.h>            // for uint16_t
 
 typedef struct {

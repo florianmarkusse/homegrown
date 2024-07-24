@@ -2,6 +2,7 @@
 #include "util/assert.h"        // for FLO_ASSERT
 #include "util/maths.h"         // for FLO_MIN
 #include "util/memory/macros.h" // for FLO_ALIGNOF, FLO_SIZEOF
+#include "util/types.h"         // for flo_char_a, flo_char_d_a
 #include <string.h>             // for memcpy, memset, strlen
 #include <unistd.h>             // for isatty, write, STDERR_FILENO, STDOUT...
 

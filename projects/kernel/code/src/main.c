@@ -1,13 +1,9 @@
-#include "acpi/c-acpi-rdsp.h"
-#include "acpi/c-acpi-rsdt.h"
-#include "acpi/madt.h"
-#include "acpi/signatures.h"
-#include "idt.h"
-#include "kernel-parameters.h"
-#include "memory/definitions.h"
-#include "test.h"
-#include "util/log.h"
-#include "types.h"
+#include "idt.h"                // for setupIDT
+#include "kernel-parameters.h"  // for KernelParameters
+#include "memory/definitions.h" // for KERNEL_PARAMS_START
+#include "types.h"              // for U32
+#include "util/log.h"           // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
+#include "util/text/string.h"   // for STRING
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
@@ -18,12 +14,11 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     KernelParameters *kernelParameters =
         (KernelParameters *)KERNEL_PARAMS_START;
 
-    setupScreen(
-        (ScreenDimension){.scanline = kernelParameters->fb.scanline,
-                          .size = kernelParameters->fb.size,
-                          .width = kernelParameters->fb.columns,
-                          .height = kernelParameters->fb.rows,
-                          .screen = (U32 *)kernelParameters->fb.ptr});
+    setupScreen((ScreenDimension){.scanline = kernelParameters->fb.scanline,
+                                  .size = kernelParameters->fb.size,
+                                  .width = kernelParameters->fb.columns,
+                                  .height = kernelParameters->fb.rows,
+                                  .screen = (U32 *)kernelParameters->fb.ptr});
 
     setupIDT();
 
