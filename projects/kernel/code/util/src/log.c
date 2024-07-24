@@ -83,7 +83,7 @@ static U64 screenLinesCopy[MAX_GLYPSH_PER_COLUMN]; // TODO: Replace with
                                                         // temporary memory
 static bool lastScreenlineOpen;
 static bool isTailing = true;
-static U64 charCount;
+static U64 I8Count;
 static U32 nextCharInBuf;
 static U8 buf[FILE_BUF_LEN];
 
@@ -172,7 +172,7 @@ void drawLines(U32 startIndex, U16 screenLinesToDraw,
     U16 currentGlyphLen = 0;
     bool toNext = false;
 
-    for (U64 i = screenLines[startIndex]; i < charCount; i++) {
+    for (U64 i = screenLines[startIndex]; i < I8Count; i++) {
         U8 ch = buf[RING_RANGE(i, FILE_BUF_LEN)];
 
         if (toNext) {
@@ -262,8 +262,8 @@ U64 toScreenLines(U64 number) {
            (number == 0);
 }
 
-U32 charIndexToLogicalLine(U64 charIndex) {
-    if (charIndex >= logicalLines[logicalLineToWrite]) {
+U32 I8IndexToLogicalLine(U64 I8Index) {
+    if (I8Index >= logicalLines[logicalLineToWrite]) {
         return logicalLineToWrite;
     }
 
@@ -275,7 +275,7 @@ U32 charIndexToLogicalLine(U64 charIndex) {
             RING_PLUS(left, (RING_MINUS(right, left, MAX_SCROLLBACK_LINES) / 2),
                       MAX_SCROLLBACK_LINES);
 
-        if (logicalLines[mid] > charIndex) {
+        if (logicalLines[mid] > I8Index) {
             right = mid;
         } else {
             left = mid;
@@ -290,7 +290,7 @@ U64 oldestCharToParseGivenScreenLines(U64 endCharExclusive,
     U32 oldestLogicalLineIndex =
         RING_INCREMENT(logicalLineToWrite, MAX_SCROLLBACK_LINES);
 
-    U32 logicalLineIndex = charIndexToLogicalLine(endCharExclusive);
+    U32 logicalLineIndex = I8IndexToLogicalLine(endCharExclusive);
     if (logicalLineIndex == oldestLogicalLineIndex &&
         logicalLines[logicalLineIndex] >= endCharExclusive) {
         return endCharExclusive;
@@ -455,11 +455,11 @@ void toTail() {
         firstCharOutsideWindow = screenLines[finalScreenLineEntry];
     }
     U64 oldestCharToProcess =
-        MAX(oldestCharToParseGivenScreenLines(charCount, glyphsPerColumn),
-            logicalLines[charIndexToLogicalLine(firstCharOutsideWindow)]);
+        MAX(oldestCharToParseGivenScreenLines(I8Count, glyphsPerColumn),
+            logicalLines[I8IndexToLogicalLine(firstCharOutsideWindow)]);
 
     FillResult fillResult = fillScreenLinesCopy(
-        oldestCharToProcess, firstCharOutsideWindow, charCount, 0);
+        oldestCharToProcess, firstCharOutsideWindow, I8Count, 0);
 
     U16 startIndex =
         RING_MINUS(fillResult.currentScreenLineIndex,
@@ -570,7 +570,7 @@ void prowind(U16 numberOfScreenLines) {
     U64 firstCharOutsideWindow = screenLines[RING_PLUS(
         oldestScreenLineIndex, glyphsPerColumn, MAX_GLYPSH_PER_COLUMN)];
 
-    if (charCount == firstCharOutsideWindow) {
+    if (I8Count == firstCharOutsideWindow) {
         return;
     }
 
@@ -579,7 +579,7 @@ void prowind(U16 numberOfScreenLines) {
 
     FillResult fillResult =
         fillScreenLinesCopy(oldestCharToProcess, firstCharOutsideWindow,
-                            charCount, numberOfScreenLines);
+                            I8Count, numberOfScreenLines);
     U16 oldScreenLines =
         glyphsPerColumn - fillResult.realScreenLinesWritten;
 
@@ -611,7 +611,7 @@ void prowind(U16 numberOfScreenLines) {
               logicalLineLens[startIndex], oldScreenLines);
 
     isTailing = screenLines[RING_PLUS(oldestScreenLineIndex, glyphsPerColumn,
-                                      MAX_GLYPSH_PER_COLUMN)] == charCount;
+                                      MAX_GLYPSH_PER_COLUMN)] == I8Count;
     lastScreenlineOpen = !fillResult.lastLineDone;
 
     switchToScreenDisplay();
@@ -636,7 +636,7 @@ bool flushBuffer(uint8_max_a *buffer) {
             logicalLineToWrite =
                 RING_INCREMENT(logicalLineToWrite, MAX_SCROLLBACK_LINES);
 
-            logicalLines[logicalLineToWrite] = charCount;
+            logicalLines[logicalLineToWrite] = I8Count;
             logicalNewline = false;
         }
 
@@ -652,7 +652,7 @@ bool flushBuffer(uint8_max_a *buffer) {
         }
 
         nextCharInBuf = RING_INCREMENT(nextCharInBuf, FILE_BUF_LEN);
-        charCount++;
+        I8Count++;
     }
 
     if (isTailing) {
@@ -694,7 +694,7 @@ void appendToFlushBuffer(string data, U8 flags) {
     }
 }
 
-U32 appendToSimpleBuffer(string data, char_d_a *array, arena *perm) {
+U32 appendToSimpleBuffer(string data, I8_d_a *array, arena *perm) {
     if (array->len + data.len > array->cap) {
         U64 newCap = (array->len + data.len) * 2;
         if (array->buf == NULL) {
@@ -720,16 +720,16 @@ U32 appendToSimpleBuffer(string data, char_d_a *array, arena *perm) {
 
 #define STRING_CONVERTER_BUF_LEN 1 << 10
 U8 stringConverterBuf[STRING_CONVERTER_BUF_LEN];
-static u_char_a stringConverterBuffer =
-    (u_char_a){.buf = stringConverterBuf, .len = STRING_CONVERTER_BUF_LEN};
+static u_I8_a stringConverterBuffer =
+    (u_I8_a){.buf = stringConverterBuf, .len = STRING_CONVERTER_BUF_LEN};
 
-string charToString(char data, u_char_a tmp) {
+string I8ToString(I8 data, u_I8_a tmp) {
     tmp.buf[0] = data;
     return STRING_LEN(tmp.buf, 1);
 }
 
-string charToStringDefault(char data) {
-    return charToString(data, stringConverterBuffer);
+string I8ToStringDefault(I8 data) {
+    return I8ToString(data, stringConverterBuffer);
 }
 
 string stringToString(string data) { return data; }
@@ -738,7 +738,7 @@ string boolToString(bool data) {
     return (data ? STRING("true") : STRING("false"));
 }
 
-string ptrToString(void *data, u_char_a tmp) {
+string ptrToString(void *data, u_I8_a tmp) {
     tmp.buf[0] = '0';
     tmp.buf[1] = 'x';
 
@@ -755,7 +755,7 @@ string ptrToStringDefault(void *data) {
     return ptrToString(data, stringConverterBuffer);
 }
 
-string uint64ToString(U64 data, u_char_a tmp) {
+string uint64ToString(U64 data, u_I8_a tmp) {
     U8 *end = tmp.buf + tmp.len;
     U8 *beg = end;
     do {
@@ -768,7 +768,7 @@ string uint64ToStringDefault(U64 data) {
     return uint64ToString(data, stringConverterBuffer);
 }
 
-string int64ToString(I64 data, u_char_a tmp) {
+string int64ToString(I64 data, u_I8_a tmp) {
     U8 *end = tmp.buf + tmp.len;
     U8 *beg = end;
     I64 t = data > 0 ? -data : data;
@@ -785,7 +785,7 @@ string int64ToStringDefault(I64 data) {
     return int64ToString(data, stringConverterBuffer);
 }
 
-string doubleToString(double data, u_char_a tmp) {
+string doubleToString(double data, u_I8_a tmp) {
     U64 tmpLen = 0;
     U32 prec = 1000000; // i.e. 6 decimals
 
@@ -806,7 +806,7 @@ string doubleToString(double data, u_char_a tmp) {
     U64 fractional = (U64)((data - (double)integral) * (double)prec);
 
     U8 buf2[64];
-    u_char_a tmp2 = (u_char_a){.buf = buf2, .len = 64};
+    u_I8_a tmp2 = (u_I8_a){.buf = buf2, .len = 64};
 
     string part = uint64ToString(integral, tmp2);
     memcpy(tmp.buf + tmpLen, part.buf, part.len);
@@ -833,7 +833,7 @@ string doubleToStringDefault(double data) {
     return doubleToString(data, stringConverterBuffer);
 }
 
-string stringWithMinSize(string data, U8 minSize, u_char_a tmp) {
+string stringWithMinSize(string data, U8 minSize, u_I8_a tmp) {
     if (data.len >= minSize) {
         return data;
     }

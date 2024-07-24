@@ -5,9 +5,9 @@
 #include "types.h"
 
 typedef struct __attribute((packed)) {
-    char signature[8];
+    I8 signature[8];
     U8 checksum;
-    char oem_id[6];
+    I8 oem_id[6];
     U8 rev;
     U32 rsdt_addr;
 } CAcpiRSDPV1;

@@ -18,7 +18,7 @@ void error(U16 *string) {
 static const U16 *digits = u"0123456789ABCDEF";
 void printNumber(USize number, U8 base) {
     U16 buffer[24]; // Hopefully enough for UINTN_MAX (UINT64_MAX) + sign
-                           // character
+                           // I8acter
     USize i = 0;
     bool negative = false;
 
@@ -75,27 +75,27 @@ void printNumber(USize number, U8 base) {
     globals.st->con_out->output_string(globals.st->con_out, buffer);
 }
 
-static U16 charstr[2] = {0};
+static U16 I8str[2] = {0};
 void printAsci(U8 *string) {
     while (*string != '\0') {
-        char ch = *string++;
+        I8 ch = *string++;
         if (ch == '\n') {
             globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
         } else {
-            charstr[0] = (U16)ch;
-            globals.st->con_out->output_string(globals.st->con_out, charstr);
+            I8str[0] = (U16)ch;
+            globals.st->con_out->output_string(globals.st->con_out, I8str);
         }
     }
 }
 
 void printAsciSize(U8 *string, USize size) {
     for (USize i = 0; i < size; i++) {
-        char ch = string[i];
+        I8 ch = string[i];
         if (ch == '\n') {
             globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
         } else {
-            charstr[0] = (U16)ch;
-            globals.st->con_out->output_string(globals.st->con_out, charstr);
+            I8str[0] = (U16)ch;
+            globals.st->con_out->output_string(globals.st->con_out, I8str);
         }
     }
 }

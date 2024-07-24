@@ -91,7 +91,7 @@ BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, U64 size) {
     return NULL;
 }
 
-BuddyAllocator createBuddyAllocator(char *data, U64 size) {
+BuddyAllocator createBuddyAllocator(I8 *data, U64 size) {
     ASSERT(size > 0);
     ASSERT((size & (size - 1)) == 0);
     ASSERT(size > (U64)sizeof(BuddyBlock));
@@ -175,7 +175,7 @@ __attribute((unused, malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator,
 
     if (found != NULL) {
         found->isFree = false;
-        void *result = (void *)((char *)found + SIZEOF(BuddyBlock));
+        void *result = (void *)((I8 *)found + SIZEOF(BuddyBlock));
         if (ZERO_MEMORY & flags) {
             memset(result, 0, total);
         }
@@ -193,7 +193,7 @@ void freeBuddy(BuddyAllocator *buddyAllocator, void *data) {
     ASSERT((void *)buddyAllocator->head <= data);
     ASSERT(data < (void *)buddyAllocator->tail);
 
-    BuddyBlock *block = (BuddyBlock *)((char *)data - SIZEOF(BuddyBlock));
+    BuddyBlock *block = (BuddyBlock *)((I8 *)data - SIZEOF(BuddyBlock));
     block->isFree = true;
 
     coalesceBuddies(buddyAllocator->head, buddyAllocator->tail);

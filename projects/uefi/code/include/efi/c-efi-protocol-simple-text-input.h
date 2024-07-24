@@ -21,7 +21,7 @@ extern "C" {
 
 typedef struct InputKey {
     U16 scan_code;
-    U16 unicode_char;
+    U16 unicode_I8;
 } InputKey;
 
 typedef struct SimpleTextInputProtocol {

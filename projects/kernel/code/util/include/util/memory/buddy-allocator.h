@@ -13,7 +13,7 @@ typedef struct {
 } BuddyBlock;
 
 __attribute((unused)) static inline BuddyBlock *nextBuddy(BuddyBlock *block) {
-    return (BuddyBlock *)((char *)block + block->size);
+    return (BuddyBlock *)((I8 *)block + block->size);
 }
 
 BuddyBlock *splitBuddy(BuddyBlock *block, U64 size);
@@ -27,7 +27,7 @@ typedef struct {
     void **jmp_buf;
 } BuddyAllocator;
 
-BuddyAllocator createBuddyAllocator(char *data, U64 size);
+BuddyAllocator createBuddyAllocator(I8 *data, U64 size);
 
 void coalesceBuddies(BuddyBlock *head, BuddyBlock *tail);
 

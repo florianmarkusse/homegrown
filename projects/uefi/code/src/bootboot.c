@@ -83,14 +83,14 @@ typedef struct {
 // EFI_FILE_PROTOCOL               *Root;
 // SIMPLE_INPUT_INTERFACE          *CI;
 U8 *kne, nosmp = 0;
-volatile char bsp_done = 0, ap_done = 0;
+volatile I8 bsp_done = 0, ap_done = 0;
 
 // default environment variables. M$ states that 1024x768 must be supported
 int reqwidth = 1024, reqheight = 768;
-char *kernelname = "sys/core";
+I8 *kernelname = "sys/core";
 
 // alternative environment name
-char *cfgname = "sys/config";
+I8 *cfgname = "sys/config";
 
 /**
  * Initialize logical cores

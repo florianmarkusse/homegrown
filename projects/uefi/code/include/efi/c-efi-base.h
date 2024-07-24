@@ -16,7 +16,7 @@
  * port a standard library to UEFI. Note, though, the ISO-C Standard Library is
  * in many ways incompatible to the style of UEFI development. While it is
  * technically possible to implement it, it would work against many of the UEFI
- * characteristics.
+ * I8acteristics.
  *
  * This header provides the base types and macros used throughout the project.
  * It provides basic fixed-size integers, a NULL-equivalent, booleans, standard

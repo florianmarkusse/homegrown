@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "util/array-types.h" // for u_char_a
+#include "util/array-types.h" // for u_I8_a
 #include "util/text/string.h" // for string
 #include "types.h"       // for I64, U64
 
@@ -33,26 +33,26 @@ void prowind(U16 numberOfScreenLines);
 
 void printToSerial(string data, U8 flags);
 
-string stringWithMinSize(string data, U8 minSize, u_char_a tmp);
+string stringWithMinSize(string data, U8 minSize, u_I8_a tmp);
 string stringWithMinSizeDefault(string data, U8 minSize);
 
 string boolToString(bool data);
 
-string ptrToString(void *data, u_char_a tmp);
+string ptrToString(void *data, u_I8_a tmp);
 string ptrToStringDefault(void *data);
 
-string charToString(char data, u_char_a tmp);
-string charToStringDefault(char data);
+string I8ToString(I8 data, u_I8_a tmp);
+string I8ToStringDefault(I8 data);
 
 string stringToString(string data);
 
-string uint64ToString(U64 data, u_char_a tmp);
+string uint64ToString(U64 data, u_I8_a tmp);
 string uint64ToStringDefault(U64 data);
 
-string int64ToString(I64 data, u_char_a tmp);
+string int64ToString(I64 data, u_I8_a tmp);
 string int64ToStringDefault(I64 data);
 
-string doubleToString(double data, u_char_a tmp);
+string doubleToString(double data, u_I8_a tmp);
 string doubleToStringDefault(double data);
 
 string noAppend();
@@ -64,7 +64,7 @@ string noAppend();
         int *: ptrToStringDefault,                                             \
         U8 *: ptrToStringDefault,                                         \
         unsigned int *: ptrToStringDefault,                                    \
-        char: charToStringDefault,                                             \
+        I8: I8ToStringDefault,                                             \
         I64: int64ToStringDefault,                                         \
         double: doubleToStringDefault,                                         \
         U64: uint64ToStringDefault,                                       \

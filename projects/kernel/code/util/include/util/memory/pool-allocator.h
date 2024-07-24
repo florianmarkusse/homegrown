@@ -13,7 +13,7 @@ struct PoolHead {
 typedef struct PoolHead PoolHead;
 
 typedef struct {
-    char *beg;
+    I8 *beg;
     I64 cap;
     I64 chunkSize;
 
@@ -27,7 +27,7 @@ void freePool(PoolAllocator *pool);
 /*
  * Set up the pool allocator values, except for the jmp_buf!
  */
-PoolAllocator createPoolAllocator(char *buffer, I64 cap,
+PoolAllocator createPoolAllocator(I8 *buffer, I64 cap,
                                           I64 chunkSize);
 
 __attribute((malloc)) void *poolAlloc(PoolAllocator *pool,

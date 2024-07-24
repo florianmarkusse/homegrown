@@ -8,7 +8,7 @@ typedef struct __attribute((packed)) {
     CAcpiSDT header;
     U32 local_controller_addr;
     U32 flags;
-    char madt_entries_begin[];
+    I8 madt_entries_begin[];
 } CAcpiMADT;
 
 typedef struct __attribute__((packed)) {

@@ -54,7 +54,7 @@ __attribute__((unused)) static inline U8 getChar(string str,
 }
 
 __attribute__((unused)) static inline U8
-getCharOr(string str, U64 index, char or) {
+getCharOr(string str, U64 index, I8 or) {
     if (index < 0 || index >= str.len) {
         return or ;
     }

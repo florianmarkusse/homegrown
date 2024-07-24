@@ -277,7 +277,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 //     }
 //     }
 //
-//     char **descriptionHeaders = (char **)&sdt->descriptionHeaders;
+//     I8 **descriptionHeaders = (I8 **)&sdt->descriptionHeaders;
 //     for (U64 i = 0; i < sdt->header.length - sizeof(CAcpiSDT);
 //          i += entrySize) {
 //         CAcpiDescriptionTableHeader *header = NULL;
@@ -307,7 +307,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 //                 LOG(interruptStructures->totalLength, NEWLINE);
 //
 //                 interruptStructures = (InterruptControllerStructure
-//                                            *)((char *)interruptStructures +
+//                                            *)((I8 *)interruptStructures +
 //                                               interruptStructures->totalLength);
 //             }
 //
@@ -318,7 +318,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 //         }
 //         }
 //
-//         descriptionHeaders = (char **)((char *)descriptionHeaders +
+//         descriptionHeaders = (I8 **)((I8 *)descriptionHeaders +
 //         entrySize);
 //     }
 // }

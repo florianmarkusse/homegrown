@@ -18,7 +18,7 @@ void freePool(PoolAllocator *pool) {
 /*
  * Set up the pool allocator values, except for the jmp_buf!
  */
-PoolAllocator createPoolAllocator(char *buffer, I64 cap,
+PoolAllocator createPoolAllocator(I8 *buffer, I64 cap,
                                           I64 chunkSize) {
     ASSERT(cap > 0);
     ASSERT((cap & (cap - 1)) == 0);

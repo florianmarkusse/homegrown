@@ -1,4 +1,4 @@
-# We generate a header that contains the first 4 characters of the kernel
+# We generate a header that contains the first 4 I8acters of the kernel
 # binary. I decided against just embedding a magic value at the beginning
 # because that would fuck up alignment and I didnt't want to deal with those
 # spurious issues.
