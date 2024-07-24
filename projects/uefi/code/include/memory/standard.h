@@ -1,5 +1,6 @@
 #ifndef MEMORY_STANDARD_H
 #define MEMORY_STANDARD_H
+
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {
@@ -23,4 +24,5 @@ __attribute((nothrow, pure, nonnull(1, 2))) int memcmp(const void *s1,
 #ifdef __cplusplus
 }
 #endif
+
 #endif

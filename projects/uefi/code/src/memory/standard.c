@@ -1,19 +1,20 @@
 #include "memory/standard.h"
+#include "types.h"
 
 #define NO_INLINE __attribute__((noinline))
 
 #ifdef __clang__
-typedef I8 I88 __attribute__((ext_vector_type(8), aligned(1)));
-typedef I8 I816 __attribute__((ext_vector_type(16), aligned(1)));
-typedef I8 I832 __attribute__((ext_vector_type(32), aligned(1)));
-typedef I8 I832a __attribute__((ext_vector_type(32), aligned(32)));
+typedef I8 U8_8 __attribute__((ext_vector_type(8), aligned(1)));
+typedef I8 U8_16 __attribute__((ext_vector_type(16), aligned(1)));
+typedef I8 U8_32 __attribute__((ext_vector_type(32), aligned(1)));
+typedef I8 U8_32a __attribute__((ext_vector_type(32), aligned(32)));
 
 #else
 // __GNUC__
-typedef I8 I88 __attribute__((vector_size(8), aligned(1)));
-typedef I8 I816 __attribute__((vector_size(16), aligned(1)));
-typedef I8 I832 __attribute__((vector_size(32), aligned(1)));
-typedef I8 I832a __attribute__((vector_size(32), aligned(32)));
+typedef I8 U8_8 __attribute__((vector_size(8), aligned(1)));
+typedef I8 U8_16 __attribute__((vector_size(16), aligned(1)));
+typedef I8 U8_32 __attribute__((vector_size(32), aligned(1)));
+typedef I8 U8_32a __attribute__((vector_size(32), aligned(32)));
 #endif
 
 typedef U32 __attribute__((aligned(1))) u32;
@@ -62,8 +63,8 @@ memcpy(void *__restrict dest, const void *__restrict src, I64 n) {
         I8 *first_d = d;
         I8 *last_d = d + n - 16;
 
-        *((I816 *)first_d) = *((I816 *)first_s);
-        *((I816 *)last_d) = *((I816 *)last_s);
+        *((U8_16 *)first_d) = *((U8_16 *)first_s);
+        *((U8_16 *)last_d) = *((U8_16 *)last_s);
         return dest;
     }
 
@@ -72,13 +73,13 @@ memcpy(void *__restrict dest, const void *__restrict src, I64 n) {
 
     // Stamp the 32-byte chunks.
     do {
-        *((I832 *)d) = *((I832 *)s);
+        *((U8_32 *)d) = *((U8_32 *)s);
         d += 32;
         s += 32;
     } while (d < last_word_d);
 
     // Stamp the last unaligned 32 bytes of the buffer.
-    *((I832 *)last_word_d) = *((I832 *)last_word_s);
+    *((U8_32 *)last_word_d) = *((U8_32 *)last_word_s);
     return dest;
 }
 
@@ -180,21 +181,21 @@ static inline void *small_memset(void *s, int c, U64 n) {
 
     I8 X = (I8)c;
     I8 *p = s;
-    I816 val16 = {X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X};
+    U8_16 val16 = {X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X};
     I8 *last = s + n - 16;
-    *((I816 *)last) = val16;
-    *((I816 *)p) = val16;
+    *((U8_16 *)last) = val16;
+    *((U8_16 *)p) = val16;
     return s;
 }
 
 static inline void *huge_memset(void *s, int c, U64 n) {
     I8 *p = s;
     I8 X = (I8)c;
-    I832 val32 = {X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X,
-                    X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X};
+    U8_32 val32 = {X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X,
+                   X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X};
 
     // Stamp the first 32byte store.
-    *((I832 *)p) = val32;
+    *((U8_32 *)p) = val32;
 
     I8 *first_aligned = p + 32 - ((U64)p % 32);
     I8 *buffer_end = p + n;
@@ -205,22 +206,22 @@ static inline void *huge_memset(void *s, int c, U64 n) {
 
     // Unroll the body of the loop to increase parallelism.
     while (p + (32 * 5) < buffer_end) {
-        *((I832a *)p) = val32;
+        *((U8_32a *)p) = val32;
         p += 32;
-        *((I832a *)p) = val32;
+        *((U8_32a *)p) = val32;
         p += 32;
-        *((I832a *)p) = val32;
+        *((U8_32a *)p) = val32;
         p += 32;
-        *((I832a *)p) = val32;
+        *((U8_32a *)p) = val32;
         p += 32;
-        *((I832a *)p) = val32;
+        *((U8_32a *)p) = val32;
         p += 32;
     }
 
 // Complete the last few iterations:
 #define TRY_STAMP_32_BYTES                                                     \
     if (p < last_word) {                                                       \
-        *((I832a *)p) = val32;                                               \
+        *((U8_32a *)p) = val32;                                                \
         p += 32;                                                               \
     }
 
@@ -230,7 +231,7 @@ static inline void *huge_memset(void *s, int c, U64 n) {
     TRY_STAMP_32_BYTES
 
     // Stamp the last unaligned word.
-    *((I832 *)last_word) = val32;
+    *((U8_32 *)last_word) = val32;
     return s;
 }
 
@@ -246,19 +247,19 @@ __attribute((nothrow, nonnull(1))) void *memset(void *s, int c, I64 n) {
         return huge_memset(s, c, n);
     }
 
-    I832 val32 = {X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X,
-                    X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X};
+    U8_32 val32 = {X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X,
+                   X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X};
 
     I8 *last_word = s + n - 32;
 
     // Stamp the 32-byte chunks.
     do {
-        *((I832 *)p) = val32;
+        *((U8_32 *)p) = val32;
         p += 32;
     } while (p < last_word);
 
     // Stamp the last unaligned 32 bytes of the buffer.
-    *((I832 *)last_word) = val32;
+    *((U8_32 *)last_word) = val32;
     return s;
 }
 

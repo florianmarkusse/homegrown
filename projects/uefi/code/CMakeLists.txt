@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.28)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 project(uefi LANGUAGES C ASM)
 
-include("../../setup.cmake")
-initial_setup()
-
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -target x86_64-unknown-windows -mgeneral-regs-only -ffreestanding -nostdlib -nostdinc -fshort-wchar -mno-red-zone")
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
+
+include("../../setup.cmake")
+initial_setup()
 
 add_executable(${MAIN_RESULT} 
     #  "src/bootboot.c"
@@ -18,11 +18,12 @@ add_executable(${MAIN_RESULT}
     "src/gdt.c"
     "src/data-reading.c"
     "src/memory/boot-functions.c"
+    "src/memory/boot-functions.c"
+    "src/memory/standard.c"
+    "src/acpi/c-acpi-rsdp.c"
     )
 
 target_include_directories(${MAIN_RESULT} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../../interoperation/code" "${CMAKE_CURRENT_SOURCE_DIR}/../../interoperation/code/build")
-target_link_libraries(${MAIN_RESULT} PRIVATE interoperation-${CMAKE_BUILD_TYPE})
+target_include_directories(${MAIN_RESULT} PUBLIC "${REPO_ROOT}/projects/interoperation/code/include")
 
 target_link_libraries(${MAIN_RESULT} PRIVATE "-target x86_64-unknown-windows" "-ffreestanding" "-nostdlib" "-nostdinc" "-Wl,-entry:efi_main" "-Wl,-subsystem:efi_application" "-fuse-ld=lld-link")

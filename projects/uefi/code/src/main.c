@@ -396,7 +396,6 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     if (!rsdp.rsdp) {
         error(u"Could not find an RSDP!\r\n");
     }
-    params->rsdp = rsdp;
 
     if (CpuHasFeatures(0, CPUID_FEAT_EDX_PGE)) {
         globals.st->con_out->output_string(globals.st->con_out,

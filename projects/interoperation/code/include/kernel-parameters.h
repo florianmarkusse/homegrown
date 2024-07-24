@@ -1,7 +1,6 @@
 #ifndef KERNEL_PARAMETERS_H
 #define KERNEL_PARAMETERS_H
 
-#include "acpi/c-acpi-rdsp.h"
 #include "types.h"
 typedef struct {
     U64 ptr;
@@ -19,7 +18,6 @@ typedef struct {
 typedef struct {
     FrameBuffer fb;
     MemoryMap *memory;
-    RSDPResult rsdp;
 } KernelParameters;
 
 #endif

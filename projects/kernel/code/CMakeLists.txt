@@ -2,10 +2,11 @@ cmake_minimum_required(VERSION 3.28)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 project(kernel LANGUAGES C ASM)
 
+# TODO: SSE is still broken!!!
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector -mno-sse -mno-sse2")
+
 include("../../setup.cmake")
 initial_setup()
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector -mno-sse -mno-sse2")
 
 add_library(${MAIN_RESULT} OBJECT
         "src/main.c" 
@@ -76,7 +77,7 @@ set(KERNEL_MAGIC_OUTPUT "${REPO_ROOT}/projects/interoperation/code/include/gener
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
         COMMAND objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT} ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
-        COMMAND python "${REPO_ROOT}/projects/interoperation/code/src/create_magic.py" "${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}" ${KERNEL_MAGIC_OUTPUT}
+        COMMAND python "${REPO_ROOT}/projects/interoperation/code/create_magic.py" "${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}" ${KERNEL_MAGIC_OUTPUT}
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
         COMMAND_EXPAND_LISTS
         BYPRODUCTS ${KERNEL_MAGIC_OUTPUT}
