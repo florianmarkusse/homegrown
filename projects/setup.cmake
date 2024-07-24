@@ -18,7 +18,7 @@ macro(initial_setup)
     endif()
 
 
-    set(EXECUTABLE_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
+    set(MAIN_RESULT "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 
     if(NOT CMAKE_BUILD_TYPE)
         set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (Debug, Release, Profiling, Fuzzing)" FORCE)

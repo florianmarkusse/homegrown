@@ -225,3 +225,35 @@ echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
 cd ../../
+
+# -----------------------------------------------------------------------------
+PROJECT="interoperation/code"
+echo -e "${BOLD}Going to build ${PROJECT} folder${NO_COLOR} just for LSP purposes"
+cd ${PROJECT}
+
+CONFIGURE_CMAKE_OPTIONS=(
+	-S .
+	-B build/
+	-D CMAKE_C_COMPILER="clang"
+	-D CMAKE_LINKER="clang"
+	-D USE_AVX="$USE_AVX"
+	-D USE_SSE="$USE_SSE"
+	#	-D CMAKE_ASM_COMPILER="$ASSEMBLER"
+	# -D CMAKE_ASM_INCLUDE="$ASSEMBLER_INCLUDE"
+	-D CMAKE_BUILD_TYPE="$BUILD_MODE"
+)
+
+if [ "$INCLUDE_WHAT_YOU_USE" = true ]; then
+	CONFIGURE_CMAKE_OPTIONS+=(
+		-D CMAKE_C_INCLUDE_WHAT_YOU_USE="include-what-you-use;-w;-Xiwyu;--no_default_mappings"
+	)
+fi
+
+echo -e "${BOLD}cmake ${CONFIGURE_CMAKE_OPTIONS[*]}${NO_COLOR}"
+cmake "${CONFIGURE_CMAKE_OPTIONS[@]}"
+
+BUILD_CMAKE_OPTIONS=(--build build/)
+echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
+cmake "${BUILD_CMAKE_OPTIONS[@]}"
+
+cd ../../
