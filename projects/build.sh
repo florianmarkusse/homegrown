@@ -12,8 +12,8 @@ BUILD_MODES=("Release" "Debug" "Profiling" "Fuzzing")
 BUILD_MODE="${BUILD_MODES[0]}"
 C_COMPILER=$(whereis clang-19 | awk '{ print $2 }')
 LINKER=$(whereis ld | awk '{ print $2 }')
-ASSEMBLER=$(readlink -f ../dependencies/fasmg/fasmg.x64)
-ASSEMBLER_INCLUDE=$(readlink -f ../dependencies/fasmg/examples/x86/include/)
+# ASSEMBLER=$(readlink -f ../dependencies/fasmg/fasmg.x64)
+# ASSEMBLER_INCLUDE=$(readlink -f ../dependencies/fasmg/examples/x86/include/)
 
 SELECTED_TARGETS=()
 INCLUDE_WHAT_YOU_USE=true
@@ -234,13 +234,13 @@ cd ${PROJECT}
 CONFIGURE_CMAKE_OPTIONS=(
 	-S .
 	-B build/
-	-D CMAKE_C_COMPILER="clang"
-	-D CMAKE_LINKER="clang"
+	-D CMAKE_C_COMPILER="$C_COMPILER"
+	-D CMAKE_LINKER="$LINKER"
+	-D CMAKE_BUILD_TYPE="$BUILD_MODE"
 	-D USE_AVX="$USE_AVX"
 	-D USE_SSE="$USE_SSE"
-	#	-D CMAKE_ASM_COMPILER="$ASSEMBLER"
-	# -D CMAKE_ASM_INCLUDE="$ASSEMBLER_INCLUDE"
-	-D CMAKE_BUILD_TYPE="$BUILD_MODE"
+	# 	-D CMAKE_ASM_COMPILER="$ASSEMBLER"
+	# 	-D CMAKE_ASM_INCLUDE="$ASSEMBLER_INCLUDE"
 )
 
 if [ "$INCLUDE_WHAT_YOU_USE" = true ]; then
