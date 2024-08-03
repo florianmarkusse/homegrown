@@ -7,11 +7,12 @@
 #include "gdt.h"                                   // for enableNewGDT, pre...
 #include "globals.h"                               // for globals
 #include "kernel-parameters.h"                     // for KernelParameters
-#include "memory/boot-functions.h"                 // for mapMemoryAt, allo...
-#include "memory/definitions.h"                    // for PAGE_SIZE, STACK_...
-#include "printing.h"                              // for error, printNumber
-#include "string.h"                                // for AsciString
-#include "types.h"                                 // for U64, U32, NULL
+#include "memory-management.h"
+#include "memory/boot-functions.h" // for mapMemoryAt, allo...
+#include "memory/definitions.h"    // for PAGE_SIZE, STACK_...
+#include "printing.h"              // for error, printNumber
+#include "string.h"                // for AsciString
+#include "types.h"                 // for U64, U32, NULL
 
 // static U8 in_exc = 0;
 
@@ -60,7 +61,7 @@ void flo_printToScreen(PhysicalAddress graphics, U32 color) {
 // }
 
 EFICALL void bootstrapProcessorWork() {
-    // dissable PIC and NMI
+    // disable PIC and NMI
     __asm__ __volatile__("movb $0xFF, %%al;"
                          "outb %%al, $0x21;"
                          "outb %%al, $0xA1;" // disable PIC
@@ -416,8 +417,9 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
 
     // Can we enable SSE?
     if (CpuHasFeatures(0, CPUID_FEAT_EDX_SSE)) {
-        globals.st->con_out->output_string(globals.st->con_out,
-                                           u"Enabling SSE...\r\n");
+        globals.st->con_out->output_string(
+            globals.st->con_out,
+            u"Enabling SSE... even though it doesnt work yet anyway lol\r\n");
         CpuEnableSse();
     } else {
         error(u"CPU does not support SSE!");
@@ -469,6 +471,11 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     if (ERROR(status)) {
         error(u"could not exit boot services!\r\n");
     }
+
+    params->memory =
+        (KernelMemory){.totalDescriptorSize = memoryInfo.memoryMapSize,
+                       .descriptors = memoryInfo.memoryMap,
+                       .descriptorSize = memoryInfo.descriptorSize};
 
     jumpIntoKernel(stackPointer);
     return !SUCCESS;

@@ -1,6 +1,7 @@
 #ifndef KERNEL_PARAMETERS_H
 #define KERNEL_PARAMETERS_H
 
+#include "memory-management.h"
 #include "types.h"
 typedef struct {
     U64 ptr;
@@ -11,13 +12,14 @@ typedef struct {
 } FrameBuffer;
 
 typedef struct {
-    U64 ptr;
-    U64 size;
-} MemoryMap;
+    USize totalDescriptorSize;
+    MemoryDescriptor *descriptors;
+    USize descriptorSize;
+} KernelMemory;
 
 typedef struct {
     FrameBuffer fb;
-    MemoryMap *memory;
+    KernelMemory memory;
 } KernelParameters;
 
 #endif

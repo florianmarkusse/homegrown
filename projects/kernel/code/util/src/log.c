@@ -747,7 +747,7 @@ string ptrToStringDefault(void *data) {
     return ptrToString(data, stringConverterBuffer);
 }
 
-string uint64ToString(U64 data, u_I8_a tmp) {
+string U64ToString(U64 data, u_I8_a tmp) {
     U8 *end = tmp.buf + tmp.len;
     U8 *beg = end;
     do {
@@ -756,11 +756,11 @@ string uint64ToString(U64 data, u_I8_a tmp) {
     return (STRING_PTRS(beg, end));
 }
 
-string uint64ToStringDefault(U64 data) {
-    return uint64ToString(data, stringConverterBuffer);
+string U64ToStringDefault(U64 data) {
+    return U64ToString(data, stringConverterBuffer);
 }
 
-string int64ToString(I64 data, u_I8_a tmp) {
+string I64ToString(I64 data, u_I8_a tmp) {
     U8 *end = tmp.buf + tmp.len;
     U8 *beg = end;
     I64 t = data > 0 ? -data : data;
@@ -773,8 +773,8 @@ string int64ToString(I64 data, u_I8_a tmp) {
     return STRING_PTRS(beg, end);
 }
 
-string int64ToStringDefault(I64 data) {
-    return int64ToString(data, stringConverterBuffer);
+string I64ToStringDefault(I64 data) {
+    return I64ToString(data, stringConverterBuffer);
 }
 
 string doubleToString(double data, u_I8_a tmp) {
@@ -800,7 +800,7 @@ string doubleToString(double data, u_I8_a tmp) {
     U8 buf2[64];
     u_I8_a tmp2 = (u_I8_a){.buf = buf2, .len = 64};
 
-    string part = uint64ToString(integral, tmp2);
+    string part = U64ToString(integral, tmp2);
     memcpy(tmp.buf + tmpLen, part.buf, part.len);
     tmpLen += part.len;
 
@@ -814,7 +814,7 @@ string doubleToString(double data, u_I8_a tmp) {
     }
     memset(tmp.buf + tmpLen, '0', counter);
 
-    part = uint64ToString(fractional, tmp2);
+    part = U64ToString(fractional, tmp2);
     memcpy(tmp.buf + tmpLen, part.buf, part.len);
     tmpLen += part.len;
 

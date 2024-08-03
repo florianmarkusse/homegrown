@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#define NULL ((void *)0)
+
 #if !defined(__INT8_TYPE__) || !defined(__UINT8_TYPE__) ||                     \
     !defined(__INT16_TYPE__) || !defined(__UINT16_TYPE__) ||                   \
     !defined(__INT32_TYPE__) || !defined(__UINT32_TYPE__) ||                   \
@@ -47,18 +49,6 @@ extern "C" {
 #define UINT32_MAX U32_C(0xFFFFFFFF)
 #define UINT64_MAX U64_C(0xFFFFFFFFFFFFFFFF)
 
-#define MAX_VALUE(x)                                                           \
-    _Generic((x),                                                              \
-        I8: INT8_MAX,                                                          \
-        U8: UINT8_MAX,                                                         \
-        I16: INT16_MAX,                                                        \
-        U16: UINT16_MAX,                                                       \
-        I32: INT32_MAX,                                                        \
-        U32: UINT32_MAX,                                                       \
-        I64: INT64_MAX,                                                        \
-        U64: UINT64_MAX,                                                       \
-        default: "unknown")
-
 typedef __INT8_TYPE__ I8;
 typedef __UINT8_TYPE__ U8;
 typedef __INT16_TYPE__ I16;
@@ -70,7 +60,68 @@ typedef __UINT64_TYPE__ U64;
 typedef __INTPTR_TYPE__ ISize;
 typedef __UINTPTR_TYPE__ USize;
 
-#define NULL ((void *)0)
+#define F32_MIN (-3.402823466e+38F)
+#define F32_MAX 3.402823466e+38F
+#define F32_EPSILON 1.192092896e-07F
+#define F32_MIN_POS 1.175494351e-38F
+
+#define F64_MIN (-1.7976931348623158e+308)
+#define F64_MAX 1.7976931348623158e+308
+#define F64_EPSILON 2.2204460492503131e-16
+#define F64_MIN_POS 2.2250738585072014e-308
+
+// Assuming 80-bit extended precision for long double
+// If u need more, what are you doing?
+// It does mess up with the epsilon on other machines but do you ever need to
+// use that?
+#define F128_MIN (-1.18973149535723176502e+4932L)  // Minimum negative value
+#define F128_MAX 1.18973149535723176502e+4932L     // Maximum positive value
+#define F128_EPSILON 1.08420217248550443401e-19L   // Epsilon value
+#define F128_MIN_POS 3.36210314311209350626e-4932L // Minimum positive value
+
+typedef float F32;
+typedef double F64;
+typedef long double F128;
+
+#define MAX_VALUE(x)                                                           \
+    _Generic((x),                                                              \
+        I8: INT8_MAX,                                                          \
+        U8: UINT8_MAX,                                                         \
+        I16: INT16_MAX,                                                        \
+        U16: UINT16_MAX,                                                       \
+        I32: INT32_MAX,                                                        \
+        U32: UINT32_MAX,                                                       \
+        I64: INT64_MAX,                                                        \
+        U64: UINT64_MAX,                                                       \
+        F32: F32_MAX,                                                          \
+        F64: F64_MAX,                                                          \
+        F128: F128_MAX,                                                        \
+        default: "unknown")
+
+#define MIN_VALUE(x)                                                           \
+    _Generic((x),                                                              \
+        I8: INT8_MIN,                                                          \
+        I16: INT16_MIN,                                                        \
+        I32: INT32_MIN,                                                        \
+        I64: INT64_MIN,                                                        \
+        F32: F32_MIN,                                                          \
+        F64: F64_MIN,                                                          \
+        F128: F128_MIN,                                                        \
+        default: "unknown")
+
+#define EPSILON_VALUE(x)                                                       \
+    _Generic((x),                                                              \
+        F32: F32_EPSILON,                                                      \
+        F64: F64_EPSILON,                                                      \
+        F128: F128_EPSILON,                                                    \
+        default: "unknown")
+
+#define MIN_POS_VALUE(x)                                                       \
+    _Generic((x),                                                              \
+        F32: F32_MIN_POS,                                                      \
+        F64: F64_MIN_POS,                                                      \
+        F128: F128_MIN_POS,                                                    \
+        default: "unknown")
 
 #ifdef __cplusplus
 }

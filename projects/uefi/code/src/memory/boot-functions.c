@@ -1,4 +1,5 @@
 #include "memory/boot-functions.h"
+#include "efi/c-efi-system.h"
 #include "globals.h"
 #include "memory/definitions.h"
 #include "memory/standard.h"

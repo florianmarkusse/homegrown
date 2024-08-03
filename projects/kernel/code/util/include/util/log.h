@@ -47,11 +47,11 @@ string I8ToStringDefault(I8 data);
 
 string stringToString(string data);
 
-string uint64ToString(U64 data, u_I8_a tmp);
-string uint64ToStringDefault(U64 data);
+string U64ToString(U64 data, u_I8_a tmp);
+string U64ToStringDefault(U64 data);
 
-string int64ToString(I64 data, u_I8_a tmp);
-string int64ToStringDefault(I64 data);
+string I64ToString(I64 data, u_I8_a tmp);
+string I64ToStringDefault(I64 data);
 
 string doubleToString(double data, u_I8_a tmp);
 string doubleToStringDefault(double data);
@@ -62,18 +62,20 @@ string noAppend();
     _Generic((data),                                                           \
         string: stringToString,                                                \
         void *: ptrToStringDefault,                                            \
-        int *: ptrToStringDefault,                                             \
+        I8 *: ptrToStringDefault,                                              \
         U8 *: ptrToStringDefault,                                              \
-        unsigned int *: ptrToStringDefault,                                    \
+        I16 *: ptrToStringDefault,                                             \
+        U16 *: ptrToStringDefault,                                             \
+        I32 *: ptrToStringDefault,                                             \
+        U32 *: ptrToStringDefault,                                             \
+        I64 *: ptrToStringDefault,                                             \
+        U64 *: ptrToStringDefault,                                             \
         I8: I8ToStringDefault,                                                 \
-        I64: int64ToStringDefault,                                             \
-        double: doubleToStringDefault,                                         \
-        U64: uint64ToStringDefault,                                            \
-        U32: uint64ToStringDefault,                                            \
-        U16: uint64ToStringDefault,                                            \
-        U8: uint64ToStringDefault,                                             \
-        int: int64ToStringDefault,                                             \
-        short: int64ToStringDefault,                                           \
+        I64: I64ToStringDefault,                                               \
+        U64: U64ToStringDefault,                                               \
+        U32: U64ToStringDefault,                                               \
+        U16: U64ToStringDefault,                                               \
+        U8: U64ToStringDefault,                                                \
         bool: boolToString,                                                    \
         default: noAppend)(data)
 
