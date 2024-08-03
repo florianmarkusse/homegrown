@@ -1,5 +1,5 @@
 #include "util/log.h"
-#include "util/array-types.h"   // for u_I8_a, uint8_max_a, I8_d_a
+#include "util/array-types.h"   // for U8_a, uint8_max_a, U8_d_a
 #include "util/assert.h"        // for ASSERT
 #include "util/maths.h"         // for RING_PLUS, RING_INCREMENT, RING_MINUS
 #include "util/memory/arena.h"  // for alloc, arena
@@ -13,7 +13,7 @@ static U32 graphicsBuffer[1 << 20];
 // TODO: Idea is to have a single flush buffer per thread and have it flush to
 // the file buffer sometimes.
 static U8 flushBuf000[128 * 64];
-static uint8_max_a flushBuf = {.buf = flushBuf000, .cap = 128 * 64, .len = 0};
+static U8_max_a flushBuf = {.buf = flushBuf000, .cap = 128 * 64, .len = 0};
 
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
@@ -615,7 +615,7 @@ void prowind(U16 numberOfScreenLines) {
 // We are going to flush to:
 // - The in-memory standin file buffer, this will be replaced by a file
 // buffer in the future.
-bool flushBuffer(uint8_max_a *buffer) {
+bool flushBuffer(U8_max_a *buffer) {
     // TODO: flush buffer to file system here.
 
     U64 startIndex = 0;
@@ -689,7 +689,7 @@ void appendToFlushBuffer(string data, U8 flags) {
     }
 }
 
-U32 appendToSimpleBuffer(string data, I8_d_a *array, arena *perm) {
+U32 appendToSimpleBuffer(string data, U8_d_a *array, arena *perm) {
     if (array->len + data.len > array->cap) {
         U64 newCap = (array->len + data.len) * 2;
         if (array->buf == NULL) {
@@ -712,17 +712,8 @@ U32 appendToSimpleBuffer(string data, I8_d_a *array, arena *perm) {
 
 #define STRING_CONVERTER_BUF_LEN 1 << 10
 U8 stringConverterBuf[STRING_CONVERTER_BUF_LEN];
-static u_I8_a stringConverterBuffer =
-    (u_I8_a){.buf = stringConverterBuf, .len = STRING_CONVERTER_BUF_LEN};
-
-string I8ToString(I8 data, u_I8_a tmp) {
-    tmp.buf[0] = data;
-    return STRING_LEN(tmp.buf, 1);
-}
-
-string I8ToStringDefault(I8 data) {
-    return I8ToString(data, stringConverterBuffer);
-}
+static U8_a stringConverterBuffer =
+    (U8_a){.buf = stringConverterBuf, .len = STRING_CONVERTER_BUF_LEN};
 
 string stringToString(string data) { return data; }
 
@@ -730,7 +721,7 @@ string boolToString(bool data) {
     return (data ? STRING("true") : STRING("false"));
 }
 
-string ptrToString(void *data, u_I8_a tmp) {
+string ptrToString(void *data, U8_a tmp) {
     tmp.buf[0] = '0';
     tmp.buf[1] = 'x';
 
@@ -747,7 +738,7 @@ string ptrToStringDefault(void *data) {
     return ptrToString(data, stringConverterBuffer);
 }
 
-string U64ToString(U64 data, u_I8_a tmp) {
+string U64ToString(U64 data, U8_a tmp) {
     U8 *end = tmp.buf + tmp.len;
     U8 *beg = end;
     do {
@@ -760,7 +751,7 @@ string U64ToStringDefault(U64 data) {
     return U64ToString(data, stringConverterBuffer);
 }
 
-string I64ToString(I64 data, u_I8_a tmp) {
+string I64ToString(I64 data, U8_a tmp) {
     U8 *end = tmp.buf + tmp.len;
     U8 *beg = end;
     I64 t = data > 0 ? -data : data;
@@ -777,7 +768,7 @@ string I64ToStringDefault(I64 data) {
     return I64ToString(data, stringConverterBuffer);
 }
 
-string doubleToString(double data, u_I8_a tmp) {
+string F64ToString(F64 data, U8_a tmp) {
     U64 tmpLen = 0;
     U32 prec = 1000000; // i.e. 6 decimals
 
@@ -786,8 +777,8 @@ string doubleToString(double data, u_I8_a tmp) {
         data = -data;
     }
 
-    data += 0.5 / ((double)prec);      // round last decimal
-    if (data >= (double)(-1UL >> 1)) { // out of long range?
+    data += 0.5 / ((F64)prec);      // round last decimal
+    if (data >= (F64)(-1UL >> 1)) { // out of long range?
         tmp.buf[tmpLen++] = 'i';
         tmp.buf[tmpLen++] = 'n';
         tmp.buf[tmpLen++] = 'f';
@@ -795,10 +786,10 @@ string doubleToString(double data, u_I8_a tmp) {
     }
 
     U64 integral = (U64)data;
-    U64 fractional = (U64)((data - (double)integral) * (double)prec);
+    U64 fractional = (U64)((data - (F64)integral) * (F64)prec);
 
     U8 buf2[64];
-    u_I8_a tmp2 = (u_I8_a){.buf = buf2, .len = 64};
+    U8_a tmp2 = (U8_a){.buf = buf2, .len = 64};
 
     string part = U64ToString(integral, tmp2);
     memcpy(tmp.buf + tmpLen, part.buf, part.len);
@@ -821,11 +812,11 @@ string doubleToString(double data, u_I8_a tmp) {
     return STRING_LEN(tmp.buf, tmpLen);
 }
 
-string doubleToStringDefault(double data) {
-    return doubleToString(data, stringConverterBuffer);
+string F64ToStringDefault(F64 data) {
+    return F64ToString(data, stringConverterBuffer);
 }
 
-string stringWithMinSize(string data, U8 minSize, u_I8_a tmp) {
+string stringWithMinSize(string data, U8 minSize, U8_a tmp) {
     if (data.len >= minSize) {
         return data;
     }
