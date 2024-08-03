@@ -390,10 +390,11 @@ FillResult fillScreenLinesCopy(U64 dryStartIndex, U64 startIndex,
                           buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n');
             } else {
                 // The tab overflows into the next screen line.
-                // We mark the current screen line as having the exclusive end
-                // index of the current tab. This is fine as the drawLines
-                // function will black out any remaining space in the screen
-                // line, the same as a space.
+                // We mark the current screen line as having the
+                // exclusive end index of the current tab. This
+                // is fine as the drawLines function will black
+                // out any remaining space in the screen line,
+                // the same as a space.
                 if (maxNewScreenLinesToFill &&
                     screenLinesInWindow >= maxNewScreenLinesToFill) {
                     break;
@@ -403,9 +404,10 @@ FillResult fillScreenLinesCopy(U64 dryStartIndex, U64 startIndex,
                                                         MAX_GLYPSH_PER_COLUMN);
                 U8 extraSpacePreviousLine =
                     (U8)(glyphsPerLine - currentGlyphLen);
-                // The tab is split up in 2 screen lines, so the tab we
-                // encounter on the new line should know that part of it is
-                // already drawn in the previous line.
+                // The tab is split up in 2 screen lines, so the
+                // tab we encounter on the new line should know
+                // that part of it is already drawn in the
+                // previous line.
                 currentGlyphLen = additionalSpace - extraSpacePreviousLine;
                 screenLinesCopy[currentScreenLineIndex] = i;
                 logicalLineLens[currentScreenLineIndex] =
@@ -463,8 +465,8 @@ void toTail() {
                    fillResult.realScreenLinesWritten, MAX_GLYPSH_PER_COLUMN);
 
     U16 oldScreenLines = glyphsPerColumn - fillResult.realScreenLinesWritten;
-    // You can write 10 new screen lines while your screen originally displayed
-    // the first 40 screen lines, hence the distinction here.
+    // You can write 10 new screen lines while your screen originally
+    // displayed the first 40 screen lines, hence the distinction here.
     U16 originalScreenLines = RING_MINUS(
         finalScreenLineEntry, oldestScreenLineIndex, MAX_GLYPSH_PER_COLUMN);
 

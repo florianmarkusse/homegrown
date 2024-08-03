@@ -4,4 +4,3 @@ SpaceBeforeParens: ControlStatements
 KeepEmptyLinesAtTheStartOfBlocks: false
 BasedOnStyle: LLVM
 SortIncludes: true
-
