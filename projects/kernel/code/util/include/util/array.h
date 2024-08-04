@@ -8,7 +8,7 @@ extern "C" {
 #include "util/macros.h"
 #include "util/memory/arena.h"
 #include "util/memory/memory.h"
-#include "types.h"
+#include "interoperation/types.h"
 
 #define ARRAY(T)                                                               \
     struct {                                                                   \

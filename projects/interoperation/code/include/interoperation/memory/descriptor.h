@@ -1,11 +1,11 @@
-#ifndef MEMORY_MANAGEMENT_H
-#define MEMORY_MANAGEMENT_H
+#ifndef INTEROPERATION_MEMORY_DESCRIPTOR_H
+#define INTEROPERATION_MEMORY_DESCRIPTOR_H
 
 // TODO: This is a temporary home for the memory types. I prefer to strip off
 // all the UEFI stuff in the uefi part after which only the necessary data is
 // passed to the kernel as kernel parameters.
 
-#include "types.h"
+#include "interoperation/types.h"
 typedef enum MemoryType : U32 {
     RESERVED_MEMORY_TYPE,
     LOADER_CODE,

@@ -6,12 +6,12 @@
 #include "efi/c-efi-protocol-simple-file-system.h" // for SIMPLE_FILE_SYSTE...
 #include "efi/c-efi-protocol-simple-text-output.h" // for SimpleTextOutputP...
 #include "efi/c-efi-system.h"                      // for OPEN_PROTOCOL_BY_...
-#include "generated/kernel-magic.h"                // for KERNEL_MAGIC
 #include "globals.h"                               // for globals
-#include "memory-management.h"
-#include "memory/definitions.h" // for BYTES_TO_PAGES
-#include "memory/standard.h"    // for memcmp
-#include "printing.h"           // for error, printNumber
+#include "interoperation/generated/kernel-magic.h"
+#include "interoperation/memory/definitions.h" // for BYTES_TO_PAGES
+#include "interoperation/memory/descriptor.h"
+#include "memory/standard.h" // for memcmp
+#include "printing.h"        // for error, printNumber
 
 AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
     Status status;

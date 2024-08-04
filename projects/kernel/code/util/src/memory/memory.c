@@ -1,5 +1,5 @@
 #include "util/memory/memory.h"
-#include "types.h"
+#include "interoperation/types.h"
 
 #define NO_INLINE __attribute__((noinline))
 

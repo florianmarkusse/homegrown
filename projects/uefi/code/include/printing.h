@@ -1,7 +1,7 @@
 #ifndef PRINTING_H
 #define PRINTING_H
 
-#include "types.h" // for U8, USize, U16
+#include "interoperation/types.h" // for U8, USize, U16
 
 void error(U16 *string);
 void printNumber(USize number, U8 base);

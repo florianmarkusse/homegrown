@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-#include "types.h"            // for U32, U8, U64, I64, I8, U16
-#include "util/array-types.h" // for U8_a, uint8_max_a
-#include "util/macros.h"      // for MACRO_VAR
-#include "util/text/string.h" // for string
+#include "interoperation/types.h" // for U32, U8, U64, I64, I8, U16
+#include "util/array-types.h"     // for U8_a, uint8_max_a
+#include "util/macros.h"          // for MACRO_VAR
+#include "util/text/string.h"     // for string
 
 #define NEWLINE 0x01
 #define FLUSH 0x02

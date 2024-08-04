@@ -21,8 +21,8 @@ extern "C" {
 #endif
 
 #include "c-efi-base.h"
-#include "configuration-table.h"
-#include "memory-management.h"
+#include "interoperation/configuration-table.h"
+#include "interoperation/memory/descriptor.h"
 
 /*
  * Time Management

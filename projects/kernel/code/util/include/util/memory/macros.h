@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "types.h"
+#include "interoperation/types.h"
 
 #define ZERO_MEMORY 0x01
 #define NULL_ON_FAIL 0x02

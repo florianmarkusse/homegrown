@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "interoperation/types.h"
 
 /**
  * UEFI Base Environment

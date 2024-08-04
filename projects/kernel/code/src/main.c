@@ -1,11 +1,11 @@
-#include "hardware/idt.h"      // for setupIDT
-#include "kernel-parameters.h" // for KernelParameters
-#include "memory-management.h"
+#include "hardware/idt.h"                      // for setupIDT
+#include "interoperation/kernel-parameters.h"  // for KernelParameters
+#include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
+#include "interoperation/memory/descriptor.h"
+#include "interoperation/types.h" // for U32
 #include "memory-management/physical.h"
-#include "memory/definitions.h" // for KERNEL_PARAMS_START
-#include "types.h"              // for U32
-#include "util/log.h"           // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
-#include "util/text/string.h"   // for STRING
+#include "util/log.h"         // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
+#include "util/text/string.h" // for STRING
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
@@ -19,8 +19,6 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                                   .height = kernelParameters->fb.rows,
                                   .screen = (U32 *)kernelParameters->fb.ptr});
     setupIDT();
-
-    triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
     initPhysicalMemoryManager((KernelMemory){
         .totalDescriptorSize = kernelParameters->memory.totalDescriptorSize,

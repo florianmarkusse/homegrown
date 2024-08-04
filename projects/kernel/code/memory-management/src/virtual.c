@@ -1,5 +1,5 @@
-#include "memory/definitions.h"
-#include "types.h"
+#include "interoperation/memory/definitions.h"
+#include "interoperation/types.h"
 #include "util/assert.h"
 
 static U64 *level4PageTable;

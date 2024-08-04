@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#include "types.h"
+#include "interoperation/types.h"
 
 /* Copy N bytes of SRC to DEST.  */
 __attribute((nothrow, nonnull(1, 2))) void *

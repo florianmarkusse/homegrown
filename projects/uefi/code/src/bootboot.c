@@ -15,9 +15,9 @@
 #include "efi/c-efi-system.h"                      // for SystemTable
 #include "gdt.h"
 #include "globals.h"
-#include "kernel-parameters.h"
+#include "interoperation/kernel-parameters.h"
 #include "memory/boot-functions.h"
-#include "memory/definitions.h"
+#include "interoperation/memory/definitions.h"
 #include "memory/standard.h"
 #include "printing.h"
 #include "string.h"

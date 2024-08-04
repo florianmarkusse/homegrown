@@ -3,7 +3,7 @@
 
 #include "efi/c-efi-base.h" // for Lba
 #include "string.h"         // for AsciString
-#include "types.h"          // for U32, U64, USize
+#include "interoperation/types.h"          // for U32, U64, USize
 
 typedef struct {
     AsciString name;

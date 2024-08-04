@@ -2,7 +2,7 @@
 #define ACPI_C_ACPI_MADT_H
 
 #include "acpi/c-acpi-rsdt.h"
-#include "types.h"
+#include "interoperation/types.h"
 
 typedef struct __attribute((packed)) {
     CAcpiSDT header;

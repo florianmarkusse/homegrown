@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "types.h"
+#include "interoperation/types.h"
 
 struct PoolHead {
     struct PoolHead *next;

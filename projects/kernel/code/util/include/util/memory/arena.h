@@ -1,7 +1,7 @@
 #ifndef UTIL_MEMORY_ARENA_H
 #define UTIL_MEMORY_ARENA_H
 
-#include "types.h"
+#include "interoperation/types.h"
 
 typedef struct {
     U8 *beg;

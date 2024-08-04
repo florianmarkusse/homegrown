@@ -2,7 +2,7 @@
 #include "util/assert.h"        // for ASSERT
 #include "util/memory/macros.h" // for NULL_ON_FAIL, ZERO_MEMORY
 #include "util/memory/memory.h"
-#include "types.h"
+#include "interoperation/types.h"
 
 __attribute((malloc, alloc_align(3))) void *alloc(arena *a, I64 size,
                                                   U64 align,

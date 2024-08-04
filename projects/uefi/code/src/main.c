@@ -6,13 +6,13 @@
 #include "efi/c-efi-system.h"                      // for MemoryDescriptor
 #include "gdt.h"                                   // for enableNewGDT, pre...
 #include "globals.h"                               // for globals
-#include "kernel-parameters.h"                     // for KernelParameters
-#include "memory-management.h"
+#include "interoperation/kernel-parameters.h"                     // for KernelParameters
+#include "interoperation/memory/descriptor.h"
 #include "memory/boot-functions.h" // for mapMemoryAt, allo...
-#include "memory/definitions.h"    // for PAGE_SIZE, STACK_...
+#include "interoperation/memory/definitions.h"    // for PAGE_SIZE, STACK_...
 #include "printing.h"              // for error, printNumber
 #include "string.h"                // for AsciString
-#include "types.h"                 // for U64, U32, NULL
+#include "interoperation/types.h"                 // for U64, U32, NULL
 
 // static U8 in_exc = 0;
 

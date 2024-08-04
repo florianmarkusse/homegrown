@@ -1,8 +1,8 @@
 #ifndef MEMORY_MANAGEMENT_PHYSICAL_H
 #define MEMORY_MANAGEMENT_PHYSICAL_H
 
-#include "kernel-parameters.h"
-#include "memory-management.h"
+#include "interoperation/kernel-parameters.h"
+#include "interoperation/memory/descriptor.h"
 
 // TODO: table 7.10 UEFI spec section 7.2 - 7.2.1 , not fully complete yet I
 // think?

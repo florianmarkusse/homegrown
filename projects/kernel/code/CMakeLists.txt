@@ -74,7 +74,7 @@ add_custom_command(
 )
 
 set(MAIN_RESULT_BIN "${MAIN_RESULT}.bin")
-set(KERNEL_MAGIC_OUTPUT "${REPO_ROOT}/projects/interoperation/code/include/generated/kernel-magic.h")
+set(KERNEL_MAGIC_OUTPUT "${REPO_ROOT}/projects/interoperation/code/include/interoperation/generated/kernel-magic.h")
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
         COMMAND objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT} ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}

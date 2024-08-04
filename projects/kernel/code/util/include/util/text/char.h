@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "types.h"
+#include "interoperation/types.h"
 
 __attribute__((unused)) static inline U8 isAlphabetical(U8 ch) {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');

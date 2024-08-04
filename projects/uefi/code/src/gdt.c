@@ -1,7 +1,7 @@
 #include "gdt.h"
 #include "efi/c-efi-base.h"        // for PhysicalAddress
 #include "memory/boot-functions.h" // for allocAndZero
-#include "types.h"                 // for U64, U32, U16
+#include "interoperation/types.h"                 // for U64, U32, U16
 
 typedef struct {
     union {

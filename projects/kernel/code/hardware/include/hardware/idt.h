@@ -1,7 +1,7 @@
 #ifndef HARDWARE_IDT_H
 #define HARDWARE_IDT_H
 
-#include "types.h"
+#include "interoperation/types.h"
 typedef struct {
     U16 limit;
     U64 base;
