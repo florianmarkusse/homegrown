@@ -1,5 +1,5 @@
-#ifndef IDT_H
-#define IDT_H
+#ifndef HARDWARE_IDT_H
+#define HARDWARE_IDT_H
 
 #include "types.h"
 typedef struct {

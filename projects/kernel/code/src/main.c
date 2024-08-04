@@ -1,16 +1,13 @@
-#include "idt.h"               // for setupIDT
+#include "hardware/idt.h"      // for setupIDT
 #include "kernel-parameters.h" // for KernelParameters
 #include "memory-management.h"
+#include "memory-management/physical.h"
 #include "memory/definitions.h" // for KERNEL_PARAMS_START
-#include "physical.h"
-#include "types.h"            // for U32
-#include "util/log.h"         // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
-#include "util/text/string.h" // for STRING
+#include "types.h"              // for U32
+#include "util/log.h"           // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
+#include "util/text/string.h"   // for STRING
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
-
-#define HAXOR_GREEN 0x0000FF00
-#define HAXOR_WHITE 0x00FFFFFF
 
 __attribute__((section("kernel-start"))) int kernelmain() {
     KernelParameters *kernelParameters =

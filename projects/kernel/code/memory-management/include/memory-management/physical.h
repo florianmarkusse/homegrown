@@ -1,5 +1,5 @@
-#ifndef PHYSICAL_H
-#define PHYSICAL_H
+#ifndef MEMORY_MANAGEMENT_PHYSICAL_H
+#define MEMORY_MANAGEMENT_PHYSICAL_H
 
 #include "kernel-parameters.h"
 #include "memory-management.h"

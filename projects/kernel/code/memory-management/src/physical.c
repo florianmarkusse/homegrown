@@ -1,5 +1,5 @@
-#include "physical.h"
-#include "idt.h"
+#include "memory-management/physical.h"
+#include "hardware/idt.h"
 #include "kernel-parameters.h"
 #include "memory/definitions.h"
 #include "util/log.h"
