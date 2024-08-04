@@ -25,6 +25,30 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         .descriptors = kernelParameters->memory.descriptors,
         .descriptorSize = kernelParameters->memory.descriptorSize});
 
+    string firstBuffer =
+        (string){.buf = (typeof(U8 *))allocPhysicalPages(1), .len = PAGE_SIZE};
+
+    for (U64 i = 0; i < 100; i++) {
+        firstBuffer.buf[i] = 'A';
+    }
+    firstBuffer.buf[100] = '\n';
+    firstBuffer.len = 101;
+
+    FLUSH_AFTER { LOG(firstBuffer); }
+
+    string secondBuffer =
+        (string){.buf = (typeof(U8 *))allocPhysicalPages(1), .len = PAGE_SIZE};
+
+    for (U64 i = 0; i < 100; i++) {
+        secondBuffer.buf[i] = 'A';
+    }
+    secondBuffer.buf[100] = '\n';
+    secondBuffer.len = 101;
+
+    FLUSH_AFTER { LOG(secondBuffer); }
+
+    printPhysicalMemoryManagerStatus();
+
     // __asm__ __volatile__("int $3" ::"r"(0));
 
     // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }

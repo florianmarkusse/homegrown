@@ -8,4 +8,9 @@
 // think?
 bool canBeUsedByOS(MemoryType type);
 void initPhysicalMemoryManager(KernelMemory kernelMemory);
+void *allocPhysicalPages(U64 numberOfPages);
+void printPhysicalMemoryManagerStatus();
+
+#define GET_PHYSICAL(pages, t) (typeof(t))allocPhysicalPages(pages)
+
 #endif

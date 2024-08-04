@@ -1,8 +1,12 @@
 #include "memory-management/physical.h"
-#include "hardware/idt.h"
-#include "interoperation/kernel-parameters.h"
-#include "interoperation/memory/definitions.h"
-#include "util/log.h"
+#include "hardware/idt.h"                      // for triggerFault, FAULT_N...
+#include "interoperation/kernel-parameters.h"  // for KernelMemory
+#include "interoperation/memory/definitions.h" // for PAGE_SIZE
+#include "interoperation/types.h"              // for U64, U32, U8
+#include "util/array.h"                        // for MAX_LENGTH_ARRAY
+#include "util/log.h"                          // for LOG, LOG_CHOOSER_IMPL_1
+#include "util/memory/memory.h"                // for memcpy
+#include "util/text/string.h"                  // for STRING
 
 // NOTE This is a shitty PMM. This needs to be rewritten for sure!!!
 typedef struct {
@@ -12,7 +16,7 @@ typedef struct {
 
 typedef MAX_LENGTH_ARRAY(FreeMemory) FreeMemory_max_a;
 
-static FreeMemory_max_a freeMemory;
+static FreeMemory_max_a PMM;
 static U32 pageForPMM = 1;
 
 bool canBeUsedByOS(MemoryType type) {
@@ -28,12 +32,12 @@ bool canBeUsedByOS(MemoryType type) {
     }
 }
 
-U64 allocPhysicalPages(U64 numberOfPages) {
-    for (U64 i = 0; i < freeMemory.len; i++) {
-        if (freeMemory.buf[i].numberOfPages >= numberOfPages) {
-            freeMemory.buf[i].numberOfPages -= numberOfPages;
-            freeMemory.buf[i].pageStart += numberOfPages * PAGE_SIZE;
-            return freeMemory.buf[i].pageStart;
+void *allocPhysicalPages(U64 numberOfPages) {
+    for (U64 i = 0; i < PMM.len; i++) {
+        if (PMM.buf[i].numberOfPages >= numberOfPages) {
+            PMM.buf[i].numberOfPages -= numberOfPages;
+            PMM.buf[i].pageStart += numberOfPages * PAGE_SIZE;
+            return (void *)PMM.buf[i].pageStart;
         }
     }
 
@@ -43,7 +47,7 @@ U64 allocPhysicalPages(U64 numberOfPages) {
 }
 
 void addPhysicalPages(U64 physicalAddress, U64 numberOfPages) {
-    if (freeMemory.len >= freeMemory.cap) {
+    if (PMM.len >= PMM.cap) {
         FLUSH_AFTER {
             LOG(STRING("Allocated pages ("));
             LOG(pageForPMM);
@@ -52,40 +56,57 @@ void addPhysicalPages(U64 physicalAddress, U64 numberOfPages) {
         }
 
         FreeMemory *newBuf = (FreeMemory *)allocPhysicalPages(pageForPMM + 1);
-        memcpy(newBuf, freeMemory.buf,
-               freeMemory.len * sizeof(*freeMemory.buf));
+        memcpy(newBuf, PMM.buf, PMM.len * sizeof(*PMM.buf));
         // The page that just got freed should be added now.
-        newBuf[freeMemory.len] = (FreeMemory){.pageStart = (U64)freeMemory.buf,
-                                              .numberOfPages = pageForPMM};
-        freeMemory.len++;
-        freeMemory.buf = newBuf;
-        freeMemory.cap = (PAGE_SIZE * (pageForPMM + 1)) / sizeof(FreeMemory);
+        newBuf[PMM.len] = (FreeMemory){.pageStart = (U64)PMM.buf,
+                                       .numberOfPages = pageForPMM};
+        PMM.len++;
+        PMM.buf = newBuf;
+        PMM.cap = (PAGE_SIZE * (pageForPMM + 1)) / sizeof(FreeMemory);
 
         pageForPMM++;
     }
 
-    freeMemory.buf[freeMemory.len] = (FreeMemory){
-        .pageStart = physicalAddress, .numberOfPages = numberOfPages};
-    freeMemory.len++;
+    PMM.buf[PMM.len] = (FreeMemory){.pageStart = physicalAddress,
+                                    .numberOfPages = numberOfPages};
+    PMM.len++;
+}
+
+void printPhysicalMemoryManagerStatus() {
+    U64 totalPages = 0;
+    for (U64 i = 0; i < PMM.len; i++) {
+        totalPages += PMM.buf[i].numberOfPages;
+    }
+
+    FLUSH_AFTER {
+        LOG(STRING("Physical Memory status\n"));
+        LOG(STRING("Total free pages:\t"));
+        LOG(totalPages, NEWLINE);
+        LOG(STRING("Total memory slabs:\t"));
+        LOG(PMM.len, NEWLINE);
+        LOG(STRING("First 3 memory slabs in detail:\n"));
+        for (U64 i = 0; i < 3 && i < PMM.len; i++) {
+            LOG(STRING("Page start:\t"));
+            LOG((void *)PMM.buf[i].pageStart, NEWLINE);
+            LOG(STRING("Number of pages:\t"));
+            LOG(PMM.buf[i].numberOfPages, NEWLINE);
+        }
+    }
 }
 
 // Coming into this, All the memory is identity mapped.
 void initPhysicalMemoryManager(KernelMemory kernelMemory) {
-    U64 totalPages = 0;
-    U64 freePages = 0;
     for (U64 i = 0; i < kernelMemory.totalDescriptorSize;
          i += kernelMemory.descriptorSize) {
         MemoryDescriptor *descriptor =
             (MemoryDescriptor *)((U8 *)kernelMemory.descriptors + i);
 
-        totalPages += descriptor->number_of_pages;
-
         if (canBeUsedByOS(descriptor->type)) {
             // Bootstrapping ourselves here.
-            if (!freeMemory.buf) {
-                freeMemory.buf = (FreeMemory *)descriptor->physical_start;
-                freeMemory.cap = PAGE_SIZE / sizeof(FreeMemory);
-                freeMemory.len = 0;
+            if (!PMM.buf) {
+                PMM.buf = (FreeMemory *)descriptor->physical_start;
+                PMM.cap = PAGE_SIZE / sizeof(FreeMemory);
+                PMM.len = 0;
 
                 descriptor->physical_start += PAGE_SIZE;
                 descriptor->number_of_pages--;
@@ -98,29 +119,5 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory) {
         }
     }
 
-    FLUSH_AFTER {
-        LOG(STRING("Total pages:\t"));
-        LOG(totalPages, NEWLINE);
-        LOG(STRING("Total memory:\t"));
-        LOG(totalPages * 4);
-        LOG(STRING("Kib"), NEWLINE);
-        LOG(STRING("Free pages:\t\t"));
-        LOG(freePages, NEWLINE);
-        LOG(STRING("Free memory:\t"));
-        LOG(freePages * 4);
-        LOG(STRING("Kib"), NEWLINE);
-    }
-
-    FLUSH_AFTER {
-        LOG(STRING("Physical Memory status\n\n"));
-        LOG(STRING("Total memory slabs:\t"));
-        LOG(freeMemory.len, NEWLINE);
-        LOG(STRING("First 10 memory slabs in detaul:\n"));
-        for (U64 i = 0; i < 10 && i < freeMemory.len; i++) {
-            LOG(STRING("Page start:\t"));
-            LOG((void *)freeMemory.buf[i].pageStart, NEWLINE);
-            LOG(STRING("Number of pages:\t"));
-            LOG(freeMemory.buf[i].numberOfPages, NEWLINE);
-        }
-    }
+    printPhysicalMemoryManagerStatus();
 }
