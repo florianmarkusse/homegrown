@@ -6,7 +6,7 @@
 // passed to the kernel as kernel parameters.
 
 #include "types.h"
-typedef enum MemoryType {
+typedef enum MemoryType : U32 {
     RESERVED_MEMORY_TYPE,
     LOADER_CODE,
     LOADER_DATA,
@@ -41,7 +41,7 @@ typedef enum MemoryType {
 #define MEMORY_DESCRIPTOR_VERSION U32_C(0x00000001)
 
 typedef struct MemoryDescriptor {
-    U32 type;
+    MemoryType type;
     U64 physical_start;
     U64 virtual_start;
     U64 number_of_pages;

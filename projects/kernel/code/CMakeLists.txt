@@ -9,17 +9,18 @@ include("../../setup.cmake")
 initial_setup()
 
 add_library(${MAIN_RESULT} OBJECT
-        "src/main.c" 
+        "src/main.c"
         "src/acpi/signature.c"
-        "src/idt.c"
-        "src/idts.S"
         )
 
 target_include_directories(${MAIN_RESULT} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(${MAIN_RESULT} PUBLIC "${REPO_ROOT}/projects/interoperation/code/include")
 
 set(LINKING_LIBRARIES
-    util)
+    util
+    memory-management
+    hardware
+)
 set(LINKING_LIBRARIES_LOCATIONS)
 foreach(LINK_LIBRARY ${LINKING_LIBRARIES})
     add_subdirectory(${LINK_LIBRARY})
@@ -54,21 +55,21 @@ add_custom_target(embedded-resources ALL DEPENDS ${RESOURCE_OBJECTS})
 
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
-        COMMAND ${CMAKE_LINKER} -n -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld 
-            -o ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT} 
-            $<TARGET_OBJECTS:${MAIN_RESULT}> 
-            ${RESOURCE_OBJECTS} 
+        COMMAND ${CMAKE_LINKER} -n -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
+            -o ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
+            $<TARGET_OBJECTS:${MAIN_RESULT}>
+            ${RESOURCE_OBJECTS}
             ${LINKING_LIBRARIES_LOCATIONS}
         COMMAND objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT} > ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.asm
         COMMAND objdump -x ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT} > ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.objdump
         COMMAND_EXPAND_LISTS
         VERBATIM
         BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.asm ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.objdump
-        DEPENDS 
+        DEPENDS
             $<TARGET_OBJECTS:${MAIN_RESULT}>
-            ${CMAKE_CURRENT_SOURCE_DIR}/main.ld 
+            ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
             ${LINKING_LIBRARIES_LOCATIONS}
-            ${RESOURCE_OBJECTS} 
+            ${RESOURCE_OBJECTS}
         COMMENT "Linking ${MAIN_RESULT}"
 )
 

@@ -551,46 +551,118 @@ void setupIDT() {
     asm_lidt(&idtp);
 }
 
-typedef enum : U64 {
-    FAULT_DIVIDE_ERROR = 0,
-    FAULT_DEBUG = 1,
-    FAULT_NMI = 2,
-    FAULT_BREAKPOINT = 3,
-    FAULT_OVERFLOW = 4,
-    FAULT_BOUND_RANGE_EXCEED = 5,
-    FAULT_INVALID_OPCODE = 6,
-    FAULT_DEVICE_NOT_AVAILABLE = 7,
-    FAULT_DOUBLE_FAULT = 8,
-    FAULT_9_RESERVED = 9,
-    FAULT_INVALID_TSS = 10,
-    FAULT_SEGMENT_NOT_PRESENT = 11,
-    FAULT_STACK_FAULT = 12,
-    FAULT_GENERAL_PROTECTION = 13,
-    FAULT_PAGE_FAULT = 14,
-    FAULT_15_RESERVED = 15,
-    FAULT_FPU_ERROR = 16,
-    FAULT_ALIGNMENT_CHECK = 17,
-    FAULT_MACHINE_CHECK = 18,
-    FAULT_SIMD_FLOATING_POINT = 19,
-    FAULT_VIRTUALIZATION = 20,
-    FAULT_CONTROL_PROTECTION = 21,
-    FAULT_22_RESERVED = 22,
-    FAULT_23_RESERVED = 23,
-    FAULT_24_RESERVED = 24,
-    FAULT_25_RESERVED = 25,
-    FAULT_26_RESERVED = 26,
-    FAULT_27_RESERVED = 27,
-    FAULT_28_RESERVED = 28,
-    FAULT_29_RESERVED = 29,
-    FAULT_30_RESERVED = 30,
-    FAULT_31_RESERVED = 31,
-    // User defined faults start here
-    FAULT_USER = 32,
-    FAULT_SYSCALL = 33,
-
-    // Keep this to know how many we have defined
-    FAULT_NUMS
-} Fault;
+void triggerFault(Fault fault) {
+    switch (fault) {
+    case FAULT_DIVIDE_ERROR:
+        __asm__ __volatile__("int $0x00" :::);
+        break;
+    case FAULT_DEBUG:
+        __asm__ __volatile__("int $0x01" :::);
+        break;
+    case FAULT_NMI:
+        __asm__ __volatile__("int $0x02" :::);
+        break;
+    case FAULT_BREAKPOINT:
+        __asm__ __volatile__("int $0x03" :::);
+        break;
+    case FAULT_OVERFLOW:
+        __asm__ __volatile__("int $0x04" :::);
+        break;
+    case FAULT_BOUND_RANGE_EXCEED:
+        __asm__ __volatile__("int $0x05" :::);
+        break;
+    case FAULT_INVALID_OPCODE:
+        __asm__ __volatile__("int $0x06" :::);
+        break;
+    case FAULT_DEVICE_NOT_AVAILABLE:
+        __asm__ __volatile__("int $0x07" :::);
+        break;
+    case FAULT_DOUBLE_FAULT:
+        __asm__ __volatile__("int $0x08" :::);
+        break;
+    case FAULT_9_RESERVED:
+        __asm__ __volatile__("int $0x09" :::);
+        break;
+    case FAULT_INVALID_TSS:
+        __asm__ __volatile__("int $0x0A" :::);
+        break;
+    case FAULT_SEGMENT_NOT_PRESENT:
+        __asm__ __volatile__("int $0x0B" :::);
+        break;
+    case FAULT_STACK_FAULT:
+        __asm__ __volatile__("int $0x0C" :::);
+        break;
+    case FAULT_GENERAL_PROTECTION:
+        __asm__ __volatile__("int $0x0D" :::);
+        break;
+    case FAULT_PAGE_FAULT:
+        __asm__ __volatile__("int $0x0E" :::);
+        break;
+    case FAULT_15_RESERVED:
+        __asm__ __volatile__("int $0x0F" :::);
+        break;
+    case FAULT_FPU_ERROR:
+        __asm__ __volatile__("int $0x10" :::);
+        break;
+    case FAULT_ALIGNMENT_CHECK:
+        __asm__ __volatile__("int $0x11" :::);
+        break;
+    case FAULT_MACHINE_CHECK:
+        __asm__ __volatile__("int $0x12" :::);
+        break;
+    case FAULT_SIMD_FLOATING_POINT:
+        __asm__ __volatile__("int $0x13" :::);
+        break;
+    case FAULT_VIRTUALIZATION:
+        __asm__ __volatile__("int $0x14" :::);
+        break;
+    case FAULT_CONTROL_PROTECTION:
+        __asm__ __volatile__("int $0x15" :::);
+        break;
+    case FAULT_22_RESERVED:
+        __asm__ __volatile__("int $0x16" :::);
+        break;
+    case FAULT_23_RESERVED:
+        __asm__ __volatile__("int $0x17" :::);
+        break;
+    case FAULT_24_RESERVED:
+        __asm__ __volatile__("int $0x18" :::);
+        break;
+    case FAULT_25_RESERVED:
+        __asm__ __volatile__("int $0x19" :::);
+        break;
+    case FAULT_26_RESERVED:
+        __asm__ __volatile__("int $0x1A" :::);
+        break;
+    case FAULT_27_RESERVED:
+        __asm__ __volatile__("int $0x1B" :::);
+        break;
+    case FAULT_28_RESERVED:
+        __asm__ __volatile__("int $0x1C" :::);
+        break;
+    case FAULT_29_RESERVED:
+        __asm__ __volatile__("int $0x1D" :::);
+        break;
+    case FAULT_30_RESERVED:
+        __asm__ __volatile__("int $0x1E" :::);
+        break;
+    case FAULT_31_RESERVED:
+        __asm__ __volatile__("int $0x1F" :::);
+        break;
+    case FAULT_USER:
+        __asm__ __volatile__("int $0x20" :::);
+        break;
+    case FAULT_SYSCALL:
+        __asm__ __volatile__("int $0x21" :::);
+        break;
+    case FAULT_NO_MORE_PHYSICAL_MEMORY:
+        __asm__ __volatile__("int $0x22" :::);
+        break;
+    default:
+        __asm__ __volatile__("int $0xFF" :::);
+        break;
+    }
+}
 
 static string faultStrings[FAULT_NUMS] = {
     STRING("Divide Error"),
@@ -615,16 +687,20 @@ static string faultStrings[FAULT_NUMS] = {
     STRING("SIMD Floating-Point Exception"),
     STRING("Virtualization Exception"),
     STRING("Control Protection Exception"),
-    STRING("Reserved fault"),
-    STRING("Reserved fault"),
-    STRING("Reserved fault"),
-    STRING("Reserved fault"),
-    STRING("Reserved fault"),
-    STRING("Reserved fault"),
-    STRING("Reserved fault"),
-    STRING("Reserved fault"),
+    STRING("Reserved fault _ 22"),
+    STRING("Reserved fault _ 23"),
+    STRING("Reserved fault _ 24"),
+    STRING("Reserved fault _ 25"),
+    STRING("Reserved fault _ 26"),
+    STRING("Reserved fault _ 27"),
+    STRING("Reserved fault _ 28"),
+    STRING("Reserved fault _ 29"),
+    STRING("Reserved fault _ 30"),
+    STRING("Reserved fault _ 31"),
     STRING("User Defined"),
-    STRING("System Call")};
+    STRING("System Call"),
+    STRING("No more physical memory"),
+};
 
 typedef struct {
     // Segment selectors with alignment attributes

@@ -2,9 +2,10 @@
 #include "kernel-parameters.h" // for KernelParameters
 #include "memory-management.h"
 #include "memory/definitions.h" // for KERNEL_PARAMS_START
-#include "types.h"              // for U32
-#include "util/log.h"           // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
-#include "util/text/string.h"   // for STRING
+#include "physical.h"
+#include "types.h"            // for U32
+#include "util/log.h"         // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
+#include "util/text/string.h" // for STRING
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
@@ -22,25 +23,12 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                                   .screen = (U32 *)kernelParameters->fb.ptr});
     setupIDT();
 
-    KernelMemory kernelMemory = (KernelMemory){
+    triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
+
+    initPhysicalMemoryManager((KernelMemory){
         .totalDescriptorSize = kernelParameters->memory.totalDescriptorSize,
         .descriptors = kernelParameters->memory.descriptors,
-        .descriptorSize = kernelParameters->memory.descriptorSize};
-
-    for (U64 i = 0; i < kernelMemory.descriptorSize * 10;
-         i += kernelMemory.descriptorSize) {
-        MemoryDescriptor *descriptor =
-            (MemoryDescriptor *)((U8 *)kernelMemory.descriptors + i);
-
-        FLUSH_AFTER {
-            LOG(STRING("PAddr:\t"));
-            LOG((void *)descriptor->physical_start);
-            LOG(STRING("\tVAddr:\t"));
-            LOG(descriptor->virtual_start);
-            LOG(STRING("\tNumber of pages:\t"));
-            LOG(descriptor->number_of_pages, NEWLINE);
-        }
-    }
+        .descriptorSize = kernelParameters->memory.descriptorSize});
 
     // __asm__ __volatile__("int $3" ::"r"(0));
 

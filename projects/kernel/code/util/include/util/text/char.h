@@ -5,18 +5,17 @@
 extern "C" {
 #endif
 
-__attribute__((unused)) static inline U8
-isAlphabetical(U8 ch) {
+#include "types.h"
+
+__attribute__((unused)) static inline U8 isAlphabetical(U8 ch) {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
 }
 
-__attribute__((unused)) static inline U8
-isNumerical(U8 ch) {
+__attribute__((unused)) static inline U8 isNumerical(U8 ch) {
     return (ch >= '0' && ch <= '9');
 }
 
-__attribute__((unused)) static inline U8
-isFormattingCharacter(U8 ch) {
+__attribute__((unused)) static inline U8 isFormattingCharacter(U8 ch) {
     return ch == '\t' || ch == '\n' || ch == '\r';
 }
 
