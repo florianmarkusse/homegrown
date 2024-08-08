@@ -721,6 +721,7 @@ string boolToString(bool data) {
     return (data ? STRING("true") : STRING("false"));
 }
 
+static U8 hexString[] = "0123456789abcdef";
 string ptrToString(void *data, U8_a tmp) {
     tmp.buf[0] = '0';
     tmp.buf[1] = 'x';
@@ -728,7 +729,7 @@ string ptrToString(void *data, U8_a tmp) {
     U64 counter = 2;
     U64 u = (U64)data;
     for (int i = 2 * sizeof(u) - 1; i >= 0; i--) {
-        tmp.buf[counter++] = "0123456789abcdef"[(u >> (4 * i)) & 15];
+        tmp.buf[counter++] = hexString[(u >> (4 * i)) & 15];
     }
 
     return (string){.len = counter - 1, .buf = tmp.buf};
