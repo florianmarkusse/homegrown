@@ -17,7 +17,7 @@ PhysicalAddress allocAndZero(USize numPages) {
     return page;
 }
 
-void mapMemoryAt(U64 phys, U64 virt, U64 size) {
+void mapMemoryAt(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
     /* is this a canonical address? We handle virtual memory up to 256TB */
     if (!globals.level4PageTable ||
         ((virt >> 48L) != 0x0000 && (virt >> 48L) != 0xffff)) {
@@ -55,7 +55,8 @@ void mapMemoryAt(U64 phys, U64 virt, U64 size) {
         /* if this page is already mapped, that means the kernel has invalid,
          * overlapping segments */
         if (!*pageEntry) {
-            *pageEntry = phys | (PAGE_PRESENT | PAGE_WRITABLE);
+            *pageEntry =
+                phys | (PAGE_PRESENT | PAGE_WRITABLE) | additionalFlags;
         } //  else {
         //     error(u"This should not happen!\r\n");
         // }

@@ -6,13 +6,13 @@
 #include "efi/c-efi-system.h"                      // for MemoryDescriptor
 #include "gdt.h"                                   // for enableNewGDT, pre...
 #include "globals.h"                               // for globals
-#include "interoperation/kernel-parameters.h"                     // for KernelParameters
+#include "interoperation/kernel-parameters.h"      // for KernelParameters
+#include "interoperation/memory/definitions.h"     // for PAGE_SIZE, STACK_...
 #include "interoperation/memory/descriptor.h"
+#include "interoperation/types.h"  // for U64, U32, NULL
 #include "memory/boot-functions.h" // for mapMemoryAt, allo...
-#include "interoperation/memory/definitions.h"    // for PAGE_SIZE, STACK_...
 #include "printing.h"              // for error, printNumber
 #include "string.h"                // for AsciString
-#include "interoperation/types.h"                 // for U64, U32, NULL
 
 // static U8 in_exc = 0;
 
@@ -329,7 +329,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Attempting to map memory now...\r\n");
     mapMemoryAt((U64)kernelContent.buf, KERNEL_CODE_START,
-                (U32)kernelContent.len);
+                (U32)kernelContent.len, 0);
 
     __asm__ __volatile__("cli");
 
@@ -355,11 +355,11 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
             (MemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
                                  (i * memoryInfo.descriptorSize));
         mapMemoryAt(desc->physical_start, desc->physical_start,
-                    desc->number_of_pages * PAGE_SIZE);
+                    desc->number_of_pages * PAGE_SIZE, 0);
     }
 
     mapMemoryAt(gop->mode->frameBufferBase, gop->mode->frameBufferBase,
-                gop->mode->frameBufferSize);
+                gop->mode->frameBufferSize, PAGE_WRITE_THROUGH);
 
     globals.frameBufferAddress = gop->mode->frameBufferBase;
     globals.st->con_out->output_string(globals.st->con_out,
@@ -370,13 +370,13 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.st->con_out->output_string(
         globals.st->con_out, u"Creating space for kernel parameters...\r\n");
     PhysicalAddress kernelParams = allocAndZero(KERNEL_PARAMS_SIZE / PAGE_SIZE);
-    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, KERNEL_PARAMS_SIZE);
+    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, KERNEL_PARAMS_SIZE, 0);
     KernelParameters *params = (KernelParameters *)kernelParams;
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Creating space for stack...\r\n");
     PhysicalAddress stackEnd = allocAndZero(STACK_SIZE / PAGE_SIZE);
-    mapMemoryAt(stackEnd, BOTTOM_STACK, STACK_SIZE);
+    mapMemoryAt(stackEnd, BOTTOM_STACK, STACK_SIZE, 0);
     PhysicalAddress stackPointer = stackEnd + STACK_SIZE;
 
     globals.st->con_out->output_string(globals.st->con_out,
