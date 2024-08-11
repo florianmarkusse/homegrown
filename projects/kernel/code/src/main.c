@@ -35,8 +35,6 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     firstBuffer.buf[100] = '\n';
     firstBuffer.len = 101;
 
-    FLUSH_AFTER { LOG(firstBuffer); }
-
     string secondBuffer =
         (string){.buf = (typeof(U8 *))allocContiguousBasePhysicalPages(1),
                  .len = PAGE_SIZE};
@@ -46,8 +44,6 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     }
     secondBuffer.buf[100] = '\n';
     secondBuffer.len = 101;
-
-    FLUSH_AFTER { LOG(secondBuffer); }
 
     printPhysicalMemoryManagerStatus();
 

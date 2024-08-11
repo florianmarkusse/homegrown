@@ -354,8 +354,8 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
         MemoryDescriptor *desc =
             (MemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
                                  (i * memoryInfo.descriptorSize));
-        mapMemoryAt(desc->physical_start, desc->physical_start,
-                    desc->number_of_pages * PAGE_SIZE, 0);
+        mapMemoryAt(desc->physicalStart, desc->physicalStart,
+                    desc->numberOfPages * PAGE_SIZE, 0);
     }
 
     mapMemoryAt(gop->mode->frameBufferBase, gop->mode->frameBufferBase,

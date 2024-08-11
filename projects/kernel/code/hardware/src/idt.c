@@ -1,4 +1,5 @@
 #include "hardware/idt.h"
+#include "util/assert.h"
 #include "util/log.h"           // for LOG, LOG_CHOOSER_IMPL_1, LOG_CHOOSER...
 #include "util/memory/memory.h" // for memset
 #include "util/text/string.h"   // for STRING, string

@@ -11,6 +11,10 @@ extern "C" {
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define ABS(x) (((x) < 0) ? (-(x)) : (x))
 
+#define ALIGN_UP(val, exponent)                                                \
+    (((val) + ((1 << (exponent)) - 1)) & ~((1 << (exponent)) - 1))
+#define ALIGN_DOWN(val, exponent) ((val) & ~((1 << (exponent)) - 1))
+
 #define RING_RANGE(val, ringSize) (((val)) & ((ringSize) - 1))
 #define RING_INCREMENT(val, ringSize) (((val) + 1) & ((ringSize) - 1))
 #define RING_PLUS(val, amount, ringSize) (((val) + (amount)) & ((ringSize) - 1))
@@ -18,8 +22,7 @@ extern "C" {
 #define RING_MINUS(val, amount, ringSize)                                      \
     (((val) - (amount)) & ((ringSize) - 1))
 
-__attribute__((unused)) static inline U64 power(U64 base,
-                                                     U64 exponent) {
+__attribute__((unused)) static inline U64 power(U64 base, U64 exponent) {
     U64 result = 1;
 
     while (exponent > 0) {

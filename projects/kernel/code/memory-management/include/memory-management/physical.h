@@ -16,6 +16,7 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory);
 
 U64 allocContiguousBasePhysicalPages(U64 numberOfPages);
 FreeMemory_a allocBasePhysicalPages(FreeMemory_a pages);
+void freeBasePhysicalPage(FreeMemory page);
 void freeBasePhysicalPages(FreeMemory_a pages);
 
 void printPhysicalMemoryManagerStatus();

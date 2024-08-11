@@ -42,9 +42,9 @@ typedef enum MemoryType : U32 {
 
 typedef struct MemoryDescriptor {
     MemoryType type;
-    U64 physical_start;
-    U64 virtual_start;
-    U64 number_of_pages;
+    U64 physicalStart;
+    U64 virtualStart;
+    U64 numberOfPages;
     U64 attribute;
 } MemoryDescriptor;
 

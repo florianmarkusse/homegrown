@@ -6,6 +6,8 @@ extern "C" {
 #endif
 
 #ifdef DEBUG
+// Use set $pc += 2 to resume exection
+#define BREAKPOINT __asm__ __volatile__("1: jmp 1b");
 #if _MSC_VER
 #define ASSERT(c)                                                              \
     if (!(c))                                                                  \
@@ -23,6 +25,7 @@ extern "C" {
 #endif
 #else
 #define ASSERT(c) ((void)0)
+#define BREAKPOINT ((void)0)
 #endif
 
 #ifdef __cplusplus

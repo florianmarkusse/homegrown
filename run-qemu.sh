@@ -87,6 +87,8 @@ QEMU_OPTIONS=(
     -smp 1
     -usb
     -vga std
+    -cpu host
+    -enable-kvm
 )
 
 if [ "$VERBOSE" = true ]; then
@@ -98,13 +100,6 @@ fi
 if [ "$DEBUG" = true ]; then
     QEMU_OPTIONS+=(
         -s -S
-        -accel "tcg,thread=single"
-        -cpu core2duo
-    )
-else
-    QEMU_OPTIONS+=(
-        -cpu host
-        -enable-kvm
     )
 fi
 

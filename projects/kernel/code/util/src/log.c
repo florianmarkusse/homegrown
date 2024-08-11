@@ -721,7 +721,7 @@ string boolToString(bool data) {
     return (data ? STRING("true") : STRING("false"));
 }
 
-static U8 hexString[] = "0123456789abcdef";
+static U8 hexString[] = "0123456789ABCDEF";
 string ptrToString(void *data, U8_a tmp) {
     tmp.buf[0] = '0';
     tmp.buf[1] = 'x';
