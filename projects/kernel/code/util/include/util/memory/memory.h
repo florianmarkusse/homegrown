@@ -18,8 +18,8 @@ __attribute((nothrow, nonnull(1, 2))) void *memmove(void *dest, const void *src,
 __attribute((nothrow, nonnull(1))) void *memset(void *s, int c, I64 n);
 
 /* Compare N bytes of S1 and S2.  */
-__attribute((nothrow, pure, nonnull(1, 2))) int
-memcmp(const void *s1, const void *s2, I64 n);
+__attribute((nothrow, pure, nonnull(1, 2))) int memcmp(const void *s1,
+                                                       const void *s2, I64 n);
 
 #ifdef __cplusplus
 }

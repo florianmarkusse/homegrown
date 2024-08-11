@@ -20,6 +20,7 @@ typedef MAX_LENGTH_ARRAY(bool) bool_max_a;
 typedef ARRAY(U8) U8_a;
 typedef ARRAY(I8 *) I8_ptr_a;
 typedef ARRAY(bool) bool_a;
+typedef ARRAY(void *) void_ptr_a;
 
 #ifdef __cplusplus
 }
