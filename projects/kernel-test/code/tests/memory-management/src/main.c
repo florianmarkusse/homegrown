@@ -2,13 +2,10 @@
 #include <stdio.h>
 
 int main() {
-    testSuiteStart();
+    testSuiteStart(STRING("memory-management"));
 
     TEST_TOPIC(STRING("Physical memory tests")) {
-        TEST(STRING("Does it work")) {
-            printf("hello world!b");
-            testSuccess();
-        }
+        TEST(STRING("Does it work")) { testSuccess(); }
     }
 
     return testSuiteFinish();

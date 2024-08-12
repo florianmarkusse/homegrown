@@ -40,8 +40,12 @@ void printTestScore(uint64_t successes, uint64_t failures) {
     }
 }
 
-void testSuiteStart() {
-    INFO((STRING("Starting test suite...\n\n")), FLUSH);
+void testSuiteStart(string mainTopic) {
+    FLUSH_AFTER(STDOUT) {
+        INFO((STRING("Starting test suite for")));
+        INFO(mainTopic);
+        INFO((STRING(" ...\n\n")));
+    }
 
     addTopic(STRING("Root topic"));
 }
@@ -85,7 +89,7 @@ void testTopicStart(string testTopic) {
 
 void testTopicFinish() {
     printTestScore(testTopics[nextTestTopic - 1].successes,
-                       testTopics[nextTestTopic - 1].failures);
+                   testTopics[nextTestTopic - 1].failures);
 
     nextTestTopic--;
 }
@@ -126,14 +130,14 @@ void testFailure() {
 
 void appendTestFailureStart() {
     ERROR((STRING("----------------------------------------------------"
-                          "----------------------------\n")));
+                  "----------------------------\n")));
     ERROR((STRING("|                                    REASON         "
-                          "                           |\n")));
+                  "                           |\n")));
 }
 
 void appendTestFailureFinish() {
     ERROR((STRING("|                                                   "
-                          "                           |\n")));
+                  "                           |\n")));
     ERROR((STRING("----------------------------------------------------"
-                          "----------------------------\n")));
+                  "----------------------------\n")));
 }
