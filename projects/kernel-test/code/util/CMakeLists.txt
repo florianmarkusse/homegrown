@@ -20,9 +20,6 @@ add_library(${LIBRARY} ${LIBRARY_TYPE}
     "src/log.c"
 )
 
-
-message(STATUS "BUIlding utilssss:             ${LIBRARY}")
-
 target_include_directories(${LIBRARY}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include

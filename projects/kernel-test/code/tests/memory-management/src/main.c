@@ -1,7 +1,15 @@
+#include "test-framework/test.h"
 #include <stdio.h>
 
 int main() {
-    printf("hello world!b");
+    testSuiteStart();
 
-    return 0;
+    TEST_TOPIC(STRING("Physical memory tests")) {
+        TEST(STRING("Does it work")) {
+            printf("hello world!b");
+            testSuccess();
+        }
+    }
+
+    return testSuiteFinish();
 }

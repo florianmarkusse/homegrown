@@ -11,5 +11,3 @@ add_library(${LIBRARY} ${LIBRARY_TYPE}
 target_include_directories(${LIBRARY} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(${LIBRARY} PRIVATE util-${CMAKE_BUILD_TYPE})
-
-add_subdirectory(tests)
