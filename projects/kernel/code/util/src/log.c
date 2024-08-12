@@ -689,7 +689,7 @@ void appendToFlushBuffer(string data, U8 flags) {
     }
 }
 
-U32 appendToSimpleBuffer(string data, U8_d_a *array, arena *perm) {
+U32 appendToSimpleBuffer(string data, U8_d_a *array, Arena *perm) {
     if (array->len + data.len > array->cap) {
         U64 newCap = (array->len + data.len) * 2;
         if (array->buf == NULL) {

@@ -1,13 +1,11 @@
 #include "util/memory/arena.h"
+#include "interoperation/types.h"
 #include "util/assert.h"        // for ASSERT
 #include "util/memory/macros.h" // for NULL_ON_FAIL, ZERO_MEMORY
 #include "util/memory/memory.h"
-#include "interoperation/types.h"
 
-__attribute((malloc, alloc_align(3))) void *alloc(arena *a, I64 size,
-                                                  U64 align,
-                                                  U64 count,
-                                                  U8 flags) {
+__attribute((malloc, alloc_align(3))) void *alloc(Arena *a, I64 size, U64 align,
+                                                  U64 count, U8 flags) {
     ASSERT((align & (align - 1)) == 0);
 
     U64 avail = a->end - a->beg;
