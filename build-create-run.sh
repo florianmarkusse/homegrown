@@ -3,6 +3,10 @@ set -eo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
+YELLOW='\033[33m'
+BOLD='\033[1m'
+NO_COLOR='\033[0m'
+
 BUILD_MODES=("Release" "Debug" "Profiling" "Fuzzing")
 BUILD_MODE="${BUILD_MODES[0]}"
 C_COMPILER=$(whereis clang-19 | awk '{ print $2 }')

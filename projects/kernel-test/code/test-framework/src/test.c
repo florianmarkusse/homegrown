@@ -42,7 +42,7 @@ void printTestScore(uint64_t successes, uint64_t failures) {
 
 void testSuiteStart(string mainTopic) {
     FLUSH_AFTER(STDOUT) {
-        INFO((STRING("Starting test suite for")));
+        INFO((STRING("Starting test suite for ")));
         INFO(mainTopic);
         INFO((STRING(" ...\n\n")));
     }

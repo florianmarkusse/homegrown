@@ -39,6 +39,8 @@ bool canBeUsedByOS(MemoryType type) {
     }
 }
 
+U64 testTest() { return 123; }
+
 // NOTE: We can add an index on top of the pages if this function becomes an
 // issue that is based on available pages.
 U64 allocContiguousBasePhysicalPages(U64 numberOfPages) {

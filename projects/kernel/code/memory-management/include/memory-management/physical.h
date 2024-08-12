@@ -14,6 +14,7 @@ typedef ARRAY(FreeMemory) FreeMemory_a;
 
 void initPhysicalMemoryManager(KernelMemory kernelMemory);
 
+U64 testTest();
 U64 allocContiguousBasePhysicalPages(U64 numberOfPages);
 FreeMemory_a allocBasePhysicalPages(FreeMemory_a pages);
 void freeBasePhysicalPage(FreeMemory page);
