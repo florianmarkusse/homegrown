@@ -1,1 +1,1 @@
-add_subdirectory(memory-management)
+add_subdirectory(quickie)

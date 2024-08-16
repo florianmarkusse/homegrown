@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.28)
-set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 project(kernel LANGUAGES C ASM)
-
-# TODO: SSE is still broken!!!
 set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector -mno-sse -mno-sse2"
 )
-
+set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 include("../../setup.cmake")
-initial_setup()
+
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+
+# TODO: SSE is still broken!!!
 
 add_library(${MAIN_RESULT} OBJECT "src/main.c" "src/acpi/signature.c")
 
@@ -21,7 +21,7 @@ target_include_directories(
     PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
 )
 
-set(LINKING_LIBRARIES util memory-management hardware quickie)
+set(LINKING_LIBRARIES "util" "memory-management" "hardware" "quickie")
 set(LINKING_LIBRARIES_LOCATIONS)
 foreach(LINK_LIBRARY ${LINKING_LIBRARIES})
     add_subdirectory(${LINK_LIBRARY})
@@ -116,10 +116,8 @@ add_custom_command(
     VERBATIM
     COMMENT "Copying binary data from ${MAIN_RESULT} into ${MAIN_RESULT_BIN}"
 )
-
-# TODO: check if this gets rebuilt when util or any other library changes.
 add_custom_target(
-    "${MAIN_RESULT}-final"
+    "${MAIN_RESULT}-binary-creator"
     ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
 )

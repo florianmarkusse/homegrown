@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.28)
 project(kernel-test LANGUAGES C ASM)
-
 include("../../setup.cmake")
-initial_setup()
+
+include(ExternalProject)
+
+set(TARGET_PREFIX "kernel-test")
 
 add_subdirectory(util)
 add_subdirectory(test-framework)

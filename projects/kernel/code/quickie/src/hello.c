@@ -1,3 +1,1 @@
-#include "quickie/hello.h"
-
-U64 getBigNumber() { return 123456868654; }
+int getBigNumber() { return 1234; }

@@ -4,6 +4,7 @@
 #include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h" // for U32
 #include "memory-management/physical.h"
+#include "quickie/hello.h"
 #include "util/log.h"         // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "util/text/string.h" // for STRING
 
@@ -54,6 +55,8 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                                            .pageStart = (U64)secondBuffer.buf}},
         .len = 2,
     });
+
+    FLUSH_AFTER { LOG(getBigNumber(), NEWLINE); }
 
     printPhysicalMemoryManagerStatus();
 
