@@ -10,6 +10,9 @@ NO_COLOR='\033[0m'
 BUILD_MODES=("Release" "Debug" "Profiling" "Fuzzing")
 BUILD_MODE="${BUILD_MODES[0]}"
 RUN_TESTS=false
+# TODO: Probably have to find a way to make sure that the kernel folder builds with the exact same configuration as is done in build.sh...
+C_COMPILER=$(whereis clang-19 | awk '{ print $2 }')
+LINKER=$(whereis ld | awk '{ print $2 }')
 
 function display_usage() {
     echo -e "${RED}${BOLD}Usage: $0 [${YELLOW}OPTIONS${RED}]${NO_COLOR}"
@@ -83,8 +86,8 @@ cd ${PROJECT}
 CONFIGURE_CMAKE_OPTIONS=(
     -S .
     -B build/
-    -D CMAKE_C_COMPILER="clang"
-    -D CMAKE_LINKER="clang"
+    -D CMAKE_C_COMPILER="$C_COMPILER"
+    -D CMAKE_LINKER="$LINKER"
     -D CMAKE_BUILD_TYPE="$BUILD_MODE"
 )
 

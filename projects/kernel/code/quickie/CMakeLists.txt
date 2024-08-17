@@ -6,10 +6,8 @@ set(LIBRARY_TYPE "STATIC")
 
 message(WARNING "I AM DYING heree")
 
-if(UNIT_TEST)
-    message(WARNING "Unit testing is enabled")
-else()
-    message(WARNING "Unit testing is disabled")
+if("${UNIT_TEST_BUILD}")
+    add_subdirectory(tests)
 endif()
 
 add_library(${LIBRARY} ${LIBRARY_TYPE} "src/hello.c")

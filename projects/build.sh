@@ -17,7 +17,7 @@ LINKER=$(whereis ld | awk '{ print $2 }')
 
 SELECTED_TARGETS=()
 
-BUILD_TESTS=false
+UNIT_TEST_BUILD=false
 INCLUDE_WHAT_YOU_USE=true
 USE_AVX=true
 USE_SSE=true
@@ -78,7 +78,7 @@ function display_configuration() {
         echo -e "${BOLD}${YELLOW}SELECTED_TARGETS${NO_COLOR}: ${YELLOW}ALL${NO_COLOR}"
     fi
 
-    display_single_flag_configuration $BUILD_TESTS "Tests"
+    display_single_flag_configuration $UNIT_TEST_BUILD "Tests"
     display_single_flag_configuration $INCLUDE_WHAT_YOU_USE "Include-What-You-Use"
     display_single_flag_configuration $USE_AVX "AVX"
     display_single_flag_configuration $USE_SSE "SSE"
@@ -112,7 +112,7 @@ while [[ "$#" -gt 0 ]]; do
         done
         ;;
     -t | --build-tests)
-        BUILD_TESTS=true
+        UNIT_TEST_BUILD=true
         shift
         ;;
     --no-avx)
@@ -147,6 +147,7 @@ CONFIGURE_CMAKE_OPTIONS=(
     -D CMAKE_BUILD_TYPE="$BUILD_MODE"
     -D USE_AVX="$USE_AVX"
     -D USE_SSE="$USE_SSE"
+    -D UNIT_TEST_BUILD="$UNIT_TEST_BUILD"
     # 	-D CMAKE_ASM_COMPILER="$ASSEMBLER"
     # 	-D CMAKE_ASM_INCLUDE="$ASSEMBLER_INCLUDE"
 )
@@ -172,12 +173,6 @@ echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
 cd ../../
-
-# -----------------------------------------------------------------------------
-
-if [ "$BUILD_TESTS" = true ]; then
-    ./test.sh
-fi
 
 # -----------------------------------------------------------------------------
 PROJECT="uefi-image-creator/code"
