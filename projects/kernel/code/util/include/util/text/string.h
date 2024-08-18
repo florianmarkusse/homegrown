@@ -5,9 +5,9 @@
 extern "C" {
 #endif
 
+#include "memory/manipulation/manipulation.h"
 #include "util/assert.h"
 #include "util/memory/arena.h"
-#include "util/memory/memory.h"
 
 #define EMPTY_STRING ((string){NULL, 0})
 #define STRING(s) ((string){(U8 *)(s), sizeof(s) - 1})

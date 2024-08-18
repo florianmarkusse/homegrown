@@ -15,6 +15,10 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 # TODO: SSE is still broken!!!
 add_library(${MAIN_RESULT} OBJECT "src/main.c" "src/acpi/signature.c")
 
+if("${UNIT_TEST_BUILD}")
+    add_compile_definitions(UNIT_TEST_BUILD)
+endif()
+
 target_include_directories(
     ${MAIN_RESULT}
     PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
@@ -24,20 +28,67 @@ target_include_directories(
     PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
 )
 
-set(LINKING_LIBRARIES "util" "memory-management" "hardware" "quickie")
 set(LINKING_LIBRARIES_LOCATIONS)
-foreach(LINK_LIBRARY ${LINKING_LIBRARIES})
-    add_subdirectory(${LINK_LIBRARY})
-    target_link_libraries(
-        ${MAIN_RESULT}
-        PRIVATE ${LINK_LIBRARY}-${CMAKE_BUILD_TYPE}
-    )
-    list(
-        APPEND
-        LINKING_LIBRARIES_LOCATIONS
-        ${CMAKE_CURRENT_BINARY_DIR}/${LINK_LIBRARY}/lib${LINK_LIBRARY}-${CMAKE_BUILD_TYPE}.a
-    )
-endforeach()
+
+add_subdirectory("util")
+target_link_libraries(${MAIN_RESULT} PRIVATE util-${CMAKE_BUILD_TYPE})
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/util/libutil-${CMAKE_BUILD_TYPE}.a
+)
+
+add_subdirectory("memory")
+target_link_libraries(
+    ${MAIN_RESULT}
+    PRIVATE memory-management-${CMAKE_BUILD_TYPE}
+)
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/memory/management/libmemory-management-${CMAKE_BUILD_TYPE}.a
+)
+
+target_link_libraries(
+    ${MAIN_RESULT}
+    PRIVATE memory-manipulation-${CMAKE_BUILD_TYPE}
+)
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/memory/manipulation/libmemory-manipulation-${CMAKE_BUILD_TYPE}.a
+)
+
+add_subdirectory("hardware")
+target_link_libraries(${MAIN_RESULT} PRIVATE hardware-${CMAKE_BUILD_TYPE})
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/hardware/libhardware-${CMAKE_BUILD_TYPE}.a
+)
+
+add_subdirectory("quickie")
+target_link_libraries(${MAIN_RESULT} PRIVATE quickie-${CMAKE_BUILD_TYPE})
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/quickie/libquickie-${CMAKE_BUILD_TYPE}.a
+)
+
+# set(LINKING_LIBRARIES "util" "memory" "hardware" "quickie")
+# set(LINKING_LIBRARIES_LOCATIONS)
+# foreach(LINK_LIBRARY ${LINKING_LIBRARIES})
+#     add_subdirectory(${LINK_LIBRARY})
+#     target_link_libraries(
+#         ${MAIN_RESULT}
+#         PRIVATE ${LINK_LIBRARY}-${CMAKE_BUILD_TYPE}
+#     )
+#     list(
+#         APPEND
+#         LINKING_LIBRARIES_LOCATIONS
+#         ${CMAKE_CURRENT_BINARY_DIR}/${LINK_LIBRARY}/lib${LINK_LIBRARY}-${CMAKE_BUILD_TYPE}.a
+#     )
+# endforeach()
 
 set(RESOURCES_NAME "resources")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})
@@ -75,65 +126,56 @@ foreach(RESOURCE_FILE ${RESOURCE_FILES})
 endforeach()
 add_custom_target(embedded-resources ALL DEPENDS ${RESOURCE_OBJECTS})
 
-# set(LIBRARY_FOR_TESTING "unit-test-kernel")
-# set(OBJECT_FILES $<TARGET_OBJECTS:${MAIN_RESULT}> ${RESOURCE_OBJECTS})
-# add_library(${LIBRARY_FOR_TESTING} STATIC ${OBJECT_FILES})
-# target_link_libraries(
-#     ${LIBRARY_FOR_TESTING}
-#     PRIVATE ${LINKING_LIBRARIES_LOCATIONS}
-# )
-
-if(NOT "${UNIT_TEST_BUILD}")
-    add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
-        COMMAND
-            ${CMAKE_LINKER} -n -m elf_x86_64 -T
-            ${CMAKE_CURRENT_SOURCE_DIR}/main.ld -o
-            ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
-            $<TARGET_OBJECTS:${MAIN_RESULT}> ${RESOURCE_OBJECTS}
-            ${LINKING_LIBRARIES_LOCATIONS}
-        COMMAND
-            objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT} >
-            ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.asm
-        COMMAND
-            objdump -x ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT} >
-            ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.objdump
-        COMMAND_EXPAND_LISTS
-        VERBATIM
-        BYPRODUCTS
-            ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.asm
-            ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.objdump
-        DEPENDS
-            $<TARGET_OBJECTS:${MAIN_RESULT}>
-            ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
-            ${LINKING_LIBRARIES_LOCATIONS}
-            ${RESOURCE_OBJECTS}
-        COMMENT "Linking ${MAIN_RESULT}"
-    )
-
-    set(MAIN_RESULT_BIN "${MAIN_RESULT}.bin")
-    set(KERNEL_MAGIC_OUTPUT
-        "${REPO_ROOT}/projects/interoperation/code/include/interoperation/generated/kernel-magic.h"
-    )
-    add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
-        COMMAND
-            objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
-            ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
-        COMMAND
-            python "${REPO_ROOT}/projects/interoperation/code/create_magic.py"
-            "${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}"
-            ${KERNEL_MAGIC_OUTPUT}
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
-        COMMAND_EXPAND_LISTS
-        BYPRODUCTS ${KERNEL_MAGIC_OUTPUT}
-        VERBATIM
-        COMMENT
-            "Copying binary data from ${MAIN_RESULT} into ${MAIN_RESULT_BIN}"
-    )
-    add_custom_target(
-        "${MAIN_RESULT}-binary-creator"
-        ALL
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
-    )
+if("${UNIT_TEST_BUILD}")
+    return()
 endif()
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
+    COMMAND
+        ${CMAKE_LINKER} -n -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
+        -o ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
+        $<TARGET_OBJECTS:${MAIN_RESULT}> ${RESOURCE_OBJECTS}
+        ${LINKING_LIBRARIES_LOCATIONS}
+    COMMAND
+        objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT} >
+        ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.asm
+    COMMAND
+        objdump -x ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT} >
+        ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.objdump
+    COMMAND_EXPAND_LISTS
+    VERBATIM
+    BYPRODUCTS
+        ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.asm
+        ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.objdump
+    DEPENDS
+        $<TARGET_OBJECTS:${MAIN_RESULT}>
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
+        ${LINKING_LIBRARIES_LOCATIONS}
+        ${RESOURCE_OBJECTS}
+    COMMENT "Linking ${MAIN_RESULT}"
+)
+
+set(MAIN_RESULT_BIN "${MAIN_RESULT}.bin")
+set(KERNEL_MAGIC_OUTPUT
+    "${REPO_ROOT}/projects/interoperation/code/include/interoperation/generated/kernel-magic.h"
+)
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
+    COMMAND
+        objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
+        ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
+    COMMAND
+        python "${REPO_ROOT}/projects/interoperation/code/create_magic.py"
+        "${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}" ${KERNEL_MAGIC_OUTPUT}
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
+    COMMAND_EXPAND_LISTS
+    BYPRODUCTS ${KERNEL_MAGIC_OUTPUT}
+    VERBATIM
+    COMMENT "Copying binary data from ${MAIN_RESULT} into ${MAIN_RESULT_BIN}"
+)
+add_custom_target(
+    "${MAIN_RESULT}-binary-creator"
+    ALL
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
+)

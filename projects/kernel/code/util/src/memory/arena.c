@@ -1,8 +1,8 @@
 #include "util/memory/arena.h"
 #include "interoperation/types.h"
+#include "memory/manipulation/manipulation.h"
 #include "util/assert.h"        // for ASSERT
 #include "util/memory/macros.h" // for NULL_ON_FAIL, ZERO_MEMORY
-#include "util/memory/memory.h"
 
 __attribute((malloc, alloc_align(3))) void *alloc(Arena *a, I64 size, U64 align,
                                                   U64 count, U8 flags) {

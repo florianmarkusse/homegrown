@@ -3,7 +3,7 @@
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
 #include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h" // for U32
-#include "memory-management/physical.h"
+#include "memory/management/physical.h"
 #include "quickie/hello.h"
 #include "util/log.h"         // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "util/text/string.h" // for STRING

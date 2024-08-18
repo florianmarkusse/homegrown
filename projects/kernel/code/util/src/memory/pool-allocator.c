@@ -1,7 +1,7 @@
 #include "util/memory/pool-allocator.h"
+#include "memory/manipulation/manipulation.h"
 #include "util/assert.h"        // for ASSERT
 #include "util/memory/macros.h" // for NULL_ON_FAIL, ZERO_MEMORY
-#include "util/memory/memory.h"
 
 void freePool(PoolAllocator *pool) {
     U64 chunkCount = pool->cap / pool->chunkSize;
@@ -18,8 +18,7 @@ void freePool(PoolAllocator *pool) {
 /*
  * Set up the pool allocator values, except for the jmp_buf!
  */
-PoolAllocator createPoolAllocator(I8 *buffer, I64 cap,
-                                          I64 chunkSize) {
+PoolAllocator createPoolAllocator(I8 *buffer, I64 cap, I64 chunkSize) {
     ASSERT(cap > 0);
     ASSERT((cap & (cap - 1)) == 0);
 
@@ -42,8 +41,7 @@ PoolAllocator createPoolAllocator(I8 *buffer, I64 cap,
     return result;
 }
 
-__attribute((malloc)) void *poolAlloc(PoolAllocator *pool,
-                                          U8 flags) {
+__attribute((malloc)) void *poolAlloc(PoolAllocator *pool, U8 flags) {
     PoolHead *node = pool->head;
 
     if (node == NULL) {
@@ -60,8 +58,7 @@ __attribute((malloc)) void *poolAlloc(PoolAllocator *pool,
 }
 
 void freePoolNode(PoolAllocator *pool, void *ptr) {
-    ASSERT((void *)pool->beg <= ptr &&
-               ptr < (void *)(pool->beg + pool->cap));
+    ASSERT((void *)pool->beg <= ptr && ptr < (void *)(pool->beg + pool->cap));
 
     PoolHead *node = (PoolHead *)ptr;
     node->next = pool->head;

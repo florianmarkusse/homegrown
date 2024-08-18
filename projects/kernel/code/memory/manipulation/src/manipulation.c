@@ -1,4 +1,6 @@
-#include "util/memory/memory.h"
+#ifndef UNIT_TEST_BUILD
+
+#include "memory/manipulation/manipulation.h"
 #include "interoperation/types.h"
 
 #define NO_INLINE __attribute__((noinline))
@@ -283,3 +285,5 @@ __attribute((nothrow, pure, nonnull(1, 2))) int memcmp(const void *s1,
     // if i == length, then we have passed the test
     return (i == (U64)n) ? 0 : (*(U8 *)s1 - *(U8 *)s2);
 }
+
+#endif

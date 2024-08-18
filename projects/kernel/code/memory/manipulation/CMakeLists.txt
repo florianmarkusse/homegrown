@@ -1,15 +1,9 @@
-project(quickie LANGUAGES C ASM)
+project(memory-manipulation LANGUAGES C ASM)
 
 set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 set(LIBRARY_TYPE "STATIC")
 
-message(WARNING "I AM DYING heree")
-
-if("${UNIT_TEST_BUILD}")
-    add_subdirectory(tests)
-endif()
-
-add_library(${LIBRARY} ${LIBRARY_TYPE} "src/hello.c")
+add_library(${LIBRARY} ${LIBRARY_TYPE} "src/manipulation.c")
 
 target_include_directories(
     ${LIBRARY}

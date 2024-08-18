@@ -1,7 +1,7 @@
 #include "util/memory/buddy-allocator.h"
+#include "memory/manipulation/manipulation.h"
 #include "util/assert.h"        // for ASSERT
 #include "util/memory/macros.h" // for SIZEOF, NULL_ON_FAIL, ZE...
-#include "util/memory/memory.h"
 
 BuddyBlock *splitBuddy(BuddyBlock *block, U64 size) {
     ASSERT(size > 0);
@@ -157,8 +157,7 @@ void coalesceBuddies(BuddyBlock *head, BuddyBlock *tail) {
 }
 
 __attribute((unused, malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator,
-                                               I64 size, I64 count,
-                                               U8 flags) {
+                                               I64 size, I64 count, U8 flags) {
     ASSERT(size > 0);
 
     U64 total = size * count;

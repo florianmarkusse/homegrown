@@ -6,9 +6,9 @@ extern "C" {
 #endif
 
 #include "interoperation/types.h"
+#include "memory/manipulation/manipulation.h"
 #include "util/macros.h"
 #include "util/memory/arena.h"
-#include "util/memory/memory.h"
 
 #define ARRAY(T)                                                               \
     struct {                                                                   \
