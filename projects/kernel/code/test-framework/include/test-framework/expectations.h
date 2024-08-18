@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "util/text/string.h" // for string
+#include "text/string.h" // for string
 #include <stdbool.h>          // for false, true, bool
 #include <stddef.h>           // for ptrdiff_t
 #include <stdint.h>           // for uint64_t

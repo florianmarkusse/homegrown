@@ -7,7 +7,7 @@ extern "C" {
 
 #include "interoperation/types.h"
 
-#include "util/text/string.h"
+#include "text/string.h"
 
 __attribute__((unused)) static U64 hashStringSkeeto(string string) {
     U64 h = 0x100;

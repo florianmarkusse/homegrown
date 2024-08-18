@@ -1,7 +1,7 @@
 #include "test-framework/test.h"
 #include "util/assert.h"      // for ASSERT
 #include "util/log.h"         // for LOG_CHOOSER_IMPL_2, INFO, ...
-#include "util/text/string.h" // for STRING, string
+#include "text/string.h" // for STRING, string
 #include <stddef.h>           // for ptrdiff_t
 #include <stdint.h>           // for uint64_t
 

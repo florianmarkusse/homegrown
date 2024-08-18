@@ -5,9 +5,18 @@
 extern "C" {
 #endif
 
+#include "interoperation/array.h"
 #include "interoperation/types.h"
 #include "memory/manipulation/manipulation.h"
 #include "util/assert.h"
+
+typedef struct {
+    U8 *buf;
+    U64 len;
+} string;
+
+typedef DYNAMIC_ARRAY(string) string_d_a;
+typedef MAX_LENGTH_ARRAY(string) string_max_a;
 
 #define EMPTY_STRING ((string){NULL, 0})
 #define STRING(s) ((string){(U8 *)(s), sizeof(s) - 1})
@@ -24,11 +33,6 @@ extern "C" {
             STRING_LEN(appendingBuf, (string1).len + (string2).len);           \
         MACRO_VAR(appendedString);                                             \
     })
-
-typedef struct {
-    U8 *buf;
-    U64 len;
-} string;
 
 static inline bool stringEquals(string a, string b) {
     return a.len == b.len && (a.len == 0 || !memcmp(a.buf, b.buf, a.len));

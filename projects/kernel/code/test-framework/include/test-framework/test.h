@@ -8,7 +8,7 @@ extern "C" {
 #include "util/log.h"    // for ERROR, FLUSH
 #include "util/macros.h" // for MACRO_VAR
 #include <stddef.h>
-#include <util/text/string.h> // for string
+#include <text/string.h> // for string
 
 #define TEST_FAILURE                                                           \
     for (ptrdiff_t MACRO_VAR(i) =                                              \

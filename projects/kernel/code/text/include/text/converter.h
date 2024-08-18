@@ -1,9 +1,9 @@
 #ifndef TEXT_CONVERTER_H
 #define TEXT_CONVERTER_H
 
+#include "interoperation/array-types.h"
 #include "interoperation/types.h"
 #include "text/string.h"
-#include "util/array-types.h"
 
 string stringWithMinSize(string data, U8 minSize, U8_a tmp);
 string stringWithMinSizeDefault(string data, U8 minSize);

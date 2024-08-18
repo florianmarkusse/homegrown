@@ -4,7 +4,7 @@
 #include "common-iterator.h" // for TRIE_ITERATOR_HEADER_FILE
 #include "interoperation/types.h"
 #include "memory/management/allocator/arena.h"
-#include "util/text/string.h" // for string
+#include "text/string.h" // for string
 
 typedef struct {
     string key;

@@ -1,8 +1,8 @@
 #include "hardware/idt.h"
 #include "memory/manipulation/manipulation.h"
+#include "text/string.h" // for STRING, string
 #include "util/assert.h"
-#include "util/log.h"         // for LOG, LOG_CHOOSER_IMPL_1, LOG_CHOOSER...
-#include "util/text/string.h" // for STRING, string
+#include "util/log.h" // for LOG, LOG_CHOOSER_IMPL_1, LOG_CHOOSER...
 
 extern void isr0();
 extern void isr1();

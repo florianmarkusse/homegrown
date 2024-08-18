@@ -1,5 +1,5 @@
 #include "text/string.h"
-#include "util/array-types.h"
+#include "interoperation/array-types.h"
 
 #define STRING_CONVERTER_BUF_LEN 1 << 10
 U8 stringConverterBuf[STRING_CONVERTER_BUF_LEN];

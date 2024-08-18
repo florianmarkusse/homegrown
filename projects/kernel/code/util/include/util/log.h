@@ -6,9 +6,9 @@ extern "C" {
 #endif
 
 #include "interoperation/types.h" // for U32, U8, U64, I64, I8, U16
-#include "util/array-types.h"     // for U8_a, uint8_max_a
+#include "text/converter.h"       // for U8_a, uint8_max_a
+#include "text/string.h"          // for U8_a, uint8_max_a
 #include "util/macros.h"          // for MACRO_VAR
-#include "util/text/string.h"     // for string
 
 #define NEWLINE 0x01
 #define FLUSH 0x02
@@ -31,54 +31,6 @@ bool flushBuffer(U8_max_a *buffer);
 
 void rewind(U16 numberOfScreenLines);
 void prowind(U16 numberOfScreenLines);
-
-string stringWithMinSize(string data, U8 minSize, U8_a tmp);
-string stringWithMinSizeDefault(string data, U8 minSize);
-
-string boolToString(bool data);
-
-string ptrToString(void *data, U8_a tmp);
-string ptrToStringDefault(void *data);
-
-string stringToString(string data);
-
-string U64ToString(U64 data, U8_a tmp);
-string U64ToStringDefault(U64 data);
-
-string I64ToString(I64 data, U8_a tmp);
-string I64ToStringDefault(I64 data);
-
-string F64ToString(F64 data, U8_a tmp);
-string F64ToStringDefault(F64 data);
-
-string noAppend();
-
-#define CONVERT_TO_STRING(data)                                                \
-    _Generic((data),                                                           \
-        string: stringToString,                                                \
-        bool: boolToString,                                                    \
-        void *: ptrToStringDefault,                                            \
-        U8 *: ptrToStringDefault,                                              \
-        I8 *: ptrToStringDefault,                                              \
-        U16 *: ptrToStringDefault,                                             \
-        I16 *: ptrToStringDefault,                                             \
-        U32 *: ptrToStringDefault,                                             \
-        I32 *: ptrToStringDefault,                                             \
-        U64 *: ptrToStringDefault,                                             \
-        I64 *: ptrToStringDefault,                                             \
-        U8: U64ToStringDefault,                                                \
-        I8: I64ToStringDefault,                                                \
-        U16: U64ToStringDefault,                                               \
-        I16: I64ToStringDefault,                                               \
-        U32: U64ToStringDefault,                                               \
-        I32: I64ToStringDefault,                                               \
-        U64: U64ToStringDefault,                                               \
-        I64: I64ToStringDefault,                                               \
-        F64: F64ToStringDefault,                                               \
-        default: noAppend)(data)
-
-#define APPEND_DATA(data, buffer, perm)                                        \
-    appendToSimpleBuffer(CONVERT_TO_STRING(data), buffer, perm)
 
 #define LOG_DATA(data, flags)                                                  \
     appendToFlushBuffer(CONVERT_TO_STRING(data), flags)

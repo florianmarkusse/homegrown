@@ -5,14 +5,11 @@
 extern "C" {
 #endif
 
-#include "util/array.h"
-#include "util/text/string.h"
+#include "interoperation/array.h"
 
-typedef DYNAMIC_ARRAY(string) string_d_a;
 typedef DYNAMIC_ARRAY(U64) U64_d_a;
 typedef DYNAMIC_ARRAY(bool) bool_d_a;
 typedef DYNAMIC_ARRAY(U8) U8_d_a;
-typedef MAX_LENGTH_ARRAY(string) string_max_a;
 typedef MAX_LENGTH_ARRAY(U64) U64_max_a;
 typedef MAX_LENGTH_ARRAY(U32) U32_max_a;
 typedef MAX_LENGTH_ARRAY(U8) U8_max_a;

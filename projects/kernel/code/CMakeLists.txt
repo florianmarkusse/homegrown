@@ -23,6 +23,7 @@ endif()
 
 add_subdirectory("text")
 add_subdirectory("hash")
+add_subdirectory("buffer")
 
 target_include_directories(
     ${MAIN_RESULT}

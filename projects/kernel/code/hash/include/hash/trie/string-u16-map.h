@@ -9,7 +9,7 @@ extern "C" {
 #include "interoperation/types.h"
 #include "memory/management/allocator/arena.h"
 #include "util/macros.h"      // for MACRO_VAR
-#include "util/text/string.h" // for string
+#include "text/string.h" // for string
 
 typedef struct {
     string key;

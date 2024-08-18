@@ -2,7 +2,7 @@
 #define MEMORY_MANAGEMENT_PHYSICAL_H
 
 #include "interoperation/kernel-parameters.h"
-#include "util/array.h"
+#include "interoperation/array.h"
 
 typedef struct {
     U64 pageStart;

@@ -1,7 +1,7 @@
 #ifndef ACPI_SIGNATURES_H
 #define ACPI_SIGNATURES_H
 
-#include "util/text/string.h"
+#include "text/string.h"
 
 typedef enum {
     FIXED_ACPI_DESCRIPTION_TABLE,

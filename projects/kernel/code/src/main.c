@@ -5,8 +5,8 @@
 #include "interoperation/types.h" // for U32
 #include "memory/management/physical.h"
 #include "quickie/hello.h"
-#include "util/log.h"         // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
-#include "util/text/string.h" // for STRING
+#include "text/string.h" // for STRING
+#include "util/log.h"    // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 

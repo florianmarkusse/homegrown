@@ -9,7 +9,7 @@ extern "C" {
 #include "hash/hash-comparison-status.h" // for HashComparisonStatus
 #include "interoperation/types.h"
 #include "util/macros.h"      // for MACRO_VAR
-#include "util/text/string.h" // for string
+#include "text/string.h" // for string
 
 typedef MSI_SET(string) msi_string;
 
