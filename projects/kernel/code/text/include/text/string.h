@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "memory/management/allocator/arena.h"
+#include "interoperation/types.h"
 #include "memory/manipulation/manipulation.h"
 #include "util/assert.h"
 

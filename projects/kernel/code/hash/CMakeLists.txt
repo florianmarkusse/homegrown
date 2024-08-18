@@ -1,9 +1,20 @@
-project(hardware LANGUAGES C ASM)
+project(hash LANGUAGES C ASM)
 
 set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 set(LIBRARY_TYPE "STATIC")
 
-add_library(${LIBRARY} ${LIBRARY_TYPE} "src/idt.c" "src/idts.S")
+add_library(
+    ${LIBRARY}
+    ${LIBRARY_TYPE}
+    "src/msi/common.c"
+    "src/msi/string-set.c"
+    "src/msi/u16-set.c"
+    "src/trie/string-set.c"
+    "src/trie/string-u16-map.c"
+    "src/trie/uint16-set.c"
+    "src/trie/string-auto-u16-map.c"
+    "src/hash-comparison-status.c"
+)
 
 target_include_directories(
     ${LIBRARY}
@@ -16,4 +27,3 @@ target_include_directories(
 )
 
 target_link_libraries(${LIBRARY} PUBLIC util-${CMAKE_BUILD_TYPE})
-target_link_libraries(${LIBRARY} PUBLIC memory-manipulation-${CMAKE_BUILD_TYPE})

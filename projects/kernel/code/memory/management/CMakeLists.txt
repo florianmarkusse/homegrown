@@ -3,7 +3,15 @@ project(memory-management LANGUAGES C ASM)
 set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 set(LIBRARY_TYPE "STATIC")
 
-add_library(${LIBRARY} ${LIBRARY_TYPE} "src/physical.c" "src/virtual.c")
+add_library(
+    ${LIBRARY}
+    ${LIBRARY_TYPE}
+    "src/allocator/arena.c"
+    "src/allocator/buddy.c"
+    "src/allocator/pool.c"
+    "src/physical.c"
+    "src/virtual.c"
+)
 
 target_include_directories(
     ${LIBRARY}

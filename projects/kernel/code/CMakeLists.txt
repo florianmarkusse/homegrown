@@ -17,7 +17,12 @@ add_library(${MAIN_RESULT} OBJECT "src/main.c" "src/acpi/signature.c")
 
 if("${UNIT_TEST_BUILD}")
     add_compile_definitions(UNIT_TEST_BUILD)
+    # TODO REMOVe locl
+    add_subdirectory("posix-util")
 endif()
+
+add_subdirectory("text")
+add_subdirectory("hash")
 
 target_include_directories(
     ${MAIN_RESULT}

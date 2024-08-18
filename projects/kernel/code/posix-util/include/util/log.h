@@ -5,13 +5,13 @@
 extern "C" {
 #endif
 
-#include "util/macros.h"       // for MACRO_VAR
-#include "util/memory/arena.h" // for arena
-#include "util/text/string.h"  // for string
-#include "util/types.h"        // for char_a, char_d_a
-#include <stdbool.h>           // for false, true, bool
-#include <stddef.h>            // for ptrdiff_t
-#include <stdint.h>            // for uint32_t, uint64_t
+#include "memory/management/allocator/arena.h"
+#include "util/macros.h"      // for MACRO_VAR
+#include "util/text/string.h" // for string
+#include "util/types.h"       // for char_a, char_d_a
+#include <stdbool.h>          // for false, true, bool
+#include <stddef.h>           // for ptrdiff_t
+#include <stdint.h>           // for uint32_t, uint64_t
 
 #define NEWLINE 0x01
 #define FLUSH 0x02

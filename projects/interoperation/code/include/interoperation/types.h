@@ -34,20 +34,20 @@ extern "C" {
 #define I64_C(_v) JOIN(_v, __INT64_C_SUFFIX__)
 #define U64_C(_v) JOIN(_v, __UINT64_C_SUFFIX__)
 
-#define INT8_MIN I8_C(-128)
-#define INT16_MIN I16_C(-32767 - 1)
-#define INT32_MIN I32_C(-2147483647 - 1)
-#define INT64_MIN I64_C(-9223372036854775807 - 1)
+#define I8_MIN I8_C(-128)
+#define I16_MIN I16_C(-32767 - 1)
+#define I32_MIN I32_C(-2147483647 - 1)
+#define I64_MIN I64_C(-9223372036854775807 - 1)
 
-#define INT8_MAX (127)
-#define INT16_MAX (32767)
-#define INT32_MAX (2147483647)
-#define INT64_MAX (9223372036854775807)
+#define I8_MAX (127)
+#define I16_MAX (32767)
+#define I32_MAX (2147483647)
+#define I64_MAX (9223372036854775807)
 
-#define UINT8_MAX U8_C(0xFF)
-#define UINT16_MAX U16_C(0xFFFF)
-#define UINT32_MAX U32_C(0xFFFFFFFF)
-#define UINT64_MAX U64_C(0xFFFFFFFFFFFFFFFF)
+#define U8_MAX U8_C(0xFF)
+#define U16_MAX U16_C(0xFFFF)
+#define U32_MAX U32_C(0xFFFFFFFF)
+#define U64_MAX U64_C(0xFFFFFFFFFFFFFFFF)
 
 typedef __INT8_TYPE__ I8;
 typedef __UINT8_TYPE__ U8;
@@ -85,14 +85,14 @@ typedef long double F128;
 
 #define MAX_VALUE(x)                                                           \
     _Generic((x),                                                              \
-        I8: INT8_MAX,                                                          \
-        U8: UINT8_MAX,                                                         \
-        I16: INT16_MAX,                                                        \
-        U16: UINT16_MAX,                                                       \
-        I32: INT32_MAX,                                                        \
-        U32: UINT32_MAX,                                                       \
-        I64: INT64_MAX,                                                        \
-        U64: UINT64_MAX,                                                       \
+        I8: I8_MAX,                                                            \
+        U8: U8_MAX,                                                            \
+        I16: I16_MAX,                                                          \
+        U16: U16_MAX,                                                          \
+        I32: I32_MAX,                                                          \
+        U32: U32_MAX,                                                          \
+        I64: I64_MAX,                                                          \
+        U64: U64_MAX,                                                          \
         F32: F32_MAX,                                                          \
         F64: F64_MAX,                                                          \
         F128: F128_MAX,                                                        \
@@ -100,10 +100,10 @@ typedef long double F128;
 
 #define MIN_VALUE(x)                                                           \
     _Generic((x),                                                              \
-        I8: INT8_MIN,                                                          \
-        I16: INT16_MIN,                                                        \
-        I32: INT32_MIN,                                                        \
-        I64: INT64_MIN,                                                        \
+        I8: I8_MIN,                                                            \
+        I16: I16_MIN,                                                          \
+        I32: I32_MIN,                                                          \
+        I64: I64_MIN,                                                          \
         F32: F32_MIN,                                                          \
         F64: F64_MIN,                                                          \
         F128: F128_MIN,                                                        \

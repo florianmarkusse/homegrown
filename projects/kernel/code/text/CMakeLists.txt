@@ -1,9 +1,9 @@
-project(hardware LANGUAGES C ASM)
+project(text LANGUAGES C ASM)
 
 set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 set(LIBRARY_TYPE "STATIC")
 
-add_library(${LIBRARY} ${LIBRARY_TYPE} "src/idt.c" "src/idts.S")
+add_library(${LIBRARY} ${LIBRARY_TYPE} "src/converter.c")
 
 target_include_directories(
     ${LIBRARY}

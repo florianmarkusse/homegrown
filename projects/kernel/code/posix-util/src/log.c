@@ -1,8 +1,8 @@
 #include "util/log.h"
-#include "util/assert.h"        // for ASSERT
-#include "util/maths.h"         // for MIN
-#include "util/memory/macros.h" // for ALIGNOF, SIZEOF
-#include <string.h>             // for memcpy, memset, strlen
+#include "memory/management/allocator/macros.h"
+#include "util/assert.h" // for ASSERT
+#include "util/maths.h"  // for MIN
+#include <string.h>
 #include <uchar.h>
 #include <unistd.h> // for isatty, write, STDERR_FILENO, STDOUT...
 

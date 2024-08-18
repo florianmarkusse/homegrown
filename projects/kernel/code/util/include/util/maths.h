@@ -22,12 +22,12 @@ extern "C" {
 #define RING_MINUS(val, amount, ringSize)                                      \
     (((val) - (amount)) & ((ringSize) - 1))
 
-__attribute__((unused)) static inline U64 power(U64 base, U64 exponent) {
+static inline U64 power(U64 base, U64 exponent) {
     U64 result = 1;
 
     while (exponent > 0) {
         if (exponent & 1) {
-            if (result > UINT64_MAX / base) {
+            if (result > U64_MAX / base) {
                 return 0;
             }
             result *= base;
@@ -35,7 +35,7 @@ __attribute__((unused)) static inline U64 power(U64 base, U64 exponent) {
                 return result;
             }
         }
-        if (base > UINT64_MAX / base) {
+        if (base > U64_MAX / base) {
             return 0;
         }
         base *= base;

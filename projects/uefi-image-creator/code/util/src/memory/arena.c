@@ -14,9 +14,6 @@ flo_alloc(flo_arena *a, ptrdiff_t size, ptrdiff_t align, ptrdiff_t count,
     ptrdiff_t avail = a->end - a->beg;
     ptrdiff_t padding = -(uintptr_t)a->beg & (align - 1);
     if (count > (avail - padding) / size) {
-#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-        FLO_ASSERT(false);
-#endif
         if (flags & FLO_NULL_ON_FAIL) {
             return NULL;
         }
