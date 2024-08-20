@@ -24,3 +24,5 @@ target_include_directories(
 )
 
 target_link_libraries(${LIBRARY} PUBLIC hardware-${CMAKE_BUILD_TYPE})
+target_link_libraries(${LIBRARY} PUBLIC text-${CMAKE_BUILD_TYPE})
+target_link_libraries(${LIBRARY} PUBLIC log-${CMAKE_BUILD_TYPE})

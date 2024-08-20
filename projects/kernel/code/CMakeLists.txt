@@ -20,8 +20,6 @@ if("${UNIT_TEST_BUILD}")
     add_subdirectory("test-framework")
 endif()
 
-add_subdirectory("peripheral")
-add_subdirectory("text")
 add_subdirectory("hash")
 add_subdirectory("buffer")
 
@@ -34,21 +32,58 @@ target_include_directories(
     PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
 )
 
+# Adds the linking library location in reverse order. Remember the linker tries
+# to link from last to first argument. So be wise :)
 set(LINKING_LIBRARIES_LOCATIONS)
-
-target_link_libraries(${MAIN_RESULT} PRIVATE log-${CMAKE_BUILD_TYPE})
 list(
     APPEND
     LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/peripheral-screen/libperipheral-screen-${CMAKE_BUILD_TYPE}.a
+    ${CMAKE_CURRENT_BINARY_DIR}/hardware/libhardware-${CMAKE_BUILD_TYPE}.a
 )
-
-add_subdirectory("log")
-target_link_libraries(${MAIN_RESULT} PRIVATE log-${CMAKE_BUILD_TYPE})
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/memory/manipulation/libmemory-manipulation-${CMAKE_BUILD_TYPE}.a
+)
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/memory/management/libmemory-management-${CMAKE_BUILD_TYPE}.a
+)
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/peripheral/screen/libperipheral-screen-${CMAKE_BUILD_TYPE}.a
+)
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/quickie/libquickie-${CMAKE_BUILD_TYPE}.a
+)
 list(
     APPEND
     LINKING_LIBRARIES_LOCATIONS
     ${CMAKE_CURRENT_BINARY_DIR}/log/liblog-${CMAKE_BUILD_TYPE}.a
+)
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/text/libtext-${CMAKE_BUILD_TYPE}.a
+)
+
+add_subdirectory("log")
+target_link_libraries(${MAIN_RESULT} PRIVATE log-${CMAKE_BUILD_TYPE})
+
+add_subdirectory("text")
+target_link_libraries(${MAIN_RESULT} PRIVATE text-${CMAKE_BUILD_TYPE})
+
+add_subdirectory("quickie")
+target_link_libraries(${MAIN_RESULT} PRIVATE quickie-${CMAKE_BUILD_TYPE})
+
+add_subdirectory("peripheral")
+target_link_libraries(
+    ${MAIN_RESULT}
+    PRIVATE peripheral-screen-${CMAKE_BUILD_TYPE}
 )
 
 add_subdirectory("memory")
@@ -56,52 +91,13 @@ target_link_libraries(
     ${MAIN_RESULT}
     PRIVATE memory-management-${CMAKE_BUILD_TYPE}
 )
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/memory/management/libmemory-management-${CMAKE_BUILD_TYPE}.a
-)
-
 target_link_libraries(
     ${MAIN_RESULT}
     PRIVATE memory-manipulation-${CMAKE_BUILD_TYPE}
 )
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/memory/manipulation/libmemory-manipulation-${CMAKE_BUILD_TYPE}.a
-)
 
 add_subdirectory("hardware")
 target_link_libraries(${MAIN_RESULT} PRIVATE hardware-${CMAKE_BUILD_TYPE})
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/hardware/libhardware-${CMAKE_BUILD_TYPE}.a
-)
-
-add_subdirectory("quickie")
-target_link_libraries(${MAIN_RESULT} PRIVATE quickie-${CMAKE_BUILD_TYPE})
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/quickie/libquickie-${CMAKE_BUILD_TYPE}.a
-)
-
-# set(LINKING_LIBRARIES "util" "memory" "hardware" "quickie")
-# set(LINKING_LIBRARIES_LOCATIONS)
-# foreach(LINK_LIBRARY ${LINKING_LIBRARIES})
-#     add_subdirectory(${LINK_LIBRARY})
-#     target_link_libraries(
-#         ${MAIN_RESULT}
-#         PRIVATE ${LINK_LIBRARY}-${CMAKE_BUILD_TYPE}
-#     )
-#     list(
-#         APPEND
-#         LINKING_LIBRARIES_LOCATIONS
-#         ${CMAKE_CURRENT_BINARY_DIR}/${LINK_LIBRARY}/lib${LINK_LIBRARY}-${CMAKE_BUILD_TYPE}.a
-#     )
-# endforeach()
 
 set(RESOURCES_NAME "resources")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})

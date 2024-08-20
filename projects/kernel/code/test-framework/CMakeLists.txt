@@ -1,6 +1,6 @@
 project(test-framework LANGUAGES C)
 
-set(LIBRARY "${TARGET_PREFIX}-${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
+set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 set(LIBRARY_TYPE "STATIC")
 
 add_library(${LIBRARY} ${LIBRARY_TYPE} "src/test.c" "src/expectations.c")
