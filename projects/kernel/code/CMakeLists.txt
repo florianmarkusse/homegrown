@@ -17,10 +17,10 @@ add_library(${MAIN_RESULT} OBJECT "src/main.c" "src/acpi/signature.c")
 
 if("${UNIT_TEST_BUILD}")
     add_compile_definitions(UNIT_TEST_BUILD)
-    # TODO REMOVe locl
-    add_subdirectory("posix-util")
+    add_subdirectory("test-framework")
 endif()
 
+add_subdirectory("peripheral")
 add_subdirectory("text")
 add_subdirectory("hash")
 add_subdirectory("buffer")
@@ -36,12 +36,19 @@ target_include_directories(
 
 set(LINKING_LIBRARIES_LOCATIONS)
 
-add_subdirectory("util")
-target_link_libraries(${MAIN_RESULT} PRIVATE util-${CMAKE_BUILD_TYPE})
+target_link_libraries(${MAIN_RESULT} PRIVATE log-${CMAKE_BUILD_TYPE})
 list(
     APPEND
     LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/util/libutil-${CMAKE_BUILD_TYPE}.a
+    ${CMAKE_CURRENT_BINARY_DIR}/peripheral-screen/libperipheral-screen-${CMAKE_BUILD_TYPE}.a
+)
+
+add_subdirectory("log")
+target_link_libraries(${MAIN_RESULT} PRIVATE log-${CMAKE_BUILD_TYPE})
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/log/liblog-${CMAKE_BUILD_TYPE}.a
 )
 
 add_subdirectory("memory")

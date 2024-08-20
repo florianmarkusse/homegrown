@@ -1,19 +1,11 @@
-#include "util/log.h"
+#include "peripheral/screen/screen.h"
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
-#include "memory/management/allocator/arena.h"
-#include "memory/management/allocator/macros.h"
 #include "memory/manipulation/manipulation.h"
 #include "util/assert.h" // for ASSERT
 #include "util/maths.h"  // for RING_PLUS, RING_INCREMENT, RING_MINUS
 
 // TODO: replace with correct thing using memory allocators etc.
 static U32 graphicsBuffer[1 << 20];
-
-// TODO: Use triple mapped memory buffer to speed up ring buffer even more.
-// TODO: Idea is to have a single flush buffer per thread and have it flush to
-// the file buffer sometimes.
-static U8 flushBuf000[128 * 64];
-static U8_max_a flushBuf = {.buf = flushBuf000, .cap = 128 * 64, .len = 0};
 
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
@@ -114,27 +106,6 @@ void screenInit() {
 
     switchToScreenDisplay();
 }
-
-void setupScreen(ScreenDimension dimension) {
-    dim = dimension;
-    dim.backingBuffer = graphicsBuffer;
-
-    glyphsPerLine =
-        (U16)(dim.width - HORIZONTAL_PIXEL_MARGIN * 2) / (glyphs.width);
-    glyphsPerColumn =
-        (U16)(dim.height - VERTICAL_PIXEL_MARGIN * 2) / (glyphs.height);
-    maxGlyphsOnScreen = glyphsPerLine * glyphsPerColumn;
-    maxCharsToProcess = 2 * maxGlyphsOnScreen;
-    glyphStartVerticalOffset = dim.scanline * VERTICAL_PIXEL_MARGIN;
-    glyphStartOffset = glyphStartVerticalOffset + HORIZONTAL_PIXEL_MARGIN;
-    bytesPerLine = (glyphs.width + 7) / 8;
-
-    ASSERT(maxCharsToProcess <= FILE_BUF_LEN);
-
-    screenInit();
-}
-
-bool flushStandardBuffer() { return flushBuffer(&flushBuf); }
 
 void drawGlyph(U8 ch, U64 topRightGlyphOffset) {
     U8 *glyph = &(glyphs.glyphs) + ch * glyphs.bytesperglyph;
@@ -250,76 +221,6 @@ void drawLines(U32 startIndex, U16 screenLinesToDraw, U64 currentLogicalLineLen,
     }
 
     zeroOutGlyphs(topRightGlyphOffset, glyphsPerLine - currentGlyphLen);
-}
-
-// A screenLine of 0 length still counts as a line.
-// For the observent, all our screenlines have a length > 0 except when they are
-// uninitialized, which is what the second operand of the addition handles
-U64 toScreenLines(U64 number) {
-    return ((number > 0) * ((number + (glyphsPerLine - 1)) / glyphsPerLine)) +
-           (number == 0);
-}
-
-U32 I8IndexToLogicalLine(U64 I8Index) {
-    if (I8Index >= logicalLines[logicalLineToWrite]) {
-        return logicalLineToWrite;
-    }
-
-    U32 right = logicalLineToWrite;
-    U32 left = RING_INCREMENT(right, MAX_SCROLLBACK_LINES);
-
-    while (RING_MINUS(right, left, MAX_SCROLLBACK_LINES) > 1) {
-        U32 mid =
-            RING_PLUS(left, (RING_MINUS(right, left, MAX_SCROLLBACK_LINES) / 2),
-                      MAX_SCROLLBACK_LINES);
-
-        if (logicalLines[mid] > I8Index) {
-            right = mid;
-        } else {
-            left = mid;
-        }
-    }
-
-    return left;
-}
-
-U64 oldestCharToParseGivenScreenLines(U64 endCharExclusive,
-                                      U16 screenLinesToProcess) {
-    U32 oldestLogicalLineIndex =
-        RING_INCREMENT(logicalLineToWrite, MAX_SCROLLBACK_LINES);
-
-    U32 logicalLineIndex = I8IndexToLogicalLine(endCharExclusive);
-    if (logicalLineIndex == oldestLogicalLineIndex &&
-        logicalLines[logicalLineIndex] >= endCharExclusive) {
-        return endCharExclusive;
-    }
-
-    if (logicalLines[logicalLineIndex] == endCharExclusive) {
-        logicalLineIndex =
-            RING_DECREMENT(logicalLineIndex, MAX_SCROLLBACK_LINES);
-    }
-
-    U64 screenLinesProcessed =
-        toScreenLines(endCharExclusive - logicalLines[logicalLineIndex]);
-
-    while (screenLinesProcessed < screenLinesToProcess &&
-           logicalLineIndex != oldestLogicalLineIndex) {
-        screenLinesProcessed +=
-            toScreenLines(logicalLines[logicalLineIndex] -
-                          logicalLines[RING_DECREMENT(logicalLineIndex,
-                                                      MAX_SCROLLBACK_LINES)]);
-
-        logicalLineIndex =
-            RING_DECREMENT(logicalLineIndex, MAX_SCROLLBACK_LINES);
-    }
-
-    U64 oldestCharToProcess = logicalLines[logicalLineIndex];
-
-    if (endCharExclusive - oldestCharToProcess > maxCharsToProcess) {
-        oldestCharToProcess = endCharExclusive - maxCharsToProcess;
-    }
-
-    return oldestCharToProcess;
 }
 
 typedef struct {
@@ -442,6 +343,76 @@ FillResult fillScreenLinesCopy(U64 dryStartIndex, U64 startIndex,
                         .lastLineDone = toNext};
 }
 
+// A screenLine of 0 length still counts as a line.
+// For the observent, all our screenlines have a length > 0 except when they are
+// uninitialized, which is what the second operand of the addition handles
+U64 toScreenLines(U64 number) {
+    return ((number > 0) * ((number + (glyphsPerLine - 1)) / glyphsPerLine)) +
+           (number == 0);
+}
+
+U32 I8IndexToLogicalLine(U64 I8Index) {
+    if (I8Index >= logicalLines[logicalLineToWrite]) {
+        return logicalLineToWrite;
+    }
+
+    U32 right = logicalLineToWrite;
+    U32 left = RING_INCREMENT(right, MAX_SCROLLBACK_LINES);
+
+    while (RING_MINUS(right, left, MAX_SCROLLBACK_LINES) > 1) {
+        U32 mid =
+            RING_PLUS(left, (RING_MINUS(right, left, MAX_SCROLLBACK_LINES) / 2),
+                      MAX_SCROLLBACK_LINES);
+
+        if (logicalLines[mid] > I8Index) {
+            right = mid;
+        } else {
+            left = mid;
+        }
+    }
+
+    return left;
+}
+
+U64 oldestCharToParseGivenScreenLines(U64 endCharExclusive,
+                                      U16 screenLinesToProcess) {
+    U32 oldestLogicalLineIndex =
+        RING_INCREMENT(logicalLineToWrite, MAX_SCROLLBACK_LINES);
+
+    U32 logicalLineIndex = I8IndexToLogicalLine(endCharExclusive);
+    if (logicalLineIndex == oldestLogicalLineIndex &&
+        logicalLines[logicalLineIndex] >= endCharExclusive) {
+        return endCharExclusive;
+    }
+
+    if (logicalLines[logicalLineIndex] == endCharExclusive) {
+        logicalLineIndex =
+            RING_DECREMENT(logicalLineIndex, MAX_SCROLLBACK_LINES);
+    }
+
+    U64 screenLinesProcessed =
+        toScreenLines(endCharExclusive - logicalLines[logicalLineIndex]);
+
+    while (screenLinesProcessed < screenLinesToProcess &&
+           logicalLineIndex != oldestLogicalLineIndex) {
+        screenLinesProcessed +=
+            toScreenLines(logicalLines[logicalLineIndex] -
+                          logicalLines[RING_DECREMENT(logicalLineIndex,
+                                                      MAX_SCROLLBACK_LINES)]);
+
+        logicalLineIndex =
+            RING_DECREMENT(logicalLineIndex, MAX_SCROLLBACK_LINES);
+    }
+
+    U64 oldestCharToProcess = logicalLines[logicalLineIndex];
+
+    if (endCharExclusive - oldestCharToProcess > maxCharsToProcess) {
+        oldestCharToProcess = endCharExclusive - maxCharsToProcess;
+    }
+
+    return oldestCharToProcess;
+}
+
 void toTail() {
     U16 finalScreenLineEntry =
         RING_PLUS(oldestScreenLineIndex, glyphsPerColumn - lastScreenlineOpen,
@@ -502,6 +473,65 @@ void toTail() {
     lastScreenlineOpen = !fillResult.lastLineDone;
 
     switchToScreenDisplay();
+}
+
+bool flushToScreen(U8_max_a buffer) {
+    U64 startIndex = 0;
+    if (buffer.len > FILE_BUF_LEN) {
+        startIndex = buffer.len - FILE_BUF_LEN;
+    }
+
+    // TODO: SIMD up in this birch.
+    for (U64 i = startIndex; i < buffer.len; i++) {
+        buf[nextCharInBuf] = buffer.buf[i];
+
+        if (logicalNewline) {
+            logicalLineToWrite =
+                RING_INCREMENT(logicalLineToWrite, MAX_SCROLLBACK_LINES);
+
+            logicalLines[logicalLineToWrite] = I8Count;
+            logicalNewline = false;
+        }
+
+        U8 ch = buf[nextCharInBuf];
+        switch (ch) {
+        case '\n': {
+            logicalNewline = true;
+            break;
+        }
+        default: {
+            break;
+        }
+        }
+
+        nextCharInBuf = RING_INCREMENT(nextCharInBuf, FILE_BUF_LEN);
+        I8Count++;
+    }
+
+    if (isTailing) {
+        toTail();
+    }
+
+    return true;
+}
+
+void setupScreen(ScreenDimension dimension) {
+    dim = dimension;
+    dim.backingBuffer = graphicsBuffer;
+
+    glyphsPerLine =
+        (U16)(dim.width - HORIZONTAL_PIXEL_MARGIN * 2) / (glyphs.width);
+    glyphsPerColumn =
+        (U16)(dim.height - VERTICAL_PIXEL_MARGIN * 2) / (glyphs.height);
+    maxGlyphsOnScreen = glyphsPerLine * glyphsPerColumn;
+    maxCharsToProcess = 2 * maxGlyphsOnScreen;
+    glyphStartVerticalOffset = dim.scanline * VERTICAL_PIXEL_MARGIN;
+    glyphStartOffset = glyphStartVerticalOffset + HORIZONTAL_PIXEL_MARGIN;
+    bytesPerLine = (glyphs.width + 7) / 8;
+
+    ASSERT(maxCharsToProcess <= FILE_BUF_LEN);
+
+    screenInit();
 }
 
 bool isWindowSmallerThanScreen() {
@@ -610,81 +640,4 @@ void prowind(U16 numberOfScreenLines) {
     lastScreenlineOpen = !fillResult.lastLineDone;
 
     switchToScreenDisplay();
-}
-
-// We are going to flush to:
-// - The in-memory standin file buffer, this will be replaced by a file
-// buffer in the future.
-bool flushBuffer(U8_max_a *buffer) {
-    // TODO: flush buffer to file system here.
-
-    U64 startIndex = 0;
-    if (buffer->len > FILE_BUF_LEN) {
-        startIndex = buffer->len - FILE_BUF_LEN;
-    }
-
-    // TODO: SIMD up in this birch.
-    for (U64 i = startIndex; i < buffer->len; i++) {
-        buf[nextCharInBuf] = buffer->buf[i];
-
-        if (logicalNewline) {
-            logicalLineToWrite =
-                RING_INCREMENT(logicalLineToWrite, MAX_SCROLLBACK_LINES);
-
-            logicalLines[logicalLineToWrite] = I8Count;
-            logicalNewline = false;
-        }
-
-        U8 ch = buf[nextCharInBuf];
-        switch (ch) {
-        case '\n': {
-            logicalNewline = true;
-            break;
-        }
-        default: {
-            break;
-        }
-        }
-
-        nextCharInBuf = RING_INCREMENT(nextCharInBuf, FILE_BUF_LEN);
-        I8Count++;
-    }
-
-    if (isTailing) {
-        toTail();
-    }
-
-    buffer->len = 0;
-
-    return true;
-}
-
-// TODO: buffer should be a variable to this function once we have actual
-// memory management set up instead of it being hardcoded.
-void appendToFlushBuffer(string data, U8 flags) {
-    for (U64 bytesWritten = 0; bytesWritten < data.len;) {
-        // the minimum of size remaining and what is left in the buffer.
-        U64 spaceInBuffer = (flushBuf.cap) - flushBuf.len;
-        U64 dataToWrite = data.len - bytesWritten;
-        U64 bytesToWrite = MIN(spaceInBuffer, dataToWrite);
-        memcpy(flushBuf.buf + flushBuf.len, data.buf + bytesWritten,
-               bytesToWrite);
-        flushBuf.len += bytesToWrite;
-        bytesWritten += bytesToWrite;
-        if (bytesWritten < data.len) {
-            flushBuffer(&flushBuf);
-        }
-    }
-
-    if (flags & NEWLINE) {
-        if (flushBuf.len >= flushBuf.cap) {
-            flushBuffer(&flushBuf);
-        }
-        flushBuf.buf[flushBuf.len] = '\n';
-        flushBuf.len++;
-    }
-
-    if (flags & FLUSH) {
-        flushBuffer(&flushBuf);
-    }
 }

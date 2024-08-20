@@ -1,60 +1,56 @@
 #include "test-framework/expectations.h"
-#include "util/log.h"
+#include "log/log.h"
 
-void appendExpectCodeWithString(ptrdiff_t expected,
-                                    string expectedString, ptrdiff_t actual,
-                                    string actualString) {
-    ERROR(stringWithMinSizeDefault(STRING("Expected"), 10));
-    ERROR((STRING(": ")));
-    ERROR(
-        stringWithMinSizeDefault(ptrdiffToStringDefault(expected), 4));
-    ERROR((STRING(" - ")));
-    ERROR(expectedString, NEWLINE);
+void appendExpectCodeWithString(U64 expected, string expectedString, U64 actual,
+                                string actualString) {
+    LOG(stringWithMinSizeDefault(STRING("Expected"), 10));
+    LOG((STRING(": ")));
+    LOG(stringWithMinSizeDefault(U64ToStringDefault(expected), 4));
+    LOG((STRING(" - ")));
+    LOG(expectedString, NEWLINE);
 
-    ERROR(stringWithMinSizeDefault(STRING("Actual"), 10));
-    ERROR((STRING(": ")));
-    ERROR(
-        stringWithMinSizeDefault(ptrdiffToStringDefault(actual), 4));
-    ERROR((STRING(" - ")));
-    ERROR(actualString, NEWLINE);
+    LOG(stringWithMinSizeDefault(STRING("Actual"), 10));
+    LOG((STRING(": ")));
+    LOG(stringWithMinSizeDefault(U64ToStringDefault(actual), 4));
+    LOG((STRING(" - ")));
+    LOG(actualString, NEWLINE);
 }
 
-void appendExpectString(string expectedString,
-                            string actualString) {
-    ERROR(stringWithMinSizeDefault(STRING("Expected string"), 20));
-    ERROR((STRING(": ")));
-    ERROR(expectedString, NEWLINE);
+void appendExpectString(string expectedString, string actualString) {
+    LOG(stringWithMinSizeDefault(STRING("Expected string"), 20));
+    LOG((STRING(": ")));
+    LOG(expectedString, NEWLINE);
 
-    ERROR(stringWithMinSizeDefault(STRING("Actual string"), 20));
-    ERROR((STRING(": ")));
-    ERROR(actualString, NEWLINE);
+    LOG(stringWithMinSizeDefault(STRING("Actual string"), 20));
+    LOG((STRING(": ")));
+    LOG(actualString, NEWLINE);
 }
 
 void appendExpectBool(bool expectedBool, bool actualBool) {
-    ERROR(stringWithMinSizeDefault(STRING("Expected bool"), 20));
-    ERROR((STRING(": ")));
-    ERROR(expectedBool, NEWLINE);
+    LOG(stringWithMinSizeDefault(STRING("Expected bool"), 20));
+    LOG((STRING(": ")));
+    LOG(expectedBool, NEWLINE);
 
-    ERROR(stringWithMinSizeDefault(STRING("Actual bool"), 20));
-    ERROR((STRING(": ")));
-    ERROR(actualBool, NEWLINE);
+    LOG(stringWithMinSizeDefault(STRING("Actual bool"), 20));
+    LOG((STRING(": ")));
+    LOG(actualBool, NEWLINE);
 }
 
-void appendExpectPtrDiff(ptrdiff_t expectedNumber, ptrdiff_t actualNumber) {
-    ERROR(stringWithMinSizeDefault(STRING("Expected number"), 20));
-    ERROR((STRING(": ")));
-    ERROR(expectedNumber, NEWLINE);
+void appendExpectPtrDiff(U64 expectedNumber, U64 actualNumber) {
+    LOG(stringWithMinSizeDefault(STRING("Expected number"), 20));
+    LOG((STRING(": ")));
+    LOG(expectedNumber, NEWLINE);
 
-    ERROR(stringWithMinSizeDefault(STRING("Actual number"), 20));
-    ERROR((STRING(": ")));
-    ERROR(actualNumber, NEWLINE);
+    LOG(stringWithMinSizeDefault(STRING("Actual number"), 20));
+    LOG((STRING(": ")));
+    LOG(actualNumber, NEWLINE);
 }
-void appendExpectUint(uint64_t expectedNumber, uint64_t actualNumber) {
-    ERROR(stringWithMinSizeDefault(STRING("Expected number"), 20));
-    ERROR((STRING(": ")));
-    ERROR(expectedNumber, NEWLINE);
+void appendExpectUint(U64 expectedNumber, U64 actualNumber) {
+    LOG(stringWithMinSizeDefault(STRING("Expected number"), 20));
+    LOG((STRING(": ")));
+    LOG(expectedNumber, NEWLINE);
 
-    ERROR(stringWithMinSizeDefault(STRING("Actual number"), 20));
-    ERROR((STRING(": ")));
-    ERROR(actualNumber, NEWLINE);
+    LOG(stringWithMinSizeDefault(STRING("Actual number"), 20));
+    LOG((STRING(": ")));
+    LOG(actualNumber, NEWLINE);
 }

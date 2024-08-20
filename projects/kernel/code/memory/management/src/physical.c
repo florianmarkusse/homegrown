@@ -1,14 +1,12 @@
 #include "memory/management/physical.h"
-#include "hardware/idt.h" // for triggerFault, FAULT_N...
-#include "interoperation/array-types.h"
-#include "interoperation/array.h"              // for MAX_LENGTH_ARRAY
+#include "hardware/idt.h"                      // for triggerFault, FAULT_N...
 #include "interoperation/kernel-parameters.h"  // for KernelMemory
 #include "interoperation/memory/definitions.h" // for PAGE_SIZE
 #include "interoperation/types.h"              // for U64, U32, U8
+#include "log/log.h"                           // for LOG, LOG_CHOOSER_IMPL_1
 #include "memory/manipulation/manipulation.h"
 #include "text/string.h" // for STRING
 #include "util/assert.h"
-#include "util/log.h" // for LOG, LOG_CHOOSER_IMPL_1
 #include "util/maths.h"
 
 // NOTE This is a shitty PMM. This needs to be rewritten for sure!!!

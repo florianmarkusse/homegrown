@@ -3,10 +3,11 @@
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
 #include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h" // for U32
+#include "log/log.h"              // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "memory/management/physical.h"
+#include "peripheral/screen/screen.h"
 #include "quickie/hello.h"
 #include "text/string.h" // for STRING
-#include "util/log.h"    // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
@@ -56,7 +57,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         .len = 2,
     });
 
-    FLUSH_AFTER { LOG(getBigNumber(), NEWLINE); }
+    /*FLUSH_AFTER { LOG(getBigNumber(), NEWLINE); }*/
 
     printPhysicalMemoryManagerStatus();
 

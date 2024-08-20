@@ -1,20 +1,42 @@
 #include "test-framework/test.h"
-#include "util/assert.h"      // for ASSERT
-#include "util/log.h"         // for LOG_CHOOSER_IMPL_2, INFO, ...
+#include "log/log.h"
 #include "text/string.h" // for STRING, string
-#include <stddef.h>           // for ptrdiff_t
-#include <stdint.h>           // for uint64_t
+#include "util/assert.h" // for ASSERT
+
+typedef enum {
+    COLOR_RED,
+    COLOR_GREEN,
+    COLOR_YELLOW,
+    COLOR_BLUE,
+    COLOR_MAGENTA,
+    COLOR_CYAN,
+    COLOR_RESET,
+    COLOR_NUMS
+} AnsiColor;
+
+static string ansiColorToCode[COLOR_NUMS] = {
+    STRING("\x1b[31m"), STRING("\x1b[32m"), STRING("\x1b[33m"),
+    STRING("\x1b[34m"), STRING("\x1b[35m"), STRING("\x1b[36m"),
+    STRING("\x1b[0m"),
+};
+
+void appendColor(AnsiColor color) {
+    appendToFlushBuffer(ansiColorToCode[color], 0);
+}
+void appendColorReset() {
+    appendToFlushBuffer(ansiColorToCode[COLOR_RESET], 0);
+}
 
 typedef struct {
-    uint64_t successes;
-    uint64_t failures;
+    U64 successes;
+    U64 failures;
     string topic;
 } TestTopic;
 
 #define MAX_TEST_TOPICS 1 << 6
 
 static TestTopic testTopics[MAX_TEST_TOPICS];
-static ptrdiff_t nextTestTopic = 0;
+static U64 nextTestTopic = 0;
 
 void addTopic(string topic) {
     ASSERT(nextTestTopic < MAX_TEST_TOPICS);
@@ -23,53 +45,53 @@ void addTopic(string topic) {
 }
 
 void appendSpaces() {
-    for (ptrdiff_t i = 0; i < nextTestTopic - 1; i++) {
-        INFO((STRING("  ")));
+    for (U64 i = 0; i < nextTestTopic - 1; i++) {
+        LOG((STRING("  ")));
     }
 }
 
-void printTestScore(uint64_t successes, uint64_t failures) {
-    FLUSH_AFTER(STDOUT) {
+void printTestScore(U64 successes, U64 failures) {
+    FLUSH_AFTER {
         appendSpaces();
 
-        INFO((STRING("[ ")));
-        INFO(successes);
-        INFO((STRING(" / ")));
-        INFO(failures + successes);
-        INFO((STRING(" ]\n")));
+        LOG((STRING("[ ")));
+        LOG(successes);
+        LOG((STRING(" / ")));
+        LOG(failures + successes);
+        LOG((STRING(" ]\n")));
     }
 }
 
 void testSuiteStart(string mainTopic) {
-    FLUSH_AFTER(STDOUT) {
-        INFO((STRING("Starting test suite for ")));
-        INFO(mainTopic);
-        INFO((STRING(" ...\n\n")));
+    FLUSH_AFTER {
+        LOG((STRING("Starting test suite for ")));
+        LOG(mainTopic);
+        LOG((STRING(" ...\n\n")));
     }
 
     addTopic(STRING("Root topic"));
 }
 
 int testSuiteFinish() {
-    uint64_t globalSuccesses = testTopics[0].successes;
-    uint64_t globalFailures = testTopics[0].failures;
+    U64 globalSuccesses = testTopics[0].successes;
+    U64 globalFailures = testTopics[0].failures;
 
     printTestScore(globalSuccesses, globalFailures);
     if (globalFailures > 0) {
-        FLUSH_AFTER(STDERR) {
-            ERROR((STRING("\nTest suite ")));
-            appendColor(COLOR_RED, STDERR);
-            ERROR((STRING("failed")));
-            appendColorReset(STDERR);
-            ERROR((STRING(".\n")));
+        FLUSH_AFTER {
+            LOG((STRING("\nTest suite ")));
+            appendColor(COLOR_RED);
+            LOG((STRING("failed")));
+            appendColorReset();
+            LOG((STRING(".\n")));
         }
     } else {
-        FLUSH_AFTER(STDOUT) {
-            INFO((STRING("\nTest suite ")));
-            appendColor(COLOR_GREEN, STDOUT);
-            INFO((STRING("successful")));
-            appendColorReset(STDOUT);
-            INFO((STRING(".\n")));
+        FLUSH_AFTER {
+            LOG((STRING("\nTest suite ")));
+            appendColor(COLOR_GREEN);
+            LOG((STRING("successful")));
+            appendColorReset();
+            LOG((STRING(".\n")));
         }
     }
 
@@ -79,11 +101,11 @@ int testSuiteFinish() {
 void testTopicStart(string testTopic) {
     addTopic(testTopic);
 
-    FLUSH_AFTER(STDOUT) {
+    FLUSH_AFTER {
         appendSpaces();
-        INFO((STRING("Testing ")));
-        INFO(testTopic);
-        INFO((STRING("...\n")));
+        LOG((STRING("Testing ")));
+        LOG(testTopic);
+        LOG((STRING("...\n")));
     }
 }
 
@@ -95,49 +117,49 @@ void testTopicFinish() {
 }
 
 void unitTestStart(string testName) {
-    FLUSH_AFTER(STDOUT) {
+    FLUSH_AFTER {
         appendSpaces();
-        INFO((STRING("- ")));
-        INFO(stringWithMinSizeDefault(testName, 50));
+        LOG((STRING("- ")));
+        LOG(stringWithMinSizeDefault(testName, 50));
     }
 }
 
 void testSuccess() {
-    for (ptrdiff_t i = 0; i < nextTestTopic; i++) {
+    for (U64 i = 0; i < nextTestTopic; i++) {
         testTopics[i].successes++;
     }
 
-    FLUSH_AFTER(STDOUT) {
-        appendColor(COLOR_GREEN, STDOUT);
-        INFO(stringWithMinSizeDefault(STRING("Success"), 20));
-        appendColorReset(STDOUT);
-        INFO((STRING("\n")));
+    FLUSH_AFTER {
+        appendColor(COLOR_GREEN);
+        LOG(stringWithMinSizeDefault(STRING("Success"), 20));
+        appendColorReset();
+        LOG((STRING("\n")));
     }
 }
 
 void testFailure() {
-    for (ptrdiff_t i = 0; i < nextTestTopic; i++) {
+    for (U64 i = 0; i < nextTestTopic; i++) {
         testTopics[i].failures++;
     }
 
-    FLUSH_AFTER(STDERR) {
-        appendColor(COLOR_RED, STDERR);
-        ERROR(stringWithMinSizeDefault(STRING("Failure"), 20));
-        appendColorReset(STDERR);
-        ERROR((STRING("\n")));
+    FLUSH_AFTER {
+        appendColor(COLOR_RED);
+        LOG(stringWithMinSizeDefault(STRING("Failure"), 20));
+        appendColorReset();
+        LOG((STRING("\n")));
     }
 }
 
 void appendTestFailureStart() {
-    ERROR((STRING("----------------------------------------------------"
-                  "----------------------------\n")));
-    ERROR((STRING("|                                    REASON         "
-                  "                           |\n")));
+    LOG((STRING("----------------------------------------------------"
+                "----------------------------\n")));
+    LOG((STRING("|                                    REASON         "
+                "                           |\n")));
 }
 
 void appendTestFailureFinish() {
-    ERROR((STRING("|                                                   "
-                  "                           |\n")));
-    ERROR((STRING("----------------------------------------------------"
-                  "----------------------------\n")));
+    LOG((STRING("|                                                   "
+                "                           |\n")));
+    LOG((STRING("----------------------------------------------------"
+                "----------------------------\n")));
 }
