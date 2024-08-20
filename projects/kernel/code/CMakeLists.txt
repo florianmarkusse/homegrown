@@ -34,9 +34,9 @@ target_include_directories(
 )
 
 # Adds the linking library location in reverse order. Remember the linker tries
-# to link from last to first argument. So be wise :)
-# This is only for folders that are used inside the kernel. For other builds,
-# e.g., unit tests, CMake can figure it out.
+# to link from last to first argument. So be wise :) This is only for folders
+# that are used inside the kernel. For other builds, e.g., unit tests, CMake
+# can figure it out.
 set(LINKING_LIBRARIES_LOCATIONS)
 
 add_subdirectory("hardware")
