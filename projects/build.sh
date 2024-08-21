@@ -29,7 +29,7 @@ function display_usage() {
     echo -e "  -u, --no-iwyu              Opt-out of include-what-you-use."
     echo -e "  -c, --c-compiler           Set the c-compiler. Default is ${YELLOW}${C_COMPILER}${NO_COLOR}."
     echo -e "  -s, --select-targets       Select specific target(s, space-separated) to be built."
-    echo -e "  -t, --build-tests          Build tests."
+    echo -e "  -t, --build-and-run-test   Build and run tests."
     echo -e "  --no-avx                   Disable AVX. (This is applied to the operating system build only)"
     echo -e "  --no-sse                   Disable SSE. (This is applied to the operating system build only)"
     echo -e "  -h, --help                 Display this help message."
@@ -111,7 +111,7 @@ while [[ "$#" -gt 0 ]]; do
             shift
         done
         ;;
-    -t | --build-tests)
+    -t | --build-and-run-tests)
         UNIT_TEST_BUILD=true
         shift
         ;;
@@ -206,11 +206,23 @@ cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
 cd ../../
 
-# -----------------------------------------------------------------------------
-# Only building kernel & interoperation in unit test build
-# -----------------------------------------------------------------------------
-
 if [ "$UNIT_TEST_BUILD" = true ]; then
+    if [ "${#SELECTED_TARGETS[@]}" -gt 0 ]; then
+        # I am skill-deficient in bash, forgive me
+        FILES_TO_EXECUTE=()
+        for target in "${SELECTED_TARGETS[@]}"; do
+            while IFS= read -r -d '' file; do
+                FILES_TO_EXECUTE+=("$file")
+            done < <(find kernel -executable -type f -name "*$target*" -print0)
+        done
+
+        for file in "${FILES_TO_EXECUTE[@]}"; do
+            "$file"
+        done
+    else
+        find kernel/code/build -executable -name '*-tests*' -type f -exec {} \;
+    fi
+
     exit 0
 fi
 
