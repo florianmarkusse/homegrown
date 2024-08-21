@@ -39,12 +39,12 @@ target_include_directories(
 # can figure it out.
 set(LINKING_LIBRARIES_LOCATIONS)
 
-add_subdirectory("hardware")
-target_link_libraries(${MAIN_RESULT} PRIVATE hardware-${CMAKE_BUILD_TYPE})
+add_subdirectory("cpu")
+target_link_libraries(${MAIN_RESULT} PRIVATE cpu-${CMAKE_BUILD_TYPE})
 list(
     APPEND
     LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/hardware/libhardware-${CMAKE_BUILD_TYPE}.a
+    ${CMAKE_CURRENT_BINARY_DIR}/cpu/libcpu-${CMAKE_BUILD_TYPE}.a
 )
 
 add_subdirectory("memory")
@@ -76,14 +76,6 @@ list(
     APPEND
     LINKING_LIBRARIES_LOCATIONS
     ${CMAKE_CURRENT_BINARY_DIR}/peripheral/screen/libperipheral-screen-${CMAKE_BUILD_TYPE}.a
-)
-
-add_subdirectory("quickie")
-target_link_libraries(${MAIN_RESULT} PRIVATE quickie-${CMAKE_BUILD_TYPE})
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/quickie/libquickie-${CMAKE_BUILD_TYPE}.a
 )
 
 add_subdirectory("log")

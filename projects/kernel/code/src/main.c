@@ -1,4 +1,4 @@
-#include "hardware/idt.h"                      // for setupIDT
+#include "cpu/idt.h"                           // for setupIDT
 #include "interoperation/kernel-parameters.h"  // for KernelParameters
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
 #include "interoperation/memory/descriptor.h"
@@ -6,7 +6,6 @@
 #include "log/log.h"              // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "memory/management/physical.h"
 #include "peripheral/screen/screen.h"
-#include "quickie/hello.h"
 #include "text/string.h" // for STRING
 
 // void appendDescriptionHeaders(RSDPResult rsdp);

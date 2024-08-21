@@ -1,5 +1,5 @@
-#ifndef HARDWARE_IDT_H
-#define HARDWARE_IDT_H
+#ifndef CPU_IDT_H
+#define CPU_IDT_H
 
 #include "interoperation/types.h"
 typedef struct {
@@ -62,4 +62,9 @@ typedef enum : U64 {
 } Fault;
 
 void triggerFault(Fault fault);
+
+#ifdef UNIT_TEST_BUILD
+bool isFaultTriggered(Fault fault);
+#endif
+
 #endif

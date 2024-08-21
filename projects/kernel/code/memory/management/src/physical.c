@@ -1,5 +1,5 @@
 #include "memory/management/physical.h"
-#include "hardware/idt.h"                      // for triggerFault, FAULT_N...
+#include "cpu/idt.h"                           // for triggerFault, FAULT_N...
 #include "interoperation/kernel-parameters.h"  // for KernelMemory
 #include "interoperation/memory/definitions.h" // for PAGE_SIZE
 #include "interoperation/types.h"              // for U64, U32, U8
@@ -37,7 +37,11 @@ bool canBeUsedByOS(MemoryType type) {
     }
 }
 
-U64 testTest() { return 123; }
+U64 testTest() {
+    triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
+
+    return 1234;
+}
 
 // NOTE: We can add an index on top of the pages if this function becomes an
 // issue that is based on available pages.

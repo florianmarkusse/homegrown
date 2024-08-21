@@ -1,9 +1,17 @@
-project(hardware LANGUAGES C ASM)
+project(cpu LANGUAGES C ASM)
 
 set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 set(LIBRARY_TYPE "STATIC")
 
-add_library(${LIBRARY} ${LIBRARY_TYPE} "src/idt.c" "src/idts.S")
+set(SOURCE_FILES)
+
+if("${UNIT_TEST_BUILD}")
+    list(APPEND SOURCE_FILES "src/posix/idt.c")
+else()
+    list(APPEND SOURCE_FILES "src/kernel/idt.c" "src/kernel/idt.S")
+endif()
+
+add_library(${LIBRARY} ${LIBRARY_TYPE} ${SOURCE_FILES})
 
 target_include_directories(
     ${LIBRARY}

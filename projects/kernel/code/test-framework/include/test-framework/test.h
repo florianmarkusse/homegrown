@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "interoperation/types.h"
+#include "log/log.h"     // for string
 #include "text/string.h" // for string
 #include "util/macros.h" // for MACRO_VAR
 
@@ -25,8 +26,8 @@ void appendTestFailureFinish();
 
 #define TEST_FAILURE                                                           \
     for (U64 MACRO_VAR(i) = (testFailure(), appendTestFailureStart(), 0);      \
-         MACRO_VAR(i) < 1;                                                     \
-         MACRO_VAR(i) = (appendTestFailureFinish(), ERROR("\n\n", FLUSH), 1))
+         MACRO_VAR(i) < 1; MACRO_VAR(i) = (appendTestFailureFinish(),          \
+                                           LOG(STRING("\n\n"), FLUSH), 1))
 
 #define TEST(testString)                                                       \
     for (U64 MACRO_VAR(i) = (unitTestStart(testString), 0); MACRO_VAR(i) < 1;  \

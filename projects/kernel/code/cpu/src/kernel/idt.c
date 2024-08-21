@@ -1,4 +1,4 @@
-#include "hardware/idt.h"
+#include "cpu/idt.h"
 #include "log/log.h" // for LOG, LOG_CHOOSER_IMPL_1, LOG_CHOOSER...
 #include "memory/manipulation/manipulation.h"
 #include "text/string.h" // for STRING, string
