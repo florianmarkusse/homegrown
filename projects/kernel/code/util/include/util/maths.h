@@ -11,11 +11,13 @@ extern "C" {
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define ABS(x) (((x) < 0) ? (-(x)) : (x))
 
-#define ALIGN_UP(val, exponent)                                                \
+#define ALIGN_UP_EXP(val, exponent)                                            \
     (((val) + ((1 << (exponent)) - 1)) & ~((1 << (exponent)) - 1))
-#define ALIGN_DOWN(val, exponent) ((val) & ~((1 << (exponent)) - 1))
+#define ALIGN_UP_VALUE(val, alignValue)                                        \
+    (((val) + ((alignValue) - 1)) & ~((alignValue) - 1))
 
-#define RING_RANGE(val, ringSize) (((val)) & ((ringSize) - 1))
+#define RING_RANGE_EXP(val, exponent) ((val) & ~((1 << (exponent)) - 1))
+#define RING_RANGE_VALUE(val, ringSize) (((val)) & ((ringSize) - 1))
 #define RING_INCREMENT(val, ringSize) (((val) + 1) & ((ringSize) - 1))
 #define RING_PLUS(val, amount, ringSize) (((val) + (amount)) & ((ringSize) - 1))
 #define RING_DECREMENT(val, ringSize) (((val) - 1) & ((ringSize) - 1))

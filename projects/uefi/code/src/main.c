@@ -7,7 +7,7 @@
 #include "gdt.h"                                   // for enableNewGDT, pre...
 #include "globals.h"                               // for globals
 #include "interoperation/kernel-parameters.h"      // for KernelParameters
-#include "interoperation/memory/definitions.h"     // for PAGE_SIZE, STACK_...
+#include "interoperation/memory/definitions.h"     // for PAGE_FRAME_SIZE, STACK_...
 #include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h"  // for U64, U32, NULL
 #include "memory/boot-functions.h" // for mapMemoryAt, allo...
@@ -355,7 +355,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
             (MemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
                                  (i * memoryInfo.descriptorSize));
         mapMemoryAt(desc->physicalStart, desc->physicalStart,
-                    desc->numberOfPages * PAGE_SIZE, 0);
+                    desc->numberOfPages * PAGE_FRAME_SIZE, 0);
     }
 
     mapMemoryAt(gop->mode->frameBufferBase, gop->mode->frameBufferBase,
@@ -369,13 +369,13 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Creating space for kernel parameters...\r\n");
-    PhysicalAddress kernelParams = allocAndZero(KERNEL_PARAMS_SIZE / PAGE_SIZE);
+    PhysicalAddress kernelParams = allocAndZero(KERNEL_PARAMS_SIZE / PAGE_FRAME_SIZE);
     mapMemoryAt(kernelParams, KERNEL_PARAMS_START, KERNEL_PARAMS_SIZE, 0);
     KernelParameters *params = (KernelParameters *)kernelParams;
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Creating space for stack...\r\n");
-    PhysicalAddress stackEnd = allocAndZero(STACK_SIZE / PAGE_SIZE);
+    PhysicalAddress stackEnd = allocAndZero(STACK_SIZE / PAGE_FRAME_SIZE);
     mapMemoryAt(stackEnd, BOTTOM_STACK, STACK_SIZE, 0);
     PhysicalAddress stackPointer = stackEnd + STACK_SIZE;
 
@@ -459,7 +459,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     if (ERROR(status)) {
         status = globals.st->boot_services->free_pages(
             (PhysicalAddress)memoryInfo.memoryMap,
-            BYTES_TO_PAGES(memoryInfo.memoryMapSize));
+            BYTES_TO_PAGE_FRAMES(memoryInfo.memoryMapSize));
         if (ERROR(status)) {
             error(u"Could not free allocated memory map\r\n");
         }

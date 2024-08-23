@@ -3,17 +3,6 @@
 
 #define RED_ZONE_SIZE (1 << 7)
 
-#define PAGE_ENTRY_SHIFT 9
-#define PAGE_ENTRY_SIZE (1 << PAGE_ENTRY_SHIFT)
-#define PAGE_ENTRY_MASK (PAGE_ENTRY_SIZE - 1)
-
-#define PAGE_SHIFT 12
-#define PAGE_SIZE (1 << PAGE_SHIFT)
-#define LARGE_PAGE_SIZE (PAGE_SIZE << PAGE_ENTRY_SHIFT)
-#define HUGE_PAGE_SIZE (LARGE_PAGE_SIZE << PAGE_ENTRY_SHIFT)
-#define PAGE_SIZE (1 << PAGE_SHIFT)
-#define PAGE_MASK (PAGE_SIZE - 1)
-
 #define KERNEL_SPACE_START 0xfffffffff8000000
 #define KERNEL_SPACE_END                                                       \
     0xfffffffffffff000 // should be fff at the end but otherwise the memory
@@ -28,8 +17,19 @@
 #define BOTTOM_STACK (KERNEL_PARAMS_START - STACK_SIZE)
 // #define KERNEL_STACK_START 0xfffffffff6000000
 
-#define PAGE_ENTRIES_SIZE_BYTES (8)
-#define PAGE_ENTRIES_NUM (PAGE_SIZE / PAGE_ENTRIES_SIZE_BYTES)
+// PAGE TABLE DEFINITIONS FOR X86_64 !!!
+// TODO: These macros are quite confusing, should rewrite them into more
+// sensible constructs when working on virtual memory.
+#define PAGE_TABLE_SHIFT 9
+#define PAGE_TABLE_ENTRIES (1 << PAGE_TABLE_SHIFT)
+#define PAGE_TABLE_MASK (PAGE_TABLE_ENTRIES - 1)
+
+#define PAGE_FRAME_SHIFT 12
+#define PAGE_FRAME_SIZE (1 << PAGE_FRAME_SHIFT)
+#define LARGE_PAGE_SIZE (PAGE_SIZE << PAGE_TABLE_SHIFT)
+#define HUGE_PAGE_SIZE (LARGE_PAGE_SIZE << PAGE_TABLE_SHIFT)
+#define PAGE_SIZE (1 << PAGE_FRAME_SHIFT)
+#define PAGE_MASK (PAGE_SIZE - 1)
 
 #define PAGE_PRESENT (1ULL << 0)  // The page is currently in memory
 #define PAGE_WRITABLE (1ULL << 1) // It’s allowed to write to this page
@@ -45,7 +45,7 @@
     (1ULL << 7) // Must be 0 in P1 and P4, creates a 1 GiB page in P3, creates a
                 // 2 MiB page in P2
 #define PAGE_GLOBAL                                                            \
-    (1ULL << 8) // Page isn’t flushed from caches on address space switch (PGE
+    (1ULL << 8) // Page isn’t f6lushed from caches on address space switch (PGE
                 // bit of CR4 register must be set)
 #define PAGE_AVAILABLE_9 (1ULL << 9)   // Can be used freely by the OS
 #define PAGE_AVAILABLE_10 (1ULL << 10) // Can be used freely by the OS
@@ -67,6 +67,7 @@
     (1ULL << 63) // Forbid executing code on this page (the NXE bit in the EFER
                  // register must be set)
 
-#define BYTES_TO_PAGES(a) (((a) >> PAGE_SHIFT) + ((a) & PAGE_MASK ? 1 : 0))
+#define BYTES_TO_PAGE_FRAMES(a)                                                \
+    (((a) >> PAGE_FRAME_SHIFT) + ((a) & PAGE_MASK ? 1 : 0))
 
 #endif

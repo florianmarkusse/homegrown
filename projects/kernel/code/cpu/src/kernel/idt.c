@@ -662,6 +662,8 @@ void triggerFault(Fault fault) {
         __asm__ __volatile__("int $0xFF" :::);
         break;
     }
+
+    __builtin_unreachable();
 }
 
 static string faultStrings[FAULT_NUMS] = {

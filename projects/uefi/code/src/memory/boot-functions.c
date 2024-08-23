@@ -13,7 +13,7 @@ PhysicalAddress allocAndZero(USize numPages) {
         error(u"unable to allocate pages!\r\n");
     }
 
-    memset((void *)page, 0, numPages * PAGE_SIZE);
+    memset((void *)page, 0, numPages * PAGE_FRAME_SIZE);
     return page;
 }
 
@@ -28,30 +28,30 @@ void mapMemoryAt(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
     U64 *pageEntry = NULL;
     /* walk the page tables and add the missing pieces */
     for (virt &= ~(PAGE_MASK), phys &= ~(PAGE_MASK); virt < end;
-         virt += PAGE_SIZE, phys += PAGE_SIZE) {
+         virt += PAGE_FRAME_SIZE, phys += PAGE_FRAME_SIZE) {
         /* 512G */
         pageEntry =
             &(((PhysicalAddress *)
-                   globals.level4PageTable)[(virt >> 39L) & PAGE_ENTRY_MASK]);
+                   globals.level4PageTable)[(virt >> 39L) & PAGE_TABLE_MASK]);
         if (!*pageEntry) {
             PhysicalAddress addr = allocAndZero(1);
             *pageEntry = (addr | (PAGE_PRESENT | PAGE_WRITABLE));
         }
         /* 1G */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[(virt >> 30L) & PAGE_ENTRY_MASK]);
+        pageEntry = &(pageEntry[(virt >> 30L) & PAGE_TABLE_MASK]);
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (PAGE_PRESENT | PAGE_WRITABLE));
         }
         /* 2M  */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[(virt >> 21L) & PAGE_ENTRY_MASK]);
+        pageEntry = &(pageEntry[(virt >> 21L) & PAGE_TABLE_MASK]);
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (PAGE_PRESENT | PAGE_WRITABLE));
         }
         /* 4K */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[(virt >> 12L) & PAGE_ENTRY_MASK]);
+        pageEntry = &(pageEntry[(virt >> 12L) & PAGE_TABLE_MASK]);
         /* if this page is already mapped, that means the kernel has invalid,
          * overlapping segments */
         if (!*pageEntry) {
@@ -81,7 +81,7 @@ MemoryInfo getMemoryInfo() {
     // exitbootservices will fail (lol)
     mmap.memoryMapSize += mmap.descriptorSize * 2;
     status = globals.st->boot_services->allocate_pages(
-        ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGES(mmap.memoryMapSize),
+        ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGE_FRAMES(mmap.memoryMapSize),
         (PhysicalAddress *)&mmap.memoryMap);
     if (ERROR(status)) {
         error(u"Could not allocate data for memory map buffer\r\n");

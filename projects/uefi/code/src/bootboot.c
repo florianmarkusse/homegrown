@@ -424,7 +424,7 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
                 (U32)kernelContent.len);
 
     PhysicalAddress kernelParams = allocAndZero(1);
-    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, PAGE_SIZE);
+    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, PAGE_FRAME_SIZE);
     KernelParameters *params = (KernelParameters *)kernelParams;
     params->fb.columns = gop->mode->info->horizontalResolution;
     params->fb.rows = gop->mode->info->verticalResolution;
@@ -488,7 +488,7 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
     if (C_EFI_ERROR(status)) {
         status = globals.st->boot_services->free_pages(
             (PhysicalAddress)memoryInfo.memoryMap,
-            BYTES_TO_PAGES(memoryInfo.memoryMapSize));
+            BYTES_TO_PAGE_FRAMES(memoryInfo.memoryMapSize));
         if (C_EFI_ERROR(status)) {
             error(u"Could not free allocated memory map\r\n");
         }

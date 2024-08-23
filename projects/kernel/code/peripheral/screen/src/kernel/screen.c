@@ -143,7 +143,7 @@ void drawLines(U32 startIndex, U16 screenLinesToDraw, U64 currentLogicalLineLen,
     bool toNext = false;
 
     for (U64 i = screenLines[startIndex]; i < I8Count; i++) {
-        U8 ch = buf[RING_RANGE(i, FILE_BUF_LEN)];
+        U8 ch = buf[RING_RANGE_VALUE(i, FILE_BUF_LEN)];
 
         if (toNext) {
             currentScreenLines++;
@@ -183,7 +183,7 @@ void drawLines(U32 startIndex, U16 screenLinesToDraw, U64 currentLogicalLineLen,
                 topRightGlyphOffset += additionalSpace * glyphs.width;
                 currentGlyphLen = finalSize;
                 toNext = (finalSize >= glyphsPerLine &&
-                          buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n');
+                          buf[RING_RANGE_VALUE(i + 1, FILE_BUF_LEN)] != '\n');
             } else {
                 // The tab overflows into the next screen line.
                 U8 extraSpacePreviousLine =
@@ -212,7 +212,7 @@ void drawLines(U32 startIndex, U16 screenLinesToDraw, U64 currentLogicalLineLen,
             currentGlyphLen++;
             currentLogicalLineLen++;
             if (currentGlyphLen >= glyphsPerLine &&
-                buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n') {
+                buf[RING_RANGE_VALUE(i + 1, FILE_BUF_LEN)] != '\n') {
                 toNext = true;
             }
             break;
@@ -248,7 +248,7 @@ FillResult fillScreenLinesCopy(U64 dryStartIndex, U64 startIndex,
 
     U64 i = dryStartIndex;
     for (; i < endIndexExclusive; i++) {
-        U8 ch = buf[RING_RANGE(i, FILE_BUF_LEN)];
+        U8 ch = buf[RING_RANGE_VALUE(i, FILE_BUF_LEN)];
 
         if (toNext) {
             if (maxNewScreenLinesToFill &&
@@ -288,7 +288,7 @@ FillResult fillScreenLinesCopy(U64 dryStartIndex, U64 startIndex,
                 currentGlyphLen = finalSize;
 
                 toNext = (finalSize == glyphsPerLine &&
-                          buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n');
+                          buf[RING_RANGE_VALUE(i + 1, FILE_BUF_LEN)] != '\n');
             } else {
                 // The tab overflows into the next screen line.
                 // We mark the current screen line as having the
@@ -324,7 +324,7 @@ FillResult fillScreenLinesCopy(U64 dryStartIndex, U64 startIndex,
             currentGlyphLen++;
             currentLogicalLineLen++;
             if (currentGlyphLen >= glyphsPerLine &&
-                buf[RING_RANGE(i + 1, FILE_BUF_LEN)] != '\n') {
+                buf[RING_RANGE_VALUE(i + 1, FILE_BUF_LEN)] != '\n') {
                 toNext = true;
             }
             break;

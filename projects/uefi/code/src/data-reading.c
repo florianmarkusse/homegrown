@@ -8,7 +8,7 @@
 #include "efi/c-efi-system.h"                      // for OPEN_PROTOCOL_BY_...
 #include "globals.h"                               // for globals
 #include "interoperation/generated/kernel-magic.h"
-#include "interoperation/memory/definitions.h" // for BYTES_TO_PAGES
+#include "interoperation/memory/definitions.h" // for BYTES_TO_PAGE_FRAMES
 #include "interoperation/memory/descriptor.h"
 #include "memory/standard.h" // for memcmp
 #include "printing.h"        // for error, printNumber
@@ -70,7 +70,7 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
 
         PhysicalAddress address;
         status = globals.st->boot_services->allocate_pages(
-            ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGES(alignedBytes),
+            ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGE_FRAMES(alignedBytes),
             &address);
         if (ERROR(status)) {
             error(u"Could not allocete data for disk buffer\r\n");
@@ -148,7 +148,7 @@ AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
 
             PhysicalAddress address;
             status = globals.st->boot_services->allocate_pages(
-                ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGES(alignedBytes),
+                ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGE_FRAMES(alignedBytes),
                 &address);
             if (ERROR(status)) {
                 error(u"Could not allocete data for disk buffer\r\n");
@@ -188,7 +188,7 @@ AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
     //    PhysicalAddress address;
     //    status = globals.st->boot_services->allocate_pages(
     //        ALLOCATE_ANY_PAGES, LOADER_DATA,
-    //        BYTES_TO_PAGES(bytes), &address);
+    //        BYTES_TO_PAGE_FRAMES(bytes), &address);
     //    if (ERROR(status)) {
     //        error(u"Could not allocete data for disk buffer\r\n");
     //    }
@@ -286,7 +286,7 @@ DataPartitionFile getKernelInfo() {
     PhysicalAddress dataFileAddress;
 
     status = globals.st->boot_services->allocate_pages(
-        ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGES(dataFile.len),
+        ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGE_FRAMES(dataFile.len),
         &dataFileAddress);
     if (ERROR(status) || dataFile.len != file_info.fileSize) {
         error(u"Could not allocate memory for file\r\n");

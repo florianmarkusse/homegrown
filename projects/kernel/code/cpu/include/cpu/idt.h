@@ -61,7 +61,7 @@ typedef enum : U64 {
     FAULT_NUMS
 } Fault;
 
-void triggerFault(Fault fault);
+__attribute__((noreturn)) void triggerFault(Fault fault);
 
 #ifdef UNIT_TEST_BUILD
 bool isFaultTriggered(Fault fault);

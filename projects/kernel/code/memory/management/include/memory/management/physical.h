@@ -1,8 +1,8 @@
 #ifndef MEMORY_MANAGEMENT_PHYSICAL_H
 #define MEMORY_MANAGEMENT_PHYSICAL_H
 
-#include "interoperation/kernel-parameters.h"
 #include "interoperation/array.h"
+#include "interoperation/kernel-parameters.h"
 
 typedef struct {
     U64 pageStart;
@@ -12,13 +12,22 @@ typedef struct {
 typedef MAX_LENGTH_ARRAY(FreeMemory) FreeMemory_max_a;
 typedef ARRAY(FreeMemory) FreeMemory_a;
 
+// NOTE this can likely be moved up into a "definitions" file that is shared
+// among the memory modules.
+typedef enum {
+    BASE_PAGE = 0,
+    LARGE_PAGE = 1,
+    HUGE_PAGE = 2,
+    PAGE_TYPE_NUMS = 3
+} PageType;
+
 void initPhysicalMemoryManager(KernelMemory kernelMemory);
 
-U64 testTest();
-U64 allocContiguousBasePhysicalPages(U64 numberOfPages);
-FreeMemory_a allocBasePhysicalPages(FreeMemory_a pages);
-void freeBasePhysicalPage(FreeMemory page);
-void freeBasePhysicalPages(FreeMemory_a pages);
+U64 allocContiguousPhysicalPages(U64 numberOfPages, PageType pageType);
+FreeMemory_a allocPhysicalPages(FreeMemory_a pages, PageType pageType);
+
+void freePhysicalPage(FreeMemory page, PageType pageType);
+void freePhysicalPages(FreeMemory_a pages, PageType pageType);
 
 void printPhysicalMemoryManagerStatus();
 

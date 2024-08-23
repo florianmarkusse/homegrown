@@ -26,9 +26,9 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         .descriptors = kernelParameters->memory.descriptors,
         .descriptorSize = kernelParameters->memory.descriptorSize});
 
-    string firstBuffer =
-        (string){.buf = (typeof(U8 *))allocContiguousBasePhysicalPages(1),
-                 .len = PAGE_SIZE};
+    string firstBuffer = (string){
+        .buf = (typeof(U8 *))allocContiguousPhysicalPages(1, BASE_PAGE),
+        .len = PAGE_FRAME_SIZE};
 
     for (U64 i = 0; i < 100; i++) {
         firstBuffer.buf[i] = 'A';
@@ -36,9 +36,9 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     firstBuffer.buf[100] = '\n';
     firstBuffer.len = 101;
 
-    string secondBuffer =
-        (string){.buf = (typeof(U8 *))allocContiguousBasePhysicalPages(1),
-                 .len = PAGE_SIZE};
+    string secondBuffer = (string){
+        .buf = (typeof(U8 *))allocContiguousPhysicalPages(1, BASE_PAGE),
+        .len = PAGE_FRAME_SIZE};
 
     for (U64 i = 0; i < 100; i++) {
         secondBuffer.buf[i] = 'A';
@@ -48,13 +48,17 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 
     printPhysicalMemoryManagerStatus();
 
-    freeBasePhysicalPages((FreeMemory_a){
-        .buf = (FreeMemory[]){(FreeMemory){.numberOfPages = 1,
-                                           .pageStart = (U64)firstBuffer.buf},
-                              (FreeMemory){.numberOfPages = 1,
-                                           .pageStart = (U64)secondBuffer.buf}},
-        .len = 2,
-    });
+    freePhysicalPages(
+        (FreeMemory_a){
+            .buf =
+                (FreeMemory[]){
+                    (FreeMemory){.numberOfPages = 1,
+                                 .pageStart = (U64)firstBuffer.buf},
+                    (FreeMemory){.numberOfPages = 1,
+                                 .pageStart = (U64)secondBuffer.buf}},
+            .len = 2,
+        },
+        BASE_PAGE);
 
     /*FLUSH_AFTER { LOG(getBigNumber(), NEWLINE); }*/
 

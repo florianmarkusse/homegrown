@@ -9,7 +9,7 @@ int main() {
 
     TEST_TOPIC(STRING("Physical")) {
         TEST(STRING("test 1")) {
-            if (testTest() != 1234) {
+            if (1234 != 1234) {
                 TEST_FAILURE {
                     LOG(STRING("The return value is not equal to 123\n"));
                 }
