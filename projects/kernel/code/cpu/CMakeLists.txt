@@ -8,7 +8,7 @@ set(SOURCE_FILES)
 if("${UNIT_TEST_BUILD}")
     list(APPEND SOURCE_FILES "src/posix/idt.c")
 else()
-    list(APPEND SOURCE_FILES "src/kernel/idt.c" "src/kernel/idt.S")
+    list(APPEND SOURCE_FILES "src/kernel/idt.c" "src/kernel/idts.S")
 endif()
 
 add_library(${LIBRARY} ${LIBRARY_TYPE} ${SOURCE_FILES})
