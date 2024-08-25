@@ -2,7 +2,15 @@
 
 static bool triggeredFaults[FAULT_NUMS];
 
-void setupIDT() {}
+static void **interruptJumper;
 
-void triggerFault(Fault fault) { triggeredFaults[fault] = true; }
-bool isFaultTriggered(Fault fault) { return triggeredFaults[fault]; }
+void initIDT() {}
+
+void triggerFault(Fault fault) {
+    triggeredFaults[fault] = true;
+    __builtin_longjmp(interruptJumper, 1);
+}
+
+void initIDTTest(void *long_jmp[5]) { interruptJumper = long_jmp; }
+
+bool *getTriggeredFaults() { return triggeredFaults; }

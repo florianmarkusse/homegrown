@@ -2,8 +2,9 @@
 #include "cpu/idt.h"                           // for triggerFault, FAULT_N...
 #include "interoperation/kernel-parameters.h"  // for KernelMemory
 #include "interoperation/memory/definitions.h" // for PAGE_FRAME_SIZE
-#include "interoperation/types.h"              // for U64, U32, U8
-#include "log/log.h"                           // for LOG, LOG_CHOOSER_IMPL_1
+#include "interoperation/memory/descriptor.h"
+#include "interoperation/types.h" // for U64, U32, U8
+#include "log/log.h"              // for LOG, LOG_CHOOSER_IMPL_1
 #include "memory/manipulation/manipulation.h"
 #include "text/string.h" // for STRING
 #include "util/assert.h"
@@ -30,10 +31,12 @@ void decreasePages(PhysicalMemoryManager *manager, U64 index, U64 decreaseBy) {
         manager->memory.buf[index] =
             manager->memory.buf[manager->memory.len - 1];
         manager->memory.len--;
+    } else {
+        manager->memory.buf[index].numberOfPages -= decreaseBy;
+        manager->memory.buf[index].pageStart +=
+            decreaseBy *
+            ((manager->pageType * PAGE_TABLE_SHIFT) + PAGE_FRAME_SIZE);
     }
-    manager->memory.buf[index].numberOfPages -= decreaseBy;
-    manager->memory.buf[index].pageStart +=
-        decreaseBy * ((manager->pageType * PAGE_TABLE_SHIFT) + PAGE_FRAME_SIZE);
 }
 
 PhysicalMemoryManager *getMemoryManager(PageType pageType) {
@@ -86,6 +89,13 @@ U64 allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
         }
     }
 
+    // TODO: Implement the stealing from big brother.
+    /*if (manager->pageType < HUGE_PAGE) {*/
+    /*    FreeMemory_a largerPage =*/
+    /*        allocPhysicalPages(pages, manager->pageType + 1);*/
+    /*    freePhysicalPages(largerPage, manager->pageType);*/
+    /*}*/
+
     triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
 }
 
@@ -115,6 +125,13 @@ FreeMemory_a allocPhysicalPagesWithManager(FreeMemory_a pages,
         requestedPages -= manager->memory.buf[i].numberOfPages;
     }
 
+    // TODO: Implement the stealing from big brother.
+    /*if (manager->pageType < HUGE_PAGE) {*/
+    /*    FreeMemory_a largerPage =*/
+    /*        allocPhysicalPages(pages, manager->pageType + 1);*/
+    /*    freePhysicalPages(largerPage, manager->pageType);*/
+    /*}*/
+
     triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
 }
 
@@ -126,8 +143,9 @@ void freePhysicalPagesWithManager(FreeMemory_a pages,
                                   PhysicalMemoryManager *manager) {
     for (U64 i = 0; i < pages.len; i++) {
         if (manager->memory.len >= manager->memory.cap) {
-            FreeMemory *newBuf = (FreeMemory *)allocContiguousPhysicalPages(
-                manager->usedBasePages + 1, BASE_PAGE);
+            FreeMemory *newBuf =
+                (FreeMemory *)allocContiguousPhysicalPagesWithManager(
+                    manager->usedBasePages + 1, &basePMM);
             memcpy(newBuf, manager->memory.buf,
                    manager->memory.len * sizeof(*manager->memory.buf));
             // The page that just got freed should be added now.
@@ -175,14 +193,6 @@ void appendPMMStatus(PhysicalMemoryManager manager) {
     LOG(totalPages, NEWLINE);
     LOG(STRING("Total memory regions:\t"));
     LOG(manager.memory.len, NEWLINE);
-    // NOTE: remove this part of the print once more confident in no bugs lol.
-    LOG(STRING("First memory regions in detail:\n"));
-    for (U64 i = 0; i < 1 && i < manager.memory.len; i++) {
-        LOG(STRING("Page start:\t"));
-        LOG((void *)manager.memory.buf[i].pageStart, NEWLINE);
-        LOG(STRING("Number of pages:\t"));
-        LOG(manager.memory.buf[i].numberOfPages, NEWLINE);
-    }
 }
 
 void printPhysicalMemoryManagerStatus() {
@@ -205,12 +215,13 @@ void initPMM(PageType pageType) {
     ASSERT(initingManager->usedBasePages == 1 &&
            initingManager->memory.len == 0);
 
-    initingManager->memory.buf = (FreeMemory *)allocContiguousPhysicalPages(
-        initingManager->usedBasePages, BASE_PAGE);
+    initingManager->memory.buf =
+        (FreeMemory *)allocContiguousPhysicalPagesWithManager(
+            initingManager->usedBasePages, &basePMM);
     initingManager->memory.cap =
         MEMORY_ENTRIES_IN_BASE_PAGES(initingManager->usedBasePages);
 
-    PageType decrementedPageType = pageType--;
+    PageType decrementedPageType = pageType - 1;
     PhysicalMemoryManager *initedManager =
         getMemoryManager(decrementedPageType);
 
@@ -259,29 +270,42 @@ void initPMM(PageType pageType) {
     }
 }
 
+MemoryDescriptor *nextValidDescriptor(U64 *i, KernelMemory kernelMemory) {
+    while (*i < kernelMemory.totalDescriptorSize) {
+        MemoryDescriptor *result =
+            (MemoryDescriptor *)((U8 *)kernelMemory.descriptors + *i);
+        // Always increment even if found, so the next caller wont get the same
+        // descriptor.
+        *i += kernelMemory.descriptorSize;
+        if (canBeUsedByOS(result->type)) {
+            return result;
+        }
+    }
+
+    return NULL;
+}
+
 // Coming into this, All the memory is identity mapped.
 // Having to do some boostrapping here with the base page frame physical
 // manager.
 void initPhysicalMemoryManager(KernelMemory kernelMemory) {
     U64 i = 0;
-    MemoryDescriptor *descriptor =
-        (MemoryDescriptor *)((U8 *)kernelMemory.descriptors + i);
-    while (!canBeUsedByOS(descriptor->type)) {
-        i += kernelMemory.descriptorSize;
-        descriptor = (MemoryDescriptor *)((U8 *)kernelMemory.descriptors + i);
+
+    MemoryDescriptor *descriptor = nextValidDescriptor(&i, kernelMemory);
+    if (!descriptor) {
+        triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
     }
+
     basePMM.memory.buf = (FreeMemory *)descriptor->physicalStart;
     basePMM.memory.cap = MEMORY_ENTRIES_IN_BASE_PAGES(1);
     basePMM.memory.len = 0;
     descriptor->physicalStart += PAGE_FRAME_SIZE;
     descriptor->numberOfPages--;
+
     if (descriptor->numberOfPages == 0) {
-        i += kernelMemory.descriptorSize;
-        descriptor = (MemoryDescriptor *)((U8 *)kernelMemory.descriptors + i);
-        while (!canBeUsedByOS(descriptor->type)) {
-            i += kernelMemory.descriptorSize;
-            descriptor =
-                (MemoryDescriptor *)((U8 *)kernelMemory.descriptors + i);
+        descriptor = nextValidDescriptor(&i, kernelMemory);
+        if (!descriptor) {
+            triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
         }
     }
 
@@ -293,28 +317,21 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory) {
     FreeMemory freeMemoryHolder =
         (FreeMemory){.pageStart = descriptor->physicalStart,
                      .numberOfPages = descriptor->numberOfPages};
-    i += kernelMemory.descriptorSize;
 
-    for (; i < kernelMemory.totalDescriptorSize;
-         i += kernelMemory.descriptorSize) {
-        descriptor = (MemoryDescriptor *)((U8 *)kernelMemory.descriptors + i);
-
-        if (canBeUsedByOS(descriptor->type)) {
-            if (freeMemoryArray.len >= maxCapacity) {
-                freePhysicalPages(freeMemoryArray, BASE_PAGE);
-                freeMemoryArray.len = 0;
-            }
-            freeMemoryArray.buf[freeMemoryArray.len] =
-                (FreeMemory){.pageStart = descriptor->physicalStart,
-                             .numberOfPages = descriptor->numberOfPages};
-            freeMemoryArray.len++;
+    while ((descriptor = nextValidDescriptor(&i, kernelMemory))) {
+        if (freeMemoryArray.len >= maxCapacity) {
+            freePhysicalPages(freeMemoryArray, BASE_PAGE);
+            freeMemoryArray.len = 0;
         }
+        freeMemoryArray.buf[freeMemoryArray.len] =
+            (FreeMemory){.pageStart = descriptor->physicalStart,
+                         .numberOfPages = descriptor->numberOfPages};
+        freeMemoryArray.len++;
     }
+
     freePhysicalPages(freeMemoryArray, BASE_PAGE);
     freePhysicalPage(freeMemoryHolder, BASE_PAGE);
 
     initPMM(LARGE_PAGE);
     initPMM(HUGE_PAGE);
-
-    printPhysicalMemoryManagerStatus();
 }

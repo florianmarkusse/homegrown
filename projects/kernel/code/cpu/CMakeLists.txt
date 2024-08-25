@@ -5,6 +5,7 @@ set(LIBRARY_TYPE "STATIC")
 
 set(SOURCE_FILES)
 
+list(APPEND SOURCE_FILES "src/common.c")
 if("${UNIT_TEST_BUILD}")
     list(APPEND SOURCE_FILES "src/posix/idt.c")
 else()

@@ -31,6 +31,7 @@ callgrind.out.*
 
 # gdb
 brestore.*
+.gdb_history
 
 /dependencies/
 

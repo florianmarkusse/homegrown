@@ -2,6 +2,7 @@
 #define CPU_IDT_H
 
 #include "interoperation/types.h"
+#include "text/string.h"
 typedef struct {
     U16 limit;
     U64 base;
@@ -17,7 +18,7 @@ typedef struct {
     U32 zero;           // reserved
 } __attribute__((packed)) InterruptDescriptor;
 
-void setupIDT();
+void initIDT();
 
 typedef enum : U64 {
     FAULT_DIVIDE_ERROR = 0,
@@ -61,10 +62,13 @@ typedef enum : U64 {
     FAULT_NUMS
 } Fault;
 
+string faultToString(Fault fault);
+
 __attribute__((noreturn)) void triggerFault(Fault fault);
 
 #ifdef UNIT_TEST_BUILD
-bool isFaultTriggered(Fault fault);
+void initIDTTest(void *long_jmp[5]);
+bool *getTriggeredFaults();
 #endif
 
 #endif

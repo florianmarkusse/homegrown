@@ -3,6 +3,7 @@
 
 #include "interoperation/array.h"
 #include "interoperation/kernel-parameters.h"
+#include "interoperation/memory/definitions.h"
 
 typedef struct {
     U64 pageStart;
@@ -20,6 +21,25 @@ typedef enum {
     HUGE_PAGE = 2,
     PAGE_TYPE_NUMS = 3
 } PageType;
+
+typedef struct {
+    U8 data[PAGE_FRAME_SIZE];
+} PhysicalBasePage;
+
+typedef struct {
+    union {
+        U8 data[LARGE_PAGE_SIZE];
+        PhysicalBasePage basePages[PAGE_TABLE_ENTRIES];
+    };
+} PhysicalLargePage;
+
+typedef struct {
+    union {
+        U8 data[HUGE_PAGE_SIZE];
+        PhysicalBasePage basePages[PAGE_TABLE_ENTRIES * PAGE_TABLE_ENTRIES];
+        PhysicalLargePage largePages[PAGE_TABLE_ENTRIES];
+    };
+} PhysicalHugePage;
 
 void initPhysicalMemoryManager(KernelMemory kernelMemory);
 

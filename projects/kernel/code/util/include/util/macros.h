@@ -10,6 +10,10 @@ extern "C" {
 #define STR_HELPER(x) #x
 #define STRINGIFY(x) STR_HELPER(x)
 
+#define COUNTOF(a) (sizeof(a) / sizeof(*(a)))
+#define LENGTHOF(s) (COUNTOF(s) - 1)
+#define ALIGNOF(t) (_Alignof(t))
+
 #ifdef __cplusplus
 }
 #endif

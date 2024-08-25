@@ -19,7 +19,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                                   .width = kernelParameters->fb.columns,
                                   .height = kernelParameters->fb.rows,
                                   .screen = (U32 *)kernelParameters->fb.ptr});
-    setupIDT();
+    initIDT();
 
     initPhysicalMemoryManager((KernelMemory){
         .totalDescriptorSize = kernelParameters->memory.totalDescriptorSize,

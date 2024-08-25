@@ -283,7 +283,7 @@ void idt_set_gate(U8 num, U64 base, GateType gateType) {
     idt[num].zero = 0;
 }
 
-void setupIDT() {
+void initIDT() {
     /* Sets the special IDT pointer up, just like in 'gdt.c' */
     idtp.limit = (sizeof(InterruptDescriptor) * 256) - 1;
     idtp.base = (U64)&idt;
@@ -666,44 +666,6 @@ void triggerFault(Fault fault) {
     __builtin_unreachable();
 }
 
-static string faultStrings[FAULT_NUMS] = {
-    STRING("Divide Error"),
-    STRING("Debug"),
-    STRING("Non-Maskable Interrupt"),
-    STRING("Breakpoint"),
-    STRING("Overflow"),
-    STRING("Bound Range Exceeded"),
-    STRING("Invalid Opcode"),
-    STRING("Device Not Available"),
-    STRING("Double Fault"),
-    STRING("Reserved fault"),
-    STRING("Invalid TSS"),
-    STRING("Segment Not Present"),
-    STRING("Stack-Segment Fault"),
-    STRING("General Protection"),
-    STRING("Page Fault"),
-    STRING("Reserved fault"),
-    STRING("x87 FPU Floating-Point Error"),
-    STRING("Alignment Check"),
-    STRING("Machine Check"),
-    STRING("SIMD Floating-Point Exception"),
-    STRING("Virtualization Exception"),
-    STRING("Control Protection Exception"),
-    STRING("Reserved fault _ 22"),
-    STRING("Reserved fault _ 23"),
-    STRING("Reserved fault _ 24"),
-    STRING("Reserved fault _ 25"),
-    STRING("Reserved fault _ 26"),
-    STRING("Reserved fault _ 27"),
-    STRING("Reserved fault _ 28"),
-    STRING("Reserved fault _ 29"),
-    STRING("Reserved fault _ 30"),
-    STRING("Reserved fault _ 31"),
-    STRING("User Defined"),
-    STRING("System Call"),
-    STRING("No more physical memory"),
-};
-
 typedef struct {
     // Segment selectors with alignment attributes
     U16 gs __attribute__((aligned(8)));
@@ -745,7 +707,7 @@ void fault_handler(regs *regs) {
         LOG(STRING("Interrupt #: "));
         LOG(regs->int_no);
         LOG(STRING(", Interrupt Message: "));
-        LOG(faultStrings[regs->int_no], NEWLINE);
+        LOG(faultToString(regs->int_no), NEWLINE);
         LOG(STRING("Error code: "));
         LOG(regs->err_code, NEWLINE);
         LOG(STRING("Halting...\n"));

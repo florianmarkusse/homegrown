@@ -18,6 +18,7 @@ LINKER=$(whereis ld | awk '{ print $2 }')
 SELECTED_TARGETS=()
 
 UNIT_TEST_BUILD=false
+RUN_UNIT_TEST=false
 INCLUDE_WHAT_YOU_USE=true
 USE_AVX=true
 USE_SSE=true
@@ -29,7 +30,8 @@ function display_usage() {
     echo -e "  -u, --no-iwyu              Opt-out of include-what-you-use."
     echo -e "  -c, --c-compiler           Set the c-compiler. Default is ${YELLOW}${C_COMPILER}${NO_COLOR}."
     echo -e "  -s, --select-targets       Select specific target(s, space-separated) to be built."
-    echo -e "  -t, --build-and-run-test   Build and run tests."
+    echo -e "  -t, --build-tests          Build tests."
+    echo -e "  -r, --run-tests            Run tests."
     echo -e "  --no-avx                   Disable AVX. (This is applied to the operating system build only)"
     echo -e "  --no-sse                   Disable SSE. (This is applied to the operating system build only)"
     echo -e "  -h, --help                 Display this help message."
@@ -78,7 +80,8 @@ function display_configuration() {
         echo -e "${BOLD}${YELLOW}SELECTED_TARGETS${NO_COLOR}: ${YELLOW}ALL${NO_COLOR}"
     fi
 
-    display_single_flag_configuration $UNIT_TEST_BUILD "Tests"
+    display_single_flag_configuration $UNIT_TEST_BUILD "Unit test build"
+    display_single_flag_configuration $RUN_UNIT_TEST "Run unit tests"
     display_single_flag_configuration $INCLUDE_WHAT_YOU_USE "Include-What-You-Use"
     display_single_flag_configuration $USE_AVX "AVX"
     display_single_flag_configuration $USE_SSE "SSE"
@@ -111,8 +114,12 @@ while [[ "$#" -gt 0 ]]; do
             shift
         done
         ;;
-    -t | --build-and-run-tests)
+    -t | --build-tests)
         UNIT_TEST_BUILD=true
+        shift
+        ;;
+    -r | --run-tests)
+        RUN_UNIT_TEST=true
         shift
         ;;
     --no-avx)
@@ -206,7 +213,7 @@ cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
 cd ../../
 
-if [ "$UNIT_TEST_BUILD" = true ]; then
+if [ "$RUN_UNIT_TEST" = true ]; then
     if [ "${#SELECTED_TARGETS[@]}" -gt 0 ]; then
         # I am skill-deficient in bash, forgive me
         FILES_TO_EXECUTE=()
@@ -220,7 +227,7 @@ if [ "$UNIT_TEST_BUILD" = true ]; then
             "$file"
         done
     else
-        find kernel/code/build -executable -name '*-tests*' -type f -exec {} \;
+        find kernel/code/build -executable -name "*-tests-${BUILD_MODE}*" -type f -exec {} \;
     fi
 
     exit 0
