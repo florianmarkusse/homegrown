@@ -8,12 +8,13 @@
 #include "test-framework/test.h"
 #include "text/string.h"
 #include "util/macros.h"
+#include "util/maths.h"
 #include <errno.h>
 #include <string.h>
 #include <sys/mman.h>
 
-#define TOTAL_BASE_PAGES 512 * 512
-#define MEMORY PAGE_FRAME_SIZE *TOTAL_BASE_PAGES
+#define TOTAL_BASE_PAGES (U64)(512 * 512 * 5)
+#define MEMORY (PAGE_FRAME_SIZE * TOTAL_BASE_PAGES)
 
 bool compareInterrupts(bool *expectedFaults) {
     bool *actualFaults = getTriggeredFaults();
@@ -27,14 +28,24 @@ bool compareInterrupts(bool *expectedFaults) {
     return true;
 }
 
+void appendInterrupt(Fault fault) {
+    LOG(STRING("Fault #: "));
+    LOG(fault);
+    LOG(STRING("\tMsg: "));
+    LOG(stringWithMinSizeDefault(faultToString(fault), 30));
+}
+
+void appendExpectedInterrupt(Fault fault) {
+    LOG(STRING("Missing interrupt\n"));
+    appendInterrupt(fault);
+    LOG(STRING("\n"));
+}
+
 void appendInterrupts(bool *expectedFaults) {
     bool *actualFaults = getTriggeredFaults();
     LOG(STRING("Interrupts Table\n"));
     for (U64 i = 0; i < FAULT_NUMS; i++) {
-        LOG(STRING("Fault #: "));
-        LOG(i);
-        LOG(STRING("\tMsg: "));
-        LOG(stringWithMinSizeDefault(faultToString(i), 30));
+        appendInterrupt(i);
         LOG(STRING("\tExpected: "));
         LOG(stringWithMinSizeDefault(
             expectedFaults[i] ? STRING("ON") : STRING("OFF"), 3));
@@ -47,6 +58,13 @@ void appendInterrupts(bool *expectedFaults) {
         LOG(STRING("\n"));
     }
 }
+
+#define EXPECT_NO_FAILURE                                                      \
+    if (__builtin_setjmp(jmp_buf)) {                                           \
+        static bool expectedFaults[FAULT_NUMS];                                \
+        TEST_FAILURE { appendInterrupts(expectedFaults); }                     \
+        break;                                                                 \
+    }
 
 #define EXPECT_SINGLE_FAULT(expectedFault)                                     \
     if (__builtin_setjmp(jmp_buf)) {                                           \
@@ -61,12 +79,15 @@ void appendInterrupts(bool *expectedFaults) {
         }                                                                      \
     }
 
-MemoryDescriptor createDescriptor(MemoryType type, PhysicalBasePage *address,
-                                  U64 numberOfPages) {
+static PhysicalBasePage *memoryStart = NULL;
+MemoryDescriptor createDescriptor(MemoryType type, U64 numberOfPages,
+                                  U64 *index) {
+    U64 indexToUse = *index;
+    *index += numberOfPages;
     return (MemoryDescriptor){.type = type,
                               .attribute = 0,
-                              .virtualStart = (U64)address,
-                              .physicalStart = (U64)address,
+                              .virtualStart = (U64)(memoryStart + indexToUse),
+                              .physicalStart = (U64)(memoryStart + indexToUse),
                               .numberOfPages = numberOfPages};
 }
 
@@ -89,216 +110,303 @@ int main() {
         return -1;
     }
 
+    // Setting the memoryStart to a page that is a power of 1GiB. Otherwise the
+    // math to do the tests get very wacky.
+    memoryStart = (PhysicalBasePage *)(ALIGN_UP_EXP(
+        (U64)pages, PAGE_FRAME_SHIFT + 2 * PAGE_TABLE_SHIFT));
+
     TEST_TOPIC(STRING("Physical Memory Management")) {
-        TEST(STRING("No available physical memory")) {
-            MemoryDescriptor descriptors[] = {
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 100),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1)};
-            KernelMemory kernelMemory = {
-                .totalDescriptorSize =
-                    sizeof(MemoryDescriptor) * COUNTOF(descriptors),
-                .descriptorSize = sizeof(MemoryDescriptor),
-                .descriptors = descriptors};
+        TEST_TOPIC(STRING("Initing")) {
+            TEST(STRING("No available physical memory")) {
+                resetTriggeredFaults();
 
-            EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
+                U64 index = 0;
+                MemoryDescriptor descriptors[] = {
+                    createDescriptor(RESERVED_MEMORY_TYPE, 100, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index)};
+                KernelMemory kernelMemory = {
+                    .totalDescriptorSize =
+                        sizeof(MemoryDescriptor) * COUNTOF(descriptors),
+                    .descriptorSize = sizeof(MemoryDescriptor),
+                    .descriptors = descriptors};
 
-            initPhysicalMemoryManager(kernelMemory);
+                EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
-            TEST_FAILURE {
-                static bool expectedFaults[FAULT_NUMS];
-                FLUSH_AFTER { appendInterrupts(expectedFaults); }
-            }
-        }
+                initPhysicalMemoryManager(kernelMemory);
 
-        TEST(STRING("Too little available physical memory")) {
-            MemoryDescriptor descriptors[] = {
-                createDescriptor(CONVENTIONAL_MEMORY, pages, 2),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1)};
-            KernelMemory kernelMemory = {
-                .totalDescriptorSize =
-                    sizeof(MemoryDescriptor) * COUNTOF(descriptors),
-                .descriptorSize = sizeof(MemoryDescriptor),
-                .descriptors = descriptors};
-
-            EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
-
-            initPhysicalMemoryManager(kernelMemory);
-
-            TEST_FAILURE {
-                static bool expectedFaults[FAULT_NUMS];
-                FLUSH_AFTER { appendInterrupts(expectedFaults); }
-            }
-        }
-
-        TEST(STRING("Single region of 3 memory pages")) {
-            MemoryDescriptor descriptors[] = {
-                createDescriptor(CONVENTIONAL_MEMORY, pages, 3),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1)};
-            KernelMemory kernelMemory = {
-                .totalDescriptorSize =
-                    sizeof(MemoryDescriptor) * COUNTOF(descriptors),
-                .descriptorSize = sizeof(MemoryDescriptor),
-                .descriptors = descriptors};
-
-            if (__builtin_setjmp(jmp_buf)) {
                 TEST_FAILURE {
-                    static bool expectedFaults[FAULT_NUMS];
-                    FLUSH_AFTER { appendInterrupts(expectedFaults); }
+                    appendExpectedInterrupt(FAULT_NO_MORE_PHYSICAL_MEMORY);
                 }
-                break;
             }
+            TEST(STRING("Too little available physical memory")) {
+                resetTriggeredFaults();
+                U64 index = 0;
+                MemoryDescriptor descriptors[] = {
+                    createDescriptor(CONVENTIONAL_MEMORY, 2, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index)};
+                KernelMemory kernelMemory = {
+                    .totalDescriptorSize =
+                        sizeof(MemoryDescriptor) * COUNTOF(descriptors),
+                    .descriptorSize = sizeof(MemoryDescriptor),
+                    .descriptors = descriptors};
 
-            initPhysicalMemoryManager(kernelMemory);
+                EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
-            EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
+                initPhysicalMemoryManager(kernelMemory);
 
-            allocPhysicalPages(
-                (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}}, .len = 1},
-                BASE_PAGE);
-
-            testSuccess();
-        }
-
-        TEST(STRING("3 regions of single page memory")) {
-            MemoryDescriptor descriptors[] = {
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 0, 1),
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 1, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 2, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1),
-                createDescriptor(RESERVED_MEMORY_TYPE, NULL, 1)};
-            KernelMemory kernelMemory = {
-                .totalDescriptorSize =
-                    sizeof(MemoryDescriptor) * COUNTOF(descriptors),
-                .descriptorSize = sizeof(MemoryDescriptor),
-                .descriptors = descriptors};
-
-            if (__builtin_setjmp(jmp_buf)) {
                 TEST_FAILURE {
-                    static bool expectedFaults[FAULT_NUMS];
-                    FLUSH_AFTER { appendInterrupts(expectedFaults); }
+                    appendExpectedInterrupt(FAULT_NO_MORE_PHYSICAL_MEMORY);
                 }
-                break;
             }
+            TEST(STRING("Single region of 3 memory pages")) {
+                resetTriggeredFaults();
+                U64 index = 0;
+                MemoryDescriptor descriptors[] = {
+                    createDescriptor(CONVENTIONAL_MEMORY, 3, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index)};
+                KernelMemory kernelMemory = {
+                    .totalDescriptorSize =
+                        sizeof(MemoryDescriptor) * COUNTOF(descriptors),
+                    .descriptorSize = sizeof(MemoryDescriptor),
+                    .descriptors = descriptors};
 
-            initPhysicalMemoryManager(kernelMemory);
+                EXPECT_NO_FAILURE;
 
-            EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
+                initPhysicalMemoryManager(kernelMemory);
 
-            allocPhysicalPages(
-                (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}}, .len = 1},
-                BASE_PAGE);
+                EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
-            testSuccess();
-        }
+                allocPhysicalPages(
+                    (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
+                                   .len = 1},
+                    BASE_PAGE);
 
-        TEST(STRING("Multiple regions of memory")) {
-            MemoryDescriptor descriptors[] = {
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 0, 3),
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 3, 500),
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 503, 520),
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 1024,
-                                 PAGE_TABLE_ENTRIES - 1),
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 5, 1)};
-            KernelMemory kernelMemory = {
-                .totalDescriptorSize =
-                    sizeof(MemoryDescriptor) * COUNTOF(descriptors),
-                .descriptorSize = sizeof(MemoryDescriptor),
-                .descriptors = descriptors};
-
-            if (__builtin_setjmp(jmp_buf)) {
                 TEST_FAILURE {
-                    static bool expectedFaults[FAULT_NUMS];
-                    FLUSH_AFTER { appendInterrupts(expectedFaults); }
+                    appendExpectedInterrupt(FAULT_NO_MORE_PHYSICAL_MEMORY);
                 }
-                break;
             }
 
-            initPhysicalMemoryManager(kernelMemory);
+            TEST(STRING("3 regions of single page memory")) {
+                resetTriggeredFaults();
+                U64 index = 0;
+                MemoryDescriptor descriptors[] = {
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(CONVENTIONAL_MEMORY, 1, &index),
+                    createDescriptor(CONVENTIONAL_MEMORY, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(CONVENTIONAL_MEMORY, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index),
+                    createDescriptor(RESERVED_MEMORY_TYPE, 1, &index)};
+                KernelMemory kernelMemory = {
+                    .totalDescriptorSize =
+                        sizeof(MemoryDescriptor) * COUNTOF(descriptors),
+                    .descriptorSize = sizeof(MemoryDescriptor),
+                    .descriptors = descriptors};
 
-            EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
+                EXPECT_NO_FAILURE;
 
-            allocPhysicalPages(
-                (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}}, .len = 1},
-                LARGE_PAGE);
+                initPhysicalMemoryManager(kernelMemory);
 
-            testSuccess();
-        }
+                EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
-        TEST(STRING("Multiple PMMs")) {
-            MemoryDescriptor descriptors[] = {
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 0, 3),
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 3, 500),
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 503, 521),
-                createDescriptor(CONVENTIONAL_MEMORY, pages + 1024,
-                                 PAGE_TABLE_ENTRIES * 5 + 1)};
-            KernelMemory kernelMemory = {
-                .totalDescriptorSize =
-                    sizeof(MemoryDescriptor) * COUNTOF(descriptors),
-                .descriptorSize = sizeof(MemoryDescriptor),
-                .descriptors = descriptors};
+                allocPhysicalPages(
+                    (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
+                                   .len = 1},
+                    BASE_PAGE);
 
-            if (__builtin_setjmp(jmp_buf)) {
                 TEST_FAILURE {
-                    static bool expectedFaults[FAULT_NUMS];
-                    FLUSH_AFTER { appendInterrupts(expectedFaults); }
+                    appendExpectedInterrupt(FAULT_NO_MORE_PHYSICAL_MEMORY);
                 }
-                break;
             }
 
-            initPhysicalMemoryManager(kernelMemory);
+            TEST(STRING("Multiple regions of memory")) {
+                resetTriggeredFaults();
+                U64 index = 0;
+                MemoryDescriptor descriptors[] = {
+                    createDescriptor(CONVENTIONAL_MEMORY, 3, &index),
+                    createDescriptor(CONVENTIONAL_MEMORY, 500, &index),
+                    createDescriptor(CONVENTIONAL_MEMORY, 520, &index),
+                    createDescriptor(CONVENTIONAL_MEMORY,
+                                     PAGE_TABLE_ENTRIES - 1, &index),
+                    createDescriptor(CONVENTIONAL_MEMORY, 1, &index)};
+                KernelMemory kernelMemory = {
+                    .totalDescriptorSize =
+                        sizeof(MemoryDescriptor) * COUNTOF(descriptors),
+                    .descriptorSize = sizeof(MemoryDescriptor),
+                    .descriptors = descriptors};
 
-            printPhysicalMemoryManagerStatus();
+                EXPECT_NO_FAILURE;
 
-            for (U64 i = 0; i < 4; i++) {
+                initPhysicalMemoryManager(kernelMemory);
+
+                EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
+
                 allocPhysicalPages(
                     (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
                                    .len = 1},
                     LARGE_PAGE);
-            }
 
-            for (U64 i = 0; i < 510; i++) {
+                TEST_FAILURE {
+                    appendExpectedInterrupt(FAULT_NO_MORE_PHYSICAL_MEMORY);
+                }
+            }
+        }
+
+        TEST_TOPIC(STRING("Incontiguous memory")) {
+            TEST(STRING("Single level stealing")) {
+                resetTriggeredFaults();
+                U64 index = 0;
+                MemoryDescriptor descriptors[] = {
+                    createDescriptor(CONVENTIONAL_MEMORY, 3, &index),
+                    createDescriptor(CONVENTIONAL_MEMORY, 500, &index),
+                    createDescriptor(CONVENTIONAL_MEMORY, 521, &index),
+                    createDescriptor(CONVENTIONAL_MEMORY,
+                                     PAGE_TABLE_ENTRIES * 5 + 1, &index)};
+                KernelMemory kernelMemory = {
+                    .totalDescriptorSize =
+                        sizeof(MemoryDescriptor) * COUNTOF(descriptors),
+                    .descriptorSize = sizeof(MemoryDescriptor),
+                    .descriptors = descriptors};
+
+                EXPECT_NO_FAILURE;
+
+                initPhysicalMemoryManager(kernelMemory);
+
+                for (U64 i = 0; i < 4; i++) {
+                    allocPhysicalPages(
+                        (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
+                                       .len = 1},
+                        LARGE_PAGE);
+                }
+
+                for (U64 i = 0; i < 510; i++) {
+                    allocPhysicalPages(
+                        (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
+                                       .len = 1},
+                        BASE_PAGE);
+                }
+
                 allocPhysicalPages(
                     (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
                                    .len = 1},
-                    BASE_PAGE);
-            }
+                    LARGE_PAGE);
 
-            allocPhysicalPages(
-                (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}}, .len = 1},
-                LARGE_PAGE);
+                for (U64 i = 0; i < 511; i++) {
+                    allocPhysicalPages(
+                        (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
+                                       .len = 1},
+                        BASE_PAGE);
+                }
 
-            printPhysicalMemoryManagerStatus();
+                EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
-            for (U64 i = 0; i < 512; i++) {
                 allocPhysicalPages(
-                    (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
-                                   .len = 1},
+                    (FreeMemory_a){
+                        .buf = (FreeMemory[]){(FreeMemory){}, (FreeMemory){}},
+                        .len = 2},
                     BASE_PAGE);
+
+                TEST_FAILURE {
+                    appendExpectedInterrupt(FAULT_NO_MORE_PHYSICAL_MEMORY);
+                }
             }
 
-            EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
+            TEST(STRING("Multi-level stealing")) {
+                resetTriggeredFaults();
+                U64 index = 0;
+                MemoryDescriptor descriptors[] = {
+                    createDescriptor(CONVENTIONAL_MEMORY, 3, &index),
+                    createDescriptor(
+                        CONVENTIONAL_MEMORY,
+                        PAGE_TABLE_ENTRIES * PAGE_TABLE_ENTRIES - 3, &index),
+                    createDescriptor(CONVENTIONAL_MEMORY,
+                                     PAGE_TABLE_ENTRIES * PAGE_TABLE_ENTRIES,
+                                     &index)};
+                KernelMemory kernelMemory = {
+                    .totalDescriptorSize =
+                        sizeof(MemoryDescriptor) * COUNTOF(descriptors),
+                    .descriptorSize = sizeof(MemoryDescriptor),
+                    .descriptors = descriptors};
 
-            allocPhysicalPages(
-                (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}}, .len = 1},
-                BASE_PAGE);
+                EXPECT_NO_FAILURE;
 
-            testSuccess();
+                initPhysicalMemoryManager(kernelMemory);
 
-            printPhysicalMemoryManagerStatus();
+                for (U64 i = 0; i < 511; i++) {
+                    allocPhysicalPages(
+                        (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
+                                       .len = 1},
+                        LARGE_PAGE);
+                }
+
+                for (U64 i = 0; i < 509; i++) {
+                    allocPhysicalPages(
+                        (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
+                                       .len = 1},
+                        BASE_PAGE);
+                }
+
+                for (U64 i = 0; i < 100; i++) {
+                    allocPhysicalPages(
+                        (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
+                                       .len = 1},
+                        BASE_PAGE);
+                }
+
+                for (U64 i = 0; i < 511; i++) {
+                    allocPhysicalPages(
+                        (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
+                                       .len = 1},
+                        LARGE_PAGE);
+                }
+
+                for (U64 i = 0; i < 412; i++) {
+                    allocPhysicalPages(
+                        (FreeMemory_a){.buf = (FreeMemory[]){(FreeMemory){}},
+                                       .len = 1},
+                        BASE_PAGE);
+                }
+
+                EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
+
+                allocPhysicalPages(
+                    (FreeMemory_a){
+                        .buf = (FreeMemory[]){(FreeMemory){}, (FreeMemory){}},
+                        .len = 2},
+                    HUGE_PAGE);
+
+                TEST_FAILURE {
+                    appendExpectedInterrupt(FAULT_NO_MORE_PHYSICAL_MEMORY);
+                }
+            }
+        }
+
+        TEST_TOPIC(STRING("Contiguous memory")) {
+            TEST(STRING("Not implemented")) {
+                TEST_FAILURE {
+                    appendExpectedInterrupt(FAULT_NO_MORE_PHYSICAL_MEMORY);
+                }
+            }
+        }
+
+        TEST_TOPIC(STRING("Combined")) {
+            TEST(STRING("Not implemented")) {
+                TEST_FAILURE {
+                    appendExpectedInterrupt(FAULT_NO_MORE_PHYSICAL_MEMORY);
+                }
+            }
         }
     }
 

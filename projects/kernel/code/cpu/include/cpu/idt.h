@@ -69,6 +69,7 @@ __attribute__((noreturn)) void triggerFault(Fault fault);
 #ifdef UNIT_TEST_BUILD
 void initIDTTest(void *long_jmp[5]);
 bool *getTriggeredFaults();
+void resetTriggeredFaults();
 #endif
 
 #endif

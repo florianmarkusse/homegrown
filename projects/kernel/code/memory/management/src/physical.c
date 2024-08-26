@@ -89,6 +89,57 @@ U64 allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
         }
     }
 
+    if (manager->pageType < HUGE_PAGE) {
+        U64 pagesForLargerManager =
+            CEILING_DIV_EXP(numberOfPages, PAGE_TABLE_SHIFT);
+        U64 address = allocContiguousPhysicalPages(pagesForLargerManager,
+                                                   manager->pageType + 1);
+
+        U64 pageSize =
+            1 << (PAGE_FRAME_SHIFT + manager->pageType * PAGE_TABLE_SHIFT);
+
+        U64 freeAddressStart = address + numberOfPages * pageSize;
+        U64 freePages =
+            (pagesForLargerManager << PAGE_TABLE_SHIFT) - numberOfPages;
+
+        freePhysicalPage((FreeMemory){.numberOfPages = freePages,
+                                      .pageStart = freeAddressStart},
+                         manager->pageType);
+
+        return address;
+    }
+
+    /*if (manager->pageType < HUGE_PAGE) {*/
+    /*    // Convert to larger manager request*/
+    /*    // Can slyly use the leftover buffer as it is assumed that it is at*/
+    /*    // least big enough for the smaller buffer so definitely true for
+     * the*/
+    /*    // larger buffer*/
+    /*    FreeMemory_a leftOverRequest = (FreeMemory_a){*/
+    /*        .buf = pages.buf + contiguousMemoryRegions,*/
+    /*        .len = ALIGN_UP_EXP(requestedPages, PAGE_TABLE_SHIFT)};*/
+    /**/
+    /*    FreeMemory_a largerPage =*/
+    /*        allocContiguousPhysicalPagesWithManager(ALIGN_UP_EXP(requestedPages,
+     * PAGE_TABLE_SHIFT), manager->pageType + 1);*/
+    /*    // Convert back to original manager sizes*/
+    /*    for (U64 i = 0; i < largerPage.len; i++) {*/
+    /*        largerPage.buf[i].numberOfPages *= PAGE_TABLE_ENTRIES;*/
+    /*    }*/
+    /*    freePhysicalPages(largerPage, manager->pageType);*/
+    /**/
+    /*    // The actual leftover request can now be satisfied*/
+    /*    leftOverRequest.len = requestedPages;*/
+    /*    FreeMemory_a addedPages =*/
+    /*        allocPhysicalPagesWithManager(leftOverRequest, manager);*/
+    /**/
+    /*    // "Concat" both arrays, the original found pages and those
+     * available*/
+    /*    // after stealing from big brother*/
+    /*    pages.len += addedPages.len;*/
+    /*    return pages;*/
+    /*}*/
+    /**/
     // TODO: Implement the stealing from big brother.
     /*if (manager->pageType < HUGE_PAGE) {*/
     /*    FreeMemory_a largerPage =*/
@@ -109,8 +160,12 @@ FreeMemory_a allocPhysicalPagesWithManager(FreeMemory_a pages,
     U32 requestedPages = (U32)pages.len;
     U32 contiguousMemoryRegions = 0;
 
+    // The final output array may have fewer entries since the memory might be
+    // in contiguous blocks.
+    pages.len = 0;
     for (U64 i = manager->memory.len - 1; manager->memory.len > 0;
          manager->memory.len--, i = manager->memory.len - 1) {
+        pages.len++;
         if (manager->memory.buf[i].numberOfPages >= requestedPages) {
             pages.buf[contiguousMemoryRegions].numberOfPages = requestedPages;
             pages.buf[contiguousMemoryRegions].pageStart =
@@ -125,12 +180,33 @@ FreeMemory_a allocPhysicalPagesWithManager(FreeMemory_a pages,
         requestedPages -= manager->memory.buf[i].numberOfPages;
     }
 
-    // TODO: Implement the stealing from big brother.
-    /*if (manager->pageType < HUGE_PAGE) {*/
-    /*    FreeMemory_a largerPage =*/
-    /*        allocPhysicalPages(pages, manager->pageType + 1);*/
-    /*    freePhysicalPages(largerPage, manager->pageType);*/
-    /*}*/
+    if (manager->pageType < HUGE_PAGE) {
+        // Convert to larger manager request
+        // Can slyly use the leftover buffer as it is assumed that it is at
+        // least big enough for the smaller buffer so definitely true for the
+        // larger buffer
+        FreeMemory_a leftOverRequest = (FreeMemory_a){
+            .buf = pages.buf + contiguousMemoryRegions,
+            .len = CEILING_DIV_EXP(requestedPages, PAGE_TABLE_SHIFT)};
+
+        FreeMemory_a largerPage =
+            allocPhysicalPages(leftOverRequest, manager->pageType + 1);
+        // Convert back to original manager sizes
+        for (U64 i = 0; i < largerPage.len; i++) {
+            largerPage.buf[i].numberOfPages *= PAGE_TABLE_ENTRIES;
+        }
+        freePhysicalPages(largerPage, manager->pageType);
+
+        // The actual leftover request can now be satisfied
+        leftOverRequest.len = requestedPages;
+        FreeMemory_a addedPages =
+            allocPhysicalPagesWithManager(leftOverRequest, manager);
+
+        // "Concat" both arrays, the original found pages and those available
+        // after stealing from big brother
+        pages.len += addedPages.len;
+        return pages;
+    }
 
     triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
 }

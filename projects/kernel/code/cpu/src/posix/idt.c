@@ -1,4 +1,5 @@
 #include "cpu/idt.h"
+#include "interoperation/types.h"
 
 static bool triggeredFaults[FAULT_NUMS];
 
@@ -14,3 +15,8 @@ void triggerFault(Fault fault) {
 void initIDTTest(void *long_jmp[5]) { interruptJumper = long_jmp; }
 
 bool *getTriggeredFaults() { return triggeredFaults; }
+void resetTriggeredFaults() {
+    for (U64 i = 0; i < FAULT_NUMS; i++) {
+        triggeredFaults[i] = false;
+    }
+}
