@@ -1,10 +1,15 @@
 project(memory-management-tests LANGUAGES C)
 
-list(APPEND TEST_SOURCE_FILES "src/main.c")
+list(APPEND TEST_SOURCE_FILES "src/main.c" "src/physical.c" "src/virtual.c")
 
 set(EXECUTABLE_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 
 add_executable(${EXECUTABLE_NAME} ${TEST_SOURCE_FILES})
+
+target_include_directories(
+    ${EXECUTABLE_NAME}
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
 target_link_libraries(
     ${EXECUTABLE_NAME}

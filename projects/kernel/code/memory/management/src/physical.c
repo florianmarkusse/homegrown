@@ -16,14 +16,9 @@ typedef struct {
     PageType pageType;
 } PhysicalMemoryManager;
 
-static PhysicalMemoryManager basePMM = {.usedBasePages = 1,
-                                        .pageType = BASE_PAGE};
-static PhysicalMemoryManager largePMM = {
-    .usedBasePages = 1,
-    .pageType = LARGE_PAGE,
-};
-static PhysicalMemoryManager hugePMM = {.usedBasePages = 1,
-                                        .pageType = HUGE_PAGE};
+static PhysicalMemoryManager basePMM;
+static PhysicalMemoryManager largePMM;
+static PhysicalMemoryManager hugePMM;
 
 void decreasePages(PhysicalMemoryManager *manager, U64 index, U64 decreaseBy) {
     ASSERT(manager->memory.buf[index].numberOfPages >= decreaseBy);
@@ -264,8 +259,11 @@ void appendPMMStatus(PhysicalMemoryManager manager) {
     LOG(STRING("Free pages:\t"));
     U64 totalPages = 0;
     for (U64 i = 0; i < manager.memory.len; i++) {
+        LOG(manager.memory.buf[i].numberOfPages);
+        LOG(STRING(" "));
         totalPages += manager.memory.buf[i].numberOfPages;
     }
+    LOG(STRING(" Total: "));
     LOG(totalPages, NEWLINE);
     LOG(STRING("Total memory regions:\t"));
     LOG(manager.memory.len, NEWLINE);
@@ -365,6 +363,14 @@ MemoryDescriptor *nextValidDescriptor(U64 *i, KernelMemory kernelMemory) {
 // Having to do some boostrapping here with the base page frame physical
 // manager.
 void initPhysicalMemoryManager(KernelMemory kernelMemory) {
+    // Reset the PMMs if they were used previously already
+    basePMM =
+        (PhysicalMemoryManager){.pageType = BASE_PAGE, .usedBasePages = 1};
+    largePMM =
+        (PhysicalMemoryManager){.pageType = LARGE_PAGE, .usedBasePages = 1};
+    hugePMM =
+        (PhysicalMemoryManager){.pageType = HUGE_PAGE, .usedBasePages = 1};
+
     U64 i = 0;
 
     MemoryDescriptor *descriptor = nextValidDescriptor(&i, kernelMemory);
