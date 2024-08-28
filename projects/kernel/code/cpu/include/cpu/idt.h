@@ -70,6 +70,12 @@ __attribute__((noreturn)) void triggerFault(Fault fault);
 void initIDTTest(void *long_jmp[5]);
 bool *getTriggeredFaults();
 void resetTriggeredFaults();
+
+bool compareInterrupts(bool *expectedFaults);
+void appendInterrupt(Fault fault);
+void appendExpectedInterrupt(Fault fault);
+void appendInterrupts(bool *expectedFaults);
+
 #endif
 
 #endif

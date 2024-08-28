@@ -16,49 +16,6 @@
 #define TOTAL_BASE_PAGES (U64)(512 * 512 * 5)
 #define MEMORY (PAGE_FRAME_SIZE * TOTAL_BASE_PAGES)
 
-bool compareInterrupts(bool *expectedFaults) {
-    bool *actualFaults = getTriggeredFaults();
-
-    for (U64 i = 0; i < FAULT_NUMS; i++) {
-        if (expectedFaults[i] != actualFaults[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void appendInterrupt(Fault fault) {
-    LOG(STRING("Fault #: "));
-    LOG(fault);
-    LOG(STRING("\tMsg: "));
-    LOG(stringWithMinSizeDefault(faultToString(fault), 30));
-}
-
-void appendExpectedInterrupt(Fault fault) {
-    LOG(STRING("Missing interrupt\n"));
-    appendInterrupt(fault);
-    LOG(STRING("\n"));
-}
-
-void appendInterrupts(bool *expectedFaults) {
-    bool *actualFaults = getTriggeredFaults();
-    LOG(STRING("Interrupts Table\n"));
-    for (U64 i = 0; i < FAULT_NUMS; i++) {
-        appendInterrupt(i);
-        LOG(STRING("\tExpected: "));
-        LOG(stringWithMinSizeDefault(
-            expectedFaults[i] ? STRING("ON") : STRING("OFF"), 3));
-        LOG(STRING("\tActual: "));
-        LOG(stringWithMinSizeDefault(
-            actualFaults[i] ? STRING("ON") : STRING("OFF"), 3));
-        if (expectedFaults[i] != actualFaults[i]) {
-            LOG(STRING("\t!!!"));
-        }
-        LOG(STRING("\n"));
-    }
-}
-
 #define WITH_INIT_TEST(testString)                                             \
     resetTriggeredFaults();                                                    \
     TEST(testString)
