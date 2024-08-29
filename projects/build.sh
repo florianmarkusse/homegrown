@@ -187,6 +187,11 @@ fi
 echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
+# Creating a symlink here so clangd understands. You have a good idea about
+# splitting up builds so caches don't get polluted an you need to immediately
+# patch something up.
+find "$BUILD_DIRECTORY" -maxdepth 1 -name "compile_commands.json" -exec ln -f -s {} . \;
+
 cd ../../
 
 # -----------------------------------------------------------------------------

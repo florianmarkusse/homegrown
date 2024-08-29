@@ -29,6 +29,9 @@
 # callgrind
 callgrind.out.*
 
+# LSP
+compile_commands.json
+
 # gdb
 brestore.*
 .gdb_history
