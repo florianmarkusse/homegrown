@@ -80,9 +80,10 @@ BUILD_OPTIONS=(
 [ "$USE_SSE" == "false" ] && BUILD_OPTIONS+=(--no-sse)
 
 projects/build.sh "${BUILD_OPTIONS[@]}"
-cp "projects/uefi/code/build/uefi-${BUILD_MODE}" BOOTX64.EFI
-cp "projects/kernel/code/build/kernel-${BUILD_MODE}.bin" kernel.bin
-"projects/uefi-image-creator/code/build/uefi-image-creator-${BUILD_MODE}" --data-size 32 -ae /EFI/BOOT/ BOOTX64.EFI -ad kernel.bin
+
+find projects/uefi/code/build -executable -type f -name "uefi-${BUILD_MODE}" -exec cp {} BOOTX64.EFI \;
+find projects/kernel/code/build -executable -type f -name "kernel-${BUILD_MODE}.bin" -exec cp {} kernel.bin \;
+find projects/uefi-image-creator/code/build -type f -name "uefi-image-creator-${BUILD_MODE}" -exec {} --data-size 32 -ae /EFI/BOOT/ BOOTX64.EFI -ad kernel.bin \;
 
 [ "$RUN_QEMU" = false ] && exit 0
 

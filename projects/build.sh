@@ -146,9 +146,17 @@ PROJECT="kernel/code"
 echo -e "${BOLD}Going to build ${PROJECT} folder${NO_COLOR}"
 cd ${PROJECT}
 
+BUILD_DIRECTORY="build/"
+if [ "$UNIT_TEST_BUILD" = true ]; then
+    BUILD_DIRECTORY+="test/"
+else
+    BUILD_DIRECTORY+="prod/"
+fi
+BUILD_DIRECTORY+="${C_COMPILER##*/}/"
+
 CONFIGURE_CMAKE_OPTIONS=(
     -S .
-    -B build/
+    -B "$BUILD_DIRECTORY"
     -D CMAKE_C_COMPILER="$C_COMPILER"
     -D CMAKE_LINKER="$LINKER"
     -D CMAKE_BUILD_TYPE="$BUILD_MODE"
@@ -168,7 +176,7 @@ fi
 echo -e "${BOLD}cmake ${CONFIGURE_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${CONFIGURE_CMAKE_OPTIONS[@]}"
 
-BUILD_CMAKE_OPTIONS=(--build build/)
+BUILD_CMAKE_OPTIONS=(--build "$BUILD_DIRECTORY")
 if [ "${#SELECTED_TARGETS[@]}" -gt 0 ]; then
     BUILD_CMAKE_OPTIONS+=("--target")
     for target in "${SELECTED_TARGETS[@]}"; do
