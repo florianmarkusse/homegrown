@@ -20,6 +20,15 @@ static PhysicalMemoryManager basePMM;
 static PhysicalMemoryManager largePMM;
 static PhysicalMemoryManager hugePMM;
 
+static U64 pageTypeToPageSize[PAGE_TYPE_NUMS] = {
+    PAGE_FRAME_SIZE, LARGE_PAGE_SIZE, HUGE_PAGE_SIZE};
+
+static string pageTypeToString[PAGE_TYPE_NUMS] = {
+    STRING("Base page frame, 4096KiB"),
+    STRING("Large page, 2MiB"),
+    STRING("Huge page, 1GiB"),
+};
+
 void decreasePages(PhysicalMemoryManager *manager, U64 index, U64 decreaseBy) {
     ASSERT(manager->memory.buf[index].numberOfPages >= decreaseBy);
     if (manager->memory.buf[index].numberOfPages == decreaseBy) {
@@ -207,12 +216,6 @@ void freePhysicalPage(FreeMemory page, PageType pageType) {
         getMemoryManager(pageType));
 }
 
-static string pageTypeToString[PAGE_TYPE_NUMS] = {
-    STRING("Base page frame, 4096KiB"),
-    STRING("Large page, 2MiB"),
-    STRING("Huge page, 1GiB"),
-};
-
 void appendPMMStatus(PhysicalMemoryManager manager) {
     LOG(STRING("Type: "));
     LOG(pageTypeToString[manager.pageType], NEWLINE);
@@ -263,8 +266,7 @@ void initPMM(PageType pageType) {
 
     //  12 For the aligned page frame always
     //  9 for every level of page table (large and huge currently)
-    U64 initedManagerPageSize =
-        1 << (PAGE_FRAME_SHIFT + decrementedPageType * PAGE_TABLE_SHIFT);
+    U64 initedManagerPageSize = pageTypeToPageSize[decrementedPageType];
     U64 initingManagerPageSize = initedManagerPageSize << PAGE_TABLE_SHIFT;
 
     for (U64 i = 0; i < initedManager->memory.len; i++) {
