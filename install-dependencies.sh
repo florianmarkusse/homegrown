@@ -49,6 +49,8 @@ echo -e "${BOLD}Installing ${YELLOW}iwyu${NO_COLOR}"
 sudo apt install -y iwyu
 echo -e "${BOLD}Installing ${YELLOW}gcc${NO_COLOR}"
 sudo apt install -y gcc
+echo -e "${BOLD}Installing ${YELLOW}python-3${NO_COLOR}"
+sudo apt install -y python-3
 echo -e "${BOLD}Installing ${YELLOW}qemu${NO_COLOR}"
 sudo apt install -y qemu
 echo -e "${BOLD}Installing ${YELLOW}qemu-system-x86${NO_COLOR}"
