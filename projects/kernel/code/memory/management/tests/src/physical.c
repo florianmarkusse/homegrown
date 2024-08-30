@@ -370,6 +370,12 @@ void testPhysicalMemoryManagement() {
                 allocContiguousPhysicalPages(512 * 5, BASE_PAGE);
                 allocContiguousPhysicalPages(12, BASE_PAGE);
 
+                freePhysicalPage(
+                    (FreeMemory){.pageStart = 0, .numberOfPages = 1},
+                    BASE_PAGE);
+
+                allocContiguousPhysicalPages(1, BASE_PAGE);
+
                 EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
                 allocContiguousPhysicalPages(1, BASE_PAGE);
@@ -446,6 +452,34 @@ void testPhysicalMemoryManagement() {
                 allocPhysicalPages(
                     (FreeMemory_a){.buf = memoryForAddresses, .len = 1},
                     BASE_PAGE);
+            }
+
+            freePhysicalPage((FreeMemory){.pageStart = 0, .numberOfPages = 100},
+                             BASE_PAGE);
+
+            for (U64 i = 0; i < 100; i++) {
+                FreeMemory memoryForAddresses[1];
+                allocPhysicalPages(
+                    (FreeMemory_a){.buf = memoryForAddresses, .len = 1},
+                    BASE_PAGE);
+            }
+
+            FreeMemory freePages[] = {
+                (FreeMemory){.pageStart = 0, .numberOfPages = 1},
+                (FreeMemory){.pageStart = 0, .numberOfPages = 2},
+                (FreeMemory){.pageStart = 0, .numberOfPages = 3},
+                (FreeMemory){.pageStart = 0, .numberOfPages = 4},
+                (FreeMemory){.pageStart = 0, .numberOfPages = 5},
+                (FreeMemory){.pageStart = 0, .numberOfPages = 6}};
+            freePhysicalPages(
+                (FreeMemory_a){.buf = freePages, .len = COUNTOF(freePages)},
+                HUGE_PAGE);
+
+            for (U64 i = 0; i < 21; i++) {
+                FreeMemory memoryForAddresses[1];
+                allocPhysicalPages(
+                    (FreeMemory_a){.buf = memoryForAddresses, .len = 512},
+                    LARGE_PAGE);
             }
 
             EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
