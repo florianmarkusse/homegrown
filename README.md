@@ -28,3 +28,7 @@ sudo dd bs=4M if=test.hdd of=/dev/sdc1 conv=notrunc
 ## x86_64 only
 
 Will currently (probably) break intermittently because of interrupts clobbering the red zone. Set up separate stack to handle interrupts ok.
+
+### MP system
+
+- Need to take care of MMTR setting? If I end up doing that.
