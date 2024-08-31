@@ -171,7 +171,7 @@ add_custom_command(
         objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
         ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
     COMMAND
-        mkdir -p ${KERNEL_MAGIC_FOLDER} && python
+        mkdir -p ${KERNEL_MAGIC_FOLDER} && python3
         "${REPO_ROOT}/projects/interoperation/code/create_magic.py"
         "${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}" ${KERNEL_MAGIC_OUTPUT}
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}

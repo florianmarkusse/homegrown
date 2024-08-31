@@ -75,5 +75,6 @@ cp /usr/share/ovmf/OVMF.fd bios.bin
 #     unzip "${FASMG_FILE}" -d fasmg && rm "${FASMG_FILE}"
 # fi
 #
-# echo -e "${BOLD}${GREEN}Dependencies correctly installed!${NO_COLOR}"
-# echo -e "${BOLD}${BLUE}The journey begins...${NO_COLOR}"
+
+echo -e "${BOLD}${GREEN}Dependencies correctly installed!${NO_COLOR}"
+echo -e "${BOLD}${BLUE}The journey begins...${NO_COLOR}"
