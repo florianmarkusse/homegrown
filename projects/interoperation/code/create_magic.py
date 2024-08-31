@@ -3,7 +3,6 @@
 # because that would fuck up alignment and I didnt't want to deal with those
 # spurious issues.
 import sys
-import os, os.path
 
 
 def generate_header(input_file, output_header):
@@ -30,7 +29,6 @@ def generate_header(input_file, output_header):
 #endif // INTEROPERATION_GENERATED_KERNEL_MAGIC_H
 """
 
-        os.makedirs(os.path.dirname(output_header), exist_ok=True)
         with open(output_header, "w") as header_file:
             header_file.write(header_content)
 

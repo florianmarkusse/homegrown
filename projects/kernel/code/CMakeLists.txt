@@ -161,16 +161,18 @@ add_custom_command(
 )
 
 set(MAIN_RESULT_BIN "${MAIN_RESULT}.bin")
-set(KERNEL_MAGIC_OUTPUT
-    "${REPO_ROOT}/projects/interoperation/code/include/interoperation/generated/kernel-magic.h"
+set(KERNEL_MAGIC_FOLDER
+    "${REPO_ROOT}/projects/interoperation/code/include/interoperation/generated"
 )
+set(KERNEL_MAGIC_OUTPUT "${KERNEL_MAGIC_FOLDER}/kernel-magic.h")
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
     COMMAND
         objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
         ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
     COMMAND
-        python "${REPO_ROOT}/projects/interoperation/code/create_magic.py"
+        mkdir -p ${KERNEL_MAGIC_FOLDER} && python
+        "${REPO_ROOT}/projects/interoperation/code/create_magic.py"
         "${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}" ${KERNEL_MAGIC_OUTPUT}
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
     COMMAND_EXPAND_LISTS
