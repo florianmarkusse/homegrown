@@ -11,7 +11,7 @@
 #include "util/maths.h"
 
 typedef struct {
-    FreeMemory_max_a memory;
+    PagedMemory_max_a memory;
     U32 usedBasePages;
     PageType pageType;
 } PhysicalMemoryManager;
@@ -19,15 +19,6 @@ typedef struct {
 static PhysicalMemoryManager basePMM;
 static PhysicalMemoryManager largePMM;
 static PhysicalMemoryManager hugePMM;
-
-static U64 pageTypeToPageSize[PAGE_TYPE_NUMS] = {
-    PAGE_FRAME_SIZE, LARGE_PAGE_SIZE, HUGE_PAGE_SIZE};
-
-static string pageTypeToString[PAGE_TYPE_NUMS] = {
-    STRING("Base page frame, 4096KiB"),
-    STRING("Large page, 2MiB"),
-    STRING("Huge page, 1GiB"),
-};
 
 void decreasePages(PhysicalMemoryManager *manager, U64 index, U64 decreaseBy) {
     ASSERT(manager->memory.buf[index].numberOfPages >= decreaseBy);
@@ -64,7 +55,7 @@ PhysicalMemoryManager *getMemoryManager(PageType pageType) {
 }
 
 #define MEMORY_ENTRIES_IN_BASE_PAGES(basePages)                                \
-    ((PAGE_FRAME_SIZE * (basePages)) / sizeof(FreeMemory))
+    ((PAGE_FRAME_SIZE * (basePages)) / sizeof(PagedMemory))
 
 // TODO: table 7.10 UEFI spec section 7.2 - 7.2.1 , not fully complete yet I
 // think?
@@ -106,8 +97,8 @@ U64 allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
         U64 freePages =
             (pagesForLargerManager << PAGE_TABLE_SHIFT) - numberOfPages;
 
-        freePhysicalPage((FreeMemory){.numberOfPages = freePages,
-                                      .pageStart = freeAddressStart},
+        freePhysicalPage((PagedMemory){.numberOfPages = freePages,
+                                       .pageStart = freeAddressStart},
                          manager->pageType);
 
         return address;
@@ -121,8 +112,8 @@ U64 allocContiguousPhysicalPages(U64 numberOfPages, PageType pageType) {
                                                    getMemoryManager(pageType));
 }
 
-FreeMemory_a allocPhysicalPagesWithManager(FreeMemory_a pages,
-                                           PhysicalMemoryManager *manager) {
+PagedMemory_a allocPhysicalPagesWithManager(PagedMemory_a pages,
+                                            PhysicalMemoryManager *manager) {
     U32 requestedPages = (U32)pages.len;
     U32 contiguousMemoryRegions = 0;
 
@@ -151,11 +142,11 @@ FreeMemory_a allocPhysicalPagesWithManager(FreeMemory_a pages,
         // Can slyly use the leftover buffer as it is assumed that it is at
         // least big enough for the smaller buffer so definitely true for the
         // larger buffer
-        FreeMemory_a leftOverRequest = (FreeMemory_a){
+        PagedMemory_a leftOverRequest = (PagedMemory_a){
             .buf = pages.buf + contiguousMemoryRegions,
             .len = CEILING_DIV_EXP(requestedPages, PAGE_TABLE_SHIFT)};
 
-        FreeMemory_a largerPage =
+        PagedMemory_a largerPage =
             allocPhysicalPages(leftOverRequest, manager->pageType + 1);
         // Convert back to original manager sizes
         for (U64 i = 0; i < largerPage.len; i++) {
@@ -165,7 +156,7 @@ FreeMemory_a allocPhysicalPagesWithManager(FreeMemory_a pages,
 
         // The actual leftover request can now be satisfied
         leftOverRequest.len = requestedPages;
-        FreeMemory_a addedPages =
+        PagedMemory_a addedPages =
             allocPhysicalPagesWithManager(leftOverRequest, manager);
 
         // "Concat" both arrays, the original found pages and those available
@@ -177,23 +168,23 @@ FreeMemory_a allocPhysicalPagesWithManager(FreeMemory_a pages,
     triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
 }
 
-FreeMemory_a allocPhysicalPages(FreeMemory_a pages, PageType pageType) {
+PagedMemory_a allocPhysicalPages(PagedMemory_a pages, PageType pageType) {
     return allocPhysicalPagesWithManager(pages, getMemoryManager(pageType));
 }
 
-void freePhysicalPagesWithManager(FreeMemory_a pages,
+void freePhysicalPagesWithManager(PagedMemory_a pages,
                                   PhysicalMemoryManager *manager) {
     for (U64 i = 0; i < pages.len; i++) {
         if (manager->memory.len >= manager->memory.cap) {
-            FreeMemory *newBuf =
-                (FreeMemory *)allocContiguousPhysicalPagesWithManager(
+            PagedMemory *newBuf =
+                (PagedMemory *)allocContiguousPhysicalPagesWithManager(
                     manager->usedBasePages + 1, &basePMM);
             memcpy(newBuf, manager->memory.buf,
                    manager->memory.len * sizeof(*manager->memory.buf));
             // The page that just got freed should be added now.
             newBuf[manager->memory.len] =
-                (FreeMemory){.pageStart = (U64)manager->memory.buf,
-                             .numberOfPages = manager->usedBasePages};
+                (PagedMemory){.pageStart = (U64)manager->memory.buf,
+                              .numberOfPages = manager->usedBasePages};
             manager->memory.len++;
             manager->memory.buf = newBuf;
             manager->memory.cap =
@@ -206,13 +197,13 @@ void freePhysicalPagesWithManager(FreeMemory_a pages,
     }
 }
 
-void freePhysicalPages(FreeMemory_a page, PageType pageType) {
+void freePhysicalPages(PagedMemory_a page, PageType pageType) {
     return freePhysicalPagesWithManager(page, getMemoryManager(pageType));
 }
 
-void freePhysicalPage(FreeMemory page, PageType pageType) {
+void freePhysicalPage(PagedMemory page, PageType pageType) {
     return freePhysicalPagesWithManager(
-        (FreeMemory_a){.len = 1, .buf = (FreeMemory[]){page}},
+        (PagedMemory_a){.len = 1, .buf = (PagedMemory[]){page}},
         getMemoryManager(pageType));
 }
 
@@ -255,7 +246,7 @@ void initPMM(PageType pageType) {
            initingManager->memory.len == 0);
 
     initingManager->memory.buf =
-        (FreeMemory *)allocContiguousPhysicalPagesWithManager(
+        (PagedMemory *)allocContiguousPhysicalPagesWithManager(
             initingManager->usedBasePages, &basePMM);
     initingManager->memory.cap =
         MEMORY_ENTRIES_IN_BASE_PAGES(initingManager->usedBasePages);
@@ -270,7 +261,7 @@ void initPMM(PageType pageType) {
     U64 initingManagerPageSize = initedManagerPageSize << PAGE_TABLE_SHIFT;
 
     for (U64 i = 0; i < initedManager->memory.len; i++) {
-        FreeMemory memory = initedManager->memory.buf[i];
+        PagedMemory memory = initedManager->memory.buf[i];
 
         if (memory.numberOfPages >= PAGE_TABLE_ENTRIES) {
             U64 applicablePageBoundary =
@@ -290,17 +281,17 @@ void initPMM(PageType pageType) {
                 U64 alignedForNextLevelPages =
                     RING_RANGE_EXP(pagesFromAlign, PAGE_TABLE_SHIFT);
                 freePhysicalPage(
-                    (FreeMemory){.pageStart = applicablePageBoundary,
-                                 .numberOfPages = alignedForNextLevelPages >>
-                                                  PAGE_TABLE_SHIFT},
+                    (PagedMemory){.pageStart = applicablePageBoundary,
+                                  .numberOfPages = alignedForNextLevelPages >>
+                                                   PAGE_TABLE_SHIFT},
                     pageType);
                 U64 leftoverPages = pagesFromAlign - alignedForNextLevelPages;
                 if (leftoverPages > 0) {
                     freePhysicalPage(
-                        (FreeMemory){.pageStart = applicablePageBoundary +
-                                                  (alignedForNextLevelPages *
-                                                   initedManagerPageSize),
-                                     .numberOfPages = leftoverPages},
+                        (PagedMemory){.pageStart = applicablePageBoundary +
+                                                   (alignedForNextLevelPages *
+                                                    initedManagerPageSize),
+                                      .numberOfPages = leftoverPages},
                         decrementedPageType);
                 }
             }
@@ -342,7 +333,7 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory) {
         triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
     }
 
-    basePMM.memory.buf = (FreeMemory *)descriptor->physicalStart;
+    basePMM.memory.buf = (PagedMemory *)descriptor->physicalStart;
     basePMM.memory.cap = MEMORY_ENTRIES_IN_BASE_PAGES(1);
     basePMM.memory.len = 0;
     descriptor->physicalStart += PAGE_FRAME_SIZE;
@@ -356,13 +347,13 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory) {
     }
 
     U64 maxCapacity = MEMORY_ENTRIES_IN_BASE_PAGES(descriptor->numberOfPages);
-    FreeMemory_a freeMemoryArray = (FreeMemory_a){
-        .buf = (FreeMemory *)descriptor->physicalStart, .len = 0};
+    PagedMemory_a freeMemoryArray = (PagedMemory_a){
+        .buf = (PagedMemory *)descriptor->physicalStart, .len = 0};
     // The memory used to store the free memory is also "free" memory
     // after the PMM is correctly initialized.
-    FreeMemory freeMemoryHolder =
-        (FreeMemory){.pageStart = descriptor->physicalStart,
-                     .numberOfPages = descriptor->numberOfPages};
+    PagedMemory freeMemoryHolder =
+        (PagedMemory){.pageStart = descriptor->physicalStart,
+                      .numberOfPages = descriptor->numberOfPages};
 
     while ((descriptor = nextValidDescriptor(&i, kernelMemory))) {
         if (freeMemoryArray.len >= maxCapacity) {
@@ -370,8 +361,8 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory) {
             freeMemoryArray.len = 0;
         }
         freeMemoryArray.buf[freeMemoryArray.len] =
-            (FreeMemory){.pageStart = descriptor->physicalStart,
-                         .numberOfPages = descriptor->numberOfPages};
+            (PagedMemory){.pageStart = descriptor->physicalStart,
+                          .numberOfPages = descriptor->numberOfPages};
         freeMemoryArray.len++;
     }
 

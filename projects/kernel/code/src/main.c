@@ -49,12 +49,12 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     printPhysicalMemoryManagerStatus();
 
     freePhysicalPages(
-        (FreeMemory_a){
+        (PagedMemory_a){
             .buf =
-                (FreeMemory[]){
-                    (FreeMemory){.numberOfPages = 1,
+                (PagedMemory[]){
+                    (PagedMemory){.numberOfPages = 1,
                                  .pageStart = (U64)firstBuffer.buf},
-                    (FreeMemory){.numberOfPages = 1,
+                    (PagedMemory){.numberOfPages = 1,
                                  .pageStart = (U64)secondBuffer.buf}},
             .len = 2,
         },

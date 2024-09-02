@@ -17,7 +17,7 @@ PhysicalAddress allocAndZero(USize numPages) {
     return page;
 }
 
-void mapMemoryAt(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
+void mapMemoryAt(U64 phys, U64 virt, U64 size) {
     /* is this a canonical address? We handle virtual memory up to 256TB */
     if (!globals.level4PageTable ||
         ((virt >> 48L) != 0x0000 && (virt >> 48L) != 0xffff)) {
@@ -55,11 +55,8 @@ void mapMemoryAt(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
         /* if this page is already mapped, that means the kernel has invalid,
          * overlapping segments */
         if (!*pageEntry) {
-            *pageEntry =
-                phys | (PAGE_PRESENT | PAGE_WRITABLE) | additionalFlags;
-        } //  else {
-        //     error(u"This should not happen!\r\n");
-        // }
+            *pageEntry = phys | (PAGE_PRESENT | PAGE_WRITABLE);
+        }
     }
 }
 
@@ -81,7 +78,8 @@ MemoryInfo getMemoryInfo() {
     // exitbootservices will fail (lol)
     mmap.memoryMapSize += mmap.descriptorSize * 2;
     status = globals.st->boot_services->allocate_pages(
-        ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGE_FRAMES(mmap.memoryMapSize),
+        ALLOCATE_ANY_PAGES, LOADER_DATA,
+        BYTES_TO_PAGE_FRAMES(mmap.memoryMapSize),
         (PhysicalAddress *)&mmap.memoryMap);
     if (ERROR(status)) {
         error(u"Could not allocate data for memory map buffer\r\n");

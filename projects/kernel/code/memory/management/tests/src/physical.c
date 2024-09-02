@@ -139,9 +139,9 @@ void testPhysicalMemoryManagement() {
 
                 EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
-                FreeMemory memoryForAddresses[1];
+                PagedMemory memoryForAddresses[1];
                 allocPhysicalPages(
-                    (FreeMemory_a){.buf = memoryForAddresses,
+                    (PagedMemory_a){.buf = memoryForAddresses,
                                    .len = COUNTOF(memoryForAddresses)},
                     BASE_PAGE);
 
@@ -172,9 +172,9 @@ void testPhysicalMemoryManagement() {
 
                 EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
-                FreeMemory memoryForAddresses[1];
+                PagedMemory memoryForAddresses[1];
                 allocPhysicalPages(
-                    (FreeMemory_a){.buf = memoryForAddresses,
+                    (PagedMemory_a){.buf = memoryForAddresses,
                                    .len = COUNTOF(memoryForAddresses)},
                     BASE_PAGE);
 
@@ -201,9 +201,9 @@ void testPhysicalMemoryManagement() {
 
                 EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
-                FreeMemory memoryForAddresses[1];
+                PagedMemory memoryForAddresses[1];
                 allocPhysicalPages(
-                    (FreeMemory_a){.buf = memoryForAddresses,
+                    (PagedMemory_a){.buf = memoryForAddresses,
                                    .len = COUNTOF(memoryForAddresses)},
                     LARGE_PAGE);
 
@@ -230,42 +230,42 @@ void testPhysicalMemoryManagement() {
                 initPhysicalMemoryManager(kernelMemory);
 
                 for (U64 i = 0; i < 4; i++) {
-                    FreeMemory memoryForAddresses[1];
+                    PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
-                        (FreeMemory_a){.buf = memoryForAddresses,
+                        (PagedMemory_a){.buf = memoryForAddresses,
                                        .len = COUNTOF(memoryForAddresses)},
                         LARGE_PAGE);
                 }
 
                 for (U64 i = 0; i < 510; i++) {
-                    FreeMemory memoryForAddresses[1];
+                    PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
-                        (FreeMemory_a){.buf = memoryForAddresses,
+                        (PagedMemory_a){.buf = memoryForAddresses,
                                        .len = COUNTOF(memoryForAddresses)},
                         BASE_PAGE);
                 }
 
                 {
-                    FreeMemory memoryForAddresses[1];
+                    PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
-                        (FreeMemory_a){.buf = memoryForAddresses,
+                        (PagedMemory_a){.buf = memoryForAddresses,
                                        .len = COUNTOF(memoryForAddresses)},
                         LARGE_PAGE);
                 }
 
                 for (U64 i = 0; i < 511; i++) {
-                    FreeMemory memoryForAddresses[1];
+                    PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
-                        (FreeMemory_a){.buf = memoryForAddresses,
+                        (PagedMemory_a){.buf = memoryForAddresses,
                                        .len = COUNTOF(memoryForAddresses)},
                         BASE_PAGE);
                 }
 
                 EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
-                FreeMemory memoryForAddresses[2];
+                PagedMemory memoryForAddresses[2];
                 allocPhysicalPages(
-                    (FreeMemory_a){.buf = memoryForAddresses,
+                    (PagedMemory_a){.buf = memoryForAddresses,
                                    .len = COUNTOF(memoryForAddresses)},
                     BASE_PAGE);
 
@@ -292,50 +292,50 @@ void testPhysicalMemoryManagement() {
                 initPhysicalMemoryManager(kernelMemory);
 
                 for (U64 i = 0; i < 511; i++) {
-                    FreeMemory memoryForAddresses[1];
+                    PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
-                        (FreeMemory_a){.buf = memoryForAddresses,
+                        (PagedMemory_a){.buf = memoryForAddresses,
                                        .len = COUNTOF(memoryForAddresses)},
                         LARGE_PAGE);
                 }
 
                 for (U64 i = 0; i < 509; i++) {
-                    FreeMemory memoryForAddresses[1];
+                    PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
-                        (FreeMemory_a){.buf = memoryForAddresses,
+                        (PagedMemory_a){.buf = memoryForAddresses,
                                        .len = COUNTOF(memoryForAddresses)},
                         BASE_PAGE);
                 }
 
                 for (U64 i = 0; i < 100; i++) {
-                    FreeMemory memoryForAddresses[1];
+                    PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
-                        (FreeMemory_a){.buf = memoryForAddresses,
+                        (PagedMemory_a){.buf = memoryForAddresses,
                                        .len = COUNTOF(memoryForAddresses)},
                         BASE_PAGE);
                 }
 
                 for (U64 i = 0; i < 511; i++) {
-                    FreeMemory memoryForAddresses[1];
+                    PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
-                        (FreeMemory_a){.buf = memoryForAddresses,
+                        (PagedMemory_a){.buf = memoryForAddresses,
                                        .len = COUNTOF(memoryForAddresses)},
                         LARGE_PAGE);
                 }
 
                 for (U64 i = 0; i < 412; i++) {
-                    FreeMemory memoryForAddresses[1];
+                    PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
-                        (FreeMemory_a){.buf = memoryForAddresses,
+                        (PagedMemory_a){.buf = memoryForAddresses,
                                        .len = COUNTOF(memoryForAddresses)},
                         BASE_PAGE);
                 }
 
                 EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
-                FreeMemory memoryForAddresses[2];
+                PagedMemory memoryForAddresses[2];
                 allocPhysicalPages(
-                    (FreeMemory_a){.buf = memoryForAddresses,
+                    (PagedMemory_a){.buf = memoryForAddresses,
                                    .len = COUNTOF(memoryForAddresses)},
                     HUGE_PAGE);
 
@@ -371,7 +371,7 @@ void testPhysicalMemoryManagement() {
                 allocContiguousPhysicalPages(12, BASE_PAGE);
 
                 freePhysicalPage(
-                    (FreeMemory){.pageStart = 0, .numberOfPages = 1},
+                    (PagedMemory){.pageStart = 0, .numberOfPages = 1},
                     BASE_PAGE);
 
                 allocContiguousPhysicalPages(1, BASE_PAGE);
@@ -440,45 +440,45 @@ void testPhysicalMemoryManagement() {
             allocContiguousPhysicalPages(511, LARGE_PAGE);
 
             for (U64 i = 0; i < 64; i++) {
-                FreeMemory memoryForAddresses[8];
+                PagedMemory memoryForAddresses[8];
                 allocPhysicalPages(
-                    (FreeMemory_a){.buf = memoryForAddresses,
+                    (PagedMemory_a){.buf = memoryForAddresses,
                                    .len = COUNTOF(memoryForAddresses)},
                     LARGE_PAGE);
             }
 
             for (U64 i = 0; i < 509; i++) {
-                FreeMemory memoryForAddresses[1];
+                PagedMemory memoryForAddresses[1];
                 allocPhysicalPages(
-                    (FreeMemory_a){.buf = memoryForAddresses, .len = 1},
+                    (PagedMemory_a){.buf = memoryForAddresses, .len = 1},
                     BASE_PAGE);
             }
 
-            freePhysicalPage((FreeMemory){.pageStart = 0, .numberOfPages = 100},
+            freePhysicalPage((PagedMemory){.pageStart = 0, .numberOfPages = 100},
                              BASE_PAGE);
 
             for (U64 i = 0; i < 100; i++) {
-                FreeMemory memoryForAddresses[1];
+                PagedMemory memoryForAddresses[1];
                 allocPhysicalPages(
-                    (FreeMemory_a){.buf = memoryForAddresses, .len = 1},
+                    (PagedMemory_a){.buf = memoryForAddresses, .len = 1},
                     BASE_PAGE);
             }
 
-            FreeMemory freePages[] = {
-                (FreeMemory){.pageStart = 0, .numberOfPages = 1},
-                (FreeMemory){.pageStart = 0, .numberOfPages = 2},
-                (FreeMemory){.pageStart = 0, .numberOfPages = 3},
-                (FreeMemory){.pageStart = 0, .numberOfPages = 4},
-                (FreeMemory){.pageStart = 0, .numberOfPages = 5},
-                (FreeMemory){.pageStart = 0, .numberOfPages = 6}};
+            PagedMemory freePages[] = {
+                (PagedMemory){.pageStart = 0, .numberOfPages = 1},
+                (PagedMemory){.pageStart = 0, .numberOfPages = 2},
+                (PagedMemory){.pageStart = 0, .numberOfPages = 3},
+                (PagedMemory){.pageStart = 0, .numberOfPages = 4},
+                (PagedMemory){.pageStart = 0, .numberOfPages = 5},
+                (PagedMemory){.pageStart = 0, .numberOfPages = 6}};
             freePhysicalPages(
-                (FreeMemory_a){.buf = freePages, .len = COUNTOF(freePages)},
+                (PagedMemory_a){.buf = freePages, .len = COUNTOF(freePages)},
                 HUGE_PAGE);
 
             for (U64 i = 0; i < 21; i++) {
-                FreeMemory memoryForAddresses[1];
+                PagedMemory memoryForAddresses[1];
                 allocPhysicalPages(
-                    (FreeMemory_a){.buf = memoryForAddresses, .len = 512},
+                    (PagedMemory_a){.buf = memoryForAddresses, .len = 512},
                     LARGE_PAGE);
             }
 

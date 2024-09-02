@@ -6,7 +6,7 @@
 #include "interoperation/types.h" // for USize, U64, U32
 
 PhysicalAddress allocAndZero(USize numPages);
-void mapMemoryAt(U64 phys, U64 virt, U64 size, U64 additionalFlags);
+void mapMemoryAt(U64 phys, U64 virt, U64 size);
 
 typedef struct {
     USize memoryMapSize;

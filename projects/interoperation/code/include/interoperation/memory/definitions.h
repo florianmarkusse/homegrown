@@ -28,8 +28,15 @@
 #define PAGE_FRAME_SIZE (1 << PAGE_FRAME_SHIFT)
 #define LARGE_PAGE_SIZE (PAGE_SIZE << PAGE_TABLE_SHIFT)
 #define HUGE_PAGE_SIZE (LARGE_PAGE_SIZE << PAGE_TABLE_SHIFT)
+#define JUMBO_PAGE_SIZE                                                        \
+    (HUGE_PAGE_SIZE << PAGE_TABLE_SHIFT) // Does not exist but comes in handy.
 #define PAGE_SIZE (1 << PAGE_FRAME_SHIFT)
 #define PAGE_MASK (PAGE_SIZE - 1)
+
+#define LEVEL_4_SHIFT 39U
+#define LEVEL_3_SHIFT 30U
+#define LEVEL_2_SHIFT 21U
+#define LEVEL_1_SHIFT 12U
 
 #define PAGE_PRESENT (1ULL << 0)  // The page is currently in memory
 #define PAGE_WRITABLE (1ULL << 1) // It’s allowed to write to this page
@@ -41,9 +48,9 @@
     (1ULL << 5) // The CPU sets this bit when this page is used
 #define PAGE_DIRTY                                                             \
     (1ULL << 6) // The CPU sets this bit when a write to this page occurs
-#define PAGE_HUGE_PAGE                                                         \
-    (1ULL << 7) // Must be 0 in P1 and P4, creates a 1 GiB page in P3, creates a
-                // 2 MiB page in P2
+#define PAGE_EXTENDED_SIZE                                                     \
+    (1ULL << 7) // Must be 0 in level 4 and 1. Created Huge/large page in level
+                // 3/2
 #define PAGE_GLOBAL                                                            \
     (1ULL << 8) // Page isn’t f6lushed from caches on address space switch (PGE
                 // bit of CR4 register must be set)

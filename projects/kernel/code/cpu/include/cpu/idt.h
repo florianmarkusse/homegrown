@@ -57,6 +57,7 @@ typedef enum : U64 {
     FAULT_USER = 32,
     FAULT_SYSCALL = 33,
     FAULT_NO_MORE_PHYSICAL_MEMORY = 34,
+    FAULT_OVERLAPPING_VIRTUAL_SEGMENTS = 35,
 
     // Keep this to know how many we have defined
     FAULT_NUMS
