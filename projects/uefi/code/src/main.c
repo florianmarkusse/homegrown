@@ -7,7 +7,7 @@
 #include "gdt.h"                                   // for enableNewGDT, pre...
 #include "globals.h"                               // for globals
 #include "interoperation/kernel-parameters.h"      // for KernelParameters
-#include "interoperation/memory/definitions.h"     // for PAGE_FRAME_SIZE, STACK_...
+#include "interoperation/memory/definitions.h" // for PAGE_FRAME_SIZE, STACK_...
 #include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h"  // for U64, U32, NULL
 #include "memory/boot-functions.h" // for mapMemoryAt, allo...
@@ -329,7 +329,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Attempting to map memory now...\r\n");
     mapMemoryAt((U64)kernelContent.buf, KERNEL_CODE_START,
-                (U32)kernelContent.len, 0);
+                (U32)kernelContent.len);
 
     __asm__ __volatile__("cli");
 
@@ -355,11 +355,11 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
             (MemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
                                  (i * memoryInfo.descriptorSize));
         mapMemoryAt(desc->physicalStart, desc->physicalStart,
-                    desc->numberOfPages * PAGE_FRAME_SIZE, 0);
+                    desc->numberOfPages * PAGE_FRAME_SIZE);
     }
 
     mapMemoryAt(gop->mode->frameBufferBase, gop->mode->frameBufferBase,
-                gop->mode->frameBufferSize, PAGE_WRITE_THROUGH);
+                gop->mode->frameBufferSize);
 
     globals.frameBufferAddress = gop->mode->frameBufferBase;
     globals.st->con_out->output_string(globals.st->con_out,
@@ -369,14 +369,17 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Creating space for kernel parameters...\r\n");
-    PhysicalAddress kernelParams = allocAndZero(KERNEL_PARAMS_SIZE / PAGE_FRAME_SIZE);
-    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, KERNEL_PARAMS_SIZE, 0);
+    PhysicalAddress kernelParams =
+        allocAndZero(KERNEL_PARAMS_SIZE / PAGE_FRAME_SIZE);
+    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, KERNEL_PARAMS_SIZE);
     KernelParameters *params = (KernelParameters *)kernelParams;
+
+    params->level4PageTable = globals.level4PageTable;
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Creating space for stack...\r\n");
     PhysicalAddress stackEnd = allocAndZero(STACK_SIZE / PAGE_FRAME_SIZE);
-    mapMemoryAt(stackEnd, BOTTOM_STACK, STACK_SIZE, 0);
+    mapMemoryAt(stackEnd, BOTTOM_STACK, STACK_SIZE);
     PhysicalAddress stackPointer = stackEnd + STACK_SIZE;
 
     globals.st->con_out->output_string(globals.st->con_out,

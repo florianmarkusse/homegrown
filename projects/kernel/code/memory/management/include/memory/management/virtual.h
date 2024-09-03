@@ -2,7 +2,10 @@
 #define MEMORY_MANAGEMENT_VIRTUAL_H
 
 #include "interoperation/types.h"
+#include "memory/management/definitions.h"
 
-void mapMemoryAt(U64 phys, U64 virt, U64 size, U64 additionalFlags);
+void initVirtualMemoryManager(U64 level4Address);
 
+void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType,
+                      U64 additionalFlags);
 #endif

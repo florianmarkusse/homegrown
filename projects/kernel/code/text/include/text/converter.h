@@ -8,12 +8,12 @@
 string stringWithMinSize(string data, U8 minSize, U8_a tmp);
 string stringWithMinSizeDefault(string data, U8 minSize);
 
+string stringToString(string data);
+
 string boolToString(bool data);
 
 string ptrToString(void *data, U8_a tmp);
 string ptrToStringDefault(void *data);
-
-string stringToString(string data);
 
 string U64ToString(U64 data, U8_a tmp);
 string U64ToStringDefault(U64 data);

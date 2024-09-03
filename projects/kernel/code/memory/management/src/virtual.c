@@ -1,6 +1,8 @@
 #include "memory/management/virtual.h"
+#include "cpu/x86.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/types.h"
+#include "log/log.h"
 #include "memory/management/definitions.h"
 #include "memory/management/physical.h"
 #include "memory/manipulation/manipulation.h"
@@ -8,8 +10,6 @@
 #include "util/macros.h"
 #include "util/maths.h"
 
-/* NOLINTNEXTLINE */
-typedef struct VirtualPageTable;
 typedef struct {
     U64 pages[PAGE_FRAME_SIZE];
 } VirtualPageTable;
@@ -26,109 +26,89 @@ U64 getZeroBasePage() {
     return (U64)memory.buf;
 }
 
+typedef struct {
+    U8 pat : 3;
+    U8 reserved : 5;
+} PATEntry;
+typedef struct {
+    union {
+        PATEntry pats[8];
+        U64 value;
+    };
+} PAT;
+
 // Should set this value to the kernel memory instead.
-void initVirtualMemoryManager() {
-    level4PageTable = (VirtualPageTable *)getZeroBasePage();
-}
+void initVirtualMemoryManager(U64 level4Address) {
+    FLUSH_AFTER {
+        LOG(STRING("The address is: "));
+        LOG(level4Address, NEWLINE);
+    }
 
-void mapMemoryAt(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
-    ASSERT(level4PageTable);
-    ASSERT(((virt) >> 48L) == 0x0000 || ((virt) >> 48L) == 0xFFFF);
+    level4PageTable = (VirtualPageTable *)level4Address;
 
-    U64 end = virt + size;
-    U64 *pageEntry = NULL;
+    PAT patValues = {.value = rdmsr(0x277)};
 
-    virt = ALIGN_DOWN_EXP(virt, PAGE_FRAME_SHIFT);
-    phys = ALIGN_DOWN_EXP(phys, PAGE_FRAME_SHIFT);
-    /* walk the page tables and add the missing pieces */
-    for (; virt < end; virt += PAGE_FRAME_SIZE, phys += PAGE_FRAME_SIZE) {
-        /* 512G */
-        pageEntry = &((
-            (U64 *)level4PageTable)[(virt >> LEVEL_4_SHIFT) & PAGE_TABLE_MASK]);
-        if (!*pageEntry) {
-            *pageEntry = (getZeroBasePage() | (PAGE_PRESENT | PAGE_WRITABLE));
+    FLUSH_AFTER {
+        for (U8 i = 0; i < 8; i++) {
+            LOG(STRING("Pat "));
+            LOG(i);
+            LOG(STRING(": "));
+            LOG(patValues.pats[i].pat, NEWLINE);
         }
-        /* 1G */
-        pageEntry = (U64 *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[(virt >> LEVEL_3_SHIFT) & PAGE_TABLE_MASK]);
-        if (!*pageEntry) {
-            *pageEntry = (getZeroBasePage() | (PAGE_PRESENT | PAGE_WRITABLE));
-        }
-        /* 2M  */
-        pageEntry = (U64 *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[(virt >> LEVEL_2_SHIFT) & PAGE_TABLE_MASK]);
-        if (!*pageEntry) {
-            *pageEntry = (getZeroBasePage() | (PAGE_PRESENT | PAGE_WRITABLE));
-        }
-        /* 4K */
-        pageEntry = (U64 *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[(virt >> LEVEL_1_SHIFT) & PAGE_TABLE_MASK]);
+    }
 
-        /* if this page is already mapped, that means the kernel has invalid,
-         * overlapping segments */
-        ASSERT(!*pageEntry);
+    patValues.pats[0].pat = 0b001;
 
-        *pageEntry = phys | PAGE_PRESENT | PAGE_WRITABLE | additionalFlags;
+    wrmsr(0x277, patValues.value);
+
+    patValues.value = rdmsr(0x277);
+
+    FLUSH_AFTER {
+        for (U8 i = 0; i < 8; i++) {
+            LOG(STRING("Pat "));
+            LOG(i);
+            LOG(STRING(": "));
+            LOG(patValues.pats[i].pat, NEWLINE);
+        }
     }
 }
 
-VirtualPageTable *descend(VirtualPageTable *table, U64 virtual, U64 shift) {
-    VirtualPageTable *lowerEntry = NULL;
-    lowerEntry =
-        (VirtualPageTable *)
-            table->pages[ALIGN_DOWN_EXP((virtual >> shift), PAGE_FRAME_SHIFT)];
-    return lowerEntry;
-}
-
-// The caller should take care that the virtual address and physical address
-// are correctly aligned. If they are not, not sure what the caller wanted
-// to accomplish.
-void mapMemoryNew(U64 virtual, PagedMemory memory, PageType pageType,
-                  U64 additionalFlags) {
-    // 256 TiB in total
-    // 512 GiB per entry
+// The caller should take care that the virtual address and physical
+// address are correctly aligned. If they are not, not sure what the
+// caller wanted to accomplish.
+void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType,
+                      U64 additionalFlags) {
     ASSERT(level4PageTable);
     ASSERT(((virt) >> 48L) == 0x0000 || ((virt) >> 48L) == 0xFFFF);
 
     U64 pageSize = pageTypeToPageSize[pageType];
+    U64 depth = pageTypeToDepth[pageType];
 
     U64 virtualEnd = virtual + pageSize * memory.numberOfPages;
+    for (U64 physical = memory.pageStart; virtual < virtualEnd;
+         virtual += pageSize, physical += pageSize) {
+        VirtualPageTable *currentTable = level4PageTable;
 
-    // 512 GiB in total
-    // 1 GiB per entry, hence this table can contain huge table entries
-    U64 level4Index =
-        ALIGN_DOWN_EXP(virtual >> LEVEL_4_SHIFT, PAGE_FRAME_SHIFT);
-    VirtualPageTable *level3PageTable =
-        descend(level4PageTable, virtual, LEVEL_4_SHIFT);
-    if (!level3PageTable) {
-        level3PageTable = (VirtualPageTable *)(getZeroBasePage() |
-                                               (PAGE_PRESENT | PAGE_WRITABLE));
+        U64 indexShift = LEVEL_4_SHIFT;
+        for (U8 i = 0; i < depth; i++, indexShift -= PAGE_TABLE_SHIFT) {
+            currentTable =
+                (VirtualPageTable *)currentTable->pages[ALIGN_DOWN_EXP(
+                    (virtual >> indexShift), PAGE_FRAME_SHIFT)];
+
+            ASSERT((i == depth - 1) && !currentTable);
+
+            if (!currentTable) {
+                U64 value = PAGE_PRESENT | PAGE_WRITABLE | additionalFlags;
+                if (i == depth - 1) {
+                    value |= physical;
+                    if (pageType == HUGE_PAGE || pageType == LARGE_PAGE) {
+                        value |= PAGE_EXTENDED_SIZE;
+                    }
+                } else {
+                    value |= getZeroBasePage();
+                }
+                currentTable = (VirtualPageTable *)value;
+            }
+        }
     }
-
-    // 1 GiB in total
-    // 2 Mib per entry, hence this table can contain large table entries
-    VirtualPageTable *level2PageTable =
-        descend(level3PageTable, virtual, LEVEL_3_SHIFT);
-    if (!level2PageTable) {
-        level2PageTable = (VirtualPageTable *)(getZeroBasePage() |
-                                               (PAGE_PRESENT | PAGE_WRITABLE));
-    }
-
-    // 2MiB in total
-    // 4Kib per entry
-    VirtualPageTable *level1PageTable =
-        descend(level2PageTable, virtual, LEVEL_2_SHIFT);
-    if (!level1PageTable) {
-        level1PageTable = (VirtualPageTable *)(getZeroBasePage() |
-                                               (PAGE_PRESENT | PAGE_WRITABLE));
-    }
-
-    // 4KiB in total
-    U64 *basePageFrame =
-        (U64 *)descend(level1PageTable, virtual, LEVEL_1_SHIFT);
-
-    if (!*basePageFrame) {
-        // There  is already something mapped, need to invalidate cache...
-    }
-    *basePageFrame = (memory.pageStart | (PAGE_PRESENT | PAGE_WRITABLE));
 }

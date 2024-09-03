@@ -8,6 +8,17 @@
         We need to set the least significant bit to 1, the other 2 should be 0
         0x1 stands for WC
 
+        Startup:
+
+        - 0: 110 WB
+        - 1: 100 WT
+        - 2: 111 UC-
+        - 3: 000 UC
+        - 4: 110 WB
+        - 5: 100 WT
+        - 6: 111 UC-
+        - 7: 000 UC
+
   - Remap graphics buffers to use PAT3
 
         PAT-bit: 0

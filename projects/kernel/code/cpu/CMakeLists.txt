@@ -9,7 +9,13 @@ list(APPEND SOURCE_FILES "src/common.c")
 if("${UNIT_TEST_BUILD}")
     list(APPEND SOURCE_FILES "src/posix/idt.c")
 else()
-    list(APPEND SOURCE_FILES "src/kernel/idt.c" "src/kernel/idts.S")
+    list(
+        APPEND
+        SOURCE_FILES
+        "src/kernel/idt.c"
+        "src/kernel/idts.S"
+        "src/kernel/x86.c"
+    )
 endif()
 
 add_library(${LIBRARY} ${LIBRARY_TYPE} ${SOURCE_FILES})

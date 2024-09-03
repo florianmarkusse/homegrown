@@ -5,6 +5,7 @@
 #include "interoperation/types.h" // for U32
 #include "log/log.h"              // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "memory/management/physical.h"
+#include "memory/management/virtual.h"
 #include "peripheral/screen/screen.h"
 #include "text/string.h" // for STRING
 
@@ -26,6 +27,8 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         .descriptors = kernelParameters->memory.descriptors,
         .descriptorSize = kernelParameters->memory.descriptorSize});
 
+    initVirtualMemoryManager(kernelParameters->level4PageTable);
+
     string firstBuffer = (string){
         .buf = (typeof(U8 *))allocContiguousPhysicalPages(1, BASE_PAGE),
         .len = PAGE_FRAME_SIZE};
@@ -46,16 +49,14 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     secondBuffer.buf[100] = '\n';
     secondBuffer.len = 101;
 
-    printPhysicalMemoryManagerStatus();
-
     freePhysicalPages(
         (PagedMemory_a){
             .buf =
                 (PagedMemory[]){
                     (PagedMemory){.numberOfPages = 1,
-                                 .pageStart = (U64)firstBuffer.buf},
+                                  .pageStart = (U64)firstBuffer.buf},
                     (PagedMemory){.numberOfPages = 1,
-                                 .pageStart = (U64)secondBuffer.buf}},
+                                  .pageStart = (U64)secondBuffer.buf}},
             .len = 2,
         },
         BASE_PAGE);

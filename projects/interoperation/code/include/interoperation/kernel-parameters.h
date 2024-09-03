@@ -20,6 +20,8 @@ typedef struct {
 typedef struct {
     FrameBuffer fb;
     KernelMemory memory;
+    U64 level4PageTable;
+
 } KernelParameters;
 
 #endif

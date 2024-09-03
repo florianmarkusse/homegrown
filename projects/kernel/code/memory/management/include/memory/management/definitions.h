@@ -21,6 +21,8 @@ typedef struct {
 typedef MAX_LENGTH_ARRAY(PagedMemory) PagedMemory_max_a;
 typedef ARRAY(PagedMemory) PagedMemory_a;
 
+static U8 pageTypeToDepth[PAGE_TYPE_NUMS] = {4, 3, 2};
+
 static U64 pageTypeToPageSize[PAGE_TYPE_NUMS] = {
     PAGE_FRAME_SIZE, LARGE_PAGE_SIZE, HUGE_PAGE_SIZE};
 

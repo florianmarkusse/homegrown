@@ -39,6 +39,16 @@ target_include_directories(
 # can figure it out.
 set(LINKING_LIBRARIES_LOCATIONS)
 
+target_link_libraries(
+    ${MAIN_RESULT}
+    PRIVATE memory-management-${CMAKE_BUILD_TYPE}
+)
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/memory/management/libmemory-management-${CMAKE_BUILD_TYPE}.a
+)
+
 add_subdirectory("cpu")
 target_link_libraries(${MAIN_RESULT} PRIVATE cpu-${CMAKE_BUILD_TYPE})
 list(
@@ -56,15 +66,6 @@ list(
     APPEND
     LINKING_LIBRARIES_LOCATIONS
     ${CMAKE_CURRENT_BINARY_DIR}/memory/manipulation/libmemory-manipulation-${CMAKE_BUILD_TYPE}.a
-)
-target_link_libraries(
-    ${MAIN_RESULT}
-    PRIVATE memory-management-${CMAKE_BUILD_TYPE}
-)
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/memory/management/libmemory-management-${CMAKE_BUILD_TYPE}.a
 )
 
 add_subdirectory("peripheral")
