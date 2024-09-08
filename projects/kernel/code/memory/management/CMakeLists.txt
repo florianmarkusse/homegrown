@@ -1,3 +1,5 @@
+# TODO: maybe split this up in virtual/physical/whatever at
+# a later stage.
 project(memory-management LANGUAGES C ASM)
 
 set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")

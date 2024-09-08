@@ -3,7 +3,7 @@
 #include "util/assert.h"                // for ASSERT
 #include <unistd.h>
 
-void setupScreen([[maybe_unused]] ScreenDimension dimension) {
+void initScreen([[maybe_unused]] ScreenDimension dimension) {
     // Stubs for now.
 }
 void rewind([[maybe_unused]] U16 numberOfScreenLines) {

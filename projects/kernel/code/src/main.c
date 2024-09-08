@@ -15,55 +15,25 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     KernelParameters *kernelParameters =
         (KernelParameters *)KERNEL_PARAMS_START;
 
-    setupScreen((ScreenDimension){.scanline = kernelParameters->fb.scanline,
-                                  .size = kernelParameters->fb.size,
-                                  .width = kernelParameters->fb.columns,
-                                  .height = kernelParameters->fb.rows,
-                                  .screen = (U32 *)kernelParameters->fb.ptr});
-    initIDT();
-
     initPhysicalMemoryManager((KernelMemory){
         .totalDescriptorSize = kernelParameters->memory.totalDescriptorSize,
         .descriptors = kernelParameters->memory.descriptors,
         .descriptorSize = kernelParameters->memory.descriptorSize});
-
     initVirtualMemoryManager(kernelParameters->level4PageTable);
 
-    string firstBuffer = (string){
-        .buf = (typeof(U8 *))allocContiguousPhysicalPages(1, BASE_PAGE),
-        .len = PAGE_FRAME_SIZE};
-
-    for (U64 i = 0; i < 100; i++) {
-        firstBuffer.buf[i] = 'A';
-    }
-    firstBuffer.buf[100] = '\n';
-    firstBuffer.len = 101;
-
-    string secondBuffer = (string){
-        .buf = (typeof(U8 *))allocContiguousPhysicalPages(1, BASE_PAGE),
-        .len = PAGE_FRAME_SIZE};
-
-    for (U64 i = 0; i < 100; i++) {
-        secondBuffer.buf[i] = 'A';
-    }
-    secondBuffer.buf[100] = '\n';
-    secondBuffer.len = 101;
-
-    freePhysicalPages(
-        (PagedMemory_a){
-            .buf =
-                (PagedMemory[]){
-                    (PagedMemory){.numberOfPages = 1,
-                                  .pageStart = (U64)firstBuffer.buf},
-                    (PagedMemory){.numberOfPages = 1,
-                                  .pageStart = (U64)secondBuffer.buf}},
-            .len = 2,
-        },
-        BASE_PAGE);
-
-    /*FLUSH_AFTER { LOG(getBigNumber(), NEWLINE); }*/
+    initScreen((ScreenDimension){.scanline = kernelParameters->fb.scanline,
+                                 .size = kernelParameters->fb.size,
+                                 .width = kernelParameters->fb.columns,
+                                 .height = kernelParameters->fb.rows,
+                                 .screen = (U32 *)kernelParameters->fb.ptr});
+    // This is still logging stuff when it fails so it is only useful after
+    // setting up the screen but if the stuff before fails we are fucked.
+    initIDT();
 
     printPhysicalMemoryManagerStatus();
+    printVirtualMemoryManagerStatus();
+
+    /*FLUSH_AFTER { LOG(getBigNumber(), NEWLINE); }*/
 
     // __asm__ __volatile__("int $3" ::"r"(0));
 

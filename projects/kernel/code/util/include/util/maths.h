@@ -13,9 +13,9 @@ extern "C" {
 
 // These operations are only defined for powers of 2 !!!
 #define ALIGN_UP_EXP(val, exponent)                                            \
-    (((val) + ((1U << (exponent)) - 1)) & ~((1U << (exponent)) - 1))
+    (((val) + ((1U << (exponent)) - 1)) & (~((1U << (exponent)) - 1)))
 #define ALIGN_UP_VALUE(val, alignValue)                                        \
-    (((val) + ((alignValue) - 1)) & ~((alignValue) - 1))
+    (((val) + ((alignValue) - 1)) & (~((alignValue) - 1)))
 #define ALIGN_DOWN_EXP(val, exponent) ((val) & (~((1U << (exponent)) - 1)))
 #define ALIGN_DOWN_VALUE(val, alignValue) ((val) & (~((alignValue) - 1)))
 #define CEILING_DIV_EXP(val, exponent)                                         \
@@ -23,7 +23,7 @@ extern "C" {
 #define CEILING_DIV_VALUE(val, divisor)                                        \
     (((val) + ((divisor) - 1)) >> (__builtin_ctz(divisor)))
 
-#define RING_RANGE_EXP(val, exponent) ((val) & ~((1U << (exponent)) - 1))
+#define RING_RANGE_EXP(val, exponent) ((val) & ((1U << (exponent)) - 1))
 #define RING_RANGE_VALUE(val, ringSize) (((val)) & ((ringSize) - 1))
 #define RING_INCREMENT(val, ringSize) (((val) + 1) & ((ringSize) - 1))
 #define RING_PLUS(val, amount, ringSize) (((val) + (amount)) & ((ringSize) - 1))

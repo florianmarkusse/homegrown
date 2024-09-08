@@ -87,8 +87,6 @@ QEMU_OPTIONS=(
     -smp 1
     -usb
     -vga std
-    -cpu host
-    -enable-kvm
 )
 
 if [ "$VERBOSE" = true ]; then
@@ -96,10 +94,15 @@ if [ "$VERBOSE" = true ]; then
         -d "int,cpu_reset"
     )
 fi
-# For some reason i am unable to create breakpoints with qemu on cpu host, so doing it like this.
 if [ "$DEBUG" = true ]; then
     QEMU_OPTIONS+=(
         -s -S
+    )
+else
+    # Virtualization and debugging does not work sadge https://forum.osdev.org/viewtopic.php?t=39998
+    QEMU_OPTIONS+=(
+        -cpu host
+        -enable-kvm
     )
 fi
 

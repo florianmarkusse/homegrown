@@ -255,6 +255,10 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
                                        BACKGROUND_RED | YELLOW);
 
     globals.level4PageTable = allocAndZero(1);
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"CR3 memory location:");
+    printNumber(globals.level4PageTable, 16);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
     __asm__ __volatile__("mov $0, %%eax;"
                          "mov $0, %%ecx;"
@@ -361,10 +365,20 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     mapMemoryAt(gop->mode->frameBufferBase, gop->mode->frameBufferBase,
                 gop->mode->frameBufferSize);
 
+    globals.st->con_out->output_string(globals.st->con_out, u"level 3 is at:");
+    U64 pageEntry = (((PhysicalAddress *)globals.level4PageTable)[0]);
+    printNumber(pageEntry, 16);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
     globals.frameBufferAddress = gop->mode->frameBufferBase;
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"The graphics buffer location is at ");
     printNumber(gop->mode->frameBufferBase, 16);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"The graphics buffer size is ");
+    printNumber(gop->mode->frameBufferSize, 16);
     globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
     globals.st->con_out->output_string(

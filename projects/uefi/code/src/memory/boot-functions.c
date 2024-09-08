@@ -1,4 +1,5 @@
 #include "memory/boot-functions.h"
+#include "efi/c-efi-protocol-simple-text-output.h"
 #include "efi/c-efi-system.h"
 #include "globals.h"
 #include "interoperation/memory/definitions.h"
@@ -36,12 +37,23 @@ void mapMemoryAt(U64 phys, U64 virt, U64 size) {
         if (!*pageEntry) {
             PhysicalAddress addr = allocAndZero(1);
             *pageEntry = (addr | (PAGE_PRESENT | PAGE_WRITABLE));
+
+            globals.st->con_out->output_string(globals.st->con_out,
+                                               u"INSIDE level 3 is at:");
+            printNumber((USize)*pageEntry, 16);
+            globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
         }
+
         /* 1G */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
         pageEntry = &(pageEntry[(virt >> 30L) & PAGE_TABLE_MASK]);
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (PAGE_PRESENT | PAGE_WRITABLE));
+
+            globals.st->con_out->output_string(globals.st->con_out,
+                                               u"INSIDE level 2 is at:");
+            printNumber((USize)*pageEntry, 16);
+            globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
         }
         /* 2M  */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));

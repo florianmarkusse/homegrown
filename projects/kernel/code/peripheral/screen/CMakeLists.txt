@@ -24,4 +24,5 @@ target_include_directories(
 )
 
 target_link_libraries(${LIBRARY} PUBLIC log-${CMAKE_BUILD_TYPE})
+target_link_libraries(${LIBRARY} PUBLIC memory-management-${CMAKE_BUILD_TYPE})
 target_link_libraries(${LIBRARY} PUBLIC memory-manipulation-${CMAKE_BUILD_TYPE})

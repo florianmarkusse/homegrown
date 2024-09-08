@@ -279,7 +279,7 @@ void initPMM(PageType pageType) {
                 // every 512 pages to 1 new page. The rest is leftover and will
                 // be added back to the current level.
                 U64 alignedForNextLevelPages =
-                    RING_RANGE_EXP(pagesFromAlign, PAGE_TABLE_SHIFT);
+                    ALIGN_DOWN_EXP(pagesFromAlign, PAGE_TABLE_SHIFT);
                 freePhysicalPage(
                     (PagedMemory){.pageStart = applicablePageBoundary,
                                   .numberOfPages = alignedForNextLevelPages >>

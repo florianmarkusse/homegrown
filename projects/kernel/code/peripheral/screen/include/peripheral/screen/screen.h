@@ -14,7 +14,7 @@ typedef struct {
     U32 height;
     U32 scanline;
 } ScreenDimension;
-void setupScreen(ScreenDimension dimension);
+void initScreen(ScreenDimension dimension);
 // TODO: needs buffer as argument when memory is set up
 void rewind(U16 numberOfScreenLines);
 void prowind(U16 numberOfScreenLines);

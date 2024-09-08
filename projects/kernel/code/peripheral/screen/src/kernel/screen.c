@@ -1,5 +1,7 @@
 #include "peripheral/screen/screen.h"
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
+#include "memory/management/definitions.h"
+#include "memory/management/virtual.h"
 #include "memory/manipulation/manipulation.h"
 #include "util/assert.h" // for ASSERT
 #include "util/maths.h"  // for RING_PLUS, RING_INCREMENT, RING_MINUS
@@ -515,9 +517,20 @@ bool flushToScreen(U8_max_a buffer) {
     return true;
 }
 
-void setupScreen(ScreenDimension dimension) {
-    dim = dimension;
-    dim.backingBuffer = graphicsBuffer;
+void initScreen(ScreenDimension dimension) {
+    dim = (ScreenDimension){.screen = dimension.screen,
+                            .backingBuffer = graphicsBuffer,
+                            .size = dimension.size,
+                            .width = dimension.width,
+                            .height = dimension.height,
+                            .scanline = dimension.scanline};
+
+    PagedMemory pagedMemory = {.pageStart = (U64)dim.screen,
+                               .numberOfPages =
+                                   CEILING_DIV_EXP(dim.size, PAGE_FRAME_SHIFT)};
+    PageType pageType = BASE_PAGE;
+
+    mapVirtualRegion((U64)dimension.screen, pagedMemory, pageType, 0);
 
     glyphsPerLine =
         (U16)(dim.width - HORIZONTAL_PIXEL_MARGIN * 2) / (glyphs.width);

@@ -11,7 +11,7 @@
 #include "util/maths.h"
 
 typedef struct {
-    U64 pages[PAGE_FRAME_SIZE];
+    U64 pages[PAGE_TABLE_ENTRIES];
 } VirtualPageTable;
 
 static VirtualPageTable *level4PageTable;
@@ -26,6 +26,27 @@ U64 getZeroBasePage() {
     return (U64)memory.buf;
 }
 
+#define PAT_LOCATION 0x277
+
+typedef enum {
+    PAT_UNCACHABLE_UC = 0x0,
+    PAT_WRITE_COMBINGING_WC = 0x1,
+    PAT_RESERVED_2 = 0x2,
+    PAT_RESERVED_3 = 0x3,
+    PAT_WRITE_THROUGH_WT = 0x4,
+    PAT_WRITE_PROTECTED_WP = 0x5,
+    PAT_WRITE_BACK_WB = 0x6,
+    PAT_UNCACHED_UC_ = 0x7,
+    PAT_NUMS
+} PATEncoding;
+
+static string patEncodingToString[PAT_NUMS] = {
+    STRING("Uncachable (UC)"),        STRING("Write Combinging (WC)"),
+    STRING("Reserved 1, don't use!"), STRING("Reserved 2, don't use!"),
+    STRING("Write Through (WT)"),     STRING("Write Protected (WP)"),
+    STRING("Write Back (WB)"),        STRING("Uncached (UC-)"),
+};
+
 typedef struct {
     U8 pat : 3;
     U8 reserved : 5;
@@ -37,40 +58,37 @@ typedef struct {
     };
 } PAT;
 
-// Should set this value to the kernel memory instead.
+void printVirtualMemoryManagerStatus() {
+    FLUSH_AFTER {
+        LOG(STRING("CR3/root page table address is: "));
+        LOG((void *)level4PageTable, NEWLINE);
+    }
+
+    PAT patValues = {.value = rdmsr(PAT_LOCATION)};
+    patValues.value = rdmsr(PAT_LOCATION);
+    FLUSH_AFTER {
+        LOG(STRING("PAT MSR set to:\n"));
+        for (U8 i = 0; i < 8; i++) {
+            LOG(STRING("PAT "));
+            LOG(i);
+            LOG(STRING(": "));
+            LOG(patEncodingToString[patValues.pats[i].pat], NEWLINE);
+        }
+    }
+}
+
+void programPat() {
+    PAT patValues = {.value = rdmsr(PAT_LOCATION)};
+
+    patValues.pats[0].pat = PAT_WRITE_COMBINGING_WC;
+    wrmsr(PAT_LOCATION, patValues.value);
+
+    flushTLB();
+}
+
 void initVirtualMemoryManager(U64 level4Address) {
-    FLUSH_AFTER {
-        LOG(STRING("The address is: "));
-        LOG(level4Address, NEWLINE);
-    }
-
     level4PageTable = (VirtualPageTable *)level4Address;
-
-    PAT patValues = {.value = rdmsr(0x277)};
-
-    FLUSH_AFTER {
-        for (U8 i = 0; i < 8; i++) {
-            LOG(STRING("Pat "));
-            LOG(i);
-            LOG(STRING(": "));
-            LOG(patValues.pats[i].pat, NEWLINE);
-        }
-    }
-
-    patValues.pats[0].pat = 0b001;
-
-    wrmsr(0x277, patValues.value);
-
-    patValues.value = rdmsr(0x277);
-
-    FLUSH_AFTER {
-        for (U8 i = 0; i < 8; i++) {
-            LOG(STRING("Pat "));
-            LOG(i);
-            LOG(STRING(": "));
-            LOG(patValues.pats[i].pat, NEWLINE);
-        }
-    }
+    programPat();
 }
 
 // The caller should take care that the virtual address and physical
@@ -79,7 +97,7 @@ void initVirtualMemoryManager(U64 level4Address) {
 void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType,
                       U64 additionalFlags) {
     ASSERT(level4PageTable);
-    ASSERT(((virt) >> 48L) == 0x0000 || ((virt) >> 48L) == 0xFFFF);
+    ASSERT(((virtual) >> 48L) == 0x0000 || ((virtual) >> 48L) == 0xFFFF);
 
     U64 pageSize = pageTypeToPageSize[pageType];
     U64 depth = pageTypeToDepth[pageType];
@@ -91,13 +109,12 @@ void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType,
 
         U64 indexShift = LEVEL_4_SHIFT;
         for (U8 i = 0; i < depth; i++, indexShift -= PAGE_TABLE_SHIFT) {
-            currentTable =
-                (VirtualPageTable *)currentTable->pages[ALIGN_DOWN_EXP(
-                    (virtual >> indexShift), PAGE_FRAME_SHIFT)];
+            U64 *address = &(currentTable->pages[RING_RANGE_EXP(
+                (virtual >> indexShift), PAGE_TABLE_SHIFT)]);
 
-            ASSERT((i == depth - 1) && !currentTable);
+            ASSERT(!*address || (i < depth - 1));
 
-            if (!currentTable) {
+            if (!*address) {
                 U64 value = PAGE_PRESENT | PAGE_WRITABLE | additionalFlags;
                 if (i == depth - 1) {
                     value |= physical;
@@ -107,8 +124,11 @@ void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType,
                 } else {
                     value |= getZeroBasePage();
                 }
-                currentTable = (VirtualPageTable *)value;
+                *address = value;
             }
+
+            currentTable =
+                (VirtualPageTable *)ALIGN_DOWN_EXP(*address, PAGE_FRAME_SHIFT);
         }
     }
 }

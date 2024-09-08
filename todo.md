@@ -10,14 +10,16 @@
 
         Startup:
 
-        - 0: 110 WB
-        - 1: 100 WT
-        - 2: 111 UC-
-        - 3: 000 UC
-        - 4: 110 WB
-        - 5: 100 WT
-        - 6: 111 UC-
-        - 7: 000 UC
+        00000110
+
+        - 0: 110 WB 6
+        - 1: 100 WT 4
+        - 2: 111 UC-7
+        - 3: 000 UC 0
+        - 4: 110 WB 6
+        - 5: 100 WT 4
+        - 6: 111 UC-7
+        - 7: 000 UC 0
 
   - Remap graphics buffers to use PAT3
 
