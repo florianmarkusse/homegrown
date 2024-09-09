@@ -87,7 +87,7 @@ void switchToScreenDisplay() {
            dim.scanline * dim.height * BYTES_PER_PIXEL);
 }
 
-void screenInit() {
+void drawTerminalBox() {
     for (U32 y = 0; y < dim.height; y++) {
         for (U32 x = 0; x < dim.scanline; x++) {
             dim.backingBuffer[y * dim.scanline + x] = 0x00000000;
@@ -547,7 +547,7 @@ void initScreen(ScreenDimension dimension) {
 
     ASSERT(maxCharsToProcess <= FILE_BUF_LEN);
 
-    screenInit();
+    drawTerminalBox();
 }
 
 bool isWindowSmallerThanScreen() {
