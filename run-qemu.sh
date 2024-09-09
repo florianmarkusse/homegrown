@@ -97,6 +97,10 @@ fi
 if [ "$DEBUG" = true ]; then
     QEMU_OPTIONS+=(
         -s -S
+        # NOTE: Ensure this is the same architecture as what you are trying to
+        # build for :)))
+        -cpu Haswell-v4
+        -accel "tcg"
     )
 else
     # Virtualization and debugging does not work sadge https://forum.osdev.org/viewtopic.php?t=39998

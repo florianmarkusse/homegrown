@@ -29,6 +29,19 @@ U64 getZeroBasePage() {
 #define PAT_LOCATION 0x277
 
 typedef enum {
+    PAT_0 = 0,
+    PAT_1 = PAGE_WRITE_THROUGH,
+    PAT_2 = PAGE_DISABLE_CACHE,
+    PAT_3 = PAGE_WRITE_THROUGH | PAGE_DISABLE_CACHE,
+    // NOTE: The below PATs can NOT be used by extended sizes as the CPU will
+    // think u set a large/huge page and select pat x - 4
+    PAT_4 = PAGE_EXTENDED_SIZE,
+    PAT_5 = PAGE_EXTENDED_SIZE | PAGE_WRITE_THROUGH,
+    PAT_6 = PAGE_EXTENDED_SIZE | PAGE_DISABLE_CACHE,
+    PAT_7 = PAGE_EXTENDED_SIZE | PAGE_DISABLE_CACHE | PAGE_WRITE_THROUGH
+} PATMapping;
+
+typedef enum {
     PAT_UNCACHABLE_UC = 0x0,
     PAT_WRITE_COMBINGING_WC = 0x1,
     PAT_RESERVED_2 = 0x2,
@@ -112,18 +125,16 @@ void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType,
             U64 *address = &(currentTable->pages[RING_RANGE_EXP(
                 (virtual >> indexShift), PAGE_TABLE_SHIFT)]);
 
-            ASSERT(!*address || (i < depth - 1));
-
-            if (!*address) {
-                U64 value = PAGE_PRESENT | PAGE_WRITABLE | additionalFlags;
-                if (i == depth - 1) {
-                    value |= physical;
-                    if (pageType == HUGE_PAGE || pageType == LARGE_PAGE) {
-                        value |= PAGE_EXTENDED_SIZE;
-                    }
-                } else {
-                    value |= getZeroBasePage();
+            if (i == depth - 1) {
+                U64 value =
+                    PAGE_PRESENT | PAGE_WRITABLE | physical | additionalFlags;
+                if (pageType == HUGE_PAGE || pageType == LARGE_PAGE) {
+                    value |= PAGE_EXTENDED_SIZE;
                 }
+                *address = value;
+            } else if (!*address) {
+                U64 value = PAGE_PRESENT | PAGE_WRITABLE;
+                value |= getZeroBasePage();
                 *address = value;
             }
 
