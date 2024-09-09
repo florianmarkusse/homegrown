@@ -74,6 +74,19 @@
     (1ULL << 63) // Forbid executing code on this page (the NXE bit in the EFER
                  // register must be set)
 
+typedef enum {
+    PAT_0 = 0,
+    PAT_1 = PAGE_WRITE_THROUGH,
+    PAT_2 = PAGE_DISABLE_CACHE,
+    PAT_3 = PAGE_WRITE_THROUGH | PAGE_DISABLE_CACHE,
+    // NOTE: The below PATs can NOT be used by extended sizes as the CPU will
+    // think u set a large/huge page and select pat x - 4
+    PAT_4 = PAGE_EXTENDED_SIZE,
+    PAT_5 = PAGE_EXTENDED_SIZE | PAGE_WRITE_THROUGH,
+    PAT_6 = PAGE_EXTENDED_SIZE | PAGE_DISABLE_CACHE,
+    PAT_7 = PAGE_EXTENDED_SIZE | PAGE_DISABLE_CACHE | PAGE_WRITE_THROUGH
+} PATMapping;
+
 #define BYTES_TO_PAGE_FRAMES(a)                                                \
     (((a) >> PAGE_FRAME_SHIFT) + ((a) & PAGE_MASK ? 1 : 0))
 

@@ -29,19 +29,6 @@ U64 getZeroBasePage() {
 #define PAT_LOCATION 0x277
 
 typedef enum {
-    PAT_0 = 0,
-    PAT_1 = PAGE_WRITE_THROUGH,
-    PAT_2 = PAGE_DISABLE_CACHE,
-    PAT_3 = PAGE_WRITE_THROUGH | PAGE_DISABLE_CACHE,
-    // NOTE: The below PATs can NOT be used by extended sizes as the CPU will
-    // think u set a large/huge page and select pat x - 4
-    PAT_4 = PAGE_EXTENDED_SIZE,
-    PAT_5 = PAGE_EXTENDED_SIZE | PAGE_WRITE_THROUGH,
-    PAT_6 = PAGE_EXTENDED_SIZE | PAGE_DISABLE_CACHE,
-    PAT_7 = PAGE_EXTENDED_SIZE | PAGE_DISABLE_CACHE | PAGE_WRITE_THROUGH
-} PATMapping;
-
-typedef enum {
     PAT_UNCACHABLE_UC = 0x0,
     PAT_WRITE_COMBINGING_WC = 0x1,
     PAT_RESERVED_2 = 0x2,
@@ -54,7 +41,7 @@ typedef enum {
 } PATEncoding;
 
 static string patEncodingToString[PAT_NUMS] = {
-    STRING("Uncachable (UC)"),        STRING("Write Combinging (WC)"),
+    STRING("Uncachable (UC)"),        STRING("Write Combining (WC)"),
     STRING("Reserved 1, don't use!"), STRING("Reserved 2, don't use!"),
     STRING("Write Through (WT)"),     STRING("Write Protected (WP)"),
     STRING("Write Back (WB)"),        STRING("Uncached (UC-)"),
@@ -93,7 +80,7 @@ void printVirtualMemoryManagerStatus() {
 void programPat() {
     PAT patValues = {.value = rdmsr(PAT_LOCATION)};
 
-    patValues.pats[0].pat = PAT_WRITE_COMBINGING_WC;
+    patValues.pats[3].pat = PAT_WRITE_COMBINGING_WC;
     wrmsr(PAT_LOCATION, patValues.value);
 
     flushTLB();

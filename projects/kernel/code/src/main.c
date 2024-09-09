@@ -33,8 +33,6 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     printPhysicalMemoryManagerStatus();
     printVirtualMemoryManagerStatus();
 
-    /*FLUSH_AFTER { LOG(getBigNumber(), NEWLINE); }*/
-
     // __asm__ __volatile__("int $3" ::"r"(0));
 
     // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }
