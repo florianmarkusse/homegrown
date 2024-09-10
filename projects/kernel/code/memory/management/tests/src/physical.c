@@ -77,10 +77,8 @@ void testPhysicalMemoryManagement() {
         return;
     }
 
-    // Setting the memoryStart to a page that is a power of a large page
-    // Otherwise the math to do the tests get very wacky.
-    memoryStart = (PhysicalBasePage *)(ALIGN_UP_EXP(
-        (U64)pages, PAGE_FRAME_SHIFT + PAGE_TABLE_SHIFT * 2));
+    memoryStart = (PhysicalBasePage *)alignUpExp(
+        (U64)pages, PAGE_FRAME_SHIFT + PAGE_TABLE_SHIFT * 2);
 
     TEST_TOPIC(STRING("Physical Memory Management")) {
         TEST_TOPIC(STRING("Initing")) {
@@ -142,7 +140,7 @@ void testPhysicalMemoryManagement() {
                 PagedMemory memoryForAddresses[1];
                 allocPhysicalPages(
                     (PagedMemory_a){.buf = memoryForAddresses,
-                                   .len = COUNTOF(memoryForAddresses)},
+                                    .len = COUNTOF(memoryForAddresses)},
                     BASE_PAGE);
 
                 TEST_FAILURE {
@@ -175,7 +173,7 @@ void testPhysicalMemoryManagement() {
                 PagedMemory memoryForAddresses[1];
                 allocPhysicalPages(
                     (PagedMemory_a){.buf = memoryForAddresses,
-                                   .len = COUNTOF(memoryForAddresses)},
+                                    .len = COUNTOF(memoryForAddresses)},
                     BASE_PAGE);
 
                 TEST_FAILURE {
@@ -204,7 +202,7 @@ void testPhysicalMemoryManagement() {
                 PagedMemory memoryForAddresses[1];
                 allocPhysicalPages(
                     (PagedMemory_a){.buf = memoryForAddresses,
-                                   .len = COUNTOF(memoryForAddresses)},
+                                    .len = COUNTOF(memoryForAddresses)},
                     LARGE_PAGE);
 
                 TEST_FAILURE {
@@ -233,7 +231,7 @@ void testPhysicalMemoryManagement() {
                     PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
                         (PagedMemory_a){.buf = memoryForAddresses,
-                                       .len = COUNTOF(memoryForAddresses)},
+                                        .len = COUNTOF(memoryForAddresses)},
                         LARGE_PAGE);
                 }
 
@@ -241,7 +239,7 @@ void testPhysicalMemoryManagement() {
                     PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
                         (PagedMemory_a){.buf = memoryForAddresses,
-                                       .len = COUNTOF(memoryForAddresses)},
+                                        .len = COUNTOF(memoryForAddresses)},
                         BASE_PAGE);
                 }
 
@@ -249,7 +247,7 @@ void testPhysicalMemoryManagement() {
                     PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
                         (PagedMemory_a){.buf = memoryForAddresses,
-                                       .len = COUNTOF(memoryForAddresses)},
+                                        .len = COUNTOF(memoryForAddresses)},
                         LARGE_PAGE);
                 }
 
@@ -257,7 +255,7 @@ void testPhysicalMemoryManagement() {
                     PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
                         (PagedMemory_a){.buf = memoryForAddresses,
-                                       .len = COUNTOF(memoryForAddresses)},
+                                        .len = COUNTOF(memoryForAddresses)},
                         BASE_PAGE);
                 }
 
@@ -266,7 +264,7 @@ void testPhysicalMemoryManagement() {
                 PagedMemory memoryForAddresses[2];
                 allocPhysicalPages(
                     (PagedMemory_a){.buf = memoryForAddresses,
-                                   .len = COUNTOF(memoryForAddresses)},
+                                    .len = COUNTOF(memoryForAddresses)},
                     BASE_PAGE);
 
                 TEST_FAILURE {
@@ -295,7 +293,7 @@ void testPhysicalMemoryManagement() {
                     PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
                         (PagedMemory_a){.buf = memoryForAddresses,
-                                       .len = COUNTOF(memoryForAddresses)},
+                                        .len = COUNTOF(memoryForAddresses)},
                         LARGE_PAGE);
                 }
 
@@ -303,7 +301,7 @@ void testPhysicalMemoryManagement() {
                     PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
                         (PagedMemory_a){.buf = memoryForAddresses,
-                                       .len = COUNTOF(memoryForAddresses)},
+                                        .len = COUNTOF(memoryForAddresses)},
                         BASE_PAGE);
                 }
 
@@ -311,7 +309,7 @@ void testPhysicalMemoryManagement() {
                     PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
                         (PagedMemory_a){.buf = memoryForAddresses,
-                                       .len = COUNTOF(memoryForAddresses)},
+                                        .len = COUNTOF(memoryForAddresses)},
                         BASE_PAGE);
                 }
 
@@ -319,7 +317,7 @@ void testPhysicalMemoryManagement() {
                     PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
                         (PagedMemory_a){.buf = memoryForAddresses,
-                                       .len = COUNTOF(memoryForAddresses)},
+                                        .len = COUNTOF(memoryForAddresses)},
                         LARGE_PAGE);
                 }
 
@@ -327,7 +325,7 @@ void testPhysicalMemoryManagement() {
                     PagedMemory memoryForAddresses[1];
                     allocPhysicalPages(
                         (PagedMemory_a){.buf = memoryForAddresses,
-                                       .len = COUNTOF(memoryForAddresses)},
+                                        .len = COUNTOF(memoryForAddresses)},
                         BASE_PAGE);
                 }
 
@@ -336,7 +334,7 @@ void testPhysicalMemoryManagement() {
                 PagedMemory memoryForAddresses[2];
                 allocPhysicalPages(
                     (PagedMemory_a){.buf = memoryForAddresses,
-                                   .len = COUNTOF(memoryForAddresses)},
+                                    .len = COUNTOF(memoryForAddresses)},
                     HUGE_PAGE);
 
                 TEST_FAILURE {
@@ -443,7 +441,7 @@ void testPhysicalMemoryManagement() {
                 PagedMemory memoryForAddresses[8];
                 allocPhysicalPages(
                     (PagedMemory_a){.buf = memoryForAddresses,
-                                   .len = COUNTOF(memoryForAddresses)},
+                                    .len = COUNTOF(memoryForAddresses)},
                     LARGE_PAGE);
             }
 
@@ -454,8 +452,8 @@ void testPhysicalMemoryManagement() {
                     BASE_PAGE);
             }
 
-            freePhysicalPage((PagedMemory){.pageStart = 0, .numberOfPages = 100},
-                             BASE_PAGE);
+            freePhysicalPage(
+                (PagedMemory){.pageStart = 0, .numberOfPages = 100}, BASE_PAGE);
 
             for (U64 i = 0; i < 100; i++) {
                 PagedMemory memoryForAddresses[1];

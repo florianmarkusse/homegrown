@@ -11,6 +11,12 @@ extern "C" {
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define ABS(x) (((x) < 0) ? (-(x)) : (x))
 
+extern inline U64 alignUpExp(U64 value, U64 exponent) {
+    U64 adding = ((value) + ((U64_C(1) << (exponent)) - 1));
+    U64 mask = (~((U64_C(1) << (exponent)) - 1));
+    return (adding & mask);
+}
+
 // These operations are only defined for powers of 2 !!!
 #define ALIGN_UP_EXP(val, exponent)                                            \
     (((val) + ((1U << (exponent)) - 1)) & (~((1U << (exponent)) - 1)))
