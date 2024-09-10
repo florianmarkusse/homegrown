@@ -7,6 +7,7 @@
 
 PhysicalAddress allocAndZero(USize numPages);
 void mapMemoryAt(U64 phys, U64 virt, U64 size);
+void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags);
 
 typedef struct {
     USize memoryMapSize;

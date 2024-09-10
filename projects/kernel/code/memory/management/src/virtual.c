@@ -22,8 +22,8 @@ U64 getZeroBasePage() {
         allocPhysicalPages((PagedMemory_a){.buf = memoryForAddresses,
                                            .len = COUNTOF(memoryForAddresses)},
                            BASE_PAGE);
-    memset(memory.buf, 0, PAGE_FRAME_SIZE);
-    return (U64)memory.buf;
+    memset((void *)memory.buf[0].pageStart, 0, PAGE_FRAME_SIZE);
+    return memory.buf[0].pageStart;
 }
 
 #define PAT_LOCATION 0x277
@@ -65,7 +65,6 @@ void printVirtualMemoryManagerStatus() {
     }
 
     PAT patValues = {.value = rdmsr(PAT_LOCATION)};
-    patValues.value = rdmsr(PAT_LOCATION);
     FLUSH_AFTER {
         LOG(STRING("PAT MSR set to:\n"));
         for (U8 i = 0; i < 8; i++) {
@@ -101,6 +100,9 @@ void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType,
 
     U64 pageSize = pageTypeToPageSize[pageType];
     U64 depth = pageTypeToDepth[pageType];
+
+    ASSERT(!(RING_RANGE_VALUE(virtual, pageSize)));
+    ASSERT(!(RING_RANGE_VALUE(memory.pageStart, pageSize)));
 
     U64 virtualEnd = virtual + pageSize * memory.numberOfPages;
     for (U64 physical = memory.pageStart; virtual < virtualEnd;

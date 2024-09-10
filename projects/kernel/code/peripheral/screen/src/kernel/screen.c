@@ -9,7 +9,7 @@
 #include "util/maths.h"  // for RING_PLUS, RING_INCREMENT, RING_MINUS
 
 // TODO: replace with correct thing using memory allocators etc.
-static U32 graphicsBuffer[1 << 20];
+static U32 workBuffer[1 << 20];
 
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
@@ -521,7 +521,7 @@ bool flushToScreen(U8_max_a buffer) {
 
 void initScreen(ScreenDimension dimension) {
     dim = (ScreenDimension){.screen = dimension.screen,
-                            .backingBuffer = graphicsBuffer,
+                            .backingBuffer = workBuffer,
                             .size = dimension.size,
                             .width = dimension.width,
                             .height = dimension.height,
@@ -530,10 +530,9 @@ void initScreen(ScreenDimension dimension) {
     PagedMemory pagedMemory = {.pageStart = (U64)dim.screen,
                                .numberOfPages =
                                    CEILING_DIV_EXP(dim.size, PAGE_FRAME_SHIFT)};
-    PageType pageType = BASE_PAGE;
 
-    mapVirtualRegion((U64)dimension.screen, pagedMemory, pageType, PAT_3);
-    flushTLB();
+    mapVirtualRegion((U64)dim.screen, pagedMemory, BASE_PAGE, PAT_3);
+    flushCPUCaches();
 
     glyphsPerLine =
         (U16)(dim.width - HORIZONTAL_PIXEL_MARGIN * 2) / (glyphs.width);

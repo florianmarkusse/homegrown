@@ -19,3 +19,5 @@ void flushTLB() {
     asm volatile("mov %%cr3, %0" : "=r"(cr3)::"memory");
     asm volatile("mov %0, %%cr3" ::"r"(cr3) : "memory");
 }
+
+void flushCPUCaches() { asm volatile("wbinvd" ::: "memory"); }
