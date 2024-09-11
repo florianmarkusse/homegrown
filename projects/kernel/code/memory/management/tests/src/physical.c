@@ -3,6 +3,7 @@
 #include "interoperation/kernel-parameters.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"
+#include "interoperation/types.h"
 #include "log/log.h"
 #include "memory/management/physical.h"
 #include "test-framework/test.h"
@@ -44,6 +45,7 @@ static PhysicalBasePage *memoryStart = NULL;
 MemoryDescriptor createDescriptor(MemoryType type, U64 numberOfPages,
                                   U64 *index) {
     U64 indexToUse = *index;
+
     *index += numberOfPages;
     return (MemoryDescriptor){.type = type,
                               .attribute = 0,
@@ -77,7 +79,7 @@ void testPhysicalMemoryManagement() {
         return;
     }
 
-    memoryStart = (PhysicalBasePage *)alignUpExp(
+    memoryStart = (PhysicalBasePage *)ALIGN_UP_EXP(
         (U64)pages, PAGE_FRAME_SHIFT + PAGE_TABLE_SHIFT * 2);
 
     TEST_TOPIC(STRING("Physical Memory Management")) {

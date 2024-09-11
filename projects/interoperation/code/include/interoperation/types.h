@@ -83,6 +83,18 @@ typedef float F32;
 typedef double F64;
 typedef long double F128;
 
+#define TYPED_CONSTANT(x, value)                                               \
+    _Generic((x),                                                              \
+        I8: I8_C(value),                                                       \
+        U8: U8_C(value),                                                       \
+        I16: I16_C(value),                                                     \
+        U16: U16_C(value),                                                     \
+        I32: I32_C(value),                                                     \
+        U32: U32_C(value),                                                     \
+        I64: I64_C(value),                                                     \
+        U64: U64_C(value),                                                     \
+        default: "unknown")
+
 #define MAX_VALUE(x)                                                           \
     _Generic((x),                                                              \
         I8: I8_MAX,                                                            \

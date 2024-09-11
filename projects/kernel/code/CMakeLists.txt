@@ -95,6 +95,14 @@ list(
     ${CMAKE_CURRENT_BINARY_DIR}/text/libtext-${CMAKE_BUILD_TYPE}.a
 )
 
+add_subdirectory("util")
+target_link_libraries(${MAIN_RESULT} PRIVATE util-${CMAKE_BUILD_TYPE})
+list(
+    APPEND
+    LINKING_LIBRARIES_LOCATIONS
+    ${CMAKE_CURRENT_BINARY_DIR}/util/libutil-${CMAKE_BUILD_TYPE}.a
+)
+
 set(RESOURCES_NAME "resources")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})
 set(RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../${RESOURCES_NAME}")

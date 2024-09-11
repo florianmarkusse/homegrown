@@ -13,6 +13,6 @@ target_include_directories(
     ${LIBRARY}
     PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
 )
-target_include_directories(${LIBRARY} PUBLIC "${CMAKE_SOURCE_DIR}/util/include")
 
+target_link_libraries(${LIBRARY} PUBLIC util-${CMAKE_BUILD_TYPE})
 target_link_libraries(${LIBRARY} PUBLIC log-${CMAKE_BUILD_TYPE})
