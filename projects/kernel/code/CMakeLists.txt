@@ -15,6 +15,7 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 # TODO: SSE is still broken!!!
 add_library(${MAIN_RESULT} OBJECT "src/main.c" "src/acpi/signature.c")
 
+# Needs to be on top, since it takes care of the compile definition!
 if("${UNIT_TEST_BUILD}")
     add_compile_definitions(UNIT_TEST_BUILD)
     add_subdirectory("test-framework")
@@ -23,6 +24,13 @@ endif()
 # Unused directories for now
 # add_subdirectory("hash")
 # add_subdirectory("buffer")
+
+add_subdirectory("cpu")
+add_subdirectory("memory")
+add_subdirectory("peripheral")
+add_subdirectory("log")
+add_subdirectory("text")
+add_subdirectory("util")
 
 target_include_directories(
     ${MAIN_RESULT}
@@ -39,69 +47,23 @@ target_include_directories(
 # can figure it out.
 set(LINKING_LIBRARIES_LOCATIONS)
 
-target_link_libraries(
-    ${MAIN_RESULT}
-    PRIVATE memory-management-${CMAKE_BUILD_TYPE}
-)
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/memory/management/libmemory-management-${CMAKE_BUILD_TYPE}.a
-)
+function(add_to_linker name)
+    target_link_libraries(${MAIN_RESULT} PRIVATE ${name}-${CMAKE_BUILD_TYPE})
+    string(REPLACE "-" "/" slashenated "${name}")
+    set(lib_path
+        "${CMAKE_CURRENT_BINARY_DIR}/${slashenated}/lib${name}-${CMAKE_BUILD_TYPE}.a"
+    )
+    list(APPEND LINKING_LIBRARIES_LOCATIONS ${lib_path})
+    set(LINKING_LIBRARIES_LOCATIONS ${LINKING_LIBRARIES_LOCATIONS} PARENT_SCOPE)
+endfunction()
 
-add_subdirectory("cpu")
-target_link_libraries(${MAIN_RESULT} PRIVATE cpu-${CMAKE_BUILD_TYPE})
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/cpu/libcpu-${CMAKE_BUILD_TYPE}.a
-)
-
-add_subdirectory("memory")
-target_link_libraries(
-    ${MAIN_RESULT}
-    PRIVATE memory-manipulation-${CMAKE_BUILD_TYPE}
-)
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/memory/manipulation/libmemory-manipulation-${CMAKE_BUILD_TYPE}.a
-)
-
-add_subdirectory("peripheral")
-target_link_libraries(
-    ${MAIN_RESULT}
-    PRIVATE peripheral-screen-${CMAKE_BUILD_TYPE}
-)
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/peripheral/screen/libperipheral-screen-${CMAKE_BUILD_TYPE}.a
-)
-
-add_subdirectory("log")
-target_link_libraries(${MAIN_RESULT} PRIVATE log-${CMAKE_BUILD_TYPE})
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/log/liblog-${CMAKE_BUILD_TYPE}.a
-)
-
-add_subdirectory("text")
-target_link_libraries(${MAIN_RESULT} PRIVATE text-${CMAKE_BUILD_TYPE})
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/text/libtext-${CMAKE_BUILD_TYPE}.a
-)
-
-add_subdirectory("util")
-target_link_libraries(${MAIN_RESULT} PRIVATE util-${CMAKE_BUILD_TYPE})
-list(
-    APPEND
-    LINKING_LIBRARIES_LOCATIONS
-    ${CMAKE_CURRENT_BINARY_DIR}/util/libutil-${CMAKE_BUILD_TYPE}.a
-)
+add_to_linker("memory-management")
+add_to_linker("cpu")
+add_to_linker("memory-manipulation")
+add_to_linker("peripheral-screen")
+add_to_linker("log")
+add_to_linker("text")
+add_to_linker("util")
 
 set(RESOURCES_NAME "resources")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})
