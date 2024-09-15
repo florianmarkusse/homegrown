@@ -3,6 +3,8 @@
 
 #define RED_ZONE_SIZE (1 << 7)
 
+#define LOWER_HALF_END 0x0000FFFFFFFFFFFF
+#define HIGHER_HALF_START 0xffff000000000000
 #define KERNEL_SPACE_START 0xfffffffff8000000
 #define KERNEL_SPACE_END                                                       \
     0xfffffffffffff000 // should be fff at the end but otherwise the memory
@@ -10,28 +12,27 @@
 
 #define KERNEL_CODE_START KERNEL_SPACE_START
 
-#define KERNEL_PARAMS_SIZE PAGE_SIZE
+#define KERNEL_PARAMS_SIZE PAGE_FRAME_SIZE
 #define KERNEL_PARAMS_START (KERNEL_SPACE_END - KERNEL_PARAMS_SIZE)
 
-#define STACK_SIZE (1 << 14)
+#define STACK_SIZE (1ULL << 14)
 #define BOTTOM_STACK (KERNEL_PARAMS_START - STACK_SIZE)
 // #define KERNEL_STACK_START 0xfffffffff6000000
 
 // PAGE TABLE DEFINITIONS FOR X86_64 !!!
 // TODO: These macros are quite confusing, should rewrite them into more
 // sensible constructs when working on virtual memory.
-#define PAGE_TABLE_SHIFT 9
-#define PAGE_TABLE_ENTRIES (1 << PAGE_TABLE_SHIFT)
+#define PAGE_TABLE_SHIFT 9ULL
+#define PAGE_TABLE_ENTRIES (1ULL << PAGE_TABLE_SHIFT)
 #define PAGE_TABLE_MASK (PAGE_TABLE_ENTRIES - 1)
 
-#define PAGE_FRAME_SHIFT 12
-#define PAGE_FRAME_SIZE (1 << PAGE_FRAME_SHIFT)
-#define LARGE_PAGE_SIZE (PAGE_SIZE << PAGE_TABLE_SHIFT)
+#define PAGE_FRAME_SHIFT 12ULL
+#define PAGE_FRAME_SIZE (1ULL << PAGE_FRAME_SHIFT)
+#define LARGE_PAGE_SIZE (PAGE_FRAME_SIZE << PAGE_TABLE_SHIFT)
 #define HUGE_PAGE_SIZE (LARGE_PAGE_SIZE << PAGE_TABLE_SHIFT)
 #define JUMBO_PAGE_SIZE                                                        \
     (HUGE_PAGE_SIZE << PAGE_TABLE_SHIFT) // Does not exist but comes in handy.
-#define PAGE_SIZE (1 << PAGE_FRAME_SHIFT)
-#define PAGE_MASK (PAGE_SIZE - 1)
+#define PAGE_MASK (PAGE_FRAME_SIZE - 1)
 
 #define LEVEL_4_SHIFT 39U
 #define LEVEL_3_SHIFT 30U

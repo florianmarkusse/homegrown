@@ -11,6 +11,16 @@
 #include "util/maths.h"
 
 typedef struct {
+    U64 start;
+    U64 end;
+} VirtualRegion;
+
+VirtualRegion higherHalfRegion = {.start = HIGHER_HALF_START,
+                                  .end = KERNEL_SPACE_START};
+// Start is set in the init function.
+VirtualRegion lowerHalfRegion = {.start = 0, .end = LOWER_HALF_END};
+
+typedef struct {
     U64 pages[PAGE_TABLE_ENTRIES];
 } VirtualPageTable;
 
@@ -58,7 +68,39 @@ typedef struct {
     };
 } PAT;
 
+U64 getVirtualMemory(U64 size, PageType alignValue) {
+    ASSERT(size <= JUMBO_PAGE_SIZE);
+    U64 alignedUpValue = ALIGN_UP_VALUE(higherHalfRegion.start, alignValue);
+
+    ASSERT(higherHalfRegion.start <= alignedUpValue);
+    ASSERT(alignedUpValue <= higherHalfRegion.end);
+    ASSERT(higherHalfRegion.end - (alignedUpValue + size) <
+           higherHalfRegion.start);
+
+    higherHalfRegion.start = alignedUpValue;
+    U64 result = higherHalfRegion.start;
+
+    higherHalfRegion.start += size;
+    return result;
+}
+
+void appendVirtualRegionStatus(VirtualRegion region) {
+    LOG(STRING("Start: "));
+    LOG((void *)region.start, NEWLINE);
+    LOG(STRING("End: "));
+    LOG((void *)region.end, NEWLINE);
+}
+
 void printVirtualMemoryManagerStatus() {
+    FLUSH_AFTER {
+        LOG(STRING("Available Virtual Memory\n"));
+        LOG(STRING("Lower half (0x0000_000000000000):\n"));
+        appendVirtualRegionStatus(lowerHalfRegion);
+        LOG(STRING("Higher half(0xFFFF_000000000000):\n"));
+        appendVirtualRegionStatus(higherHalfRegion);
+        LOG((void *)level4PageTable, NEWLINE);
+    }
+
     FLUSH_AFTER {
         LOG(STRING("CR3/root page table address is: "));
         LOG((void *)level4PageTable, NEWLINE);
@@ -85,28 +127,47 @@ void programPat() {
     flushTLB();
 }
 
-void initVirtualMemoryManager(U64 level4Address) {
+void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory) {
+    U64 currentHighestAddress = 0;
+    for (U64 i = 0;
+         i < kernelMemory.totalDescriptorSize / kernelMemory.descriptorSize;
+         i++) {
+        MemoryDescriptor *desc =
+            (MemoryDescriptor *)((U8 *)kernelMemory.descriptors +
+                                 (i * kernelMemory.descriptorSize));
+        U64 highestAddress =
+            desc->virtualStart + desc->numberOfPages * PAGE_FRAME_SIZE;
+
+        if (highestAddress > currentHighestAddress) {
+            currentHighestAddress = highestAddress;
+        }
+    }
+    lowerHalfRegion.start = currentHighestAddress;
+
     level4PageTable = (VirtualPageTable *)level4Address;
     programPat();
+}
+
+void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType) {
+    mapVirtualRegionWithFlags(virtual, memory, pageType, 0);
 }
 
 // The caller should take care that the virtual address and physical
 // address are correctly aligned. If they are not, not sure what the
 // caller wanted to accomplish.
-void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType,
-                      U64 additionalFlags) {
+void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
+                               PageType pageType, U64 additionalFlags) {
     ASSERT(level4PageTable);
     ASSERT(((virtual) >> 48L) == 0x0000 || ((virtual) >> 48L) == 0xFFFF);
 
-    U64 pageSize = pageTypeToPageSize[pageType];
     U64 depth = pageTypeToDepth[pageType];
 
-    ASSERT(!(RING_RANGE_VALUE(virtual, pageSize)));
-    ASSERT(!(RING_RANGE_VALUE(memory.pageStart, pageSize)));
+    ASSERT(!(RING_RANGE_VALUE(virtual, pageType)));
+    ASSERT(!(RING_RANGE_VALUE(memory.pageStart, pageType)));
 
-    U64 virtualEnd = virtual + pageSize * memory.numberOfPages;
+    U64 virtualEnd = virtual + pageType * memory.numberOfPages;
     for (U64 physical = memory.pageStart; virtual < virtualEnd;
-         virtual += pageSize, physical += pageSize) {
+         virtual += pageType, physical += pageType) {
         VirtualPageTable *currentTable = level4PageTable;
 
         U64 indexShift = LEVEL_4_SHIFT;

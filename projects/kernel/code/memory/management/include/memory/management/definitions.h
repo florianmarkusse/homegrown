@@ -6,13 +6,6 @@
 #include "interoperation/types.h"
 #include "text/string.h"
 
-typedef enum {
-    BASE_PAGE = 0,
-    LARGE_PAGE = 1,
-    HUGE_PAGE = 2,
-    PAGE_TYPE_NUMS = 3
-} PageType;
-
 typedef struct {
     U64 pageStart;
     U64 numberOfPages;
@@ -21,10 +14,17 @@ typedef struct {
 typedef MAX_LENGTH_ARRAY(PagedMemory) PagedMemory_max_a;
 typedef ARRAY(PagedMemory) PagedMemory_a;
 
-static U8 pageTypeToDepth[PAGE_TYPE_NUMS] = {4, 3, 2};
+typedef enum : U64 {
+    BASE_PAGE = PAGE_FRAME_SIZE,
+    LARGE_PAGE = LARGE_PAGE_SIZE,
+    HUGE_PAGE = HUGE_PAGE_SIZE,
+    PAGE_TYPE_NUMS = 3
+} PageType;
 
-static U64 pageTypeToPageSize[PAGE_TYPE_NUMS] = {
-    PAGE_FRAME_SIZE, LARGE_PAGE_SIZE, HUGE_PAGE_SIZE};
+#define BIGGER_PAGE_SIZE(pageType) ((pageType) << PAGE_TABLE_SHIFT)
+#define SMALLER_PAGE_SIZE(pageType) ((pageType) >> PAGE_TABLE_SHIFT)
+
+static U8 pageTypeToDepth[PAGE_TYPE_NUMS] = {4, 3, 2};
 
 static string pageTypeToString[PAGE_TYPE_NUMS] = {
     STRING("Base page frame, 4096KiB"),

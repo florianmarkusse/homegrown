@@ -17,6 +17,7 @@ add_library(
     "src/allocator/pool.c"
     "src/physical.c"
     "src/virtual.c"
+    "src/policy.c"
 )
 
 target_include_directories(

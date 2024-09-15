@@ -66,6 +66,7 @@ bool canBeUsedByOS(MemoryType type) {
     case BOOT_SERVICES_CODE:
     case BOOT_SERVICES_DATA:
     case CONVENTIONAL_MEMORY:
+    case PERSISTENT_MEMORY:
         return true;
     default:
         return false;
@@ -87,8 +88,8 @@ U64 allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
     if (manager->pageType < HUGE_PAGE) {
         U64 pagesForLargerManager =
             CEILING_DIV_EXP(numberOfPages, PAGE_TABLE_SHIFT);
-        U64 address = allocContiguousPhysicalPages(pagesForLargerManager,
-                                                   manager->pageType + 1);
+        U64 address = allocContiguousPhysicalPages(
+            pagesForLargerManager, BIGGER_PAGE_SIZE(manager->pageType));
 
         U64 pageSize =
             1 << (PAGE_FRAME_SHIFT + manager->pageType * PAGE_TABLE_SHIFT);
@@ -146,8 +147,8 @@ PagedMemory_a allocPhysicalPagesWithManager(PagedMemory_a pages,
             .buf = pages.buf + contiguousMemoryRegions,
             .len = CEILING_DIV_EXP(requestedPages, PAGE_TABLE_SHIFT)};
 
-        PagedMemory_a largerPage =
-            allocPhysicalPages(leftOverRequest, manager->pageType + 1);
+        PagedMemory_a largerPage = allocPhysicalPages(
+            leftOverRequest, BIGGER_PAGE_SIZE(manager->pageType));
         // Convert back to original manager sizes
         for (U64 i = 0; i < largerPage.len; i++) {
             largerPage.buf[i].numberOfPages *= PAGE_TABLE_ENTRIES;
@@ -178,7 +179,7 @@ void freePhysicalPagesWithManager(PagedMemory_a pages,
         if (manager->memory.len >= manager->memory.cap) {
             PagedMemory *newBuf =
                 (PagedMemory *)allocContiguousPhysicalPagesWithManager(
-                    manager->usedBasePages + 1, &basePMM);
+                    BIGGER_PAGE_SIZE(manager->usedBasePages), &basePMM);
             memcpy(newBuf, manager->memory.buf,
                    manager->memory.len * sizeof(*manager->memory.buf));
             // The page that just got freed should be added now.
@@ -187,8 +188,8 @@ void freePhysicalPagesWithManager(PagedMemory_a pages,
                               .numberOfPages = manager->usedBasePages};
             manager->memory.len++;
             manager->memory.buf = newBuf;
-            manager->memory.cap =
-                MEMORY_ENTRIES_IN_BASE_PAGES(manager->usedBasePages + 1);
+            manager->memory.cap = MEMORY_ENTRIES_IN_BASE_PAGES(
+                BIGGER_PAGE_SIZE(manager->usedBasePages));
 
             (manager->usedBasePages)++;
         }
@@ -251,14 +252,12 @@ void initPMM(PageType pageType) {
     initingManager->memory.cap =
         MEMORY_ENTRIES_IN_BASE_PAGES(initingManager->usedBasePages);
 
-    PageType decrementedPageType = pageType - 1;
-    PhysicalMemoryManager *initedManager =
-        getMemoryManager(decrementedPageType);
-
     //  12 For the aligned page frame always
     //  9 for every level of page table (large and huge currently)
-    U64 initedManagerPageSize = pageTypeToPageSize[decrementedPageType];
-    U64 initingManagerPageSize = initedManagerPageSize << PAGE_TABLE_SHIFT;
+    U64 initedManagerPageSize = SMALLER_PAGE_SIZE(pageType);
+    PhysicalMemoryManager *initedManager =
+        getMemoryManager(initedManagerPageSize);
+    U64 initingManagerPageSize = pageType;
 
     for (U64 i = 0; i < initedManager->memory.len; i++) {
         PagedMemory memory = initedManager->memory.buf[i];
@@ -282,8 +281,8 @@ void initPMM(PageType pageType) {
                     ALIGN_DOWN_EXP(pagesFromAlign, PAGE_TABLE_SHIFT);
                 freePhysicalPage(
                     (PagedMemory){.pageStart = applicablePageBoundary,
-                                  .numberOfPages = alignedForNextLevelPages >>
-                                                   PAGE_TABLE_SHIFT},
+                                  .numberOfPages = (alignedForNextLevelPages >>
+                                                    PAGE_TABLE_SHIFT)},
                     pageType);
                 U64 leftoverPages = pagesFromAlign - alignedForNextLevelPages;
                 if (leftoverPages > 0) {
@@ -292,7 +291,7 @@ void initPMM(PageType pageType) {
                                                    (alignedForNextLevelPages *
                                                     initedManagerPageSize),
                                       .numberOfPages = leftoverPages},
-                        decrementedPageType);
+                        initedManagerPageSize);
                 }
             }
         }

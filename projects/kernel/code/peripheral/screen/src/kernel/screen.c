@@ -3,10 +3,12 @@
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "interoperation/memory/definitions.h"
 #include "memory/management/definitions.h"
+#include "memory/management/policy.h"
 #include "memory/management/virtual.h"
 #include "memory/manipulation/manipulation.h"
 #include "util/assert.h" // for ASSERT
-#include "util/maths.h"  // for RING_PLUS, RING_INCREMENT, RING_MINUS
+#include "util/macros.h"
+#include "util/maths.h" // for RING_PLUS, RING_INCREMENT, RING_MINUS
 
 // TODO: replace with correct thing using memory allocators etc.
 static U32 workBuffer[1 << 20];
@@ -527,11 +529,17 @@ void initScreen(ScreenDimension dimension) {
                             .height = dimension.height,
                             .scanline = dimension.scanline};
 
+    // TODO: Replace with alloc on arena for sure!
+    PagedMemory memoryForAddresses[64];
+    PagedMemory_a paged = (PagedMemory_a){.buf = memoryForAddresses,
+                                          .len = COUNTOF(memoryForAddresses)};
+
+    /*U32 *newWorkBuffer = (U32 *)allocAndMap(paged, LARGE_PAGE_SIZE);*/
+
     PagedMemory pagedMemory = {.pageStart = (U64)dim.screen,
                                .numberOfPages =
                                    CEILING_DIV_EXP(dim.size, PAGE_FRAME_SHIFT)};
-
-    mapVirtualRegion((U64)dim.screen, pagedMemory, BASE_PAGE, PAT_3);
+    mapVirtualRegionWithFlags((U64)dim.screen, pagedMemory, BASE_PAGE, PAT_3);
     flushCPUCaches();
 
     glyphsPerLine =

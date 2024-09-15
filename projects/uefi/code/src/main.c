@@ -365,11 +365,6 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     mapMemoryAt(gop->mode->frameBufferBase, gop->mode->frameBufferBase,
                 gop->mode->frameBufferSize);
 
-    globals.st->con_out->output_string(globals.st->con_out, u"level 3 is at:");
-    U64 pageEntry = (((PhysicalAddress *)globals.level4PageTable)[0]);
-    printNumber(pageEntry, 16);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
-
     globals.frameBufferAddress = gop->mode->frameBufferBase;
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"The graphics buffer location is at ");
