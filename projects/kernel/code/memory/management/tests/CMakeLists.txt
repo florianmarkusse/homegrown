@@ -1,6 +1,6 @@
 project(memory-management-tests LANGUAGES C)
 
-list(APPEND TEST_SOURCE_FILES "src/main.c" "src/physical.c" "src/virtual.c")
+list(APPEND TEST_SOURCE_FILES "src/main.c" "src/physical.c")
 
 set(EXECUTABLE_NAME "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 

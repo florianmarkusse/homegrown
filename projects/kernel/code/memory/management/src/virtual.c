@@ -104,17 +104,6 @@ void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType,
     ASSERT(!(RING_RANGE_VALUE(virtual, pageSize)));
     ASSERT(!(RING_RANGE_VALUE(memory.pageStart, pageSize)));
 
-    /*if (memory.numberOfPages >= PAGE_TABLE_ENTRIES / 2) {*/
-    /*    FLUSH_AFTER {*/
-    /*        LOG(STRING("It might be better to use a larger page size to "*/
-    /*                   "alleviate pressure on the TLB.\n"));*/
-    /*        LOG(STRING("Number of pages requested to map: "));*/
-    /*        LOG(memory.numberOfPages, NEWLINE);*/
-    /*        LOG(STRING("Current Page Type: "));*/
-    /*        LOG(pageTypeToString[pageType], NEWLINE);*/
-    /*    }*/
-    /*}*/
-
     U64 virtualEnd = virtual + pageSize * memory.numberOfPages;
     for (U64 physical = memory.pageStart; virtual < virtualEnd;
          virtual += pageSize, physical += pageSize) {
