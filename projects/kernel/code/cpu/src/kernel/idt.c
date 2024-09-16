@@ -269,7 +269,7 @@ typedef enum { INTERRUPT_GATE, TRAP_GATE, GATE_NUM } GateType;
 
 U8 gateFlags[GATE_NUM] = {0x8E, 0x8F};
 
-void idt_set_gate(U8 num, U64 base, GateType gateType) {
+static void idt_set_gate(U8 num, U64 base, GateType gateType) {
     idt[num].offset_1 = (base & 0xFFFF);
     idt[num].offset_2 = (base >> 16) & 0xFFFF;
     idt[num].offset_3 = (base >> 32) & 0xFFFFFFFF;
@@ -710,7 +710,7 @@ void fault_handler(regs *regs) {
         LOG(STRING("Interrupt #: "));
         LOG(regs->int_no);
         LOG(STRING(", Interrupt Message: "));
-        LOG(faultToString(regs->int_no), NEWLINE);
+        LOG(faultToString[regs->int_no], NEWLINE);
         LOG(STRING("Error code: "));
         LOG(regs->err_code, NEWLINE);
         LOG(STRING("Halting...\n"));

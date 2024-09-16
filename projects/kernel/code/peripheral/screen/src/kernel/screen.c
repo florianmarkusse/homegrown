@@ -84,12 +84,12 @@ static U64 I8Count;
 static U32 nextCharInBuf;
 static U8 buf[FILE_BUF_LEN];
 
-void switchToScreenDisplay() {
+static void switchToScreenDisplay() {
     memcpy(dim.screen, dim.backingBuffer,
            dim.scanline * dim.height * BYTES_PER_PIXEL);
 }
 
-void drawTerminalBox() {
+static void drawTerminalBox() {
     for (U32 y = 0; y < dim.height; y++) {
         for (U32 x = 0; x < dim.scanline; x++) {
             dim.backingBuffer[y * dim.scanline + x] = 0x00000000;
@@ -113,7 +113,7 @@ void drawTerminalBox() {
     switchToScreenDisplay();
 }
 
-void drawGlyph(U8 ch, U64 topRightGlyphOffset) {
+static void drawGlyph(U8 ch, U64 topRightGlyphOffset) {
     U8 *glyph = &(glyphs.glyphs) + ch * glyphs.bytesperglyph;
     U64 glyphOffset = topRightGlyphOffset;
     for (U32 y = 0; y < glyphs.height; y++) {
@@ -131,7 +131,7 @@ void drawGlyph(U8 ch, U64 topRightGlyphOffset) {
     }
 }
 
-void zeroOutGlyphs(U32 topRightGlyphOffset, U16 numberOfGlyphs) {
+static void zeroOutGlyphs(U32 topRightGlyphOffset, U16 numberOfGlyphs) {
     for (U32 i = 0; i < glyphs.height; i++) {
         memset(&dim.backingBuffer[topRightGlyphOffset], 0,
                numberOfGlyphs * glyphs.width * BYTES_PER_PIXEL);
@@ -139,8 +139,8 @@ void zeroOutGlyphs(U32 topRightGlyphOffset, U16 numberOfGlyphs) {
     }
 }
 
-void drawLines(U32 startIndex, U16 screenLinesToDraw, U64 currentLogicalLineLen,
-               U16 rowNumber) {
+static void drawLines(U32 startIndex, U16 screenLinesToDraw,
+                      U64 currentLogicalLineLen, U16 rowNumber) {
     U16 currentScreenLines = 0;
 
     U32 topRightGlyphOffset =
@@ -235,9 +235,9 @@ typedef struct {
     bool lastLineDone;
 } FillResult;
 
-FillResult fillScreenLinesCopy(U64 dryStartIndex, U64 startIndex,
-                               U64 endIndexExclusive,
-                               U16 maxNewScreenLinesToFill) {
+static FillResult fillScreenLines(U64 dryStartIndex, U64 startIndex,
+                                  U64 endIndexExclusive,
+                                  U16 maxNewScreenLinesToFill) {
     U16 currentScreenLineIndex = 0;
     U16 screenLinesInWindow = dryStartIndex >= startIndex;
 
@@ -352,12 +352,12 @@ FillResult fillScreenLinesCopy(U64 dryStartIndex, U64 startIndex,
 // A screenLine of 0 length still counts as a line.
 // For the observent, all our screenlines have a length > 0 except when they are
 // uninitialized, which is what the second operand of the addition handles
-U64 toScreenLines(U64 number) {
+static U64 toScreenLines(U64 number) {
     return ((number > 0) * ((number + (glyphsPerLine - 1)) / glyphsPerLine)) +
            (number == 0);
 }
 
-U32 I8IndexToLogicalLine(U64 I8Index) {
+static U32 I8IndexToLogicalLine(U64 I8Index) {
     if (I8Index >= logicalLines[logicalLineToWrite]) {
         return logicalLineToWrite;
     }
@@ -380,8 +380,8 @@ U32 I8IndexToLogicalLine(U64 I8Index) {
     return left;
 }
 
-U64 oldestCharToParseGivenScreenLines(U64 endCharExclusive,
-                                      U16 screenLinesToProcess) {
+static U64 oldestCharToParseGivenScreenLines(U64 endCharExclusive,
+                                             U16 screenLinesToProcess) {
     U32 oldestLogicalLineIndex =
         RING_INCREMENT(logicalLineToWrite, MAX_SCROLLBACK_LINES);
 
@@ -419,7 +419,7 @@ U64 oldestCharToParseGivenScreenLines(U64 endCharExclusive,
     return oldestCharToProcess;
 }
 
-void toTail() {
+static void toTail() {
     U16 finalScreenLineEntry =
         RING_PLUS(oldestScreenLineIndex, glyphsPerColumn - lastScreenlineOpen,
                   MAX_GLYPSH_PER_COLUMN);
@@ -434,8 +434,8 @@ void toTail() {
         MAX(oldestCharToParseGivenScreenLines(I8Count, glyphsPerColumn),
             logicalLines[I8IndexToLogicalLine(firstCharOutsideWindow)]);
 
-    FillResult fillResult = fillScreenLinesCopy(
-        oldestCharToProcess, firstCharOutsideWindow, I8Count, 0);
+    FillResult fillResult = fillScreenLines(oldestCharToProcess,
+                                            firstCharOutsideWindow, I8Count, 0);
 
     U16 startIndex =
         RING_MINUS(fillResult.currentScreenLineIndex,
@@ -557,7 +557,7 @@ void initScreen(ScreenDimension dimension) {
     drawTerminalBox();
 }
 
-bool isWindowSmallerThanScreen() {
+static bool isWindowSmallerThanScreen() {
     return screenLines[oldestScreenLineIndex] >=
            screenLines[RING_PLUS(oldestScreenLineIndex, glyphsPerColumn,
                                  MAX_GLYPSH_PER_COLUMN)];
@@ -576,7 +576,7 @@ void rewind(U16 numberOfScreenLines) {
         return;
     }
 
-    FillResult fillResult = fillScreenLinesCopy(
+    FillResult fillResult = fillScreenLines(
         oldestCharToProcess, oldestCharToProcess, currentOldestCharInWindow, 0);
 
     U16 newScreenLinesOnTop =
@@ -627,8 +627,8 @@ void prowind(U16 numberOfScreenLines) {
         oldestCharToParseGivenScreenLines(firstCharOutsideWindow, 0);
 
     FillResult fillResult =
-        fillScreenLinesCopy(oldestCharToProcess, firstCharOutsideWindow,
-                            I8Count, numberOfScreenLines);
+        fillScreenLines(oldestCharToProcess, firstCharOutsideWindow, I8Count,
+                        numberOfScreenLines);
     U16 oldScreenLines = glyphsPerColumn - fillResult.realScreenLinesWritten;
 
     U16 startIndex =

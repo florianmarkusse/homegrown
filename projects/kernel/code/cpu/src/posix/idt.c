@@ -38,7 +38,7 @@ void appendInterrupt(Fault fault) {
     LOG(STRING("Fault #: "));
     LOG(fault);
     LOG(STRING("\tMsg: "));
-    LOG(stringWithMinSizeDefault(faultToString(fault), 30));
+    LOG(stringWithMinSizeDefault(faultToString[fault], 30));
 }
 
 void appendExpectedInterrupt(Fault fault) {

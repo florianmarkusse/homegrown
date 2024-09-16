@@ -40,7 +40,7 @@ typedef struct {
 
 static VirtualPageTable *level4PageTable;
 
-U64 getZeroBasePage() {
+static U64 getZeroBasePage() {
     PagedMemory memoryForAddresses[1];
     PagedMemory_a memory =
         allocPhysicalPages((PagedMemory_a){.buf = memoryForAddresses,
@@ -98,7 +98,7 @@ U64 getVirtualMemory(U64 size, PageSize alignValue) {
     return result;
 }
 
-void appendVirtualRegionStatus(VirtualRegion region) {
+static void appendVirtualRegionStatus(VirtualRegion region) {
     LOG(STRING("Start: "));
     LOG((void *)region.start, NEWLINE);
     LOG(STRING("End: "));
@@ -125,7 +125,7 @@ void appendVirtualMemoryManagerStatus() {
     }
 }
 
-void programPat() {
+static void programPat() {
     PAT patValues = {.value = rdmsr(PAT_LOCATION)};
 
     patValues.pats[3].pat = PAT_WRITE_COMBINGING_WC;

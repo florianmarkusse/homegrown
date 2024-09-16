@@ -50,7 +50,8 @@ static PhysicalMemoryManager basePMM;
 static PhysicalMemoryManager largePMM;
 static PhysicalMemoryManager hugePMM;
 
-void decreasePages(PhysicalMemoryManager *manager, U64 index, U64 decreaseBy) {
+static void decreasePages(PhysicalMemoryManager *manager, U64 index,
+                          U64 decreaseBy) {
     ASSERT(manager->memory.buf[index].numberOfPages >= decreaseBy);
     if (manager->memory.buf[index].numberOfPages == decreaseBy) {
         manager->memory.buf[index] =
@@ -62,7 +63,7 @@ void decreasePages(PhysicalMemoryManager *manager, U64 index, U64 decreaseBy) {
     }
 }
 
-PhysicalMemoryManager *getMemoryManager(PageSize pageSize) {
+static PhysicalMemoryManager *getMemoryManager(PageSize pageSize) {
     switch (pageSize) {
     case BASE_PAGE: {
         return &basePMM;
@@ -87,7 +88,7 @@ PhysicalMemoryManager *getMemoryManager(PageSize pageSize) {
 
 // TODO: table 7.10 UEFI spec section 7.2 - 7.2.1 , not fully complete yet I
 // think?
-bool canBeUsedByOS(MemoryType type) {
+static bool canBeUsedByOS(MemoryType type) {
     switch (type) {
     case LOADER_CODE:
     case LOADER_DATA:
@@ -103,8 +104,9 @@ bool canBeUsedByOS(MemoryType type) {
 
 // NOTE: We can add an index on top of the pages if this function becomes an
 // issue that is based on available pages.
-U64 allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
-                                            PhysicalMemoryManager *manager) {
+static U64
+allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
+                                        PhysicalMemoryManager *manager) {
     for (U32 i = 0; i < manager->memory.len; i++) {
         if (manager->memory.buf[i].numberOfPages >= numberOfPages) {
             U64 address = manager->memory.buf[i].pageStart;
@@ -137,8 +139,9 @@ U64 allocContiguousPhysicalPages(U64 numberOfPages, PageSize pageSize) {
                                                    getMemoryManager(pageSize));
 }
 
-PagedMemory_a allocPhysicalPagesWithManager(PagedMemory_a pages,
-                                            PhysicalMemoryManager *manager) {
+static PagedMemory_a
+allocPhysicalPagesWithManager(PagedMemory_a pages,
+                              PhysicalMemoryManager *manager) {
     U32 requestedPages = (U32)pages.len;
     U32 contiguousMemoryRegions = 0;
 
@@ -197,8 +200,8 @@ PagedMemory_a allocPhysicalPages(PagedMemory_a pages, PageSize pageSize) {
     return allocPhysicalPagesWithManager(pages, getMemoryManager(pageSize));
 }
 
-void freePhysicalPagesWithManager(PagedMemory_a pages,
-                                  PhysicalMemoryManager *manager) {
+static void freePhysicalPagesWithManager(PagedMemory_a pages,
+                                         PhysicalMemoryManager *manager) {
     for (U64 i = 0; i < pages.len; i++) {
         if (manager->memory.len >= manager->memory.cap) {
             PagedMemory *newBuf =
@@ -232,7 +235,7 @@ void freePhysicalPage(PagedMemory page, PageSize pageSize) {
         getMemoryManager(pageSize));
 }
 
-void appendPMMStatus(PhysicalMemoryManager manager) {
+static void appendPMMStatus(PhysicalMemoryManager manager) {
     LOG(STRING("Type: "));
     LOG(pageSizeToString(manager.pageSize), NEWLINE);
     LOG(STRING("Used base page frames for internal structure: "));
@@ -261,7 +264,7 @@ void appendPhysicalMemoryManagerStatus() {
     LOG(STRING("================\n"));
 }
 
-void initPMM(PageSize pageType) {
+static void initPMM(PageSize pageType) {
     ASSERT(pageType == LARGE_PAGE || pageType == HUGE_PAGE);
 
     PhysicalMemoryManager *initingManager = getMemoryManager(pageType);
@@ -320,7 +323,8 @@ void initPMM(PageSize pageType) {
     }
 }
 
-MemoryDescriptor *nextValidDescriptor(U64 *i, KernelMemory kernelMemory) {
+static MemoryDescriptor *nextValidDescriptor(U64 *i,
+                                             KernelMemory kernelMemory) {
     while (*i < kernelMemory.totalDescriptorSize) {
         MemoryDescriptor *result =
             (MemoryDescriptor *)((U8 *)kernelMemory.descriptors + *i);

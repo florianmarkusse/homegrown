@@ -12,7 +12,8 @@ target_include_directories(
 
 target_include_directories(
     ${LIBRARY}
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${LIBRARY_TYPE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries(${LIBRARY} PUBLIC text-${CMAKE_BUILD_TYPE})
