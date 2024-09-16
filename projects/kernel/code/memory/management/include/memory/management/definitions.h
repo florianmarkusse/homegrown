@@ -21,9 +21,6 @@ typedef enum : U64 {
     PAGE_TYPE_NUMS = 3
 } PageType;
 
-#define BIGGER_PAGE_SIZE(pageType) ((pageType) << PAGE_TABLE_SHIFT)
-#define SMALLER_PAGE_SIZE(pageType) ((pageType) >> PAGE_TABLE_SHIFT)
-
 static U8 pageTypeToDepth[PAGE_TYPE_NUMS] = {4, 3, 2};
 
 static string pageTypeToString[PAGE_TYPE_NUMS] = {

@@ -10,6 +10,22 @@
 #include "util/assert.h"
 #include "util/maths.h"
 
+static U64 toLargerPages(U64 numberOfPages) {
+    return numberOfPages >> PAGE_TABLE_SHIFT;
+}
+
+static U64 toSmallerPages(U64 numberOfPages) {
+    return numberOfPages << PAGE_TABLE_SHIFT;
+}
+
+static PageType toLargerPageSize(PageType pageType) {
+    return pageType << PAGE_TABLE_SHIFT;
+}
+
+static PageType toSmallerPageSize(PageType pageType) {
+    return pageType >> PAGE_TABLE_SHIFT;
+}
+
 typedef struct {
     PagedMemory_max_a memory;
     U32 usedBasePages;
@@ -28,9 +44,7 @@ void decreasePages(PhysicalMemoryManager *manager, U64 index, U64 decreaseBy) {
         manager->memory.len--;
     } else {
         manager->memory.buf[index].numberOfPages -= decreaseBy;
-        manager->memory.buf[index].pageStart +=
-            decreaseBy *
-            ((manager->pageType * PAGE_TABLE_SHIFT) + PAGE_FRAME_SIZE);
+        manager->memory.buf[index].pageStart += decreaseBy * manager->pageType;
     }
 }
 
@@ -89,14 +103,10 @@ U64 allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
         U64 pagesForLargerManager =
             CEILING_DIV_EXP(numberOfPages, PAGE_TABLE_SHIFT);
         U64 address = allocContiguousPhysicalPages(
-            pagesForLargerManager, BIGGER_PAGE_SIZE(manager->pageType));
+            pagesForLargerManager, toLargerPageSize(manager->pageType));
 
-        U64 pageSize =
-            1 << (PAGE_FRAME_SHIFT + manager->pageType * PAGE_TABLE_SHIFT);
-
-        U64 freeAddressStart = address + numberOfPages * pageSize;
-        U64 freePages =
-            (pagesForLargerManager << PAGE_TABLE_SHIFT) - numberOfPages;
+        U64 freeAddressStart = address + numberOfPages * manager->pageType;
+        U64 freePages = toSmallerPages(pagesForLargerManager) - numberOfPages;
 
         freePhysicalPage((PagedMemory){.numberOfPages = freePages,
                                        .pageStart = freeAddressStart},
@@ -148,7 +158,7 @@ PagedMemory_a allocPhysicalPagesWithManager(PagedMemory_a pages,
             .len = CEILING_DIV_EXP(requestedPages, PAGE_TABLE_SHIFT)};
 
         PagedMemory_a largerPage = allocPhysicalPages(
-            leftOverRequest, BIGGER_PAGE_SIZE(manager->pageType));
+            leftOverRequest, toLargerPageSize(manager->pageType));
         // Convert back to original manager sizes
         for (U64 i = 0; i < largerPage.len; i++) {
             largerPage.buf[i].numberOfPages *= PAGE_TABLE_ENTRIES;
@@ -179,7 +189,7 @@ void freePhysicalPagesWithManager(PagedMemory_a pages,
         if (manager->memory.len >= manager->memory.cap) {
             PagedMemory *newBuf =
                 (PagedMemory *)allocContiguousPhysicalPagesWithManager(
-                    BIGGER_PAGE_SIZE(manager->usedBasePages), &basePMM);
+                    toLargerPageSize(manager->usedBasePages), &basePMM);
             memcpy(newBuf, manager->memory.buf,
                    manager->memory.len * sizeof(*manager->memory.buf));
             // The page that just got freed should be added now.
@@ -189,7 +199,7 @@ void freePhysicalPagesWithManager(PagedMemory_a pages,
             manager->memory.len++;
             manager->memory.buf = newBuf;
             manager->memory.cap = MEMORY_ENTRIES_IN_BASE_PAGES(
-                BIGGER_PAGE_SIZE(manager->usedBasePages));
+                toLargerPageSize(manager->usedBasePages));
 
             (manager->usedBasePages)++;
         }
@@ -254,7 +264,7 @@ void initPMM(PageType pageType) {
 
     //  12 For the aligned page frame always
     //  9 for every level of page table (large and huge currently)
-    U64 initedManagerPageSize = SMALLER_PAGE_SIZE(pageType);
+    U64 initedManagerPageSize = toSmallerPageSize(pageType);
     PhysicalMemoryManager *initedManager =
         getMemoryManager(initedManagerPageSize);
     U64 initingManagerPageSize = pageType;
@@ -281,8 +291,8 @@ void initPMM(PageType pageType) {
                     ALIGN_DOWN_EXP(pagesFromAlign, PAGE_TABLE_SHIFT);
                 freePhysicalPage(
                     (PagedMemory){.pageStart = applicablePageBoundary,
-                                  .numberOfPages = (alignedForNextLevelPages >>
-                                                    PAGE_TABLE_SHIFT)},
+                                  .numberOfPages = (toLargerPages(
+                                      alignedForNextLevelPages))},
                     pageType);
                 U64 leftoverPages = pagesFromAlign - alignedForNextLevelPages;
                 if (leftoverPages > 0) {
