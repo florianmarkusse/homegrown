@@ -3,7 +3,7 @@
 
 #include "memory/management/definitions.h"
 
-void *allocContiguousAndMap(U64 numberOfPages, PageType pageType);
-void *allocAndMap(PagedMemory_a request, PageType pageType);
+void *allocContiguousAndMap(U64 numberOfPages, PageSize pageType);
+void *allocAndMap(PagedMemory_a request, PageSize pageType);
 
 #endif

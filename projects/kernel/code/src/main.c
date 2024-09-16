@@ -31,14 +31,9 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     // setting up the screen but if the stuff before fails we are fucked.
     initIDT();
 
-    printPhysicalMemoryManagerStatus();
-    printVirtualMemoryManagerStatus();
-
     FLUSH_AFTER {
-        LOG(STRING("total desc size: "));
-        LOG(kernelMemory.totalDescriptorSize, NEWLINE);
-        LOG(STRING("desc size: "));
-        LOG(kernelMemory.descriptorSize, NEWLINE);
+        appendPhysicalMemoryManagerStatus();
+        appendVirtualMemoryManagerStatus();
     }
 
     // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }

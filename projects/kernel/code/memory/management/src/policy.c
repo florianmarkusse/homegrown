@@ -2,8 +2,7 @@
 #include "memory/management/physical.h"
 #include "memory/management/virtual.h"
 
-void *allocAndMap(PagedMemory_a request, PageType pageType) {
-    U64 test = JUMBO_PAGE_SIZE;
+void *allocAndMap(PagedMemory_a request, PageSize pageType) {
     U64 size = pageType * request.len;
     U64 virtualAddress = getVirtualMemory(size, pageType);
     PagedMemory_a physicalAddresses = allocPhysicalPages(request, pageType);
@@ -15,7 +14,7 @@ void *allocAndMap(PagedMemory_a request, PageType pageType) {
     return (void *)virtualAddress;
 }
 
-void *allocContiguousAndMap(U64 numberOfPages, PageType pageType) {
+void *allocContiguousAndMap(U64 numberOfPages, PageSize pageType) {
     U64 size = numberOfPages * pageType;
 
     U64 virtualAddress = getVirtualMemory(size, pageType);

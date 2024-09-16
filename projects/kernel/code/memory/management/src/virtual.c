@@ -10,6 +10,20 @@
 #include "util/macros.h"
 #include "util/maths.h"
 
+static U8 pageSizeToDepth(PageSize pageSize) {
+    switch (pageSize) {
+    case BASE_PAGE: {
+        return 4;
+    }
+    case LARGE_PAGE: {
+        return 3;
+    }
+    default: {
+        return 2;
+    }
+    }
+}
+
 typedef struct {
     U64 start;
     U64 end;
@@ -68,7 +82,7 @@ typedef struct {
     };
 } PAT;
 
-U64 getVirtualMemory(U64 size, PageType alignValue) {
+U64 getVirtualMemory(U64 size, PageSize alignValue) {
     ASSERT(size <= JUMBO_PAGE_SIZE);
     U64 alignedUpValue = ALIGN_UP_VALUE(higherHalfRegion.start, alignValue);
 
@@ -91,30 +105,23 @@ void appendVirtualRegionStatus(VirtualRegion region) {
     LOG((void *)region.end, NEWLINE);
 }
 
-void printVirtualMemoryManagerStatus() {
-    FLUSH_AFTER {
-        LOG(STRING("Available Virtual Memory\n"));
-        LOG(STRING("Lower half (0x0000_000000000000):\n"));
-        appendVirtualRegionStatus(lowerHalfRegion);
-        LOG(STRING("Higher half(0xFFFF_000000000000):\n"));
-        appendVirtualRegionStatus(higherHalfRegion);
-        LOG((void *)level4PageTable, NEWLINE);
-    }
+void appendVirtualMemoryManagerStatus() {
+    LOG(STRING("Available Virtual Memory\n"));
+    LOG(STRING("Lower half (0x0000_000000000000):\n"));
+    appendVirtualRegionStatus(lowerHalfRegion);
+    LOG(STRING("Higher half(0xFFFF_000000000000):\n"));
+    appendVirtualRegionStatus(higherHalfRegion);
 
-    FLUSH_AFTER {
-        LOG(STRING("CR3/root page table address is: "));
-        LOG((void *)level4PageTable, NEWLINE);
-    }
+    LOG(STRING("CR3/root page table address is: "));
+    LOG((void *)level4PageTable, NEWLINE);
 
     PAT patValues = {.value = rdmsr(PAT_LOCATION)};
-    FLUSH_AFTER {
-        LOG(STRING("PAT MSR set to:\n"));
-        for (U8 i = 0; i < 8; i++) {
-            LOG(STRING("PAT "));
-            LOG(i);
-            LOG(STRING(": "));
-            LOG(patEncodingToString[patValues.pats[i].pat], NEWLINE);
-        }
+    LOG(STRING("PAT MSR set to:\n"));
+    for (U8 i = 0; i < 8; i++) {
+        LOG(STRING("PAT "));
+        LOG(i);
+        LOG(STRING(": "));
+        LOG(patEncodingToString[patValues.pats[i].pat], NEWLINE);
     }
 }
 
@@ -148,7 +155,7 @@ void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory) {
     programPat();
 }
 
-void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType) {
+void mapVirtualRegion(U64 virtual, PagedMemory memory, PageSize pageType) {
     mapVirtualRegionWithFlags(virtual, memory, pageType, 0);
 }
 
@@ -156,11 +163,11 @@ void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType) {
 // address are correctly aligned. If they are not, not sure what the
 // caller wanted to accomplish.
 void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
-                               PageType pageType, U64 additionalFlags) {
+                               PageSize pageType, U64 additionalFlags) {
     ASSERT(level4PageTable);
     ASSERT(((virtual) >> 48L) == 0x0000 || ((virtual) >> 48L) == 0xFFFF);
 
-    U64 depth = pageTypeToDepth[pageType];
+    U64 depth = pageSizeToDepth(pageType);
 
     ASSERT(!(RING_RANGE_VALUE(virtual, pageType)));
     ASSERT(!(RING_RANGE_VALUE(memory.pageStart, pageType)));

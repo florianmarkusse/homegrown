@@ -10,6 +10,20 @@
 #include "util/assert.h"
 #include "util/maths.h"
 
+static string pageSizeToString(PageSize pageSize) {
+    switch (pageSize) {
+    case BASE_PAGE: {
+        return STRING("Base page frame, 4096KiB");
+    }
+    case LARGE_PAGE: {
+        return STRING("Large page, 2MiB");
+    }
+    default: {
+        return STRING("Huge page, 1GiB");
+    }
+    }
+}
+
 static U64 toLargerPages(U64 numberOfPages) {
     return numberOfPages >> PAGE_TABLE_SHIFT;
 }
@@ -18,18 +32,18 @@ static U64 toSmallerPages(U64 numberOfPages) {
     return numberOfPages << PAGE_TABLE_SHIFT;
 }
 
-static PageType toLargerPageSize(PageType pageType) {
-    return pageType << PAGE_TABLE_SHIFT;
+static PageSize toLargerPageSize(PageSize pageSize) {
+    return pageSize << PAGE_TABLE_SHIFT;
 }
 
-static PageType toSmallerPageSize(PageType pageType) {
-    return pageType >> PAGE_TABLE_SHIFT;
+static PageSize toSmallerPageSize(PageSize pageSize) {
+    return pageSize >> PAGE_TABLE_SHIFT;
 }
 
 typedef struct {
     PagedMemory_max_a memory;
     U32 usedBasePages;
-    PageType pageType;
+    PageSize pageSize;
 } PhysicalMemoryManager;
 
 static PhysicalMemoryManager basePMM;
@@ -44,12 +58,12 @@ void decreasePages(PhysicalMemoryManager *manager, U64 index, U64 decreaseBy) {
         manager->memory.len--;
     } else {
         manager->memory.buf[index].numberOfPages -= decreaseBy;
-        manager->memory.buf[index].pageStart += decreaseBy * manager->pageType;
+        manager->memory.buf[index].pageStart += decreaseBy * manager->pageSize;
     }
 }
 
-PhysicalMemoryManager *getMemoryManager(PageType pageType) {
-    switch (pageType) {
+PhysicalMemoryManager *getMemoryManager(PageSize pageSize) {
+    switch (pageSize) {
     case BASE_PAGE: {
         return &basePMM;
         break;
@@ -99,18 +113,18 @@ U64 allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
         }
     }
 
-    if (manager->pageType < HUGE_PAGE) {
+    if (manager->pageSize < HUGE_PAGE) {
         U64 pagesForLargerManager =
             CEILING_DIV_EXP(numberOfPages, PAGE_TABLE_SHIFT);
         U64 address = allocContiguousPhysicalPages(
-            pagesForLargerManager, toLargerPageSize(manager->pageType));
+            pagesForLargerManager, toLargerPageSize(manager->pageSize));
 
-        U64 freeAddressStart = address + numberOfPages * manager->pageType;
+        U64 freeAddressStart = address + numberOfPages * manager->pageSize;
         U64 freePages = toSmallerPages(pagesForLargerManager) - numberOfPages;
 
         freePhysicalPage((PagedMemory){.numberOfPages = freePages,
                                        .pageStart = freeAddressStart},
-                         manager->pageType);
+                         manager->pageSize);
 
         return address;
     }
@@ -118,9 +132,9 @@ U64 allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
     triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
 }
 
-U64 allocContiguousPhysicalPages(U64 numberOfPages, PageType pageType) {
+U64 allocContiguousPhysicalPages(U64 numberOfPages, PageSize pageSize) {
     return allocContiguousPhysicalPagesWithManager(numberOfPages,
-                                                   getMemoryManager(pageType));
+                                                   getMemoryManager(pageSize));
 }
 
 PagedMemory_a allocPhysicalPagesWithManager(PagedMemory_a pages,
@@ -148,7 +162,7 @@ PagedMemory_a allocPhysicalPagesWithManager(PagedMemory_a pages,
         requestedPages -= manager->memory.buf[i].numberOfPages;
     }
 
-    if (manager->pageType < HUGE_PAGE) {
+    if (manager->pageSize < HUGE_PAGE) {
         // Convert to larger manager request
         // Can slyly use the leftover buffer as it is assumed that it is at
         // least big enough for the smaller buffer so definitely true for the
@@ -158,12 +172,12 @@ PagedMemory_a allocPhysicalPagesWithManager(PagedMemory_a pages,
             .len = CEILING_DIV_EXP(requestedPages, PAGE_TABLE_SHIFT)};
 
         PagedMemory_a largerPage = allocPhysicalPages(
-            leftOverRequest, toLargerPageSize(manager->pageType));
+            leftOverRequest, toLargerPageSize(manager->pageSize));
         // Convert back to original manager sizes
         for (U64 i = 0; i < largerPage.len; i++) {
             largerPage.buf[i].numberOfPages *= PAGE_TABLE_ENTRIES;
         }
-        freePhysicalPages(largerPage, manager->pageType);
+        freePhysicalPages(largerPage, manager->pageSize);
 
         // The actual leftover request can now be satisfied
         leftOverRequest.len = requestedPages;
@@ -179,8 +193,8 @@ PagedMemory_a allocPhysicalPagesWithManager(PagedMemory_a pages,
     triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
 }
 
-PagedMemory_a allocPhysicalPages(PagedMemory_a pages, PageType pageType) {
-    return allocPhysicalPagesWithManager(pages, getMemoryManager(pageType));
+PagedMemory_a allocPhysicalPages(PagedMemory_a pages, PageSize pageSize) {
+    return allocPhysicalPagesWithManager(pages, getMemoryManager(pageSize));
 }
 
 void freePhysicalPagesWithManager(PagedMemory_a pages,
@@ -208,19 +222,19 @@ void freePhysicalPagesWithManager(PagedMemory_a pages,
     }
 }
 
-void freePhysicalPages(PagedMemory_a page, PageType pageType) {
-    return freePhysicalPagesWithManager(page, getMemoryManager(pageType));
+void freePhysicalPages(PagedMemory_a page, PageSize pageSize) {
+    return freePhysicalPagesWithManager(page, getMemoryManager(pageSize));
 }
 
-void freePhysicalPage(PagedMemory page, PageType pageType) {
+void freePhysicalPage(PagedMemory page, PageSize pageSize) {
     return freePhysicalPagesWithManager(
         (PagedMemory_a){.len = 1, .buf = (PagedMemory[]){page}},
-        getMemoryManager(pageType));
+        getMemoryManager(pageSize));
 }
 
 void appendPMMStatus(PhysicalMemoryManager manager) {
     LOG(STRING("Type: "));
-    LOG(pageTypeToString[manager.pageType], NEWLINE);
+    LOG(pageSizeToString(manager.pageSize), NEWLINE);
     LOG(STRING("Used base page frames for internal structure: "));
     LOG(manager.usedBasePages, NEWLINE);
     LOG(STRING("Free pages:\t"));
@@ -236,20 +250,18 @@ void appendPMMStatus(PhysicalMemoryManager manager) {
     LOG(manager.memory.len, NEWLINE);
 }
 
-void printPhysicalMemoryManagerStatus() {
-    FLUSH_AFTER {
-        LOG(STRING("Physical Memory status\n"));
-        LOG(STRING("================\n"));
-        appendPMMStatus(basePMM);
-        LOG(STRING("================\n"));
-        appendPMMStatus(largePMM);
-        LOG(STRING("================\n"));
-        appendPMMStatus(hugePMM);
-        LOG(STRING("================\n"));
-    }
+void appendPhysicalMemoryManagerStatus() {
+    LOG(STRING("Physical Memory status\n"));
+    LOG(STRING("================\n"));
+    appendPMMStatus(basePMM);
+    LOG(STRING("================\n"));
+    appendPMMStatus(largePMM);
+    LOG(STRING("================\n"));
+    appendPMMStatus(hugePMM);
+    LOG(STRING("================\n"));
 }
 
-void initPMM(PageType pageType) {
+void initPMM(PageSize pageType) {
     ASSERT(pageType == LARGE_PAGE || pageType == HUGE_PAGE);
 
     PhysicalMemoryManager *initingManager = getMemoryManager(pageType);
@@ -329,11 +341,11 @@ MemoryDescriptor *nextValidDescriptor(U64 *i, KernelMemory kernelMemory) {
 void initPhysicalMemoryManager(KernelMemory kernelMemory) {
     // Reset the PMMs if they were used previously already
     basePMM =
-        (PhysicalMemoryManager){.pageType = BASE_PAGE, .usedBasePages = 1};
+        (PhysicalMemoryManager){.pageSize = BASE_PAGE, .usedBasePages = 1};
     largePMM =
-        (PhysicalMemoryManager){.pageType = LARGE_PAGE, .usedBasePages = 1};
+        (PhysicalMemoryManager){.pageSize = LARGE_PAGE, .usedBasePages = 1};
     hugePMM =
-        (PhysicalMemoryManager){.pageType = HUGE_PAGE, .usedBasePages = 1};
+        (PhysicalMemoryManager){.pageSize = HUGE_PAGE, .usedBasePages = 1};
 
     U64 i = 0;
 

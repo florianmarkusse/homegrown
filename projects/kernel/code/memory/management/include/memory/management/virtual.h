@@ -5,12 +5,13 @@
 #include "interoperation/types.h"
 #include "memory/management/definitions.h"
 
-void printVirtualMemoryManagerStatus();
+void appendVirtualMemoryManagerStatus();
 
 void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory);
 
-U64 getVirtualMemory(U64 size, PageType alignValue);
+U64 getVirtualMemory(U64 size, PageSize alignValue);
 void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
-                               PageType pageType, U64 additionalFlags);
-void mapVirtualRegion(U64 virtual, PagedMemory memory, PageType pageType);
+                               PageSize pageType, U64 additionalFlags);
+void mapVirtualRegion(U64 virtual, PagedMemory memory, PageSize pageType);
+
 #endif

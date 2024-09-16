@@ -26,14 +26,12 @@ typedef struct {
 
 void initPhysicalMemoryManager(KernelMemory kernelMemory);
 
-U64 allocContiguousPhysicalPages(U64 numberOfPages, PageType pageType);
-PagedMemory_a allocPhysicalPages(PagedMemory_a pages, PageType pageType);
+U64 allocContiguousPhysicalPages(U64 numberOfPages, PageSize pageSize);
+PagedMemory_a allocPhysicalPages(PagedMemory_a pages, PageSize pageSize);
 
-void freePhysicalPage(PagedMemory page, PageType pageType);
-void freePhysicalPages(PagedMemory_a pages, PageType pageType);
+void freePhysicalPage(PagedMemory page, PageSize pageSize);
+void freePhysicalPages(PagedMemory_a pages, PageSize pageSize);
 
-void printPhysicalMemoryManagerStatus();
-
-#define GET_PHYSICAL(pages, t) (typeof(t))allocPhysicalPages(pages)
+void appendPhysicalMemoryManagerStatus();
 
 #endif
