@@ -165,7 +165,7 @@ void mapVirtualRegion(U64 virtual, PagedMemory memory, PageSize pageType) {
 void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
                                PageSize pageType, U64 additionalFlags) {
     ASSERT(level4PageTable);
-    ASSERT(((virtual) >> 48L) == 0x0000 || ((virtual) >> 48L) == 0xFFFF);
+    ASSERT(((virtual) >> 48L) == 0 || ((virtual) >> 48L) == 0xFFFF);
 
     U64 depth = pageSizeToDepth(pageType);
 

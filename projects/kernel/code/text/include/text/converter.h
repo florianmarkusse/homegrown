@@ -10,6 +10,9 @@ string stringWithMinSizeDefault(string data, U8 minSize);
 
 string stringToString(string data);
 
+string charToString(char data, U8_a tmp);
+string charToStringDefault(char data);
+
 string boolToString(bool data);
 
 string ptrToString(void *data, U8_a tmp);
@@ -29,6 +32,7 @@ string noAppend();
 #define CONVERT_TO_STRING(data)                                                \
     _Generic((data),                                                           \
         string: stringToString,                                                \
+        char: charToStringDefault,                                             \
         bool: boolToString,                                                    \
         void *: ptrToStringDefault,                                            \
         U8 *: ptrToStringDefault,                                              \

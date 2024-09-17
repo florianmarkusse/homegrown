@@ -4,7 +4,7 @@
 #define RED_ZONE_SIZE (1 << 7)
 
 #define LOWER_HALF_END 0x0000FFFFFFFFFFFF
-#define HIGHER_HALF_START 0xffff000000000000
+#define HIGHER_HALF_START 0xffff800000000000
 #define KERNEL_SPACE_START 0xfffffffff8000000
 #define KERNEL_SPACE_END                                                       \
     0xfffffffffffff000 // should be fff at the end but otherwise the memory

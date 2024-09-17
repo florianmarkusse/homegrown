@@ -8,6 +8,15 @@ static U8_a stringConverterBuffer =
 
 string stringToString(string data) { return data; }
 
+string charToString(char data, U8_a tmp) {
+    tmp.buf[0] = data;
+    return (string){.len = 1, .buf = tmp.buf};
+}
+
+string charToStringDefault(char data) {
+    return charToString(data, stringConverterBuffer);
+}
+
 string boolToString(bool data) {
     return (data ? STRING("true") : STRING("false"));
 }

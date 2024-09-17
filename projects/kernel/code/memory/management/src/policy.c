@@ -2,28 +2,30 @@
 #include "memory/management/physical.h"
 #include "memory/management/virtual.h"
 
-void *allocAndMap(PagedMemory_a request, PageSize pageType) {
-    U64 size = pageType * request.len;
-    U64 virtualAddress = getVirtualMemory(size, pageType);
-    PagedMemory_a physicalAddresses = allocPhysicalPages(request, pageType);
+void *allocAndMap(PagedMemory_a request, PageSize pageSize) {
+    U64 size = pageSize * request.len;
+    U64 virtualAddress = getVirtualMemory(size, pageSize);
+    PagedMemory_a physicalAddresses = allocPhysicalPages(request, pageSize);
 
+    U64 virtualRegion = virtualAddress;
     for (U64 i = 0; i < physicalAddresses.len; i++) {
-        mapVirtualRegion(virtualAddress, physicalAddresses.buf[i], pageType);
+        mapVirtualRegion(virtualRegion, physicalAddresses.buf[i], pageSize);
+        virtualRegion += physicalAddresses.buf[i].numberOfPages * pageSize;
     }
 
     return (void *)virtualAddress;
 }
 
-void *allocContiguousAndMap(U64 numberOfPages, PageSize pageType) {
-    U64 size = numberOfPages * pageType;
+void *allocContiguousAndMap(U64 numberOfPages, PageSize pageSize) {
+    U64 size = numberOfPages * pageSize;
 
-    U64 virtualAddress = getVirtualMemory(size, pageType);
-    U64 physicalAddress = allocContiguousPhysicalPages(numberOfPages, pageType);
+    U64 virtualAddress = getVirtualMemory(size, pageSize);
+    U64 physicalAddress = allocContiguousPhysicalPages(numberOfPages, pageSize);
 
     mapVirtualRegion(virtualAddress,
                      (PagedMemory){.numberOfPages = numberOfPages,
                                    .pageStart = physicalAddress},
-                     pageType);
+                     pageSize);
 
     return (void *)virtualAddress;
 }

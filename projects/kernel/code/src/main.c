@@ -5,6 +5,7 @@
 #include "interoperation/types.h" // for U32
 #include "log/log.h"              // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "memory/management/physical.h"
+#include "memory/management/policy.h"
 #include "memory/management/virtual.h"
 #include "peripheral/screen/screen.h"
 #include "text/string.h" // for STRING
@@ -27,11 +28,14 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                                  .width = kernelParameters->fb.columns,
                                  .height = kernelParameters->fb.rows,
                                  .screen = (U32 *)kernelParameters->fb.ptr});
+
     // This is still logging stuff when it fails so it is only useful after
     // setting up the screen but if the stuff before fails we are fucked.
     initIDT();
 
     FLUSH_AFTER {
+        LOG(STRING("size of thing is:"));
+        LOG(kernelParameters->fb.size, NEWLINE);
         appendPhysicalMemoryManagerStatus();
         appendVirtualMemoryManagerStatus();
     }

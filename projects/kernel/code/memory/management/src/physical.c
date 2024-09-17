@@ -13,7 +13,7 @@
 static string pageSizeToString(PageSize pageSize) {
     switch (pageSize) {
     case BASE_PAGE: {
-        return STRING("Base page frame, 4096KiB");
+        return STRING("Base page frame, 4KiB");
     }
     case LARGE_PAGE: {
         return STRING("Large page, 2MiB");
@@ -143,25 +143,23 @@ static PagedMemory_a
 allocPhysicalPagesWithManager(PagedMemory_a pages,
                               PhysicalMemoryManager *manager) {
     U32 requestedPages = (U32)pages.len;
-    U32 contiguousMemoryRegions = 0;
 
     // The final output array may have fewer entries since the memory might be
     // in contiguous blocks.
     pages.len = 0;
     for (U64 i = manager->memory.len - 1; manager->memory.len > 0;
          manager->memory.len--, i = manager->memory.len - 1) {
-        pages.len++;
         if (manager->memory.buf[i].numberOfPages >= requestedPages) {
-            pages.buf[contiguousMemoryRegions].numberOfPages = requestedPages;
-            pages.buf[contiguousMemoryRegions].pageStart =
-                manager->memory.buf[i].pageStart;
+            pages.buf[pages.len].numberOfPages = requestedPages;
+            pages.buf[pages.len].pageStart = manager->memory.buf[i].pageStart;
+            pages.len++;
 
             decreasePages(manager, i, requestedPages);
             return pages;
         }
 
-        pages.buf[contiguousMemoryRegions] = manager->memory.buf[i];
-        contiguousMemoryRegions++;
+        pages.buf[pages.len] = manager->memory.buf[i];
+        pages.len++;
         requestedPages -= manager->memory.buf[i].numberOfPages;
     }
 
@@ -171,7 +169,7 @@ allocPhysicalPagesWithManager(PagedMemory_a pages,
         // least big enough for the smaller buffer so definitely true for the
         // larger buffer
         PagedMemory_a leftOverRequest = (PagedMemory_a){
-            .buf = pages.buf + contiguousMemoryRegions,
+            .buf = pages.buf + pages.len,
             .len = CEILING_DIV_EXP(requestedPages, PAGE_TABLE_SHIFT)};
 
         PagedMemory_a largerPage = allocPhysicalPages(

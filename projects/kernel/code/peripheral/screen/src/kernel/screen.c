@@ -3,6 +3,7 @@
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "interoperation/memory/definitions.h"
 #include "memory/management/definitions.h"
+#include "memory/management/physical.h"
 #include "memory/management/policy.h"
 #include "memory/management/virtual.h"
 #include "memory/manipulation/manipulation.h"
@@ -11,7 +12,6 @@
 #include "util/maths.h" // for RING_PLUS, RING_INCREMENT, RING_MINUS
 
 // TODO: replace with correct thing using memory allocators etc.
-static U32 workBuffer[1 << 20];
 
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
@@ -522,19 +522,20 @@ bool flushToScreen(U8_max_a buffer) {
 }
 
 void initScreen(ScreenDimension dimension) {
+    /*// TODO: Replace with alloc on arena for sure!*/
+
+    U64 pages = CEILING_DIV_VALUE(dimension.size, BASE_PAGE);
+    PagedMemory memoryForAddresses[64];
+    PagedMemory_a paged = (PagedMemory_a){.buf = memoryForAddresses,
+                                          .len = COUNTOF(memoryForAddresses)};
+    U32 *stuff = allocAndMap(paged, LARGE_PAGE);
+
     dim = (ScreenDimension){.screen = dimension.screen,
-                            .backingBuffer = workBuffer,
+                            .backingBuffer = stuff,
                             .size = dimension.size,
                             .width = dimension.width,
                             .height = dimension.height,
                             .scanline = dimension.scanline};
-
-    // TODO: Replace with alloc on arena for sure!
-    PagedMemory memoryForAddresses[64];
-    PagedMemory_a paged = (PagedMemory_a){.buf = memoryForAddresses,
-                                          .len = COUNTOF(memoryForAddresses)};
-
-    /*U32 *newWorkBuffer = (U32 *)allocAndMap(paged, LARGE_PAGE_SIZE);*/
 
     PagedMemory pagedMemory = {.pageStart = (U64)dim.screen,
                                .numberOfPages =
