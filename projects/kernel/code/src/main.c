@@ -1,22 +1,21 @@
 #include "cpu/idt.h"                           // for setupIDT
-#include "cpu/jmp.h"                           // for setupIDT
 #include "interoperation/kernel-parameters.h"  // for KernelParameters
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
 #include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h" // for U32
 #include "log/log.h"              // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
+#include "memory/management/allocator/arena.h"
 #include "memory/management/physical.h"
 #include "memory/management/policy.h"
 #include "memory/management/virtual.h"
 #include "peripheral/screen/screen.h"
 #include "text/string.h" // for STRING
+#include "util/jmp.h"    // for setupIDT
+#include "util/sizes.h"
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
-void test(jmp_buf jumper) {
-    longjmp(jumper, 1);
-    // AWdkfjhgkjdfhg
-}
+static U64 threadScratchMemory = 2 * MiB;
 
 __attribute__((section("kernel-start"))) int kernelmain() {
     KernelParameters *kernelParameters =
@@ -29,6 +28,22 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     initPhysicalMemoryManager(kernelMemory);
     initVirtualMemoryManager(kernelParameters->level4PageTable, kernelMemory);
 
+    void *mappedMemory = allocAndMap(threadScratchMemory);
+
+    Arena arena = (Arena){.beg = mappedMemory,
+                          .cap = threadScratchMemory,
+                          .end = mappedMemory + threadScratchMemory};
+    jmp_buf jumper;
+    if (setjmp(jumper)) {
+        FLUSH_AFTER {
+            LOG(STRING("Ran out of thread scratch memory capacity\n"));
+        }
+        while (1) {
+            ;
+        }
+    }
+    arena.jmp_buf = jumper;
+
     initScreen((ScreenDimension){.scanline = kernelParameters->fb.scanline,
                                  .size = kernelParameters->fb.size,
                                  .width = kernelParameters->fb.columns,
@@ -39,15 +54,6 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     // setting up the screen but if the stuff before fails we are fucked.
     initIDT();
 
-    jmp_buf jumper;
-    if (setjmp(jumper)) {
-        FLUSH_AFTER { LOG(STRING("It all went to shit\n")); }
-
-        while (1) {
-            ;
-        }
-    }
-
     FLUSH_AFTER {
         LOG(STRING("size of thing is:"));
         LOG(kernelParameters->fb.size, NEWLINE);
@@ -55,7 +61,9 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         appendVirtualMemoryManagerStatus();
     }
 
-    test(jumper);
+    U64 *buf = NEW(&arena, U8, 1 * MiB);
+    U64 *buf2 = NEW(&arena, U8, 1 * MiB);
+    U64 *buf3 = NEW(&arena, U8);
 
     // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }
 
