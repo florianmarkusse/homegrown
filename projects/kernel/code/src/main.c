@@ -5,6 +5,7 @@
 #include "interoperation/types.h" // for U32
 #include "log/log.h"              // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "memory/management/allocator/arena.h"
+#include "memory/management/allocator/macros.h"
 #include "memory/management/physical.h"
 #include "memory/management/policy.h"
 #include "memory/management/virtual.h"
@@ -31,7 +32,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     void *mappedMemory = allocAndMap(threadScratchMemory);
 
     Arena arena = (Arena){.beg = mappedMemory,
-                          .cap = threadScratchMemory,
+                          .origBeg = mappedMemory,
                           .end = mappedMemory + threadScratchMemory};
     jmp_buf jumper;
     if (setjmp(jumper)) {
@@ -61,11 +62,12 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         appendVirtualMemoryManagerStatus();
     }
 
-    U64 *buf = NEW(&arena, U8, 1 * MiB);
-    U64 *buf2 = NEW(&arena, U8, 1 * MiB);
-    U64 *buf3 = NEW(&arena, U8);
+    FLUSH_AFTER {
+        //
+        LOG(SIZEOF(VirtualEntry));
+    }
 
-    // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }
+    freeMapped((U64)mappedMemory, threadScratchMemory);
 
     while (1) {
         ;

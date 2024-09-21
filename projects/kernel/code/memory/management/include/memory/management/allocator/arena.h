@@ -6,8 +6,8 @@
 
 typedef struct {
     U8 *beg;
+    U8 *origBeg;
     U8 *end;
-    U64 cap;
     void **jmp_buf;
 } Arena;
 

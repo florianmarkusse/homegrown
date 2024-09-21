@@ -1,6 +1,7 @@
 #include "memory/management/policy.h"
 #include "cpu/idt.h"
 #include "interoperation/memory/definitions.h"
+#include "log/log.h"
 #include "memory/management/physical.h"
 #include "memory/management/virtual.h"
 #include "util/maths.h"
@@ -26,7 +27,7 @@ void *allocAndMap(U64 bytes) {
     inPages = CEILING_DIV_VALUE(bytes, pageSize);
 
     if (inPages > PAGE_TABLE_ENTRIES) {
-        triggerFault(0);
+        triggerFault(FAULT_TOO_LARGE_ALLOCATION);
     }
 
     request = (PagedMemory_a){.buf = pagedMemory, .len = inPages};
@@ -59,4 +60,17 @@ void *allocContiguousAndMap(U64 numberOfPages, PageSize pageSize) {
                      pageSize);
 
     return (void *)virtualAddress;
+}
+
+void freeMapped(U64 start, U64 bytes) {
+    ASSERT((start >> PAGE_FRAME_SHIFT));
+
+    MappedPage page = getMappedPage(start);
+
+    FLUSH_AFTER {
+        LOG(STRING("Got virtual page:\t"));
+        LOG(page.entry.value, NEWLINE);
+        LOG(STRING("Page Size:\t"));
+        LOG(page.pageSize, NEWLINE);
+    }
 }

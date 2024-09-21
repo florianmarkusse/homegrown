@@ -2,6 +2,7 @@
 #include "memory/management/allocator/macros.h"
 #include "memory/manipulation/manipulation.h"
 #include "util/assert.h" // for ASSERT
+#include "util/macros.h"
 
 BuddyBlock *splitBuddy(BuddyBlock *block, U64 size) {
     ASSERT(size > 0);

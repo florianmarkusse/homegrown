@@ -167,7 +167,7 @@ void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
     ASSERT(level4PageTable);
     ASSERT(((virtual) >> 48L) == 0 || ((virtual) >> 48L) == 0xFFFF);
 
-    U64 depth = pageSizeToDepth(pageType);
+    U8 depth = pageSizeToDepth(pageType);
 
     ASSERT(!(RING_RANGE_VALUE(virtual, pageType)));
     ASSERT(!(RING_RANGE_VALUE(memory.pageStart, pageType)));
@@ -199,4 +199,34 @@ void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
                 (VirtualPageTable *)ALIGN_DOWN_EXP(*address, PAGE_FRAME_SHIFT);
         }
     }
+}
+
+bool isExtendedPageLevel(U8 level) { return level == 1 || level == 2; }
+
+MappedPage getMappedPage(U64 virtual) {
+    U64 indexShift = LEVEL_4_SHIFT;
+    U8 depth = pageSizeToDepth(BASE_PAGE);
+
+    VirtualPageTable *currentTable = level4PageTable;
+    MappedPage result;
+    result.pageSize = WUMBO_PAGE_SIZE;
+    U64 *address;
+    U8 totalDepth = pageSizeToDepth(BASE_PAGE);
+    for (U8 level = 0; level < totalDepth;
+         level++, indexShift -= PAGE_TABLE_SHIFT) {
+        address = &(currentTable->pages[RING_RANGE_EXP((virtual >> indexShift),
+                                                       PAGE_TABLE_SHIFT)]);
+        result.pageSize >>= PAGE_TABLE_SHIFT;
+
+        if (isExtendedPageLevel(level) && ((*address) & PAGE_EXTENDED_SIZE)) {
+            result.entry = *(VirtualEntry *)address;
+            return result;
+        }
+
+        currentTable =
+            (VirtualPageTable *)ALIGN_DOWN_EXP(*address, PAGE_FRAME_SHIFT);
+    }
+
+    result.entry = *(VirtualEntry *)address;
+    return result;
 }

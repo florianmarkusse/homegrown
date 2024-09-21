@@ -31,7 +31,11 @@
 #define LARGE_PAGE_SIZE (PAGE_FRAME_SIZE << PAGE_TABLE_SHIFT)
 #define HUGE_PAGE_SIZE (LARGE_PAGE_SIZE << PAGE_TABLE_SHIFT)
 #define JUMBO_PAGE_SIZE                                                        \
-    (HUGE_PAGE_SIZE << PAGE_TABLE_SHIFT) // Does not exist but comes in handy.
+    (HUGE_PAGE_SIZE                                                            \
+     << PAGE_TABLE_SHIFT) // Does not exist but comes in handy. 512GiB
+#define WUMBO_PAGE_SIZE                                                        \
+    (JUMBO_PAGE_SIZE                                                           \
+     << PAGE_TABLE_SHIFT) // Does not exist but comes in handy. 256TiB
 #define PAGE_MASK (PAGE_FRAME_SIZE - 1)
 
 #define LEVEL_4_SHIFT 39U

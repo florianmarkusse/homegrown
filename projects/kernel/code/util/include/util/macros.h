@@ -5,11 +5,14 @@
 extern "C" {
 #endif
 
+#include "interoperation/types.h"
+
 #define MACRO_VAR(name) _##name##_##MACRO_VAR##__LINE__
 
 #define STR_HELPER(x) #x
 #define STRINGIFY(x) STR_HELPER(x)
 
+#define SIZEOF(x) (I64)sizeof(x)
 #define COUNTOF(a) (sizeof(a) / sizeof(*(a)))
 #define LENGTHOF(s) (COUNTOF(s) - 1)
 #define ALIGNOF(t) (_Alignof(t))
