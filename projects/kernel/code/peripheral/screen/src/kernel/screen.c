@@ -3,15 +3,11 @@
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "interoperation/memory/definitions.h"
 #include "memory/management/definitions.h"
-#include "memory/management/physical.h"
 #include "memory/management/policy.h"
 #include "memory/management/virtual.h"
 #include "memory/manipulation/manipulation.h"
 #include "util/assert.h" // for ASSERT
-#include "util/macros.h"
-#include "util/maths.h" // for RING_PLUS, RING_INCREMENT, RING_MINUS
-
-// TODO: replace with correct thing using memory allocators etc.
+#include "util/maths.h"  // for RING_PLUS, RING_INCREMENT, RING_MINUS
 
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
@@ -52,7 +48,10 @@ extern psf2_t glyphs asm("_binary____resources_font_psf_start");
 
 #define TAB_SIZE_IN_GLYPHS (1 << 2)
 
+// NOTE: we write to this variable all the time, care should be taken when we
+// move to multithreading
 static ScreenDimension dim;
+
 static U16 glyphsPerLine;
 static U16 glyphsPerColumn;
 static U32 maxGlyphsOnScreen;
@@ -60,6 +59,9 @@ static U32 maxCharsToProcess;
 static U32 bytesPerLine;
 static U32 glyphStartOffset;
 static U32 glyphStartVerticalOffset;
+
+static U16 ringGlyphsPerLine;
+static U16 ringGlyphsPerColumn;
 
 #define MAX_GLYPSH_PER_COLUMN (1 << 8)
 #define MAX_GLYPSH_PER_LINE (1 << 8)
@@ -80,7 +82,7 @@ static U64 screenLinesCopy[MAX_GLYPSH_PER_COLUMN]; // TODO: Replace with
                                                    // temporary memory
 static bool lastScreenlineOpen;
 static bool isTailing = true;
-static U64 I8Count;
+static U64 charCount;
 static U32 nextCharInBuf;
 static U8 buf[FILE_BUF_LEN];
 
@@ -148,7 +150,7 @@ static void drawLines(U32 startIndex, U16 screenLinesToDraw,
     U16 currentGlyphLen = 0;
     bool toNext = false;
 
-    for (U64 i = screenLines[startIndex]; i < I8Count; i++) {
+    for (U64 i = screenLines[startIndex]; i < charCount; i++) {
         U8 ch = buf[RING_RANGE_VALUE(i, FILE_BUF_LEN)];
 
         if (toNext) {
@@ -431,11 +433,11 @@ static void toTail() {
         firstCharOutsideWindow = screenLines[finalScreenLineEntry];
     }
     U64 oldestCharToProcess =
-        MAX(oldestCharToParseGivenScreenLines(I8Count, glyphsPerColumn),
+        MAX(oldestCharToParseGivenScreenLines(charCount, glyphsPerColumn),
             logicalLines[I8IndexToLogicalLine(firstCharOutsideWindow)]);
 
-    FillResult fillResult = fillScreenLines(oldestCharToProcess,
-                                            firstCharOutsideWindow, I8Count, 0);
+    FillResult fillResult = fillScreenLines(
+        oldestCharToProcess, firstCharOutsideWindow, charCount, 0);
 
     U16 startIndex =
         RING_MINUS(fillResult.currentScreenLineIndex,
@@ -495,7 +497,7 @@ bool flushToScreen(U8_max_a buffer) {
             logicalLineToWrite =
                 RING_INCREMENT(logicalLineToWrite, MAX_SCROLLBACK_LINES);
 
-            logicalLines[logicalLineToWrite] = I8Count;
+            logicalLines[logicalLineToWrite] = charCount;
             logicalNewline = false;
         }
 
@@ -511,7 +513,7 @@ bool flushToScreen(U8_max_a buffer) {
         }
 
         nextCharInBuf = RING_INCREMENT(nextCharInBuf, FILE_BUF_LEN);
-        I8Count++;
+        charCount++;
     }
 
     if (isTailing) {
@@ -524,14 +526,8 @@ bool flushToScreen(U8_max_a buffer) {
 void initScreen(ScreenDimension dimension) {
     /*// TODO: Replace with alloc on arena for sure!*/
 
-    U64 pages = CEILING_DIV_VALUE(dimension.size, BASE_PAGE);
-    PagedMemory memoryForAddresses[64];
-    PagedMemory_a paged = (PagedMemory_a){.buf = memoryForAddresses,
-                                          .len = COUNTOF(memoryForAddresses)};
-    U32 *stuff = allocAndMap(paged, LARGE_PAGE);
-
     dim = (ScreenDimension){.screen = dimension.screen,
-                            .backingBuffer = stuff,
+                            .backingBuffer = allocAndMap(dimension.size),
                             .size = dimension.size,
                             .width = dimension.width,
                             .height = dimension.height,
@@ -547,6 +543,14 @@ void initScreen(ScreenDimension dimension) {
         (U16)(dim.width - HORIZONTAL_PIXEL_MARGIN * 2) / (glyphs.width);
     glyphsPerColumn =
         (U16)(dim.height - VERTICAL_PIXEL_MARGIN * 2) / (glyphs.height);
+
+    ringGlyphsPerLine = (U16)NEXT_POWER_OF_2(glyphsPerLine);
+    ringGlyphsPerColumn = (U16)NEXT_POWER_OF_2((U16)(glyphsPerColumn + 1));
+    if (glyphsPerColumn == ringGlyphsPerColumn) {
+        // Need to make screenLinesCopy a power of 2 larger because of
+        // implementation.
+    }
+
     maxGlyphsOnScreen = glyphsPerLine * glyphsPerColumn;
     maxCharsToProcess = 2 * maxGlyphsOnScreen;
     glyphStartVerticalOffset = dim.scanline * VERTICAL_PIXEL_MARGIN;
@@ -620,7 +624,7 @@ void prowind(U16 numberOfScreenLines) {
     U64 firstCharOutsideWindow = screenLines[RING_PLUS(
         oldestScreenLineIndex, glyphsPerColumn, MAX_GLYPSH_PER_COLUMN)];
 
-    if (I8Count == firstCharOutsideWindow) {
+    if (charCount == firstCharOutsideWindow) {
         return;
     }
 
@@ -628,7 +632,7 @@ void prowind(U16 numberOfScreenLines) {
         oldestCharToParseGivenScreenLines(firstCharOutsideWindow, 0);
 
     FillResult fillResult =
-        fillScreenLines(oldestCharToProcess, firstCharOutsideWindow, I8Count,
+        fillScreenLines(oldestCharToProcess, firstCharOutsideWindow, charCount,
                         numberOfScreenLines);
     U16 oldScreenLines = glyphsPerColumn - fillResult.realScreenLinesWritten;
 
@@ -660,7 +664,7 @@ void prowind(U16 numberOfScreenLines) {
               logicalLineLens[startIndex], oldScreenLines);
 
     isTailing = screenLines[RING_PLUS(oldestScreenLineIndex, glyphsPerColumn,
-                                      MAX_GLYPSH_PER_COLUMN)] == I8Count;
+                                      MAX_GLYPSH_PER_COLUMN)] == charCount;
     lastScreenlineOpen = !fillResult.lastLineDone;
 
     switchToScreenDisplay();

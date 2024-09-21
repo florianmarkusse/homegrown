@@ -1,4 +1,5 @@
 #include "cpu/idt.h"                           // for setupIDT
+#include "cpu/jmp.h"                           // for setupIDT
 #include "interoperation/kernel-parameters.h"  // for KernelParameters
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
 #include "interoperation/memory/descriptor.h"
@@ -11,6 +12,11 @@
 #include "text/string.h" // for STRING
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
+
+void test(jmp_buf jumper) {
+    longjmp(jumper, 1);
+    // AWdkfjhgkjdfhg
+}
 
 __attribute__((section("kernel-start"))) int kernelmain() {
     KernelParameters *kernelParameters =
@@ -33,12 +39,23 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     // setting up the screen but if the stuff before fails we are fucked.
     initIDT();
 
+    jmp_buf jumper;
+    if (setjmp(jumper)) {
+        FLUSH_AFTER { LOG(STRING("It all went to shit\n")); }
+
+        while (1) {
+            ;
+        }
+    }
+
     FLUSH_AFTER {
         LOG(STRING("size of thing is:"));
         LOG(kernelParameters->fb.size, NEWLINE);
         appendPhysicalMemoryManagerStatus();
         appendVirtualMemoryManagerStatus();
     }
+
+    test(jumper);
 
     // FLUSH_AFTER { appendDescriptionHeaders(kernelParameters->rsdp); }
 

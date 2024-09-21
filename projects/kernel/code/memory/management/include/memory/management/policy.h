@@ -4,6 +4,7 @@
 #include "memory/management/definitions.h"
 
 void *allocContiguousAndMap(U64 numberOfPages, PageSize pageSize);
-void *allocAndMap(PagedMemory_a request, PageSize pageSize);
+void *allocAndMapExplicit(PagedMemory_a request, PageSize pageSize);
+void *allocAndMap(U64 bytes);
 
 #endif

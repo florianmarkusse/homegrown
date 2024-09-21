@@ -57,7 +57,7 @@ typedef enum : U64 {
     FAULT_USER = 32,
     FAULT_SYSCALL = 33,
     FAULT_NO_MORE_PHYSICAL_MEMORY = 34,
-    FAULT_OVERLAPPING_VIRTUAL_SEGMENTS = 35,
+    FAULT_TOO_LARGE_ALLOCATION = 35,
 
     // Keep this to know how many we have defined
     FAULT_NUMS
@@ -99,6 +99,7 @@ static string faultToString[FAULT_NUMS] = {
     STRING("User Defined"),
     STRING("System Call"),
     STRING("No more physical memory"),
+    STRING("Allocation request was too large"),
 };
 
 __attribute__((noreturn)) void triggerFault(Fault fault);

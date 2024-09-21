@@ -658,7 +658,7 @@ void triggerFault(Fault fault) {
     case FAULT_NO_MORE_PHYSICAL_MEMORY:
         __asm__ __volatile__("int $0x22" :::);
         break;
-    case FAULT_OVERLAPPING_VIRTUAL_SEGMENTS:
+    case FAULT_TOO_LARGE_ALLOCATION:
         __asm__ __volatile__("int $0x23" :::);
         break;
     default:

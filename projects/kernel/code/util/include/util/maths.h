@@ -23,7 +23,14 @@ extern "C" {
 #define CEILING_DIV_EXP(val, exponent)                                         \
     (((val) + ((TYPED_CONSTANT(val, 1) << (exponent)) - 1)) >> (exponent))
 #define CEILING_DIV_VALUE(val, divisor)                                        \
-    (((val) + ((divisor) - 1)) >> (__builtin_ctz(divisor)))
+    ({                                                                         \
+        typeof(divisor) _d = (divisor);                                        \
+        typeof(val) _v = (val);                                                \
+        int shift = _Generic((divisor),                                        \
+            U32: __builtin_ctz(_d),                                            \
+            U64: __builtin_ctzl(_d));                                          \
+        ((_v + _d - 1) >> shift);                                              \
+    })
 
 #define RING_RANGE_EXP(val, exponent)                                          \
     ((val) & ((TYPED_CONSTANT(val, 1) << (exponent)) - 1))
@@ -33,6 +40,17 @@ extern "C" {
 #define RING_DECREMENT(val, ringSize) (((val) - 1) & ((ringSize) - 1))
 #define RING_MINUS(val, amount, ringSize)                                      \
     (((val) - (amount)) & ((ringSize) - 1))
+
+#define NEXT_POWER_OF_2(x)                                                     \
+    ({                                                                         \
+        U64 _x = (x);                                                          \
+        _x--;                                                                  \
+        _x = (1ULL << (sizeof(x) * 8 - _Generic((x),                           \
+                                       U16: __builtin_clz(((U32)(_x)) - 16),   \
+                                       U32: __builtin_clz(_x),                 \
+                                       U64: __builtin_clzll(_x))));            \
+        _x;                                                                    \
+    })
 
 U64 power(U64 base, U64 exponent);
 
