@@ -13,7 +13,7 @@ BUILD_MODE="${BUILD_MODES[0]}"
 C_COMPILER=$(whereis clang-19 | awk '{ print $2 }')
 LINKER=$(whereis ld | awk '{ print $2 }')
 THREADS=$(grep -c ^processor /proc/cpuinfo)
-THREADS=1
+# THREADS=1
 # ASSEMBLER=$(readlink -f ../dependencies/fasmg/fasmg.x64)
 # ASSEMBLER_INCLUDE=$(readlink -f ../dependencies/fasmg/examples/x86/include/)
 

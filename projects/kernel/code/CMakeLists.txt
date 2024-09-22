@@ -13,7 +13,7 @@ include("../../setup.cmake")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
 # TODO: SSE is still broken!!!
-add_library(${MAIN_RESULT} OBJECT "src/main.c" "src/acpi/signature.c")
+add_library(${MAIN_RESULT} OBJECT "src/main.c")
 
 # Needs to be on top, since it takes care of the compile definition!
 if("${UNIT_TEST_BUILD}")
@@ -71,6 +71,7 @@ add_to_linker("memory-manipulation")
 get_target_property(MAIN_DEPENDENCIES ${MAIN_RESULT} INTERFACE_LINK_LIBRARIES)
 
 message(STATUS "Dependencies of ${MAIN_RESULT}: ${MAIN_DEPENDENCIES}")
+message(STATUS "Dependencies of ${MAIN_RESULT}: ${LINKING_LIBRARIES_LOCATIONS}")
 
 set(RESOURCES_NAME "resources")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})
@@ -112,8 +113,11 @@ if("${UNIT_TEST_BUILD}")
     return()
 endif()
 
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
+set(LINKER_TARGET "${MAIN_RESULT}-linker")
+add_custom_target(
+    ${LINKER_TARGET}
+    ALL
+    # OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
     COMMAND
         ${CMAKE_LINKER} -n -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
         -o ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
@@ -130,21 +134,32 @@ add_custom_command(
     BYPRODUCTS
         ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.asm
         ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.objdump
-    DEPENDS
-        $<TARGET_OBJECTS:${MAIN_RESULT}>
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
-        ${LINKING_LIBRARIES_LOCATIONS}
-        ${RESOURCE_OBJECTS}
+    # DEPENDS
+    #     $<TARGET_OBJECTS:${MAIN_RESULT}>
+    #     ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
+    #     ${LINKING_LIBRARIES_LOCATIONS}
+    #     ${RESOURCE_OBJECTS}
     COMMENT "Linking ${MAIN_RESULT}"
 )
+add_dependencies(${LINKER_TARGET} embedded-resources ${MAIN_RESULT})
 
+# add_custom_target(
+#     "${MAIN_RESULT}-linker"
+#     ALL
+#     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
+# )
+#
+set(BINARIZER "${MAIN_RESULT}-binarizer")
 set(MAIN_RESULT_BIN "${MAIN_RESULT}.bin")
 set(KERNEL_MAGIC_FOLDER
     "${REPO_ROOT}/projects/interoperation/code/include/interoperation/generated"
 )
 set(KERNEL_MAGIC_OUTPUT "${KERNEL_MAGIC_FOLDER}/kernel-magic.h")
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
+add_custom_target(
+    ${BINARIZER}
+    ALL
+    # OUTPUT
+    # ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
     COMMAND
         objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
         ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
@@ -158,8 +173,11 @@ add_custom_command(
     VERBATIM
     COMMENT "Copying binary data from ${MAIN_RESULT} into ${MAIN_RESULT_BIN}"
 )
-add_custom_target(
-    "${MAIN_RESULT}-binary-creator"
-    ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
-)
+add_dependencies(${BINARIZER} ${LINKER_TARGET})
+
+#
+# add_custom_target(
+#     "${MAIN_RESULT}-binary-creator"
+#     ALL
+#     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
+# )
