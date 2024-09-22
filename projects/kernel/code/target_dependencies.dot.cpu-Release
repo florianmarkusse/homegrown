@@ -1,8 +1,0 @@
-digraph "cpu-Release" {
-node [
-  fontsize = "12"
-];
-    "node0" [ label = "cpu-Release", shape = octagon ];
-    "node1" [ label = "memory-manipulation-Release", shape = octagon ];
-    "node0" -> "node1"  // cpu-Release -> memory-manipulation-Release
-}
