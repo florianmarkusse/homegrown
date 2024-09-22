@@ -117,7 +117,6 @@ set(LINKER_TARGET "${MAIN_RESULT}-linker")
 add_custom_target(
     ${LINKER_TARGET}
     ALL
-    # OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
     COMMAND
         ${CMAKE_LINKER} -n -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
         -o ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
@@ -134,21 +133,10 @@ add_custom_target(
     BYPRODUCTS
         ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.asm
         ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.objdump
-    # DEPENDS
-    #     $<TARGET_OBJECTS:${MAIN_RESULT}>
-    #     ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
-    #     ${LINKING_LIBRARIES_LOCATIONS}
-    #     ${RESOURCE_OBJECTS}
     COMMENT "Linking ${MAIN_RESULT}"
 )
 add_dependencies(${LINKER_TARGET} embedded-resources ${MAIN_RESULT})
 
-# add_custom_target(
-#     "${MAIN_RESULT}-linker"
-#     ALL
-#     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
-# )
-#
 set(BINARIZER "${MAIN_RESULT}-binarizer")
 set(MAIN_RESULT_BIN "${MAIN_RESULT}.bin")
 set(KERNEL_MAGIC_FOLDER
@@ -158,8 +146,6 @@ set(KERNEL_MAGIC_OUTPUT "${KERNEL_MAGIC_FOLDER}/kernel-magic.h")
 add_custom_target(
     ${BINARIZER}
     ALL
-    # OUTPUT
-    # ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
     COMMAND
         objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
         ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
@@ -174,10 +160,3 @@ add_custom_target(
     COMMENT "Copying binary data from ${MAIN_RESULT} into ${MAIN_RESULT_BIN}"
 )
 add_dependencies(${BINARIZER} ${LINKER_TARGET})
-
-#
-# add_custom_target(
-#     "${MAIN_RESULT}-binary-creator"
-#     ALL
-#     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
-# )
