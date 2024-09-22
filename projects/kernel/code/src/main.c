@@ -16,7 +16,7 @@
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
-static U64 threadScratchMemory = 2 * MiB;
+#define INIT_MEMORY (64 * MiB)
 
 __attribute__((section("kernel-start"))) int kernelmain() {
     KernelParameters *kernelParameters =
@@ -29,16 +29,13 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     initPhysicalMemoryManager(kernelMemory);
     initVirtualMemoryManager(kernelParameters->level4PageTable, kernelMemory);
 
-    void *mappedMemory = allocAndMap(threadScratchMemory);
-
-    Arena arena = (Arena){.beg = mappedMemory,
-                          .origBeg = mappedMemory,
-                          .end = mappedMemory + threadScratchMemory};
+    void *initMemory = allocAndMap(INIT_MEMORY);
+    Arena arena = (Arena){.beg = initMemory,
+                          .origBeg = initMemory,
+                          .end = initMemory + INIT_MEMORY};
     jmp_buf jumper;
     if (setjmp(jumper)) {
-        FLUSH_AFTER {
-            LOG(STRING("Ran out of thread scratch memory capacity\n"));
-        }
+        FLUSH_AFTER { LOG(STRING("Ran out of init memory capacity\n")); }
         while (1) {
             ;
         }
@@ -49,25 +46,17 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                                  .size = kernelParameters->fb.size,
                                  .width = kernelParameters->fb.columns,
                                  .height = kernelParameters->fb.rows,
-                                 .screen = (U32 *)kernelParameters->fb.ptr});
+                                 .screen = (U32 *)kernelParameters->fb.ptr},
+               &arena);
 
     // This is still logging stuff when it fails so it is only useful after
     // setting up the screen but if the stuff before fails we are fucked.
     initIDT();
 
     FLUSH_AFTER {
-        LOG(STRING("size of thing is:"));
-        LOG(kernelParameters->fb.size, NEWLINE);
         appendPhysicalMemoryManagerStatus();
         appendVirtualMemoryManagerStatus();
     }
-
-    FLUSH_AFTER {
-        //
-        LOG(SIZEOF(VirtualEntry));
-    }
-
-    freeMapped((U64)mappedMemory, threadScratchMemory);
 
     while (1) {
         ;

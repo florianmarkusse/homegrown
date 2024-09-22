@@ -45,8 +45,8 @@ typedef struct {
     };
 } VirtualEntry;
 
-static inline U64 getPhysicalAddress(VirtualEntry entry) {
-    return entry.value & 0x000FFFFFFFFF000;
+static inline U64 getPhysicalAddress(U64 virtualPage) {
+    return virtualPage & 0x000FFFFFFFFF000;
 }
 
 typedef struct {

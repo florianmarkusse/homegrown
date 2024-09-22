@@ -523,11 +523,14 @@ bool flushToScreen(U8_max_a buffer) {
     return true;
 }
 
-void initScreen(ScreenDimension dimension) {
+void initScreen(ScreenDimension dimension, Arena *perm) {
     /*// TODO: Replace with alloc on arena for sure!*/
 
+    // Need correct alignment
+    U32 *doubleBuffer = NEW(perm, U32, CEILING_DIV_EXP(dimension.size, 2));
+
     dim = (ScreenDimension){.screen = dimension.screen,
-                            .backingBuffer = allocAndMap(dimension.size),
+                            .backingBuffer = doubleBuffer,
                             .size = dimension.size,
                             .width = dimension.width,
                             .height = dimension.height,

@@ -3,6 +3,7 @@
 
 #include "interoperation/array-types.h"
 #include "interoperation/types.h" // for U32, U8, U64, I64, I8, U16
+#include "memory/management/allocator/arena.h"
 
 // This struct implicitly assumes that there are 4 bytes per pixel, hence a
 // uint32 buffer
@@ -14,7 +15,7 @@ typedef struct {
     U32 height;
     U32 scanline;
 } ScreenDimension;
-void initScreen(ScreenDimension dimension);
+void initScreen(ScreenDimension dimension, Arena *perm);
 // TODO: needs buffer as argument when memory is set up
 void rewind(U16 numberOfScreenLines);
 void prowind(U16 numberOfScreenLines);

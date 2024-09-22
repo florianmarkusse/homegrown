@@ -3,6 +3,7 @@
 
 #include "interoperation/types.h"
 #include "memory/management/allocator/macros.h"
+#include "util/macros.h"
 
 typedef struct {
     U8 *beg;

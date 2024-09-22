@@ -64,13 +64,38 @@ void *allocContiguousAndMap(U64 numberOfPages, PageSize pageSize) {
 
 void freeMapped(U64 start, U64 bytes) {
     ASSERT((start >> PAGE_FRAME_SHIFT));
+    U64 end = start + bytes;
 
     MappedPage page = getMappedPage(start);
+    U64 physicalOfPage = getPhysicalAddress(page.entry.value);
 
-    FLUSH_AFTER {
-        LOG(STRING("Got virtual page:\t"));
-        LOG(page.entry.value, NEWLINE);
-        LOG(STRING("Page Size:\t"));
-        LOG(page.pageSize, NEWLINE);
+    PagedMemory pagedEntry =
+        (PagedMemory){.pageStart = physicalOfPage, .numberOfPages = 1};
+
+    PageSize previousPageSize = page.pageSize;
+    U64 nextPhysical = physicalOfPage + previousPageSize;
+
+    start += page.pageSize;
+    while (start < end) {
+        page = getMappedPage(start);
+        physicalOfPage = getPhysicalAddress(page.entry.value);
+
+        if (physicalOfPage == nextPhysical &&
+            previousPageSize == page.pageSize) {
+            pagedEntry.numberOfPages++;
+            nextPhysical += previousPageSize;
+        } else {
+            freePhysicalPage(pagedEntry, previousPageSize);
+
+            pagedEntry =
+                (PagedMemory){.pageStart = physicalOfPage, .numberOfPages = 1};
+
+            previousPageSize = page.pageSize;
+            nextPhysical = physicalOfPage + previousPageSize;
+        }
+
+        start += page.pageSize;
     }
+
+    freePhysicalPage(pagedEntry, previousPageSize);
 }
