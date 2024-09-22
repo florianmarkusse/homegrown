@@ -1,9 +1,9 @@
 #include "memory/management/policy.h"
 #include "cpu/idt.h"
 #include "interoperation/memory/definitions.h"
-#include "log/log.h"
 #include "memory/management/physical.h"
 #include "memory/management/virtual.h"
+#include "util/assert.h"
 #include "util/maths.h"
 
 void *allocAndMap(U64 bytes) {

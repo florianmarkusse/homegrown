@@ -12,6 +12,8 @@ BUILD_MODES=("Release" "Debug" "Profiling" "Fuzzing")
 BUILD_MODE="${BUILD_MODES[0]}"
 C_COMPILER=$(whereis clang-19 | awk '{ print $2 }')
 LINKER=$(whereis ld | awk '{ print $2 }')
+THREADS=$(grep -c ^processor /proc/cpuinfo)
+THREADS=1
 # ASSEMBLER=$(readlink -f ../dependencies/fasmg/fasmg.x64)
 # ASSEMBLER_INCLUDE=$(readlink -f ../dependencies/fasmg/examples/x86/include/)
 
@@ -158,6 +160,7 @@ CONFIGURE_CMAKE_OPTIONS=(
     -S .
     -B "$BUILD_DIRECTORY"
     -D CMAKE_C_COMPILER="$C_COMPILER"
+    --graphviz=target_dependencies.dot
     -D CMAKE_LINKER="$LINKER"
     -D CMAKE_BUILD_TYPE="$BUILD_MODE"
     -D USE_AVX="$USE_AVX"
@@ -176,7 +179,7 @@ fi
 echo -e "${BOLD}cmake ${CONFIGURE_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${CONFIGURE_CMAKE_OPTIONS[@]}"
 
-BUILD_CMAKE_OPTIONS=(--build "$BUILD_DIRECTORY")
+BUILD_CMAKE_OPTIONS=(--build "$BUILD_DIRECTORY" -j "${THREADS}")
 if [ "${#SELECTED_TARGETS[@]}" -gt 0 ]; then
     BUILD_CMAKE_OPTIONS+=("--target")
     for target in "${SELECTED_TARGETS[@]}"; do
@@ -220,7 +223,7 @@ fi
 echo -e "${BOLD}cmake ${CONFIGURE_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${CONFIGURE_CMAKE_OPTIONS[@]}"
 
-BUILD_CMAKE_OPTIONS=(--build build/)
+BUILD_CMAKE_OPTIONS=(--build build/ -j "${THREADS}")
 echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
@@ -268,7 +271,7 @@ fi
 echo -e "${BOLD}cmake ${CONFIGURE_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${CONFIGURE_CMAKE_OPTIONS[@]}"
 
-BUILD_CMAKE_OPTIONS=(--build build/)
+BUILD_CMAKE_OPTIONS=(--build build/ -j "${THREADS}")
 echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
 
@@ -300,7 +303,7 @@ fi
 echo -e "${BOLD}cmake ${CONFIGURE_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${CONFIGURE_CMAKE_OPTIONS[@]}"
 
-BUILD_CMAKE_OPTIONS=(--build build/)
+BUILD_CMAKE_OPTIONS=(--build build/ -j "${THREADS}")
 echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
 cmake "${BUILD_CMAKE_OPTIONS[@]}"
 

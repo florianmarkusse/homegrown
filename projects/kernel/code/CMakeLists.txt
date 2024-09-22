@@ -31,6 +31,7 @@ add_subdirectory("peripheral")
 add_subdirectory("log")
 add_subdirectory("text")
 add_subdirectory("util")
+add_subdirectory("status")
 
 target_include_directories(
     ${MAIN_RESULT}
@@ -48,22 +49,28 @@ target_include_directories(
 set(LINKING_LIBRARIES_LOCATIONS)
 
 function(add_to_linker name)
-    target_link_libraries(${MAIN_RESULT} PRIVATE ${name}-${CMAKE_BUILD_TYPE})
+    set(DEPENDENT_NAME ${name}-${CMAKE_BUILD_TYPE})
+    target_link_libraries(${MAIN_RESULT} PRIVATE ${DEPENDENT_NAME})
     string(REPLACE "-" "/" slashenated "${name}")
     set(lib_path
-        "${CMAKE_CURRENT_BINARY_DIR}/${slashenated}/lib${name}-${CMAKE_BUILD_TYPE}.a"
+        "${CMAKE_CURRENT_BINARY_DIR}/${slashenated}/lib${DEPENDENT_NAME}.a"
     )
     list(APPEND LINKING_LIBRARIES_LOCATIONS ${lib_path})
     set(LINKING_LIBRARIES_LOCATIONS ${LINKING_LIBRARIES_LOCATIONS} PARENT_SCOPE)
 endfunction()
 
+add_to_linker("status")
 add_to_linker("peripheral-screen")
-add_to_linker("cpu")
 add_to_linker("memory-management")
 add_to_linker("log")
 add_to_linker("text")
-add_to_linker("memory-manipulation")
 add_to_linker("util")
+add_to_linker("cpu")
+add_to_linker("memory-manipulation")
+
+get_target_property(MAIN_DEPENDENCIES ${MAIN_RESULT} INTERFACE_LINK_LIBRARIES)
+
+message(STATUS "Dependencies of ${MAIN_RESULT}: ${MAIN_DEPENDENCIES}")
 
 set(RESOURCES_NAME "resources")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})

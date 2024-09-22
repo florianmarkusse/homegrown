@@ -1,0 +1,12 @@
+digraph "log-Release" {
+node [
+  fontsize = "12"
+];
+    "node2" [ label = "log-Release", shape = octagon ];
+    "node1" [ label = "kernel-Release", shape = hexagon ];
+    "node1" -> "node2" [ style = dotted ] // kernel-Release -> log-Release
+    "node8" [ label = "status-Release", shape = octagon ];
+    "node8" -> "node2"  // status-Release -> log-Release
+    "node1" [ label = "kernel-Release", shape = hexagon ];
+    "node1" -> "node8" [ style = dotted ] // kernel-Release -> status-Release
+}

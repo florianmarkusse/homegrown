@@ -1,7 +1,4 @@
 #include "cpu/idt.h"
-#include "log/log.h" // for LOG, LOG_CHOOSER_IMPL_1, LOG_CHOOSER...
-#include "memory/manipulation/manipulation.h"
-#include "text/string.h" // for STRING, string
 
 extern void isr0();
 extern void isr1();
@@ -287,9 +284,6 @@ void initIDT() {
     /* Sets the special IDT pointer up, just like in 'gdt.c' */
     idtp.limit = (sizeof(InterruptDescriptor) * 256) - 1;
     idtp.base = (U64)&idt;
-
-    /* Clear out the entire IDT, initializing it to zeros */
-    memset(&idt, 0, sizeof(InterruptDescriptor) * 256);
 
     idt_set_gate(0, (U64)isr0, INTERRUPT_GATE);
     idt_set_gate(1, (U64)isr1, INTERRUPT_GATE);
@@ -704,16 +698,16 @@ typedef struct {
     //    U64 ss;
 } regs __attribute__((aligned(8)));
 
-void fault_handler(regs *regs) {
-    FLUSH_AFTER {
-        LOG(STRING("ISR fault handler triggered!\n"));
-        LOG(STRING("Interrupt #: "));
-        LOG(regs->int_no);
-        LOG(STRING(", Interrupt Message: "));
-        LOG(faultToString[regs->int_no], NEWLINE);
-        LOG(STRING("Error code: "));
-        LOG(regs->err_code, NEWLINE);
-        LOG(STRING("Halting...\n"));
-    }
+void fault_handler([[maybe_unused]] regs *regs) {
+    /*FLUSH_AFTER {*/
+    /*    LOG(STRING("ISR fault handler triggered!\n"));*/
+    /*    LOG(STRING("Interrupt #: "));*/
+    /*    LOG(regs->int_no);*/
+    /*    LOG(STRING(", Interrupt Message: "));*/
+    /*    LOG(faultToString[regs->int_no], NEWLINE);*/
+    /*    LOG(STRING("Error code: "));*/
+    /*    LOG(regs->err_code, NEWLINE);*/
+    /*    LOG(STRING("Halting...\n"));*/
+    /*}*/
     __asm__ __volatile__("cli;hlt;");
 }

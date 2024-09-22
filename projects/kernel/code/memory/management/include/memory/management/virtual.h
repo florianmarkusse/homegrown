@@ -56,7 +56,46 @@ typedef struct {
     };
 } PageEntry;
 
-void appendVirtualMemoryManagerStatus();
+typedef struct {
+    U64 start;
+    U64 end;
+} VirtualRegion;
+
+typedef struct {
+    U64 pages[PAGE_TABLE_ENTRIES];
+} VirtualPageTable;
+
+static VirtualPageTable *level4PageTable;
+
+static VirtualRegion higherHalfRegion = {.start = HIGHER_HALF_START,
+                                         .end = KERNEL_SPACE_START};
+// Start is set in the init function.
+static VirtualRegion lowerHalfRegion = {.start = 0, .end = LOWER_HALF_END};
+
+typedef enum {
+    PAT_UNCACHABLE_UC = 0x0,
+    PAT_WRITE_COMBINGING_WC = 0x1,
+    PAT_RESERVED_2 = 0x2,
+    PAT_RESERVED_3 = 0x3,
+    PAT_WRITE_THROUGH_WT = 0x4,
+    PAT_WRITE_PROTECTED_WP = 0x5,
+    PAT_WRITE_BACK_WB = 0x6,
+    PAT_UNCACHED_UC_ = 0x7,
+    PAT_NUMS
+} PATEncoding;
+
+#define PAT_LOCATION 0x277
+
+typedef struct {
+    U8 pat : 3;
+    U8 reserved : 5;
+} PATEntry;
+typedef struct {
+    union {
+        PATEntry pats[8];
+        U64 value;
+    };
+} PAT;
 
 void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory);
 

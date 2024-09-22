@@ -2,7 +2,6 @@
 #include "cpu/x86.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/types.h"
-#include "log/log.h"
 #include "memory/management/definitions.h"
 #include "memory/management/physical.h"
 #include "memory/manipulation/manipulation.h"
@@ -24,22 +23,6 @@ static U8 pageSizeToDepth(PageSize pageSize) {
     }
 }
 
-typedef struct {
-    U64 start;
-    U64 end;
-} VirtualRegion;
-
-VirtualRegion higherHalfRegion = {.start = HIGHER_HALF_START,
-                                  .end = KERNEL_SPACE_START};
-// Start is set in the init function.
-VirtualRegion lowerHalfRegion = {.start = 0, .end = LOWER_HALF_END};
-
-typedef struct {
-    U64 pages[PAGE_TABLE_ENTRIES];
-} VirtualPageTable;
-
-static VirtualPageTable *level4PageTable;
-
 static U64 getZeroBasePage() {
     PagedMemory memoryForAddresses[1];
     PagedMemory_a memory =
@@ -49,38 +32,6 @@ static U64 getZeroBasePage() {
     memset((void *)memory.buf[0].pageStart, 0, PAGE_FRAME_SIZE);
     return memory.buf[0].pageStart;
 }
-
-#define PAT_LOCATION 0x277
-
-typedef enum {
-    PAT_UNCACHABLE_UC = 0x0,
-    PAT_WRITE_COMBINGING_WC = 0x1,
-    PAT_RESERVED_2 = 0x2,
-    PAT_RESERVED_3 = 0x3,
-    PAT_WRITE_THROUGH_WT = 0x4,
-    PAT_WRITE_PROTECTED_WP = 0x5,
-    PAT_WRITE_BACK_WB = 0x6,
-    PAT_UNCACHED_UC_ = 0x7,
-    PAT_NUMS
-} PATEncoding;
-
-static string patEncodingToString[PAT_NUMS] = {
-    STRING("Uncachable (UC)"),        STRING("Write Combining (WC)"),
-    STRING("Reserved 1, don't use!"), STRING("Reserved 2, don't use!"),
-    STRING("Write Through (WT)"),     STRING("Write Protected (WP)"),
-    STRING("Write Back (WB)"),        STRING("Uncached (UC-)"),
-};
-
-typedef struct {
-    U8 pat : 3;
-    U8 reserved : 5;
-} PATEntry;
-typedef struct {
-    union {
-        PATEntry pats[8];
-        U64 value;
-    };
-} PAT;
 
 U64 getVirtualMemory(U64 size, PageSize alignValue) {
     ASSERT(size <= JUMBO_PAGE_SIZE);
@@ -96,33 +47,6 @@ U64 getVirtualMemory(U64 size, PageSize alignValue) {
 
     higherHalfRegion.start += size;
     return result;
-}
-
-static void appendVirtualRegionStatus(VirtualRegion region) {
-    LOG(STRING("Start: "));
-    LOG((void *)region.start, NEWLINE);
-    LOG(STRING("End: "));
-    LOG((void *)region.end, NEWLINE);
-}
-
-void appendVirtualMemoryManagerStatus() {
-    LOG(STRING("Available Virtual Memory\n"));
-    LOG(STRING("Lower half (0x0000_000000000000):\n"));
-    appendVirtualRegionStatus(lowerHalfRegion);
-    LOG(STRING("Higher half(0xFFFF_000000000000):\n"));
-    appendVirtualRegionStatus(higherHalfRegion);
-
-    LOG(STRING("CR3/root page table address is: "));
-    LOG((void *)level4PageTable, NEWLINE);
-
-    PAT patValues = {.value = rdmsr(PAT_LOCATION)};
-    LOG(STRING("PAT MSR set to:\n"));
-    for (U8 i = 0; i < 8; i++) {
-        LOG(STRING("PAT "));
-        LOG(i);
-        LOG(STRING(": "));
-        LOG(patEncodingToString[patValues.pats[i].pat], NEWLINE);
-    }
 }
 
 static void programPat() {

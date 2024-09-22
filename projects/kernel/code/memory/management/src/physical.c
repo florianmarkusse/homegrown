@@ -4,25 +4,9 @@
 #include "interoperation/memory/definitions.h" // for PAGE_FRAME_SIZE
 #include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h" // for U64, U32, U8
-#include "log/log.h"              // for LOG, LOG_CHOOSER_IMPL_1
 #include "memory/manipulation/manipulation.h"
-#include "text/string.h" // for STRING
 #include "util/assert.h"
 #include "util/maths.h"
-
-static string pageSizeToString(PageSize pageSize) {
-    switch (pageSize) {
-    case BASE_PAGE: {
-        return STRING("Base page frame, 4KiB");
-    }
-    case LARGE_PAGE: {
-        return STRING("Large page, 2MiB");
-    }
-    default: {
-        return STRING("Huge page, 1GiB");
-    }
-    }
-}
 
 static U64 toLargerPages(U64 numberOfPages) {
     return numberOfPages >> PAGE_TABLE_SHIFT;
@@ -39,16 +23,6 @@ static PageSize toLargerPageSize(PageSize pageSize) {
 static PageSize toSmallerPageSize(PageSize pageSize) {
     return pageSize >> PAGE_TABLE_SHIFT;
 }
-
-typedef struct {
-    PagedMemory_max_a memory;
-    U32 usedBasePages;
-    PageSize pageSize;
-} PhysicalMemoryManager;
-
-static PhysicalMemoryManager basePMM;
-static PhysicalMemoryManager largePMM;
-static PhysicalMemoryManager hugePMM;
 
 static void decreasePages(PhysicalMemoryManager *manager, U64 index,
                           U64 decreaseBy) {
@@ -231,35 +205,6 @@ void freePhysicalPage(PagedMemory page, PageSize pageSize) {
     return freePhysicalPagesWithManager(
         (PagedMemory_a){.len = 1, .buf = (PagedMemory[]){page}},
         getMemoryManager(pageSize));
-}
-
-static void appendPMMStatus(PhysicalMemoryManager manager) {
-    LOG(STRING("Type: "));
-    LOG(pageSizeToString(manager.pageSize), NEWLINE);
-    LOG(STRING("Used base page frames for internal structure: "));
-    LOG(manager.usedBasePages, NEWLINE);
-    LOG(STRING("Free pages:\t"));
-    U64 totalPages = 0;
-    for (U64 i = 0; i < manager.memory.len; i++) {
-        LOG(manager.memory.buf[i].numberOfPages);
-        LOG(STRING(" "));
-        totalPages += manager.memory.buf[i].numberOfPages;
-    }
-    LOG(STRING(" Total: "));
-    LOG(totalPages, NEWLINE);
-    LOG(STRING("Total memory regions:\t"));
-    LOG(manager.memory.len, NEWLINE);
-}
-
-void appendPhysicalMemoryManagerStatus() {
-    LOG(STRING("Physical Memory status\n"));
-    LOG(STRING("================\n"));
-    appendPMMStatus(basePMM);
-    LOG(STRING("================\n"));
-    appendPMMStatus(largePMM);
-    LOG(STRING("================\n"));
-    appendPMMStatus(hugePMM);
-    LOG(STRING("================\n"));
 }
 
 static void initPMM(PageSize pageType) {

@@ -24,6 +24,16 @@ typedef struct {
     };
 } PhysicalHugePage;
 
+typedef struct {
+    PagedMemory_max_a memory;
+    U32 usedBasePages;
+    PageSize pageSize;
+} PhysicalMemoryManager;
+
+static PhysicalMemoryManager basePMM;
+static PhysicalMemoryManager largePMM;
+static PhysicalMemoryManager hugePMM;
+
 void initPhysicalMemoryManager(KernelMemory kernelMemory);
 
 U64 allocContiguousPhysicalPages(U64 numberOfPages, PageSize pageSize);
@@ -31,7 +41,5 @@ PagedMemory_a allocPhysicalPages(PagedMemory_a pages, PageSize pageSize);
 
 void freePhysicalPage(PagedMemory page, PageSize pageSize);
 void freePhysicalPages(PagedMemory_a pages, PageSize pageSize);
-
-void appendPhysicalMemoryManagerStatus();
 
 #endif

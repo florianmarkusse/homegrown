@@ -1,0 +1,10 @@
+digraph "text-Release" {
+node [
+  fontsize = "12"
+];
+    "node7" [ label = "text-Release", shape = octagon ];
+    "node3" [ label = "memory-manipulation-Release", shape = octagon ];
+    "node7" -> "node3"  // text-Release -> memory-manipulation-Release
+    "node6" [ label = "util-Release", shape = octagon ];
+    "node7" -> "node6"  // text-Release -> util-Release
+}

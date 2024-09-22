@@ -1,0 +1,8 @@
+digraph "status-Release" {
+node [
+  fontsize = "12"
+];
+    "node8" [ label = "status-Release", shape = octagon ];
+    "node1" [ label = "kernel-Release", shape = hexagon ];
+    "node1" -> "node8" [ style = dotted ] // kernel-Release -> status-Release
+}

@@ -1,0 +1,28 @@
+digraph "cpu-Release" {
+node [
+  fontsize = "12"
+];
+    "node0" [ label = "cpu-Release", shape = octagon ];
+    "node1" [ label = "kernel-Release", shape = hexagon ];
+    "node1" -> "node0" [ style = dotted ] // kernel-Release -> cpu-Release
+    "node4" [ label = "peripheral-screen-Release", shape = octagon ];
+    "node4" -> "node0"  // peripheral-screen-Release -> cpu-Release
+    "node2" [ label = "log-Release", shape = octagon ];
+    "node2" -> "node4"  // log-Release -> peripheral-screen-Release
+    "node1" [ label = "kernel-Release", shape = hexagon ];
+    "node1" -> "node2" [ style = dotted ] // kernel-Release -> log-Release
+    "node8" [ label = "status-Release", shape = octagon ];
+    "node8" -> "node2"  // status-Release -> log-Release
+    "node1" [ label = "kernel-Release", shape = hexagon ];
+    "node1" -> "node8" [ style = dotted ] // kernel-Release -> status-Release
+    "node1" [ label = "kernel-Release", shape = hexagon ];
+    "node1" -> "node4" [ style = dotted ] // kernel-Release -> peripheral-screen-Release
+    "node8" [ label = "status-Release", shape = octagon ];
+    "node8" -> "node4"  // status-Release -> peripheral-screen-Release
+    "node5" [ label = "memory-management-Release", shape = octagon ];
+    "node5" -> "node0"  // memory-management-Release -> cpu-Release
+    "node4" [ label = "peripheral-screen-Release", shape = octagon ];
+    "node4" -> "node5"  // peripheral-screen-Release -> memory-management-Release
+    "node1" [ label = "kernel-Release", shape = hexagon ];
+    "node1" -> "node5" [ style = dotted ] // kernel-Release -> memory-management-Release
+}

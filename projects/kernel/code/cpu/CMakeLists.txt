@@ -27,8 +27,3 @@ target_include_directories(
     ${LIBRARY}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-
-target_link_libraries(${LIBRARY} PUBLIC util-${CMAKE_BUILD_TYPE})
-target_link_libraries(${LIBRARY} PUBLIC memory-manipulation-${CMAKE_BUILD_TYPE})
-target_link_libraries(${LIBRARY} PUBLIC log-${CMAKE_BUILD_TYPE})
-target_link_libraries(${LIBRARY} PUBLIC text-${CMAKE_BUILD_TYPE})

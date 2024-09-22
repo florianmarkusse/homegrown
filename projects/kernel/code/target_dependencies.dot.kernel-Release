@@ -1,0 +1,54 @@
+digraph "kernel-Release" {
+node [
+  fontsize = "12"
+];
+    "node1" [ label = "kernel-Release", shape = hexagon ];
+    "node0" [ label = "cpu-Release", shape = octagon ];
+    "node1" -> "node0" [ style = dotted ] // kernel-Release -> cpu-Release
+    "node2" [ label = "log-Release", shape = octagon ];
+    "node1" -> "node2" [ style = dotted ] // kernel-Release -> log-Release
+    "node3" [ label = "memory-manipulation-Release", shape = octagon ];
+    "node2" -> "node3"  // log-Release -> memory-manipulation-Release
+    "node4" [ label = "peripheral-screen-Release", shape = octagon ];
+    "node2" -> "node4"  // log-Release -> peripheral-screen-Release
+    "node0" [ label = "cpu-Release", shape = octagon ];
+    "node4" -> "node0"  // peripheral-screen-Release -> cpu-Release
+    "node5" [ label = "memory-management-Release", shape = octagon ];
+    "node4" -> "node5"  // peripheral-screen-Release -> memory-management-Release
+    "node0" [ label = "cpu-Release", shape = octagon ];
+    "node5" -> "node0"  // memory-management-Release -> cpu-Release
+    "node3" [ label = "memory-manipulation-Release", shape = octagon ];
+    "node5" -> "node3"  // memory-management-Release -> memory-manipulation-Release
+    "node6" [ label = "util-Release", shape = octagon ];
+    "node5" -> "node6"  // memory-management-Release -> util-Release
+    "node3" [ label = "memory-manipulation-Release", shape = octagon ];
+    "node4" -> "node3"  // peripheral-screen-Release -> memory-manipulation-Release
+    "node6" [ label = "util-Release", shape = octagon ];
+    "node4" -> "node6"  // peripheral-screen-Release -> util-Release
+    "node7" [ label = "text-Release", shape = octagon ];
+    "node2" -> "node7"  // log-Release -> text-Release
+    "node3" [ label = "memory-manipulation-Release", shape = octagon ];
+    "node7" -> "node3"  // text-Release -> memory-manipulation-Release
+    "node6" [ label = "util-Release", shape = octagon ];
+    "node7" -> "node6"  // text-Release -> util-Release
+    "node6" [ label = "util-Release", shape = octagon ];
+    "node2" -> "node6"  // log-Release -> util-Release
+    "node5" [ label = "memory-management-Release", shape = octagon ];
+    "node1" -> "node5" [ style = dotted ] // kernel-Release -> memory-management-Release
+    "node3" [ label = "memory-manipulation-Release", shape = octagon ];
+    "node1" -> "node3" [ style = dotted ] // kernel-Release -> memory-manipulation-Release
+    "node4" [ label = "peripheral-screen-Release", shape = octagon ];
+    "node1" -> "node4" [ style = dotted ] // kernel-Release -> peripheral-screen-Release
+    "node8" [ label = "status-Release", shape = octagon ];
+    "node1" -> "node8" [ style = dotted ] // kernel-Release -> status-Release
+    "node2" [ label = "log-Release", shape = octagon ];
+    "node8" -> "node2"  // status-Release -> log-Release
+    "node4" [ label = "peripheral-screen-Release", shape = octagon ];
+    "node8" -> "node4"  // status-Release -> peripheral-screen-Release
+    "node7" [ label = "text-Release", shape = octagon ];
+    "node8" -> "node7"  // status-Release -> text-Release
+    "node7" [ label = "text-Release", shape = octagon ];
+    "node1" -> "node7" [ style = dotted ] // kernel-Release -> text-Release
+    "node6" [ label = "util-Release", shape = octagon ];
+    "node1" -> "node6" [ style = dotted ] // kernel-Release -> util-Release
+}

@@ -1,9 +1,11 @@
 #include "peripheral/screen/screen.h"
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
-#include "util/assert.h"                // for ASSERT
+#include "memory/management/allocator/arena.h"
+#include "util/assert.h" // for ASSERT
 #include <unistd.h>
 
-void initScreen([[maybe_unused]] ScreenDimension dimension) {
+void initScreen([[maybe_unused]] ScreenDimension dimension,
+                [[maybe_unused]] Arena *perm) {
     // Stubs for now.
 }
 void rewind([[maybe_unused]] U16 numberOfScreenLines) {

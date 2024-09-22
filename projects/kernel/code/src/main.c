@@ -10,6 +10,7 @@
 #include "memory/management/policy.h"
 #include "memory/management/virtual.h"
 #include "peripheral/screen/screen.h"
+#include "status/memory.h"
 #include "text/string.h" // for STRING
 #include "util/jmp.h"    // for setupIDT
 #include "util/sizes.h"
