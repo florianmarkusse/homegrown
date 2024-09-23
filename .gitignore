@@ -4,6 +4,7 @@
 /lib/
 .cache
 /tests/build/
+.dot
 
 # IDE-specific files and directories
 .vscode/
