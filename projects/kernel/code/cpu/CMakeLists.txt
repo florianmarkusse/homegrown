@@ -19,6 +19,10 @@ endif()
 
 add_library(${LIBRARY} ${LIBRARY_TYPE} ${SOURCE_FILES})
 
+if("${UNIT_TEST_BUILD}")
+    target_link_libraries(${LIBRARY} PRIVATE util-${CMAKE_BUILD_TYPE})
+endif()
+
 target_include_directories(
     ${LIBRARY}
     PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"

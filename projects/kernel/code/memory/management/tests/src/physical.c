@@ -25,7 +25,9 @@
 #define EXPECT_NO_FAILURE                                                      \
     if (__builtin_setjmp(jmp_buf)) {                                           \
         static bool expectedFaults[FAULT_NUMS];                                \
-        TEST_FAILURE { appendInterrupts(expectedFaults); }                     \
+        TEST_FAILURE {                                                         \
+            appendInterrupts(expectedFaults, getTriggeredFaults());            \
+        }                                                                      \
         break;                                                                 \
     }
 
@@ -37,7 +39,9 @@
             testSuccess();                                                     \
             break;                                                             \
         } else {                                                               \
-            TEST_FAILURE { appendInterrupts(expectedFaults); }                 \
+            TEST_FAILURE {                                                     \
+                appendInterrupts(expectedFaults, getTriggeredFaults());        \
+            }                                                                  \
             break;                                                             \
         }                                                                      \
     }

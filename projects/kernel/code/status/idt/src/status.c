@@ -55,8 +55,7 @@ void appendExpectedInterrupt(Fault fault) {
     LOG(STRING("\n"));
 }
 
-void appendInterrupts(bool *expectedFaults) {
-    bool *actualFaults = getTriggeredFaults();
+void appendInterrupts(bool *expectedFaults, bool *actualFaults) {
     LOG(STRING("Interrupts Table\n"));
     for (U64 i = 0; i < FAULT_NUMS; i++) {
         appendInterrupt(i);

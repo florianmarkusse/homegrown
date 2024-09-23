@@ -10,9 +10,8 @@
 #include "memory/management/policy.h"
 #include "memory/management/virtual.h"
 #include "peripheral/screen/screen.h"
-#include "status/memory.h"
+#include "status/memory/status.h"
 #include "text/string.h" // for STRING
-#include "util/jmp.h"    // for setupIDT
 #include "util/sizes.h"
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
@@ -34,8 +33,8 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     Arena arena = (Arena){.beg = initMemory,
                           .origBeg = initMemory,
                           .end = initMemory + INIT_MEMORY};
-    jmp_buf jumper;
-    if (setjmp(jumper)) {
+    void *jumper[5];
+    if (__builtin_setjmp(jumper)) {
         FLUSH_AFTER { LOG(STRING("Ran out of init memory capacity\n")); }
         while (1) {
             ;

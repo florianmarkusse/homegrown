@@ -1,4 +1,4 @@
-project(memory-status LANGUAGES C ASM)
+project(status-memory LANGUAGES C ASM)
 
 set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 set(LIBRARY_TYPE "STATIC")

@@ -18,8 +18,6 @@ typedef struct {
     U32 zero;           // reserved
 } __attribute__((packed)) InterruptDescriptor;
 
-void initIDT();
-
 typedef enum : U64 {
     FAULT_DIVIDE_ERROR = 0,
     FAULT_DEBUG = 1,
@@ -63,6 +61,7 @@ typedef enum : U64 {
     FAULT_NUMS
 } Fault;
 
+void initIDT();
 __attribute__((noreturn)) void triggerFault(Fault fault);
 
 #ifdef UNIT_TEST_BUILD

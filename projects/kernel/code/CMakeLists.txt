@@ -60,7 +60,7 @@ function(add_to_linker name)
 endfunction()
 
 # NOTE: Should add some debug or whatever option that adds all the status libs
-add_to_linker("memory-status")
+add_to_linker("status-memory")
 
 add_to_linker("log")
 add_to_linker("text")

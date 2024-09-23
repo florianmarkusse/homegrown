@@ -1,9 +1,9 @@
-#include "status/memory.h"
 #include "cpu/x86.h"
 #include "log/log.h"
 #include "memory/management/definitions.h"
 #include "memory/management/physical.h"
 #include "memory/management/virtual.h"
+#include "status/memory/status.h"
 
 static string pageSizeToString(PageSize pageSize) {
     switch (pageSize) {

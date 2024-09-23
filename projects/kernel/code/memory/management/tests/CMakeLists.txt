@@ -15,7 +15,7 @@ target_link_libraries(
     ${EXECUTABLE_NAME}
     PUBLIC memory-management-${CMAKE_BUILD_TYPE}
 )
-target_link_libraries(${EXECUTABLE_NAME} PUBLIC idt-status-${CMAKE_BUILD_TYPE})
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC status-idt-${CMAKE_BUILD_TYPE})
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC text-${CMAKE_BUILD_TYPE})
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC log-${CMAKE_BUILD_TYPE})
 target_link_libraries(

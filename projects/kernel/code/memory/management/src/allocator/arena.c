@@ -3,7 +3,6 @@
 #include "memory/management/allocator/macros.h"
 #include "memory/manipulation/manipulation.h"
 #include "util/assert.h" // for ASSERT
-#include "util/jmp.h"
 
 __attribute((malloc, alloc_align(3))) void *alloc(Arena *a, I64 size, U64 align,
                                                   U64 count, U8 flags) {
@@ -15,7 +14,7 @@ __attribute((malloc, alloc_align(3))) void *alloc(Arena *a, I64 size, U64 align,
         if (flags & NULL_ON_FAIL) {
             return NULL;
         }
-        longjmp(a->jmp_buf, 1);
+        __builtin_longjmp(a->jmp_buf, 1);
     }
     U64 total = size * count;
     U8 *p = a->beg + padding;

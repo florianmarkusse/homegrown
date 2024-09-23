@@ -5,6 +5,6 @@
 
 void appendInterrupt(Fault fault);
 void appendExpectedInterrupt(Fault fault);
-void appendInterrupts(bool *expectedFaults);
+void appendInterrupts(bool *expectedFaults, bool *actualFaults);
 
 #endif

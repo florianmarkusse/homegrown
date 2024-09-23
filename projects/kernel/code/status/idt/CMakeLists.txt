@@ -1,4 +1,4 @@
-project(idt-status LANGUAGES C ASM)
+project(status-idt LANGUAGES C ASM)
 
 set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
 set(LIBRARY_TYPE "STATIC")
