@@ -160,6 +160,7 @@ CONFIGURE_CMAKE_OPTIONS=(
     -S .
     -B "$BUILD_DIRECTORY"
     -D CMAKE_C_COMPILER="$C_COMPILER"
+    --graphviz=dependency-graph.dot
     -D CMAKE_LINKER="$LINKER"
     -D CMAKE_BUILD_TYPE="$BUILD_MODE"
     -D USE_AVX="$USE_AVX"
