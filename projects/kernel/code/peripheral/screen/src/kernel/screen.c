@@ -63,23 +63,17 @@ static U32 glyphStartVerticalOffset;
 static U16 ringGlyphsPerLine;
 static U16 ringGlyphsPerColumn;
 
-#define MAX_GLYPSH_PER_COLUMN (1 << 8)
-#define MAX_GLYPSH_PER_LINE (1 << 8)
 #define MAX_SCROLLBACK_LINES (1 << 16)
-
 #define FILE_BUF_LEN (1ULL << 16LL)
 
-static U64
-    logicalLineLens[MAX_GLYPSH_PER_COLUMN]; // TODO: Make this temp memory
+static U64 *logicalLineLens;
 static U64 logicalLines[MAX_SCROLLBACK_LINES];
 static U32 logicalLineToWrite;
 static bool logicalNewline;
-// This should be 1 larger than the number of screenlines because the last
-// entry is used as the exclusive end of the window.
-static U64 screenLines[MAX_GLYPSH_PER_COLUMN]; // TODO: Use actual heap alloc
+static U64 *screenLines;
 static U16 oldestScreenLineIndex;
-static U64 screenLinesCopy[MAX_GLYPSH_PER_COLUMN]; // TODO: Replace with
-                                                   // temporary memory
+static U64 *screenLinesCopy;
+
 static bool lastScreenlineOpen;
 static bool isTailing = true;
 static U64 charCount;
@@ -265,7 +259,7 @@ static FillResult fillScreenLines(U64 dryStartIndex, U64 startIndex,
             }
 
             currentScreenLineIndex =
-                RING_INCREMENT(currentScreenLineIndex, MAX_GLYPSH_PER_COLUMN);
+                RING_INCREMENT(currentScreenLineIndex, ringGlyphsPerColumn);
             screenLinesCopy[currentScreenLineIndex] = i;
             logicalLineLens[currentScreenLineIndex] = currentLogicalLineLen;
 
@@ -309,8 +303,8 @@ static FillResult fillScreenLines(U64 dryStartIndex, U64 startIndex,
                     break;
                 }
 
-                currentScreenLineIndex = RING_INCREMENT(currentScreenLineIndex,
-                                                        MAX_GLYPSH_PER_COLUMN);
+                currentScreenLineIndex =
+                    RING_INCREMENT(currentScreenLineIndex, ringGlyphsPerColumn);
                 U8 extraSpacePreviousLine =
                     (U8)(glyphsPerLine - currentGlyphLen);
                 // The tab is split up in 2 screen lines, so the
@@ -342,7 +336,7 @@ static FillResult fillScreenLines(U64 dryStartIndex, U64 startIndex,
 
     // Add entry indicating the end of the last actual screenline
     currentScreenLineIndex =
-        RING_INCREMENT(currentScreenLineIndex, MAX_GLYPSH_PER_COLUMN);
+        RING_INCREMENT(currentScreenLineIndex, ringGlyphsPerColumn);
     screenLinesCopy[currentScreenLineIndex] = i;
 
     return (FillResult){.realScreenLinesWritten =
@@ -424,12 +418,12 @@ static U64 oldestCharToParseGivenScreenLines(U64 endCharExclusive,
 static void toTail() {
     U16 finalScreenLineEntry =
         RING_PLUS(oldestScreenLineIndex, glyphsPerColumn - lastScreenlineOpen,
-                  MAX_GLYPSH_PER_COLUMN);
+                  ringGlyphsPerColumn);
     U64 firstCharOutsideWindow = screenLines[finalScreenLineEntry];
     while (firstCharOutsideWindow <= screenLines[oldestScreenLineIndex] &&
            finalScreenLineEntry != oldestScreenLineIndex) {
         finalScreenLineEntry =
-            RING_DECREMENT(finalScreenLineEntry, MAX_GLYPSH_PER_COLUMN);
+            RING_DECREMENT(finalScreenLineEntry, ringGlyphsPerColumn);
         firstCharOutsideWindow = screenLines[finalScreenLineEntry];
     }
     U64 oldestCharToProcess =
@@ -441,25 +435,25 @@ static void toTail() {
 
     U16 startIndex =
         RING_MINUS(fillResult.currentScreenLineIndex,
-                   fillResult.realScreenLinesWritten, MAX_GLYPSH_PER_COLUMN);
+                   fillResult.realScreenLinesWritten, ringGlyphsPerColumn);
 
     U16 oldScreenLines = glyphsPerColumn - fillResult.realScreenLinesWritten;
     // You can write 10 new screen lines while your screen originally
     // displayed the first 40 screen lines, hence the distinction here.
     U16 originalScreenLines = RING_MINUS(
-        finalScreenLineEntry, oldestScreenLineIndex, MAX_GLYPSH_PER_COLUMN);
+        finalScreenLineEntry, oldestScreenLineIndex, ringGlyphsPerColumn);
 
     U16 totalLines = fillResult.realScreenLinesWritten + originalScreenLines;
     if (totalLines > glyphsPerColumn) {
         oldestScreenLineIndex =
             RING_PLUS(oldestScreenLineIndex, totalLines - glyphsPerColumn,
-                      MAX_GLYPSH_PER_COLUMN);
+                      ringGlyphsPerColumn);
     }
 
     for (U16 i = 0; i <= fillResult.realScreenLinesWritten; i++) {
         screenLines[RING_PLUS(oldestScreenLineIndex + oldScreenLines, i,
-                              MAX_GLYPSH_PER_COLUMN)] =
-            screenLinesCopy[RING_PLUS(startIndex, i, MAX_GLYPSH_PER_COLUMN)];
+                              ringGlyphsPerColumn)] =
+            screenLinesCopy[RING_PLUS(startIndex, i, ringGlyphsPerColumn)];
     }
 
     if (fillResult.realScreenLinesWritten < glyphsPerColumn) {
@@ -474,7 +468,7 @@ static void toTail() {
     }
 
     U16 drawLineStartIndex =
-        RING_PLUS(oldestScreenLineIndex, oldScreenLines, MAX_GLYPSH_PER_COLUMN);
+        RING_PLUS(oldestScreenLineIndex, oldScreenLines, ringGlyphsPerColumn);
     drawLines(drawLineStartIndex, fillResult.realScreenLinesWritten,
               logicalLineLens[startIndex], oldScreenLines);
 
@@ -548,18 +542,22 @@ void initScreen(ScreenDimension dimension, Arena *perm) {
     glyphsPerColumn =
         (U16)(dim.height - VERTICAL_PIXEL_MARGIN * 2) / (glyphs.height);
 
-    ringGlyphsPerLine = (U16)NEXT_POWER_OF_2(glyphsPerLine);
-    ringGlyphsPerColumn = (U16)NEXT_POWER_OF_2((U16)(glyphsPerColumn + 1));
+    ringGlyphsPerLine = (U16)next_pow2(glyphsPerLine);
+    ringGlyphsPerColumn = (U16)next_pow2((glyphsPerColumn + 1));
     if (glyphsPerColumn == ringGlyphsPerColumn) {
         // Need to make screenLinesCopy a power of 2 larger because of
         // implementation.
+        ringGlyphsPerColumn <<= 1;
     }
+    screenLines = NEW(perm, U64, ringGlyphsPerColumn, ZERO_MEMORY);
+    logicalLineLens = NEW(perm, U64, ringGlyphsPerColumn, ZERO_MEMORY);
+    screenLinesCopy = NEW(perm, U64, ringGlyphsPerColumn, ZERO_MEMORY);
 
     maxGlyphsOnScreen = glyphsPerLine * glyphsPerColumn;
     maxCharsToProcess = 2 * maxGlyphsOnScreen;
     glyphStartVerticalOffset = dim.scanline * VERTICAL_PIXEL_MARGIN;
     glyphStartOffset = glyphStartVerticalOffset + HORIZONTAL_PIXEL_MARGIN;
-    bytesPerLine = (glyphs.width + 7) / 8;
+    bytesPerLine = CEILING_DIV_VALUE(glyphs.width, (U32)8);
 
     ASSERT(maxCharsToProcess <= FILE_BUF_LEN);
 
@@ -569,7 +567,7 @@ void initScreen(ScreenDimension dimension, Arena *perm) {
 static bool isWindowSmallerThanScreen() {
     return screenLines[oldestScreenLineIndex] >=
            screenLines[RING_PLUS(oldestScreenLineIndex, glyphsPerColumn,
-                                 MAX_GLYPSH_PER_COLUMN)];
+                                 ringGlyphsPerColumn)];
 }
 
 void rewind(U16 numberOfScreenLines) {
@@ -592,15 +590,14 @@ void rewind(U16 numberOfScreenLines) {
         MIN(fillResult.realScreenLinesWritten, numberOfScreenLines);
 
     U16 startIndex = RING_MINUS(fillResult.currentScreenLineIndex,
-                                newScreenLinesOnTop, MAX_GLYPSH_PER_COLUMN);
+                                newScreenLinesOnTop, ringGlyphsPerColumn);
 
     oldestScreenLineIndex = RING_MINUS(
-        oldestScreenLineIndex, newScreenLinesOnTop, MAX_GLYPSH_PER_COLUMN);
+        oldestScreenLineIndex, newScreenLinesOnTop, ringGlyphsPerColumn);
 
     for (U16 i = 0; i < newScreenLinesOnTop; i++) {
-        screenLines[RING_PLUS(oldestScreenLineIndex, i,
-                              MAX_GLYPSH_PER_COLUMN)] =
-            screenLinesCopy[RING_PLUS(startIndex, i, MAX_GLYPSH_PER_COLUMN)];
+        screenLines[RING_PLUS(oldestScreenLineIndex, i, ringGlyphsPerColumn)] =
+            screenLinesCopy[RING_PLUS(startIndex, i, ringGlyphsPerColumn)];
     }
 
     U32 fromOffset = glyphStartVerticalOffset +
@@ -626,7 +623,7 @@ void prowind(U16 numberOfScreenLines) {
     }
 
     U64 firstCharOutsideWindow = screenLines[RING_PLUS(
-        oldestScreenLineIndex, glyphsPerColumn, MAX_GLYPSH_PER_COLUMN)];
+        oldestScreenLineIndex, glyphsPerColumn, ringGlyphsPerColumn)];
 
     if (charCount == firstCharOutsideWindow) {
         return;
@@ -642,16 +639,16 @@ void prowind(U16 numberOfScreenLines) {
 
     U16 startIndex =
         RING_MINUS(fillResult.currentScreenLineIndex,
-                   fillResult.realScreenLinesWritten, MAX_GLYPSH_PER_COLUMN);
+                   fillResult.realScreenLinesWritten, ringGlyphsPerColumn);
 
     oldestScreenLineIndex =
         RING_PLUS(oldestScreenLineIndex, fillResult.realScreenLinesWritten,
-                  MAX_GLYPSH_PER_COLUMN);
+                  ringGlyphsPerColumn);
 
     for (U16 i = 0; i <= fillResult.realScreenLinesWritten; i++) {
         screenLines[RING_PLUS(oldestScreenLineIndex + oldScreenLines, i,
-                              MAX_GLYPSH_PER_COLUMN)] =
-            screenLinesCopy[RING_PLUS(startIndex, i, MAX_GLYPSH_PER_COLUMN)];
+                              ringGlyphsPerColumn)] =
+            screenLinesCopy[RING_PLUS(startIndex, i, ringGlyphsPerColumn)];
     }
 
     U32 fromOffset =
@@ -663,12 +660,12 @@ void prowind(U16 numberOfScreenLines) {
             oldScreenLines * (dim.scanline * glyphs.height * 4));
 
     U16 drawLineStartIndex =
-        RING_PLUS(oldestScreenLineIndex, oldScreenLines, MAX_GLYPSH_PER_COLUMN);
+        RING_PLUS(oldestScreenLineIndex, oldScreenLines, ringGlyphsPerColumn);
     drawLines(drawLineStartIndex, fillResult.realScreenLinesWritten,
               logicalLineLens[startIndex], oldScreenLines);
 
     isTailing = screenLines[RING_PLUS(oldestScreenLineIndex, glyphsPerColumn,
-                                      MAX_GLYPSH_PER_COLUMN)] == charCount;
+                                      ringGlyphsPerColumn)] == charCount;
     lastScreenlineOpen = !fillResult.lastLineDone;
 
     switchToScreenDisplay();

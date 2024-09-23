@@ -41,16 +41,36 @@ extern "C" {
 #define RING_MINUS(val, amount, ringSize)                                      \
     (((val) - (amount)) & ((ringSize) - 1))
 
+static U64 next_pow2(U64 x) {
+    return x == 1 ? 1 : 1 << (64 - __builtin_clzl(x - 1));
+}
+
 #define NEXT_POWER_OF_2(x)                                                     \
     ({                                                                         \
-        U64 _x = (x);                                                          \
+        typeof(x) _x = (x);                                                    \
         _x--;                                                                  \
-        _x = (1ULL << (sizeof(x) * 8 - _Generic((x),                           \
-                                       U16: __builtin_clz(((U32)(_x)) - 16),   \
-                                       U32: __builtin_clz(_x),                 \
-                                       U64: __builtin_clzll(_x))));            \
+        _x |= _x >> 1;                                                         \
+        _x |= _x >> 2;                                                         \
+        _x |= _x >> 4;                                                         \
+        _x |= _x >> 8;                                                         \
+        _x = _Generic((x),                                                     \
+            U16: _x,                                                           \
+            U32: (_x | _x >> 16),                                              \
+            U64: (_x | _x >> 16));                                             \
+        _x = _Generic((x), U16: _x, U32: _x, U64: (_x | _x >> 32));            \
+        _x++;                                                                  \
         _x;                                                                    \
     })
+
+/*#define NEXT_POWER_OF_2(x) \*/
+/*    ({ \*/
+/*        U64 _x = (x); \*/
+/*        _x--; \*/
+/*        _x = (1ULL << (sizeof(x) * 8 - _Generic((x), \*/
+/*                                       U32: __builtin_clz(_x), \*/
+/*                                       U64: __builtin_clzll(_x)))); \*/
+/*        _x; \*/
+/*    })*/
 
 U64 power(U64 base, U64 exponent);
 

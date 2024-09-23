@@ -65,12 +65,10 @@ typedef struct {
     U64 pages[PAGE_TABLE_ENTRIES];
 } VirtualPageTable;
 
-static VirtualPageTable *level4PageTable;
+extern VirtualPageTable *level4PageTable;
 
-static VirtualRegion higherHalfRegion = {.start = HIGHER_HALF_START,
-                                         .end = KERNEL_SPACE_START};
-// Start is set in the init function.
-static VirtualRegion lowerHalfRegion = {.start = 0, .end = LOWER_HALF_END};
+extern VirtualRegion higherHalfRegion;
+extern VirtualRegion lowerHalfRegion; // Start is set in the init function.
 
 typedef enum {
     PAT_UNCACHABLE_UC = 0x0,

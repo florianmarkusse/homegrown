@@ -9,6 +9,13 @@
 #include "util/macros.h"
 #include "util/maths.h"
 
+VirtualPageTable *level4PageTable;
+
+VirtualRegion higherHalfRegion = {.start = HIGHER_HALF_START,
+                                  .end = KERNEL_SPACE_START};
+// Start is set in the init function.
+VirtualRegion lowerHalfRegion = {.start = 0, .end = LOWER_HALF_END};
+
 static U8 pageSizeToDepth(PageSize pageSize) {
     switch (pageSize) {
     case BASE_PAGE: {

@@ -63,10 +63,17 @@ void *allocContiguousAndMap(U64 numberOfPages, PageSize pageSize) {
 }
 
 void freeMapped(U64 start, U64 bytes) {
-    ASSERT((start >> PAGE_FRAME_SHIFT));
     U64 end = start + bytes;
 
     MappedPage page = getMappedPage(start);
+    if (RING_RANGE_VALUE(start, page.pageSize)) {
+        start = ALIGN_UP_VALUE(start, page.pageSize);
+        if (start >= end) {
+            return;
+        }
+        page = getMappedPage(start);
+    }
+
     U64 physicalOfPage = getPhysicalAddress(page.entry.value);
 
     PagedMemory pagedEntry =

@@ -20,6 +20,6 @@ typedef enum : U64 {
     HUGE_PAGE = HUGE_PAGE_SIZE,
 } PageSize;
 
-static PageSize pageSizes[NUM_PAGE_SIZES] = {BASE_PAGE, LARGE_PAGE, HUGE_PAGE};
+extern PageSize pageSizes[NUM_PAGE_SIZES];
 
 #endif

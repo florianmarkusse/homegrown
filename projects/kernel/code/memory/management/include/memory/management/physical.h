@@ -30,9 +30,9 @@ typedef struct {
     PageSize pageSize;
 } PhysicalMemoryManager;
 
-static PhysicalMemoryManager basePMM;
-static PhysicalMemoryManager largePMM;
-static PhysicalMemoryManager hugePMM;
+extern PhysicalMemoryManager basePMM;
+extern PhysicalMemoryManager largePMM;
+extern PhysicalMemoryManager hugePMM;
 
 void initPhysicalMemoryManager(KernelMemory kernelMemory);
 

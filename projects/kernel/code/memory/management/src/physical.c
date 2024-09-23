@@ -8,6 +8,10 @@
 #include "util/assert.h"
 #include "util/maths.h"
 
+PhysicalMemoryManager basePMM;
+PhysicalMemoryManager largePMM;
+PhysicalMemoryManager hugePMM;
+
 static U64 toLargerPages(U64 numberOfPages) {
     return numberOfPages >> PAGE_TABLE_SHIFT;
 }

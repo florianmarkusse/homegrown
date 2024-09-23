@@ -19,6 +19,8 @@
 #define INIT_MEMORY (64 * MiB)
 
 __attribute__((section("kernel-start"))) int kernelmain() {
+    initIDT();
+
     KernelParameters *kernelParameters =
         (KernelParameters *)KERNEL_PARAMS_START;
 
@@ -29,9 +31,11 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     initPhysicalMemoryManager(kernelMemory);
     initVirtualMemoryManager(kernelParameters->level4PageTable, kernelMemory);
 
+    appendPhysicalMemoryManagerStatus();
+
     void *initMemory = allocAndMap(INIT_MEMORY);
-    Arena arena = (Arena){.beg = initMemory,
-                          .origBeg = initMemory,
+    Arena arena = (Arena){.curFree = initMemory,
+                          .beg = initMemory,
                           .end = initMemory + INIT_MEMORY};
     void *jumper[5];
     if (__builtin_setjmp(jumper)) {
@@ -42,6 +46,8 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     }
     arena.jmp_buf = jumper;
 
+    /*appendPhysicalMemoryManagerStatus();*/
+
     initScreen((ScreenDimension){.scanline = kernelParameters->fb.scanline,
                                  .size = kernelParameters->fb.size,
                                  .width = kernelParameters->fb.columns,
@@ -49,14 +55,9 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                                  .screen = (U32 *)kernelParameters->fb.ptr},
                &arena);
 
-    // This is still logging stuff when it fails so it is only useful after
-    // setting up the screen but if the stuff before fails we are fucked.
-    initIDT();
+    freeMapped((U64)arena.curFree, arena.end - arena.curFree);
 
-    FLUSH_AFTER {
-        appendPhysicalMemoryManagerStatus();
-        appendVirtualMemoryManagerStatus();
-    }
+    FLUSH_AFTER { appendPhysicalMemoryManagerStatus(); }
 
     while (1) {
         ;

@@ -16,6 +16,7 @@ add_library(
     "src/allocator/buddy.c"
     "src/allocator/pool.c"
     "src/physical.c"
+    "src/definitions.c"
     "src/virtual.c"
     "src/policy.c"
 )

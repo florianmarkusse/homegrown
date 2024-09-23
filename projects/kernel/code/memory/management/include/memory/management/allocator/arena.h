@@ -6,8 +6,8 @@
 #include "util/macros.h"
 
 typedef struct {
+    U8 *curFree;
     U8 *beg;
-    U8 *origBeg;
     U8 *end;
     void **jmp_buf;
 } Arena;
