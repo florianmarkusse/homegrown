@@ -4,7 +4,7 @@
 /lib/
 .cache
 /tests/build/
-.dot
+*.dot*
 
 # IDE-specific files and directories
 .vscode/
