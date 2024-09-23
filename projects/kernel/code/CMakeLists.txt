@@ -59,7 +59,9 @@ function(add_to_linker name)
     set(LINKING_LIBRARIES_LOCATIONS ${LINKING_LIBRARIES_LOCATIONS} PARENT_SCOPE)
 endfunction()
 
-add_to_linker("status")
+# NOTE: Should add some debug or whatever option that adds all the status libs
+add_to_linker("memory-status")
+
 add_to_linker("log")
 add_to_linker("text")
 add_to_linker("peripheral-screen")
@@ -67,11 +69,6 @@ add_to_linker("memory-management")
 add_to_linker("util")
 add_to_linker("cpu")
 add_to_linker("memory-manipulation")
-
-get_target_property(MAIN_DEPENDENCIES ${MAIN_RESULT} INTERFACE_LINK_LIBRARIES)
-
-message(STATUS "Dependencies of ${MAIN_RESULT}: ${MAIN_DEPENDENCIES}")
-message(STATUS "Dependencies of ${MAIN_RESULT}: ${LINKING_LIBRARIES_LOCATIONS}")
 
 set(RESOURCES_NAME "resources")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})

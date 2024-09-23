@@ -6,6 +6,7 @@
 #include "interoperation/types.h"
 #include "log/log.h"
 #include "memory/management/physical.h"
+#include "status/idt/status.h"
 #include "test-framework/test.h"
 #include "text/string.h"
 #include "util/macros.h"

@@ -1,6 +1,5 @@
 #include "cpu/idt.h"
 #include "interoperation/types.h"
-#include "log/log.h"
 
 static bool triggeredFaults[FAULT_NUMS];
 
@@ -32,35 +31,4 @@ bool compareInterrupts(bool *expectedFaults) {
     }
 
     return true;
-}
-
-void appendInterrupt(Fault fault) {
-    LOG(STRING("Fault #: "));
-    LOG(fault);
-    LOG(STRING("\tMsg: "));
-    LOG(stringWithMinSizeDefault(faultToString[fault], 30));
-}
-
-void appendExpectedInterrupt(Fault fault) {
-    LOG(STRING("Missing interrupt\n"));
-    appendInterrupt(fault);
-    LOG(STRING("\n"));
-}
-
-void appendInterrupts(bool *expectedFaults) {
-    bool *actualFaults = getTriggeredFaults();
-    LOG(STRING("Interrupts Table\n"));
-    for (U64 i = 0; i < FAULT_NUMS; i++) {
-        appendInterrupt(i);
-        LOG(STRING("\tExpected: "));
-        LOG(stringWithMinSizeDefault(
-            expectedFaults[i] ? STRING("ON") : STRING("OFF"), 3));
-        LOG(STRING("\tActual: "));
-        LOG(stringWithMinSizeDefault(
-            actualFaults[i] ? STRING("ON") : STRING("OFF"), 3));
-        if (expectedFaults[i] != actualFaults[i]) {
-            LOG(STRING("\t!!!"));
-        }
-        LOG(STRING("\n"));
-    }
 }
