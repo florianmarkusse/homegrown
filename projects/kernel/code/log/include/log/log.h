@@ -3,12 +3,15 @@
 
 #include "interoperation/array-types.h"
 #include "interoperation/types.h"
+#include "memory/management/allocator/arena.h"
 #include "text/converter.h"
 #include "text/string.h"
 #include "util/macros.h"
 
 #define NEWLINE 0x01
 #define FLUSH 0x02
+
+void initLogger(Arena *perm);
 
 void appendToFlushBuffer(string data, U8 flags);
 bool flushStandardBuffer();

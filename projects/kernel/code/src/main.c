@@ -31,8 +31,6 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     initPhysicalMemoryManager(kernelMemory);
     initVirtualMemoryManager(kernelParameters->level4PageTable, kernelMemory);
 
-    appendPhysicalMemoryManagerStatus();
-
     void *initMemory = allocAndMap(INIT_MEMORY);
     Arena arena = (Arena){.curFree = initMemory,
                           .beg = initMemory,
@@ -46,18 +44,21 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     }
     arena.jmp_buf = jumper;
 
-    /*appendPhysicalMemoryManagerStatus();*/
-
+    initLogger(&arena);
     initScreen((ScreenDimension){.scanline = kernelParameters->fb.scanline,
                                  .size = kernelParameters->fb.size,
                                  .width = kernelParameters->fb.columns,
                                  .height = kernelParameters->fb.rows,
                                  .screen = (U32 *)kernelParameters->fb.ptr},
                &arena);
-
     freeMapped((U64)arena.curFree, arena.end - arena.curFree);
 
-    FLUSH_AFTER { appendPhysicalMemoryManagerStatus(); }
+    FLUSH_AFTER {
+        //
+        appendPhysicalMemoryManagerStatus();
+        appendPhysicalMemoryManagerStatus();
+        appendPhysicalMemoryManagerStatus();
+    }
 
     while (1) {
         ;

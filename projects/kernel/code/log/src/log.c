@@ -1,16 +1,24 @@
 #include "log/log.h"
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "interoperation/types.h"
+#include "memory/management/allocator/arena.h"
 #include "memory/manipulation/manipulation.h"
 #include "peripheral/screen/screen.h"
 #include "text/string.h"
 #include "util/maths.h"
+#include "util/sizes.h"
 
-// TODO: Use triple mapped memory buffer to speed up ring buffer even more.
 // TODO: Idea is to have a single flush buffer per thread and have it flush to
 // the file buffer sometimes.
-static U8 flushBuf000[128 * 64];
-static U8_max_a flushBuf = {.buf = flushBuf000, .cap = 128 * 64, .len = 0};
+#define FLUSH_BUFFER_SIZE (2 * MiB)
+
+static U8_max_a flushBuf;
+
+void initLogger(Arena *perm) {
+    flushBuf = (U8_max_a){.buf = NEW(perm, U8, FLUSH_BUFFER_SIZE),
+                          .cap = FLUSH_BUFFER_SIZE,
+                          .len = 0};
+}
 
 // We are going to flush to:
 // - The in-memory standin file buffer, this will be replaced by a file

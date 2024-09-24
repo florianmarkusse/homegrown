@@ -63,8 +63,8 @@ static U32 glyphStartVerticalOffset;
 static U16 ringGlyphsPerLine;
 static U16 ringGlyphsPerColumn;
 
-#define MAX_SCROLLBACK_LINES (1 << 16)
-#define FILE_BUF_LEN (1ULL << 16LL)
+#define MAX_SCROLLBACK_LINES (1ULL << 13ULL)
+#define FILE_BUF_LEN (1ULL << 16ULL)
 
 static U64 *logicalLineLens;
 static U64 logicalLines[MAX_SCROLLBACK_LINES];
@@ -78,7 +78,7 @@ static bool lastScreenlineOpen;
 static bool isTailing = true;
 static U64 charCount;
 static U32 nextCharInBuf;
-static U8 buf[FILE_BUF_LEN];
+static U8 *buf;
 
 static void switchToScreenDisplay() {
     memcpy(dim.screen, dim.backingBuffer,
@@ -483,6 +483,7 @@ bool flushToScreen(U8_max_a buffer) {
         startIndex = buffer.len - FILE_BUF_LEN;
     }
 
+    // TODO: I think we can memcpy this all, and then
     // TODO: SIMD up in this birch.
     for (U64 i = startIndex; i < buffer.len; i++) {
         buf[nextCharInBuf] = buffer.buf[i];
@@ -520,6 +521,7 @@ bool flushToScreen(U8_max_a buffer) {
 void initScreen(ScreenDimension dimension, Arena *perm) {
     /*// TODO: Replace with alloc on arena for sure!*/
 
+    buf = NEW(perm, U8, FILE_BUF_LEN);
     // Need correct alignment, so divide by 4: U8 * 4 = U32
     U32 *doubleBuffer =
         NEW(perm, U32, CEILING_DIV_VALUE(dimension.size, (U32)4));
