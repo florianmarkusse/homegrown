@@ -4,6 +4,7 @@
 #include "interoperation/kernel-parameters.h"
 #include "interoperation/types.h"
 #include "memory/management/definitions.h"
+#include "interoperation/memory/definitions.h"
 
 typedef struct {
     U64 address : 48;

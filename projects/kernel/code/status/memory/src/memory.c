@@ -4,6 +4,8 @@
 #include "memory/management/physical.h"
 #include "memory/management/virtual.h"
 #include "status/memory/status.h"
+#include "interoperation/types.h"
+#include "text/string.h"
 
 static string pageSizeToString(PageSize pageSize) {
     switch (pageSize) {

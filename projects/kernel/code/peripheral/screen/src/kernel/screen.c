@@ -1,13 +1,14 @@
 #include "peripheral/screen/screen.h"
+
 #include "cpu/x86.h"
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "interoperation/memory/definitions.h"
 #include "memory/management/definitions.h"
-#include "memory/management/policy.h"
 #include "memory/management/virtual.h"
 #include "memory/manipulation/manipulation.h"
 #include "util/assert.h" // for ASSERT
 #include "util/maths.h"  // for RING_PLUS, RING_INCREMENT, RING_MINUS
+#include "memory/management/allocator/macros.h"
 
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.

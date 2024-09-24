@@ -9,7 +9,7 @@ extern "C" {
 
 #include "text/string.h"
 
-__attribute__((unused)) static U64 hashStringSkeeto(string string) {
+static inline U64 hashStringSkeeto(string string) {
     U64 h = 0x100;
     for (U64 i = 0; i < string.len; i++) {
         h ^= string.buf[i];
@@ -19,7 +19,7 @@ __attribute__((unused)) static U64 hashStringSkeeto(string string) {
 }
 
 // https://github.com/skeeto/hash-prospector
-__attribute__((unused)) static U32 hashU32(U32 x) {
+static inline U32 hashU32(U32 x) {
     x ^= x >> 16;
     x *= 0x21f0aaad;
     x ^= x >> 15;
@@ -31,7 +31,7 @@ __attribute__((unused)) static U32 hashU32(U32 x) {
 // https://github.com/skeeto/hash-prospector
 // 3-round xorshift-multiply (-Xn3)
 // bias = 0.0045976709018820602
-__attribute__((unused)) static U16 hashU16(U16 x) {
+static inline U16 hashU16(U16 x) {
     x ^= x >> 7;
     x *= 0x2993U;
     x ^= x >> 5;

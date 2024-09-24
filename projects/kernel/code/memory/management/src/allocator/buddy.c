@@ -157,8 +157,8 @@ void coalesceBuddies(BuddyBlock *head, BuddyBlock *tail) {
     }
 }
 
-__attribute((unused, malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator,
-                                               I64 size, I64 count, U8 flags) {
+__attribute((malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator, I64 size,
+                                       I64 count, U8 flags) {
     ASSERT(size > 0);
 
     U64 total = size * count;

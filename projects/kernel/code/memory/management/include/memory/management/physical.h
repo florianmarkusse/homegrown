@@ -4,6 +4,7 @@
 #include "interoperation/kernel-parameters.h"
 #include "interoperation/memory/definitions.h"
 #include "memory/management/definitions.h"
+#include "interoperation/types.h"
 
 typedef struct {
     U8 data[PAGE_FRAME_SIZE];

@@ -1,6 +1,8 @@
 #include "memory/management/virtual.h"
+
 #include "cpu/x86.h"
 #include "interoperation/memory/definitions.h"
+#include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h"
 #include "memory/management/definitions.h"
 #include "memory/management/physical.h"
@@ -136,8 +138,6 @@ bool isExtendedPageLevel(U8 level) { return level == 1 || level == 2; }
 
 MappedPage getMappedPage(U64 virtual) {
     U64 indexShift = LEVEL_4_SHIFT;
-    U8 depth = pageSizeToDepth(BASE_PAGE);
-
     VirtualPageTable *currentTable = level4PageTable;
     MappedPage result;
     result.pageSize = WUMBO_PAGE_SIZE;

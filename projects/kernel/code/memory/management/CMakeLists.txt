@@ -13,8 +13,9 @@ add_library(
     ${LIBRARY}
     ${LIBRARY_TYPE}
     "src/allocator/arena.c"
-    "src/allocator/buddy.c"
-    "src/allocator/pool.c"
+    # NOTE: Unused for now.
+    # "src/allocator/buddy.c"
+    # "src/allocator/pool.c"
     "src/physical.c"
     "src/definitions.c"
     "src/virtual.c"

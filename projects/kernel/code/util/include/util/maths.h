@@ -41,7 +41,7 @@ extern "C" {
 #define RING_MINUS(val, amount, ringSize)                                      \
     (((val) - (amount)) & ((ringSize) - 1))
 
-static U64 next_pow2(U64 x) {
+static inline U64 next_pow2(U64 x) {
     return x == 1 ? 1 : 1 << (64 - __builtin_clzl(x - 1));
 }
 

@@ -1,5 +1,8 @@
 #include "interoperation/array-types.h"
 #include "text/string.h"
+#include "interoperation/types.h"
+#include "memory/manipulation/manipulation.h"
+#include "util/assert.h"
 
 #define STRING_CONVERTER_BUF_LEN 1 << 10
 U8 stringConverterBuf[STRING_CONVERTER_BUF_LEN];

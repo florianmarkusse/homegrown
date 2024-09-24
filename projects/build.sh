@@ -188,7 +188,7 @@ if [ "${#SELECTED_TARGETS[@]}" -gt 0 ]; then
 fi
 
 echo -e "${BOLD}cmake ${BUILD_CMAKE_OPTIONS[*]}${NO_COLOR}"
-cmake "${BUILD_CMAKE_OPTIONS[@]}"
+cmake "${BUILD_CMAKE_OPTIONS[@]}" # 2>output.txt
 
 # Creating a symlink here so clangd understands. You have a good idea about
 # splitting up builds so caches don't get polluted an you need to immediately

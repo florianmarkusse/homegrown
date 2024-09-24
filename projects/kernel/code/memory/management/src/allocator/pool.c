@@ -1,8 +1,8 @@
 #include "memory/management/allocator/pool.h"
+
 #include "memory/management/allocator/macros.h"
 #include "memory/manipulation/manipulation.h"
 #include "util/assert.h" // for ASSERT
-#include "util/macros.h"
 
 void freePool(PoolAllocator *pool) {
     U64 chunkCount = pool->cap / pool->chunkSize;

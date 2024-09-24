@@ -1,11 +1,9 @@
 #include "cpu/idt.h"                           // for setupIDT
 #include "interoperation/kernel-parameters.h"  // for KernelParameters
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
-#include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h" // for U32
 #include "log/log.h"              // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "memory/management/allocator/arena.h"
-#include "memory/management/allocator/macros.h"
 #include "memory/management/physical.h"
 #include "memory/management/policy.h"
 #include "memory/management/virtual.h"

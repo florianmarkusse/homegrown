@@ -66,8 +66,7 @@ typedef MSI_SET(U8) SetSlice;
 // If this ever changes types because it's too small, make sure to test out that
 // it works.
 // This return typa used to be an I32, but U32 "should" be okay
-__attribute((unused)) static inline U32 indexLookup(U64 hash, U16 exp,
-                                                    U32 idx) {
+static inline U32 indexLookup(U64 hash, U16 exp, U32 idx) {
     U32 mask = ((U32)1 << exp) - 1;
     U32 step = (U32)(hash >> (64 - exp)) | 1;
     return (idx + step) & mask;
