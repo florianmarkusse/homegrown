@@ -134,7 +134,7 @@ void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
     }
 }
 
-bool isExtendedPageLevel(U8 level) { return level == 1 || level == 2; }
+static bool isExtendedPageLevel(U8 level) { return level == 1 || level == 2; }
 
 MappedPage getMappedPage(U64 virtual) {
     U64 indexShift = LEVEL_4_SHIFT;
