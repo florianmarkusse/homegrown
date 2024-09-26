@@ -3,6 +3,8 @@ set -eo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
+BLUE='\033[34m'
+GREEN='\033[32m'
 YELLOW='\033[33m'
 BOLD='\033[1m'
 NO_COLOR='\033[0m'
@@ -60,6 +62,28 @@ sudo apt install -y ovmf
 # This is the binary that emulates UEFI on qemu
 cp /usr/share/ovmf/OVMF.fd bios.bin
 
+echo -e "${BOLD}Installing ${YELLOW}go${NO_COLOR}"
+echo -e "${BOLD}Removing previous ${YELLOW}go${NO_COLOR}${BOLD} installation (if any)..."
+sudo rm -rf /usr/local/go
+
+LATEST_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -n 1 | sed s/go//)
+if [ -z "$LATEST_VERSION" ]; then
+    echo -e "${BOLD}Unable to fetch the latest ${YELLOW}go${NO_COLOR}${BOLD} version."
+    exit 1
+fi
+
+echo -e "${BOLD}Installing ${YELLOW}go${NO_COLOR}${BOLD} ${LATEST_VERSION}"
+GO_TARBALL="go${LATEST_VERSION}.linux-amd64.tar.gz"
+DOWNLOAD_URL="https://go.dev/dl/${GO_TARBALL}"
+wget "${DOWNLOAD_URL}" -O "/tmp/${GO_TARBALL}" || (echo -e "${BOLD}Failed to download ${YELLOW}go${NO_COLOR}${BOLD}." && exit 1)
+sudo tar -xzf "/tmp/${GO_TARBALL}" -C /usr/local || (echo -e "${BOLD}Failed to extract ${YELLOW}go${NO_COLOR}${BOLD}." && exit 1)
+rm -f "/tmp/${GO_TARBALL}"
+
+echo -e "${BOLD}Adding ${YELLOW}go${NO_COLOR}${BOLD} to your system PATH..."
+if ! grep -q "export PATH=$PATH:/usr/local/go/bin" ~/.bashrc; then
+    echo "export PATH=$PATH:/usr/local/go/bin" >>~/.bashrc
+fi
+
 # DEPENDENCIES_DIR="dependencies"
 # echo -e "${BOLD}Creating ${YELLOW}${DEPENDENCIES_DIR}${NO_COLOR}${BOLD} directory${NO_COLOR}"
 # mkdir -p dependencies && cd dependencies
@@ -77,4 +101,5 @@ cp /usr/share/ovmf/OVMF.fd bios.bin
 #
 
 echo -e "${BOLD}${GREEN}Dependencies correctly installed!${NO_COLOR}"
+echo -e "${BOLD}${GREEN}Please reload terminal to update PATH changes!${NO_COLOR}"
 echo -e "${BOLD}${BLUE}The journey begins...${NO_COLOR}"
