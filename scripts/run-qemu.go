@@ -5,21 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"scripts/common"
 	"strings"
 
 	"github.com/bitfield/script"
 )
-
-const BOLD = "\033[1m"
-const RESET = "\033[0m"
-const RED = "\033[31m"
-const GREEN = "\033[32m"
-const YELLOW = "\033[33m"
-const BLUE = "\033[34m"
-const PURPLE = "\033[35m"
-const CYAN = "\033[36m"
-const GRAY = "\033[37m"
-const WHITE = "\033[97m"
 
 const OS_LOCATION_LONG_FLAG = "os-location"
 const OS_LOCATION_SHORT_FLAG = "o"
@@ -37,27 +27,28 @@ const HELP_LONG_FLAG = "help"
 const HELP_SHORT_FLAG = "h"
 
 const EXIT_SUCCESS = 0
-const EXIT_GENERAL_ERROR = 1
-const EXIT_MISSING_ARGUMENT = 2
-
-func displayArgumentInput(shortFlag string, longFlag string, description string) {
-	fmt.Printf("  -%s, --%-20s%s%s%s\n", shortFlag, longFlag, GRAY, description, RESET)
-}
+const EXIT_MISSING_ARGUMENT = 1
 
 func usage() {
-	fmt.Printf("Usage: %s%s %s <os_location> --uefi-location <uefi_location> [OPTIONS]\n", filepath.Base(os.Args[0]), GRAY, OS_LOCATION_LONG_FLAG)
-	fmt.Printf("%s%sRequired%s Options:\n", BOLD, YELLOW, RESET)
-	displayArgumentInput(OS_LOCATION_SHORT_FLAG, OS_LOCATION_LONG_FLAG, "Set the OS (.hdd) location")
-	displayArgumentInput(UEFI_LOCATION_SHORT_FLAG, UEFI_LOCATION_LONG_FLAG, "set the UEFI (.bin) location to emulate UEFI environment (like OVMF firmware)")
+	common.DisplayUsage()
+	fmt.Printf("  %s %s%s <os_location> --uefi-location <uefi_location> [OPTIONS]%s\n", filepath.Base(os.Args[0]), common.GRAY, OS_LOCATION_LONG_FLAG, common.RESET)
 	fmt.Printf("\n")
-	fmt.Printf("%sOptional%s Options:\n", BOLD, RESET)
-	displayArgumentInput(VERBOSE_SHORT_FLAG, VERBOSE_LONG_FLAG, "Enable verbose QEMU")
-	displayArgumentInput(DEBUG_SHORT_FLAG, DEBUG_LONG_FLAG, "Wait for gdb to connect to port 1234 before running")
-	displayArgumentInput(HELP_SHORT_FLAG, HELP_LONG_FLAG, "Display this help message")
+	common.DisplayRequiredFlags()
+	common.DisplayArgumentInput(OS_LOCATION_SHORT_FLAG, OS_LOCATION_LONG_FLAG, "Set the OS (.hdd) location")
+	common.DisplayArgumentInput(UEFI_LOCATION_SHORT_FLAG, UEFI_LOCATION_LONG_FLAG, "set the UEFI (.bin) location to emulate UEFI environment (like OVMF firmware)")
+	common.DisplayOptionalFlags()
+	common.DisplayArgumentInput(VERBOSE_SHORT_FLAG, VERBOSE_LONG_FLAG, "Enable verbose QEMU")
+	common.DisplayArgumentInput(DEBUG_SHORT_FLAG, DEBUG_LONG_FLAG, "Wait for gdb to connect to port 1234 before running")
+	common.DisplayArgumentInput(HELP_SHORT_FLAG, HELP_LONG_FLAG, "Display this help message")
 	fmt.Printf("\n")
-	fmt.Printf("%s%sExamples%s:\n", BLUE, BOLD, RESET)
+	common.DisplayExitCodes()
+	common.DisplayExitCode(EXIT_SUCCESS, "Success")
+	common.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Missing argument(s)")
+	fmt.Printf("\n")
+	common.DisplayExamples()
 	fmt.Printf("  %s --%s test.hdd --%s bios.bin\n", filepath.Base(os.Args[0]), UEFI_LOCATION_LONG_FLAG, OS_LOCATION_LONG_FLAG)
 	fmt.Printf("  %s -%s=test.hdd -%s bios.bin -%s --%s\n", filepath.Base(os.Args[0]), UEFI_LOCATION_SHORT_FLAG, OS_LOCATION_LONG_FLAG, VERBOSE_SHORT_FLAG, DEBUG_LONG_FLAG)
+	fmt.Printf("\n")
 }
 
 var osLocation string
@@ -67,14 +58,6 @@ var debug bool
 var help bool
 
 const QEMU_EXECUTABLE = "qemu-system-x86_64"
-
-func displayBoolArgument(argument string, value bool) {
-	fmt.Printf("  %s%-20s%s%s%t%s\n", BOLD, argument, RESET, GRAY, value, RESET)
-}
-
-func displayStringArgument(argument string, value string) {
-	fmt.Printf("  %s%-20s%s%s%s%s\n", BOLD, argument, RESET, GRAY, value, RESET)
-}
 
 func main() {
 	flag.StringVar(&osLocation, OS_LOCATION_LONG_FLAG, "", "")
@@ -108,18 +91,18 @@ func main() {
 	if showHelpAndExit {
 		usage()
 		if help {
-			os.Exit(0)
+			os.Exit(EXIT_SUCCESS)
 		} else {
-			os.Exit(2)
+			os.Exit(EXIT_MISSING_ARGUMENT)
 		}
 	}
 
-	fmt.Printf("%s%sConfiguration%s:\n", BOLD, YELLOW, RESET)
-	displayStringArgument(OS_LOCATION_LONG_FLAG, osLocation)
-	displayStringArgument(UEFI_LOCATION_LONG_FLAG, uefiLocation)
-	displayBoolArgument(VERBOSE_LONG_FLAG, verbose)
-	displayBoolArgument(DEBUG_LONG_FLAG, debug)
-	displayBoolArgument(HELP_LONG_FLAG, help)
+	fmt.Printf("%s%sConfiguration%s:\n", common.BOLD, common.YELLOW, common.RESET)
+	common.DisplayStringArgument(OS_LOCATION_LONG_FLAG, osLocation)
+	common.DisplayStringArgument(UEFI_LOCATION_LONG_FLAG, uefiLocation)
+	common.DisplayBoolArgument(VERBOSE_LONG_FLAG, verbose)
+	common.DisplayBoolArgument(DEBUG_LONG_FLAG, debug)
+	common.DisplayBoolArgument(HELP_LONG_FLAG, help)
 	fmt.Printf("\n")
 
 	var qemuOptions = make([]string, 0)
@@ -141,7 +124,7 @@ func main() {
 		qemuOptions = append(qemuOptions, "-s -S")
 		// NOTE: Ensure this is the same architecture as what you are trying to
 		// build for :)))
-		qemuOptions = append(qemuOptions, "-cpu Haswall-v4")
+		qemuOptions = append(qemuOptions, "-cpu Haswell-v4")
 		qemuOptions = append(qemuOptions, "-accel \"tcg\"")
 	} else {
 		qemuOptions = append(qemuOptions, "-cpu host")
@@ -152,7 +135,7 @@ func main() {
 	finalCommand.WriteString(QEMU_EXECUTABLE)
 	finalCommand.WriteString(" ")
 
-	fmt.Printf("%s%s%s\n", BOLD, QEMU_EXECUTABLE, RESET)
+	fmt.Printf("%s%s%s\n", common.BOLD, QEMU_EXECUTABLE, common.RESET)
 	for _, argument := range qemuOptions {
 		fmt.Printf("  %s\n", argument)
 		finalCommand.WriteString(argument)
