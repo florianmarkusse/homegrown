@@ -1,11 +1,11 @@
 package main
 
 import (
+	"cmd/common"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
-	"scripts/common"
 	"strings"
 
 	"github.com/bitfield/script"
@@ -43,7 +43,7 @@ func usage() {
 	fmt.Printf("\n")
 	common.DisplayExitCodes()
 	common.DisplayExitCode(EXIT_SUCCESS, "Success")
-	common.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Missing argument(s)")
+	common.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Incorrect argument(s)")
 	fmt.Printf("\n")
 	common.DisplayExamples()
 	fmt.Printf("  %s --%s test.hdd --%s bios.bin\n", filepath.Base(os.Args[0]), UEFI_LOCATION_LONG_FLAG, OS_LOCATION_LONG_FLAG)
@@ -53,9 +53,9 @@ func usage() {
 
 var osLocation string
 var uefiLocation string
-var verbose bool
-var debug bool
-var help bool
+var verbose = false
+var debug = false
+var help = false
 
 const QEMU_EXECUTABLE = "qemu-system-x86_64"
 
@@ -66,18 +66,20 @@ func main() {
 	flag.StringVar(&uefiLocation, UEFI_LOCATION_LONG_FLAG, "", "")
 	flag.StringVar(&uefiLocation, UEFI_LOCATION_SHORT_FLAG, "", "")
 
-	flag.BoolVar(&verbose, VERBOSE_LONG_FLAG, false, "")
-	flag.BoolVar(&verbose, VERBOSE_SHORT_FLAG, false, "")
+	flag.BoolVar(&verbose, VERBOSE_LONG_FLAG, verbose, "")
+	flag.BoolVar(&verbose, VERBOSE_SHORT_FLAG, verbose, "")
 
-	flag.BoolVar(&debug, DEBUG_LONG_FLAG, false, "")
-	flag.BoolVar(&debug, DEBUG_SHORT_FLAG, false, "")
+	flag.BoolVar(&debug, DEBUG_LONG_FLAG, debug, "")
+	flag.BoolVar(&debug, DEBUG_SHORT_FLAG, debug, "")
 
-	flag.BoolVar(&help, HELP_LONG_FLAG, false, "")
-	flag.BoolVar(&help, HELP_SHORT_FLAG, false, "")
+	flag.BoolVar(&help, HELP_LONG_FLAG, help, "")
+	flag.BoolVar(&help, HELP_SHORT_FLAG, help, "")
 
+	flag.Usage = usage
 	flag.Parse()
 
 	var showHelpAndExit = false
+
 	if osLocation == "" {
 		showHelpAndExit = true
 	}
