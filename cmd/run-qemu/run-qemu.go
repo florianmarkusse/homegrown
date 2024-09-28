@@ -2,6 +2,8 @@ package main
 
 import (
 	"cmd/common"
+	"cmd/common/configuration"
+	"cmd/common/flags"
 	"flag"
 	"fmt"
 	"os"
@@ -30,24 +32,24 @@ const EXIT_SUCCESS = 0
 const EXIT_MISSING_ARGUMENT = 1
 
 func usage() {
-	common.DisplayUsage()
-	fmt.Printf("  %s %s%s <os_location> --uefi-location <uefi_location> [OPTIONS]%s\n", filepath.Base(os.Args[0]), common.GRAY, OS_LOCATION_LONG_FLAG, common.RESET)
+	var usageFlags = fmt.Sprintf("--%s <os_location> --%s <uefi_location>", OS_LOCATION_LONG_FLAG, UEFI_LOCATION_LONG_FLAG)
+	flags.DisplayUsage(usageFlags)
 	fmt.Printf("\n")
-	common.DisplayRequiredFlags()
-	common.DisplayArgumentInput(OS_LOCATION_SHORT_FLAG, OS_LOCATION_LONG_FLAG, "Set the OS (.hdd) location")
-	common.DisplayArgumentInput(UEFI_LOCATION_SHORT_FLAG, UEFI_LOCATION_LONG_FLAG, "set the UEFI (.bin) location to emulate UEFI environment (like OVMF firmware)")
-	common.DisplayOptionalFlags()
-	common.DisplayArgumentInput(VERBOSE_SHORT_FLAG, VERBOSE_LONG_FLAG, "Enable verbose QEMU")
-	common.DisplayArgumentInput(DEBUG_SHORT_FLAG, DEBUG_LONG_FLAG, "Wait for gdb to connect to port 1234 before running")
-	common.DisplayArgumentInput(HELP_SHORT_FLAG, HELP_LONG_FLAG, "Display this help message")
+	flags.DisplayRequiredFlags()
+	flags.DisplayNoDefaultArgumentInput(OS_LOCATION_SHORT_FLAG, OS_LOCATION_LONG_FLAG, "Set the OS (.hdd) location")
+	flags.DisplayNoDefaultArgumentInput(UEFI_LOCATION_SHORT_FLAG, UEFI_LOCATION_LONG_FLAG, "set the UEFI (.bin) location to emulate UEFI environment")
+	flags.DisplayOptionalFlags()
+	flags.DisplayArgumentInput(VERBOSE_SHORT_FLAG, VERBOSE_LONG_FLAG, "Enable verbose QEMU", fmt.Sprint(verbose))
+	flags.DisplayArgumentInput(DEBUG_SHORT_FLAG, DEBUG_LONG_FLAG, "Wait for gdb to connect to port 1234 before running", fmt.Sprint(debug))
+	flags.DisplayNoDefaultArgumentInput(HELP_SHORT_FLAG, HELP_LONG_FLAG, "Display this help message")
 	fmt.Printf("\n")
-	common.DisplayExitCodes()
-	common.DisplayExitCode(EXIT_SUCCESS, "Success")
-	common.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Incorrect argument(s)")
+	flags.DisplayExitCodes()
+	flags.DisplayExitCode(EXIT_SUCCESS, "Success")
+	flags.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Incorrect argument(s)")
 	fmt.Printf("\n")
-	common.DisplayExamples()
-	fmt.Printf("  %s --%s test.hdd --%s bios.bin\n", filepath.Base(os.Args[0]), UEFI_LOCATION_LONG_FLAG, OS_LOCATION_LONG_FLAG)
-	fmt.Printf("  %s -%s=test.hdd -%s bios.bin -%s --%s\n", filepath.Base(os.Args[0]), UEFI_LOCATION_SHORT_FLAG, OS_LOCATION_LONG_FLAG, VERBOSE_SHORT_FLAG, DEBUG_LONG_FLAG)
+	flags.DisplayExamples()
+	fmt.Printf("  %s --%s test.hdd --%s bios.bin\n", filepath.Base(os.Args[0]), OS_LOCATION_LONG_FLAG, UEFI_LOCATION_LONG_FLAG)
+	fmt.Printf("  %s -%s=test.hdd -%s bios.bin -%s --%s\n", filepath.Base(os.Args[0]), OS_LOCATION_LONG_FLAG, UEFI_LOCATION_SHORT_FLAG, VERBOSE_SHORT_FLAG, DEBUG_LONG_FLAG)
 	fmt.Printf("\n")
 }
 
@@ -99,50 +101,42 @@ func main() {
 		}
 	}
 
-	fmt.Printf("%s%sConfiguration%s:\n", common.BOLD, common.YELLOW, common.RESET)
-	common.DisplayStringArgument(OS_LOCATION_LONG_FLAG, osLocation)
-	common.DisplayStringArgument(UEFI_LOCATION_LONG_FLAG, uefiLocation)
-	common.DisplayBoolArgument(VERBOSE_LONG_FLAG, verbose)
-	common.DisplayBoolArgument(DEBUG_LONG_FLAG, debug)
-	common.DisplayBoolArgument(HELP_LONG_FLAG, help)
+	configuration.DisplayConfiguration()
+	configuration.DisplayStringArgument(OS_LOCATION_LONG_FLAG, osLocation)
+	configuration.DisplayStringArgument(UEFI_LOCATION_LONG_FLAG, uefiLocation)
+	configuration.DisplayBoolArgument(VERBOSE_LONG_FLAG, verbose)
+	configuration.DisplayBoolArgument(DEBUG_LONG_FLAG, debug)
+	configuration.DisplayBoolArgument(HELP_LONG_FLAG, help)
 	fmt.Printf("\n")
 
-	var qemuOptions = make([]string, 0)
-	qemuOptions = append(qemuOptions, "-m 512")
-	qemuOptions = append(qemuOptions, "-machine q35")
-	qemuOptions = append(qemuOptions, "-no-reboot")
-	qemuOptions = append(qemuOptions, fmt.Sprintf("-drive \"format=raw,file=%s\"", osLocation))
-	qemuOptions = append(qemuOptions, fmt.Sprintf("-bios %s", uefiLocation))
-	qemuOptions = append(qemuOptions, "-serial stdio")
-	qemuOptions = append(qemuOptions, "-smp 1")
-	qemuOptions = append(qemuOptions, "-usb")
-	qemuOptions = append(qemuOptions, "-vga std")
+	qemuOptions := strings.Builder{}
+	qemuOptions.WriteString("  -m 512\n")
+	qemuOptions.WriteString("  -machine q35\n")
+	qemuOptions.WriteString("  -no-reboot\n")
+	qemuOptions.WriteString(fmt.Sprintf("  -drive \"format=raw,file=%s\"\n", osLocation))
+	qemuOptions.WriteString(fmt.Sprintf("  -bios %s\n", uefiLocation))
+	qemuOptions.WriteString("  -serial stdio\n")
+	qemuOptions.WriteString("  -smp 1\n")
+	qemuOptions.WriteString("  -usb\n")
+	qemuOptions.WriteString("  -vga std\n")
 
 	if verbose {
-		qemuOptions = append(qemuOptions, "-d int,cpu_reset")
+		qemuOptions.WriteString("  -d int,cpu_reset\n")
 	}
 
 	if debug {
-		qemuOptions = append(qemuOptions, "-s -S")
+		qemuOptions.WriteString("  -s -S\n")
 		// NOTE: Ensure this is the same architecture as what you are trying to
 		// build for :)))
-		qemuOptions = append(qemuOptions, "-cpu Haswell-v4")
-		qemuOptions = append(qemuOptions, "-accel \"tcg\"")
+		qemuOptions.WriteString("  -cpu Haswell-v4\n")
+		qemuOptions.WriteString("  -accel \"tcg\"\n")
 	} else {
-		qemuOptions = append(qemuOptions, "-cpu host")
-		qemuOptions = append(qemuOptions, "-enable-kvm")
+		qemuOptions.WriteString("  -cpu host\n")
+		qemuOptions.WriteString("  -enable-kvm\n")
 	}
 
-	finalCommand := strings.Builder{}
-	finalCommand.WriteString(QEMU_EXECUTABLE)
-	finalCommand.WriteString(" ")
+	fmt.Printf("%s%s%s\n%s", common.BOLD, QEMU_EXECUTABLE, common.RESET, qemuOptions.String())
 
-	fmt.Printf("%s%s%s\n", common.BOLD, QEMU_EXECUTABLE, common.RESET)
-	for _, argument := range qemuOptions {
-		fmt.Printf("  %s\n", argument)
-		finalCommand.WriteString(argument)
-		finalCommand.WriteString(" ")
-	}
-
-	script.Exec(finalCommand.String()).Stdout()
+	var finalCommand = fmt.Sprintf("%s\n%s", QEMU_EXECUTABLE, qemuOptions.String())
+	script.Exec(finalCommand).Stdout()
 }
