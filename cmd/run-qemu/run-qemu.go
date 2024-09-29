@@ -1,7 +1,7 @@
 package main
 
 import (
-	"cmd/common"
+	"cmd/common/argument"
 	"cmd/common/configuration"
 	"cmd/common/flags"
 	"flag"
@@ -9,8 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/bitfield/script"
 )
 
 const OS_LOCATION_LONG_FLAG = "os-location"
@@ -30,6 +28,7 @@ const HELP_SHORT_FLAG = "h"
 
 const EXIT_SUCCESS = 0
 const EXIT_MISSING_ARGUMENT = 1
+const EXIT_CLI_PARSING_ERROR = 2
 
 func usage() {
 	var usageFlags = fmt.Sprintf("--%s <os_location> --%s <uefi_location>", OS_LOCATION_LONG_FLAG, UEFI_LOCATION_LONG_FLAG)
@@ -46,6 +45,7 @@ func usage() {
 	flags.DisplayExitCodes()
 	flags.DisplayExitCode(EXIT_SUCCESS, "Success")
 	flags.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Incorrect argument(s)")
+	flags.DisplayExitCode(EXIT_CLI_PARSING_ERROR, "CLI parsing error")
 	fmt.Printf("\n")
 	flags.DisplayExamples()
 	fmt.Printf("  %s --%s test.hdd --%s bios.bin\n", filepath.Base(os.Args[0]), OS_LOCATION_LONG_FLAG, UEFI_LOCATION_LONG_FLAG)
@@ -110,33 +110,30 @@ func main() {
 	fmt.Printf("\n")
 
 	qemuOptions := strings.Builder{}
-	qemuOptions.WriteString("  -m 512\n")
-	qemuOptions.WriteString("  -machine q35\n")
-	qemuOptions.WriteString("  -no-reboot\n")
-	qemuOptions.WriteString(fmt.Sprintf("  -drive \"format=raw,file=%s\"\n", osLocation))
-	qemuOptions.WriteString(fmt.Sprintf("  -bios %s\n", uefiLocation))
-	qemuOptions.WriteString("  -serial stdio\n")
-	qemuOptions.WriteString("  -smp 1\n")
-	qemuOptions.WriteString("  -usb\n")
-	qemuOptions.WriteString("  -vga std\n")
+	argument.AddArgument(&qemuOptions, "-m 512")
+	argument.AddArgument(&qemuOptions, "-machine q35")
+	argument.AddArgument(&qemuOptions, "-no-reboot")
+	argument.AddArgument(&qemuOptions, fmt.Sprintf("-drive \"format=raw,file=%s\"", osLocation))
+	argument.AddArgument(&qemuOptions, fmt.Sprintf("-bios %s", uefiLocation))
+	argument.AddArgument(&qemuOptions, "-serial stdio")
+	argument.AddArgument(&qemuOptions, "-smp 1")
+	argument.AddArgument(&qemuOptions, "-usb")
+	argument.AddArgument(&qemuOptions, "-vga std")
 
 	if verbose {
-		qemuOptions.WriteString("  -d int,cpu_reset\n")
+		argument.AddArgument(&qemuOptions, "-d int,cpu_reset")
 	}
 
 	if debug {
-		qemuOptions.WriteString("  -s -S\n")
+		argument.AddArgument(&qemuOptions, "-s -S")
 		// NOTE: Ensure this is the same architecture as what you are trying to
 		// build for :)))
-		qemuOptions.WriteString("  -cpu Haswell-v4\n")
-		qemuOptions.WriteString("  -accel \"tcg\"\n")
+		argument.AddArgument(&qemuOptions, "-cpu Haswell-v4")
+		argument.AddArgument(&qemuOptions, "-accel \"tcg\"")
 	} else {
-		qemuOptions.WriteString("  -cpu host\n")
-		qemuOptions.WriteString("  -enable-kvm\n")
+		argument.AddArgument(&qemuOptions, "-cpu host")
+		argument.AddArgument(&qemuOptions, "-enable-kvm")
 	}
 
-	fmt.Printf("%s%s%s\n%s", common.BOLD, QEMU_EXECUTABLE, common.RESET, qemuOptions.String())
-
-	var finalCommand = fmt.Sprintf("%s\n%s", QEMU_EXECUTABLE, qemuOptions.String())
-	script.Exec(finalCommand).Stdout()
+	argument.RunCommand(QEMU_EXECUTABLE, qemuOptions.String())
 }

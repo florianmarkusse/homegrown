@@ -2,6 +2,8 @@ package main
 
 import (
 	"cmd/common"
+	"cmd/common/argument"
+	"cmd/common/cmake"
 	"cmd/common/configuration"
 	"cmd/common/flags"
 	"flag"
@@ -10,15 +12,12 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"github.com/bitfield/script"
 )
+
+// TODO: Add flag to  redirect stderr on builds
 
 const BUILD_MODE_LONG_FLAG = "build-mode"
 const BUILD_MODE_SHORT_FLAG = "m"
-
-const IWYU_LONG_FLAG = "iwyu"
-const IWYU_SHORT_FLAG = "u"
 
 const C_COMPILER_LONG_FLAG = "c-compiler"
 const C_COMPILER_SHORT_FLAG = "c"
@@ -49,21 +48,40 @@ const EXIT_SUCCESS = 0
 const EXIT_MISSING_ARGUMENT = 1
 const EXIT_CLI_PARSING_ERROR = 2
 
+const CMAKE_EXECUTABLE = "cmake"
+
 const PROJECT_FOLDER = "projects/"
 const KERNEL_CODE_FOLDER = PROJECT_FOLDER + "kernel/code"
+const INTEROPERATION_CODE_FOLDER = PROJECT_FOLDER + "interoperation/code"
+const UEFI_IMAGE_CREATOR_CODE_FOLDER = PROJECT_FOLDER + "uefi-image-creator/code"
+const UEFI_CODE_FOLDER = PROJECT_FOLDER + "uefi-image-creator/code"
 
 var possibleBuildModes = [...]string{"Release", "Debug", "Profiling", "Fuzzing"}
 var buildMode = possibleBuildModes[0]
-var includeWhatYouUse = true
+
 var cCompiler = "clang-19"
+
 var linker = "ld"
+
 var targets string
+var usingTargets = false
+var selectedTargets []string
+
 var testBuild = false
+
 var runTests = false
+
 var threads = runtime.NumCPU()
+
 var useAVX = true
+
 var useSSE = true
+
 var help = false
+
+func displayProjectBuild(project string) {
+	fmt.Printf("%sGoing to build %s project%s\n", common.CYAN, KERNEL_CODE_FOLDER, common.RESET)
+}
 
 func arrayIntoPrintableString(array []string) string {
 	builder := strings.Builder{}
@@ -77,54 +95,9 @@ func arrayIntoPrintableString(array []string) string {
 	return builder.String()
 }
 
-func usage() {
-	flags.DisplayUsage("")
-	fmt.Printf("\n")
-	flags.DisplayOptionalFlags()
-
-	// Not sure why go doesnt understand string lengths of this one, but whatever
-	var buildModeDescription = fmt.Sprintf("Set the build mode (%s%s%s)        ", common.WHITE,
-		arrayIntoPrintableString(possibleBuildModes[:]), common.RESET)
-	flags.DisplayArgumentInput(BUILD_MODE_SHORT_FLAG, BUILD_MODE_LONG_FLAG, buildModeDescription, buildMode)
-
-	flags.DisplayArgumentInput(IWYU_SHORT_FLAG, IWYU_LONG_FLAG, "Set include-what-you-use", fmt.Sprint(includeWhatYouUse))
-
-	flags.DisplayArgumentInput(C_COMPILER_SHORT_FLAG, C_COMPILER_LONG_FLAG, "Set the c-compiler", fmt.Sprint(cCompiler))
-
-	flags.DisplayArgumentInput(LINKER_SHORT_FLAG, LINKER_LONG_FLAG, "Set the linker", fmt.Sprint(linker))
-
-	flags.DisplayArgumentInput(SELECT_TARGETS_SHORT_FLAG, SELECT_TARGETS_LONG_FLAG, "Select specific target(s, comma-separated) to be built", DEFAULT_TARGETS)
-
-	flags.DisplayArgumentInput(TEST_BUILD_SHORT_FLAG, TEST_BUILD_LONG_FLAG, "Build for tests", fmt.Sprint(testBuild))
-
-	flags.DisplayArgumentInput(RUN_TESTS_SHORT_FLAG, RUN_TESTS_LONG_FLAG, "Run tests", fmt.Sprint(runTests))
-
-	flags.DisplayLongFlagArgumentInput(THREADS_LONG_FLAG, "Set the number of threads to use for compiling", fmt.Sprint(threads))
-
-	flags.DisplayLongFlagArgumentInput(AVX_LONG_FLAG, "Set SSE", fmt.Sprint(useSSE))
-
-	flags.DisplayLongFlagArgumentInput(SSE_LONG_FLAG, "Set AVX", fmt.Sprint(useAVX))
-
-	flags.DisplayNoDefaultArgumentInput(HELP_SHORT_FLAG, HELP_LONG_FLAG, "Display this help message")
-	fmt.Printf("\n")
-	flags.DisplayExitCodes()
-	flags.DisplayExitCode(EXIT_SUCCESS, "Success")
-	flags.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Incorrect argument(s)")
-	flags.DisplayExitCode(EXIT_CLI_PARSING_ERROR, "CLI parsing error")
-	fmt.Printf("\n")
-	flags.DisplayExamples()
-	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
-	fmt.Printf("  %s -%s=%s -%s=%t --%s text,log --%s -%s\n", filepath.Base(os.Args[0]),
-		BUILD_MODE_LONG_FLAG, possibleBuildModes[1], IWYU_LONG_FLAG, false, SELECT_TARGETS_LONG_FLAG, TEST_BUILD_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
-	fmt.Printf("\n")
-}
-
 func main() {
 	flag.StringVar(&buildMode, BUILD_MODE_LONG_FLAG, buildMode, "")
 	flag.StringVar(&buildMode, BUILD_MODE_SHORT_FLAG, buildMode, "")
-
-	flag.BoolVar(&includeWhatYouUse, IWYU_LONG_FLAG, includeWhatYouUse, "")
-	flag.BoolVar(&includeWhatYouUse, IWYU_SHORT_FLAG, includeWhatYouUse, "")
 
 	flag.StringVar(&cCompiler, C_COMPILER_LONG_FLAG, cCompiler, "")
 	flag.StringVar(&cCompiler, C_COMPILER_SHORT_FLAG, cCompiler, "")
@@ -178,14 +151,13 @@ func main() {
 		}
 	}
 
-	var selectedTargets = strings.FieldsFunc(targets, func(r rune) bool {
+	selectedTargets = strings.FieldsFunc(targets, func(r rune) bool {
 		return r == ','
 	})
-	var usingTargets = len(selectedTargets) > 0
+	usingTargets = len(selectedTargets) > 0
 
 	configuration.DisplayConfiguration()
 	configuration.DisplayStringArgument(BUILD_MODE_LONG_FLAG, buildMode)
-	configuration.DisplayBoolArgument(IWYU_LONG_FLAG, includeWhatYouUse)
 	configuration.DisplayStringArgument(C_COMPILER_LONG_FLAG, cCompiler)
 	configuration.DisplayStringArgument(LINKER_LONG_FLAG, linker)
 
@@ -204,11 +176,62 @@ func main() {
 	configuration.DisplayBoolArgument(SSE_LONG_FLAG, useSSE)
 	fmt.Printf("\n")
 
-	fmt.Printf("%sGoing to build %s folder%s", common.BOLD, KERNEL_CODE_FOLDER, common.RESET)
+	buildKernel()
+	buildStandardProject(INTEROPERATION_CODE_FOLDER)
 
-	var configureOptions = make([]string, 0)
+	if testBuild {
+		fmt.Println("Test build, should stop here and run tests!!!!")
+		os.Exit(EXIT_SUCCESS)
+	}
 
-	configureOptions = append(configureOptions, fmt.Sprintf("-S %s", KERNEL_CODE_FOLDER))
+	buildStandardProject(UEFI_IMAGE_CREATOR_CODE_FOLDER)
+	buildStandardProject(UEFI_CODE_FOLDER)
+
+	fmt.Println("You made it here!!!!!!!!!!!!!!!!")
+}
+
+func usage() {
+	flags.DisplayUsage("")
+	fmt.Printf("\n")
+	flags.DisplayOptionalFlags()
+
+	// Not sure why go doesnt understand string lengths of this one, but whatever
+	var buildModeDescription = fmt.Sprintf("Set the build mode (%s%s%s)        ", common.WHITE,
+		arrayIntoPrintableString(possibleBuildModes[:]), common.RESET)
+	flags.DisplayArgumentInput(BUILD_MODE_SHORT_FLAG, BUILD_MODE_LONG_FLAG, buildModeDescription, buildMode)
+
+	flags.DisplayArgumentInput(C_COMPILER_SHORT_FLAG, C_COMPILER_LONG_FLAG, "Set the c-compiler", fmt.Sprint(cCompiler))
+
+	flags.DisplayArgumentInput(LINKER_SHORT_FLAG, LINKER_LONG_FLAG, "Set the linker", fmt.Sprint(linker))
+
+	flags.DisplayArgumentInput(SELECT_TARGETS_SHORT_FLAG, SELECT_TARGETS_LONG_FLAG, "Select specific target(s, comma-separated) to be built", DEFAULT_TARGETS)
+
+	flags.DisplayArgumentInput(TEST_BUILD_SHORT_FLAG, TEST_BUILD_LONG_FLAG, "Build for tests", fmt.Sprint(testBuild))
+
+	flags.DisplayArgumentInput(RUN_TESTS_SHORT_FLAG, RUN_TESTS_LONG_FLAG, "Run tests", fmt.Sprint(runTests))
+
+	flags.DisplayLongFlagArgumentInput(THREADS_LONG_FLAG, "Set the number of threads to use for compiling", fmt.Sprint(threads))
+
+	flags.DisplayLongFlagArgumentInput(AVX_LONG_FLAG, "Set SSE", fmt.Sprint(useSSE))
+
+	flags.DisplayLongFlagArgumentInput(SSE_LONG_FLAG, "Set AVX", fmt.Sprint(useAVX))
+
+	flags.DisplayNoDefaultArgumentInput(HELP_SHORT_FLAG, HELP_LONG_FLAG, "Display this help message")
+	fmt.Printf("\n")
+	flags.DisplayExitCodes()
+	flags.DisplayExitCode(EXIT_SUCCESS, "Success")
+	flags.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Incorrect argument(s)")
+	flags.DisplayExitCode(EXIT_CLI_PARSING_ERROR, "CLI parsing error")
+	fmt.Printf("\n")
+	flags.DisplayExamples()
+	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
+	fmt.Printf("  %s -%s=%s --%s text,log --%s -%s\n", filepath.Base(os.Args[0]),
+		BUILD_MODE_LONG_FLAG, possibleBuildModes[1], SELECT_TARGETS_LONG_FLAG, TEST_BUILD_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
+	fmt.Printf("\n")
+}
+
+func buildKernel() {
+	displayProjectBuild(KERNEL_CODE_FOLDER)
 
 	buildDirectory := strings.Builder{}
 	buildDirectory.WriteString(fmt.Sprintf("%s/", KERNEL_CODE_FOLDER))
@@ -219,22 +242,50 @@ func main() {
 		buildDirectory.WriteString("prod/")
 	}
 	buildDirectory.WriteString(fmt.Sprintf("%s/", cCompiler))
-	configureOptions = append(configureOptions, fmt.Sprintf("-B %s", buildDirectory.String()))
 
-	configureOptions = append(configureOptions, fmt.Sprintf("-D CMAKE_C_COMPILER=%s", cCompiler))
-	configureOptions = append(configureOptions, "--graphviz=dependency-graph.dot")
-	configureOptions = append(configureOptions, fmt.Sprintf("-D CMAKE_BUILD_TYPE=%s", buildMode))
+	configureOptions := strings.Builder{}
+	cmake.AddCommonConfigureOptions(&configureOptions, KERNEL_CODE_FOLDER, buildDirectory.String(), cCompiler, linker, buildMode)
+	argument.AddArgument(&configureOptions, fmt.Sprintf("-D USE_AVX=%t", useAVX))
+	argument.AddArgument(&configureOptions, fmt.Sprintf("-D USE_SSE=%t", useSSE))
+	argument.AddArgument(&configureOptions, fmt.Sprintf("-D UNIT_TEST_BUILD=%t", testBuild))
 
-	configureOptions = append(configureOptions, fmt.Sprintf("-D USE_AVX=%s", useAVX))
-	configureOptions = append(configureOptions, fmt.Sprintf("-D USE_SSE=%s", useSSE))
-	configureOptions = append(configureOptions, fmt.Sprintf("-D UNIT_TEST_BUILD=%s", testBuild))
+	argument.RunCommand(CMAKE_EXECUTABLE, configureOptions.String())
 
-	if includeWhatYouUse {
-		configureOptions = append(configureOptions, "-D CMAKE_C_INCLUDE_WHAT_YOU_USE=\"include-what-you-use;-w;-Xiwyu;--no_default_mappings\"")
+	buildOptions := strings.Builder{}
+	cmake.AddCommonBuildOptions(&buildOptions, buildDirectory.String(), threads)
+
+	if usingTargets {
+		targetsString := strings.Builder{}
+		for _, target := range selectedTargets {
+			targetsString.WriteString(target)
+			targetsString.WriteString(" ")
+		}
+		argument.AddArgument(&buildOptions, fmt.Sprintf("--target %s", targetsString.String()))
 	}
 
-	var exec = fmt.Sprintf("ls %s", KERNEL_CODE_FOLDER)
-	script.Exec(exec).Stdout()
+	argument.RunCommand(CMAKE_EXECUTABLE, buildOptions.String())
 
-	fmt.Println("You made it here!!!!!!!!!!!!!!!!")
+	findOptions := strings.Builder{}
+	argument.AddArgument(&findOptions, buildDirectory.String())
+	argument.AddArgument(&findOptions, "-maxdepth 1")
+	argument.AddArgument(&findOptions, "-name \"compile_commands.json\"")
+	argument.AddArgument(&findOptions, fmt.Sprintf("-exec ln -f -s {} %s \\;", KERNEL_CODE_FOLDER))
+
+	argument.RunCommand("find", findOptions.String())
+}
+
+func buildStandardProject(codeFolder string) {
+	displayProjectBuild(codeFolder)
+
+	var buildDirectory = codeFolder + "/build"
+
+	configureOptions := strings.Builder{}
+	cmake.AddCommonConfigureOptions(&configureOptions, codeFolder, buildDirectory, cCompiler, linker, buildMode)
+
+	argument.RunCommand(CMAKE_EXECUTABLE, configureOptions.String())
+
+	buildOptions := strings.Builder{}
+	cmake.AddCommonBuildOptions(&buildOptions, buildDirectory, threads)
+
+	argument.RunCommand(CMAKE_EXECUTABLE, buildOptions.String())
 }
