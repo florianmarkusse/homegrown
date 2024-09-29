@@ -75,7 +75,7 @@ var useSSE = true
 var help = false
 
 func displayProjectBuild(project string) {
-	fmt.Printf("%sGoing to build %s project%s\n", common.CYAN, common.KERNEL_CODE_FOLDER, common.RESET)
+	fmt.Printf("%sGoing to build %s project%s\n", common.CYAN, project, common.RESET)
 }
 
 func arrayIntoPrintableString(array []string) string {

@@ -2,6 +2,7 @@
 set -eo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
+cd ../
 
 YELLOW='\033[33m'
 BOLD='\033[1m'

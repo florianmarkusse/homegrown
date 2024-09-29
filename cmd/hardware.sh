@@ -2,7 +2,8 @@
 set -eo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
+cd ../
 
-projects/clean.sh
-./build-create-run.sh -n
+cmd/clean.sh
+cmd/compile.elf
 sudo dd bs=4M if=test.hdd of=/dev/sdc1 conv=notrunc

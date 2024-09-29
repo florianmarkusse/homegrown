@@ -2,6 +2,7 @@
 set -eo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
+cd ../
 
 YELLOW='\033[33m'
 BOLD='\033[1m'
@@ -51,7 +52,7 @@ BUILD_OPTIONS=(
     -m "${BUILD_MODE}"
 )
 
-projects/build.sh "${BUILD_OPTIONS[@]}"
+cmd/compile.elf "${BUILD_OPTIONS[@]}"
 
 find projects/uefi/code/build -executable -type f -name "uefi-${BUILD_MODE}" -exec cp {} BOOTX64.EFI \;
 find projects/kernel/code/build -executable -type f -name "kernel-${BUILD_MODE}.bin" -exec cp {} kernel.bin \;
@@ -64,4 +65,4 @@ RUN_QEMU_OPTIONS=(
 
 [ "$BUILD_MODE" = "Debug" ] && RUN_QEMU_OPTIONS+=(-d) && RUN_QEMU_OPTIONS+=(-v)
 
-./run-qemu.sh "${RUN_QEMU_OPTIONS[@]}"
+cmd/run-qemu.elf "${RUN_QEMU_OPTIONS[@]}"
