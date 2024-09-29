@@ -8,6 +8,7 @@
 #include "util/maths.h"
 #include "util/sizes.h"
 
+// TODO: Do we want to just have this as static memory in unit tests???
 // TODO: Idea is to have a single flush buffer per thread and have it flush to
 // the file buffer sometimes.
 #define FLUSH_BUFFER_SIZE (2 * MiB)

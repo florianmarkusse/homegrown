@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/bitfield/script"
 )
 
 // TODO: Add flag to  redirect stderr on builds
@@ -47,14 +49,7 @@ const HELP_SHORT_FLAG = "h"
 const EXIT_SUCCESS = 0
 const EXIT_MISSING_ARGUMENT = 1
 const EXIT_CLI_PARSING_ERROR = 2
-
-const CMAKE_EXECUTABLE = "cmake"
-
-const PROJECT_FOLDER = "projects/"
-const KERNEL_CODE_FOLDER = PROJECT_FOLDER + "kernel/code"
-const INTEROPERATION_CODE_FOLDER = PROJECT_FOLDER + "interoperation/code"
-const UEFI_IMAGE_CREATOR_CODE_FOLDER = PROJECT_FOLDER + "uefi-image-creator/code"
-const UEFI_CODE_FOLDER = PROJECT_FOLDER + "uefi-image-creator/code"
+const EXIT_TARGET_ERROR = 3
 
 var possibleBuildModes = [...]string{"Release", "Debug", "Profiling", "Fuzzing"}
 var buildMode = possibleBuildModes[0]
@@ -80,7 +75,7 @@ var useSSE = true
 var help = false
 
 func displayProjectBuild(project string) {
-	fmt.Printf("%sGoing to build %s project%s\n", common.CYAN, KERNEL_CODE_FOLDER, common.RESET)
+	fmt.Printf("%sGoing to build %s project%s\n", common.CYAN, common.KERNEL_CODE_FOLDER, common.RESET)
 }
 
 func arrayIntoPrintableString(array []string) string {
@@ -146,9 +141,8 @@ func main() {
 		usage()
 		if help {
 			os.Exit(EXIT_SUCCESS)
-		} else {
-			os.Exit(EXIT_MISSING_ARGUMENT)
 		}
+		os.Exit(EXIT_MISSING_ARGUMENT)
 	}
 
 	selectedTargets = strings.FieldsFunc(targets, func(r rune) bool {
@@ -176,18 +170,47 @@ func main() {
 	configuration.DisplayBoolArgument(SSE_LONG_FLAG, useSSE)
 	fmt.Printf("\n")
 
-	buildKernel()
-	buildStandardProject(INTEROPERATION_CODE_FOLDER)
+	// NOTE: Using waitgroups is currently slower than just running synchronously
+
+	var kernelBuildDirectory = cmake.KernelBuildDirectory(testBuild, cCompiler)
+	buildKernel(kernelBuildDirectory)
+
+	fmt.Println("Building Because of LSP purposes")
+	buildStandardProject(common.INTEROPERATION_CODE_FOLDER)
 
 	if testBuild {
-		fmt.Println("Test build, should stop here and run tests!!!!")
+		findAndRunTests(kernelBuildDirectory)
+	}
+
+	buildStandardProject(common.UEFI_IMAGE_CREATOR_CODE_FOLDER)
+	buildStandardProject(common.UEFI_CODE_FOLDER)
+}
+
+func findAndRunTests(kernelBuildDirectory string) {
+	if !runTests {
 		os.Exit(EXIT_SUCCESS)
 	}
 
-	buildStandardProject(UEFI_IMAGE_CREATOR_CODE_FOLDER)
-	buildStandardProject(UEFI_CODE_FOLDER)
+	if usingTargets {
+		for _, target := range selectedTargets {
+			var findCommand = fmt.Sprintf("find %s -executable -type f -name \"%s\"", kernelBuildDirectory, target)
+			var testFile, err = script.Exec(findCommand).String()
+			if err != nil {
+				fmt.Sprintf("%sFinding test targets to run errored!%s\n", common.RED, common.RESET)
+				fmt.Println(findCommand)
+				fmt.Println(err)
+				os.Exit(EXIT_TARGET_ERROR)
+			}
+			script.Exec(testFile).Stdout()
+		}
 
-	fmt.Println("You made it here!!!!!!!!!!!!!!!!")
+		os.Exit(EXIT_SUCCESS)
+	}
+
+	var findCommand = fmt.Sprintf("find %s -executable -type f -name \"*-tests*\" -exec {} \\;", kernelBuildDirectory)
+	script.Exec(findCommand).Stdout()
+
+	os.Exit(EXIT_SUCCESS)
 }
 
 func usage() {
@@ -222,6 +245,7 @@ func usage() {
 	flags.DisplayExitCode(EXIT_SUCCESS, "Success")
 	flags.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Incorrect argument(s)")
 	flags.DisplayExitCode(EXIT_CLI_PARSING_ERROR, "CLI parsing error")
+	flags.DisplayExitCode(EXIT_TARGET_ERROR, "Targets to build error")
 	fmt.Printf("\n")
 	flags.DisplayExamples()
 	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
@@ -230,29 +254,19 @@ func usage() {
 	fmt.Printf("\n")
 }
 
-func buildKernel() {
-	displayProjectBuild(KERNEL_CODE_FOLDER)
-
-	buildDirectory := strings.Builder{}
-	buildDirectory.WriteString(fmt.Sprintf("%s/", KERNEL_CODE_FOLDER))
-	buildDirectory.WriteString("build/")
-	if testBuild {
-		buildDirectory.WriteString("test/")
-	} else {
-		buildDirectory.WriteString("prod/")
-	}
-	buildDirectory.WriteString(fmt.Sprintf("%s/", cCompiler))
+func buildKernel(buildDirectory string) {
+	displayProjectBuild(common.KERNEL_CODE_FOLDER)
 
 	configureOptions := strings.Builder{}
-	cmake.AddCommonConfigureOptions(&configureOptions, KERNEL_CODE_FOLDER, buildDirectory.String(), cCompiler, linker, buildMode)
+	cmake.AddCommonConfigureOptions(&configureOptions, common.KERNEL_CODE_FOLDER, buildDirectory, cCompiler, linker, buildMode)
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D USE_AVX=%t", useAVX))
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D USE_SSE=%t", useSSE))
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D UNIT_TEST_BUILD=%t", testBuild))
 
-	argument.RunCommand(CMAKE_EXECUTABLE, configureOptions.String())
+	argument.RunCommand(common.CMAKE_EXECUTABLE, configureOptions.String())
 
 	buildOptions := strings.Builder{}
-	cmake.AddCommonBuildOptions(&buildOptions, buildDirectory.String(), threads)
+	cmake.AddCommonBuildOptions(&buildOptions, buildDirectory, threads)
 
 	if usingTargets {
 		targetsString := strings.Builder{}
@@ -263,13 +277,14 @@ func buildKernel() {
 		argument.AddArgument(&buildOptions, fmt.Sprintf("--target %s", targetsString.String()))
 	}
 
-	argument.RunCommand(CMAKE_EXECUTABLE, buildOptions.String())
+	argument.RunCommand(common.CMAKE_EXECUTABLE, buildOptions.String())
 
 	findOptions := strings.Builder{}
-	argument.AddArgument(&findOptions, buildDirectory.String())
+	argument.AddArgument(&findOptions, buildDirectory)
 	argument.AddArgument(&findOptions, "-maxdepth 1")
 	argument.AddArgument(&findOptions, "-name \"compile_commands.json\"")
-	argument.AddArgument(&findOptions, fmt.Sprintf("-exec ln -f -s {} %s \\;", KERNEL_CODE_FOLDER))
+	// NOTE: Using copy here because sym linking gave issues???
+	argument.AddArgument(&findOptions, fmt.Sprintf("-exec cp -f {} %s \\;", common.KERNEL_CODE_FOLDER))
 
 	argument.RunCommand("find", findOptions.String())
 }
@@ -282,10 +297,10 @@ func buildStandardProject(codeFolder string) {
 	configureOptions := strings.Builder{}
 	cmake.AddCommonConfigureOptions(&configureOptions, codeFolder, buildDirectory, cCompiler, linker, buildMode)
 
-	argument.RunCommand(CMAKE_EXECUTABLE, configureOptions.String())
+	argument.RunCommand(common.CMAKE_EXECUTABLE, configureOptions.String())
 
 	buildOptions := strings.Builder{}
 	cmake.AddCommonBuildOptions(&buildOptions, buildDirectory, threads)
 
-	argument.RunCommand(CMAKE_EXECUTABLE, buildOptions.String())
+	argument.RunCommand(common.CMAKE_EXECUTABLE, buildOptions.String())
 }

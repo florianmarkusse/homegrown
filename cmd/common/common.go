@@ -10,3 +10,11 @@ const PURPLE = "\033[35m"
 const CYAN = "\033[36m"
 const GRAY = "\033[37m"
 const WHITE = "\033[97m"
+
+const CMAKE_EXECUTABLE = "cmake"
+
+const PROJECT_FOLDER = "projects/"
+const KERNEL_CODE_FOLDER = PROJECT_FOLDER + "kernel/code"
+const INTEROPERATION_CODE_FOLDER = PROJECT_FOLDER + "interoperation/code"
+const UEFI_IMAGE_CREATOR_CODE_FOLDER = PROJECT_FOLDER + "uefi-image-creator/code"
+const UEFI_CODE_FOLDER = PROJECT_FOLDER + "uefi-image-creator/code"

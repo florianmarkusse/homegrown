@@ -1,10 +1,26 @@
 package cmake
 
 import (
+	"cmd/common"
 	"cmd/common/argument"
 	"fmt"
 	"strings"
 )
+
+func KernelBuildDirectory(testBuild bool, cCompiler string) string {
+
+	buildDirectory := strings.Builder{}
+	buildDirectory.WriteString(fmt.Sprintf("%s/", common.KERNEL_CODE_FOLDER))
+	buildDirectory.WriteString("build/")
+	if testBuild {
+		buildDirectory.WriteString("test/")
+	} else {
+		buildDirectory.WriteString("prod/")
+	}
+	buildDirectory.WriteString(fmt.Sprintf("%s/", cCompiler))
+
+	return buildDirectory.String()
+}
 
 func AddCommonConfigureOptions(options *strings.Builder, codeDirectory string, buildDirectory string, cCompiler string, linker string, buildMode string) {
 	argument.AddArgument(options, fmt.Sprintf("-S %s", codeDirectory))
@@ -18,5 +34,5 @@ func AddCommonConfigureOptions(options *strings.Builder, codeDirectory string, b
 
 func AddCommonBuildOptions(options *strings.Builder, buildDirectory string, threads int) {
 	argument.AddArgument(options, fmt.Sprintf("--build %s", buildDirectory))
-	argument.AddArgument(options, fmt.Sprintf("-j %d", threads))
+	argument.AddArgument(options, fmt.Sprintf("--parallel %d", threads))
 }
