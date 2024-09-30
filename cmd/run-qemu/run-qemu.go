@@ -3,7 +3,7 @@ package main
 import (
 	"cmd/common/argument"
 	"cmd/common/configuration"
-	"cmd/common/error"
+	"cmd/common/exit"
 	"cmd/common/flags"
 	"cmd/common/flags/help"
 	"flag"
@@ -37,10 +37,10 @@ func usage() {
 	flags.DisplayArgumentInput(DEBUG_SHORT_FLAG, DEBUG_LONG_FLAG, "Wait for gdb to connect to port 1234 before running", fmt.Sprint(debug))
 	help.DisplayHelp()
 	fmt.Printf("\n")
-	error.DisplayExitCodes()
-	error.DisplayExitCode(error.EXIT_SUCCESS)
-	error.DisplayExitCode(error.EXIT_MISSING_ARGUMENT)
-	error.DisplayExitCode(error.EXIT_CLI_PARSING_ERROR)
+	exit.DisplayExitCodes()
+	exit.DisplayExitCode(exit.EXIT_SUCCESS)
+	exit.DisplayExitCode(exit.EXIT_MISSING_ARGUMENT)
+	exit.DisplayExitCode(exit.EXIT_CLI_PARSING_ERROR)
 	fmt.Printf("\n")
 	flags.DisplayExamples()
 	fmt.Printf("  %s --%s test.hdd --%s bios.bin\n", filepath.Base(os.Args[0]), OS_LOCATION_LONG_FLAG, UEFI_LOCATION_LONG_FLAG)
@@ -89,9 +89,9 @@ func main() {
 	if showHelpAndExit {
 		usage()
 		if isHelp {
-			os.Exit(error.EXIT_SUCCESS)
+			os.Exit(exit.EXIT_SUCCESS)
 		} else {
-			os.Exit(error.EXIT_MISSING_ARGUMENT)
+			os.Exit(exit.EXIT_MISSING_ARGUMENT)
 		}
 	}
 
