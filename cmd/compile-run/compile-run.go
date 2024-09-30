@@ -5,13 +5,17 @@ import (
 	"cmd/common/exit"
 	"cmd/common/flags"
 	"cmd/common/flags/buildmode"
+	"cmd/common/uefiimage"
+	"cmd/compile/projects"
+	"cmd/run-qemu/qemu"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 )
 
-var buildMode = buildmode.PossibleBuildModes[0]
+var buildArgs = projects.DefaultBuildArgs
+var qemuArgs = qemu.DefaultQemuArgs
 
 var isHelp = false
 
@@ -20,7 +24,7 @@ func usage() {
 	fmt.Printf("\n")
 	flags.DisplayOptionalFlags()
 
-	buildmode.DisplayBuildMode(buildMode)
+	buildmode.DisplayBuildMode(buildArgs.BuildMode)
 
 	fmt.Printf("\n")
 	exit.DisplayExitCodes()
@@ -36,14 +40,14 @@ func usage() {
 }
 
 func main() {
-	buildmode.AddBuildModeAsFlag(&buildMode)
+	buildmode.AddBuildModeAsFlag(&buildArgs.BuildMode)
 
 	flag.Usage = usage
 	flag.Parse()
 
 	var showHelpAndExit = false
 
-	if !buildmode.IsValidBuildMode(buildMode) {
+	if !buildmode.IsValidBuildMode(buildArgs.BuildMode) {
 		showHelpAndExit = true
 	}
 
@@ -60,10 +64,19 @@ func main() {
 	}
 
 	configuration.DisplayConfiguration()
-	buildmode.DisplayBuildModeConfiguration(buildMode)
+	buildmode.DisplayBuildModeConfiguration(buildArgs.BuildMode)
 	fmt.Printf("\n")
 
-	// cmd/compile.elf "${BUILD_OPTIONS[@]}"
-	// cmd/create-test-image.sh "${BUILD_OPTIONS[@]}"
+	var result = projects.Build(&buildArgs)
+	if result != projects.Success {
+		os.Exit(exit.EXIT_TARGET_ERROR)
+	}
 
+	uefiimage.CreateUefiImage(buildArgs.BuildMode)
+
+	if buildArgs.BuildMode == string(buildmode.Debug) {
+		qemuArgs.Debug = true
+		qemuArgs.Verbose = true
+	}
+	qemu.Run(&qemuArgs)
 }

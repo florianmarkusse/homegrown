@@ -4,7 +4,9 @@ import (
 	"cmd/common"
 	"cmd/common/argument"
 	"cmd/common/cmake"
+	"cmd/common/flags/buildmode"
 	"fmt"
+	"runtime"
 	"strings"
 
 	"github.com/bitfield/script"
@@ -106,6 +108,18 @@ const (
 	Success BuildResult = iota
 	Failure
 )
+
+var DefaultBuildArgs = BuildArgs{
+	CCompiler:       "clang-19",
+	Linker:          "ld",
+	BuildMode:       buildmode.DefaultBuildMode(),
+	Threads:         runtime.NumCPU(),
+	SelectedTargets: []string{},
+	TestBuild:       false,
+	RunTests:        false,
+	UseAVX:          true,
+	UseSSE:          true,
+}
 
 func Build(args *BuildArgs) BuildResult {
 	// NOTE: Using waitgroups is currently slower than just running synchronously

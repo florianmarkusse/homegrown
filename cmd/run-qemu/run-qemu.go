@@ -1,16 +1,15 @@
 package main
 
 import (
-	"cmd/common/argument"
 	"cmd/common/configuration"
 	"cmd/common/exit"
 	"cmd/common/flags"
 	"cmd/common/flags/help"
+	"cmd/run-qemu/qemu"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 const OS_LOCATION_LONG_FLAG = "os-location"
@@ -25,16 +24,19 @@ const VERBOSE_SHORT_FLAG = "v"
 const DEBUG_LONG_FLAG = "debug"
 const DEBUG_SHORT_FLAG = "d"
 
+var qemuArgs = qemu.DefaultQemuArgs
+
+var isHelp = false
+
 func usage() {
-	var usageFlags = fmt.Sprintf("--%s <os_location> --%s <uefi_location>", OS_LOCATION_LONG_FLAG, UEFI_LOCATION_LONG_FLAG)
+	var usageFlags = fmt.Sprintf("")
 	flags.DisplayUsage(usageFlags)
 	fmt.Printf("\n")
-	flags.DisplayRequiredFlags()
-	flags.DisplayNoDefaultArgumentInput(OS_LOCATION_SHORT_FLAG, OS_LOCATION_LONG_FLAG, "Set the OS (.hdd) location")
-	flags.DisplayNoDefaultArgumentInput(UEFI_LOCATION_SHORT_FLAG, UEFI_LOCATION_LONG_FLAG, "set the UEFI (.bin) location to emulate UEFI environment")
 	flags.DisplayOptionalFlags()
-	flags.DisplayArgumentInput(VERBOSE_SHORT_FLAG, VERBOSE_LONG_FLAG, "Enable verbose QEMU", fmt.Sprint(verbose))
-	flags.DisplayArgumentInput(DEBUG_SHORT_FLAG, DEBUG_LONG_FLAG, "Wait for gdb to connect to port 1234 before running", fmt.Sprint(debug))
+	flags.DisplayArgumentInput(OS_LOCATION_SHORT_FLAG, OS_LOCATION_LONG_FLAG, "Set the OS (.hdd) location", qemuArgs.OsLocation)
+	flags.DisplayArgumentInput(UEFI_LOCATION_SHORT_FLAG, UEFI_LOCATION_LONG_FLAG, "set the UEFI (.bin) location to emulate UEFI environment", qemuArgs.UefiLocation)
+	flags.DisplayArgumentInput(VERBOSE_SHORT_FLAG, VERBOSE_LONG_FLAG, "Enable verbose QEMU", fmt.Sprint(qemuArgs.Verbose))
+	flags.DisplayArgumentInput(DEBUG_SHORT_FLAG, DEBUG_LONG_FLAG, "Wait for gdb to connect to port 1234 before running", fmt.Sprint(qemuArgs.Debug))
 	help.DisplayHelp()
 	fmt.Printf("\n")
 	exit.DisplayExitCodes()
@@ -48,26 +50,18 @@ func usage() {
 	fmt.Printf("\n")
 }
 
-var osLocation string
-var uefiLocation string
-var verbose = false
-var debug = false
-var isHelp = false
-
-const QEMU_EXECUTABLE = "qemu-system-x86_64"
-
 func main() {
-	flag.StringVar(&osLocation, OS_LOCATION_LONG_FLAG, "", "")
-	flag.StringVar(&osLocation, OS_LOCATION_SHORT_FLAG, "", "")
+	flag.StringVar(&qemuArgs.OsLocation, OS_LOCATION_LONG_FLAG, qemuArgs.OsLocation, "")
+	flag.StringVar(&qemuArgs.OsLocation, OS_LOCATION_SHORT_FLAG, qemuArgs.OsLocation, "")
 
-	flag.StringVar(&uefiLocation, UEFI_LOCATION_LONG_FLAG, "", "")
-	flag.StringVar(&uefiLocation, UEFI_LOCATION_SHORT_FLAG, "", "")
+	flag.StringVar(&qemuArgs.UefiLocation, UEFI_LOCATION_LONG_FLAG, qemuArgs.UefiLocation, "")
+	flag.StringVar(&qemuArgs.UefiLocation, UEFI_LOCATION_SHORT_FLAG, qemuArgs.UefiLocation, "")
 
-	flag.BoolVar(&verbose, VERBOSE_LONG_FLAG, verbose, "")
-	flag.BoolVar(&verbose, VERBOSE_SHORT_FLAG, verbose, "")
+	flag.BoolVar(&qemuArgs.Verbose, VERBOSE_LONG_FLAG, qemuArgs.Verbose, "")
+	flag.BoolVar(&qemuArgs.Verbose, VERBOSE_SHORT_FLAG, qemuArgs.Verbose, "")
 
-	flag.BoolVar(&debug, DEBUG_LONG_FLAG, debug, "")
-	flag.BoolVar(&debug, DEBUG_SHORT_FLAG, debug, "")
+	flag.BoolVar(&qemuArgs.Debug, DEBUG_LONG_FLAG, qemuArgs.Debug, "")
+	flag.BoolVar(&qemuArgs.Debug, DEBUG_SHORT_FLAG, qemuArgs.Debug, "")
 
 	help.AddHelpAsFlag(&isHelp)
 
@@ -76,12 +70,6 @@ func main() {
 
 	var showHelpAndExit = false
 
-	if osLocation == "" {
-		showHelpAndExit = true
-	}
-	if uefiLocation == "" {
-		showHelpAndExit = true
-	}
 	if isHelp {
 		showHelpAndExit = true
 	}
@@ -96,37 +84,11 @@ func main() {
 	}
 
 	configuration.DisplayConfiguration()
-	configuration.DisplayStringArgument(OS_LOCATION_LONG_FLAG, osLocation)
-	configuration.DisplayStringArgument(UEFI_LOCATION_LONG_FLAG, uefiLocation)
-	configuration.DisplayBoolArgument(VERBOSE_LONG_FLAG, verbose)
-	configuration.DisplayBoolArgument(DEBUG_LONG_FLAG, debug)
+	configuration.DisplayStringArgument(OS_LOCATION_LONG_FLAG, qemuArgs.OsLocation)
+	configuration.DisplayStringArgument(UEFI_LOCATION_LONG_FLAG, qemuArgs.UefiLocation)
+	configuration.DisplayBoolArgument(VERBOSE_LONG_FLAG, qemuArgs.Verbose)
+	configuration.DisplayBoolArgument(DEBUG_LONG_FLAG, qemuArgs.Debug)
 	fmt.Printf("\n")
 
-	qemuOptions := strings.Builder{}
-	argument.AddArgument(&qemuOptions, "-m 512")
-	argument.AddArgument(&qemuOptions, "-machine q35")
-	argument.AddArgument(&qemuOptions, "-no-reboot")
-	argument.AddArgument(&qemuOptions, fmt.Sprintf("-drive \"format=raw,file=%s\"", osLocation))
-	argument.AddArgument(&qemuOptions, fmt.Sprintf("-bios %s", uefiLocation))
-	argument.AddArgument(&qemuOptions, "-serial stdio")
-	argument.AddArgument(&qemuOptions, "-smp 1")
-	argument.AddArgument(&qemuOptions, "-usb")
-	argument.AddArgument(&qemuOptions, "-vga std")
-
-	if verbose {
-		argument.AddArgument(&qemuOptions, "-d int,cpu_reset")
-	}
-
-	if debug {
-		argument.AddArgument(&qemuOptions, "-s -S")
-		// NOTE: Ensure this is the same architecture as what you are trying to
-		// build for :)))
-		argument.AddArgument(&qemuOptions, "-cpu Haswell-v4")
-		argument.AddArgument(&qemuOptions, "-accel \"tcg\"")
-	} else {
-		argument.AddArgument(&qemuOptions, "-cpu host")
-		argument.AddArgument(&qemuOptions, "-enable-kvm")
-	}
-
-	argument.RunCommand(QEMU_EXECUTABLE, qemuOptions.String())
+	qemu.Run(&qemuArgs)
 }

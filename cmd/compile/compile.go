@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -40,50 +39,35 @@ const AVX_LONG_FLAG = "avx"
 
 const SSE_LONG_FLAG = "sse"
 
-var buildMode = buildmode.PossibleBuildModes[0]
-
-var cCompiler = "clang-19"
-
-var linker = "ld"
+var buildArgs = projects.DefaultBuildArgs
 
 var targets string
-var selectedTargets []string
-
-var testBuild = false
-
-var runTests = false
-
-var threads = runtime.NumCPU()
-
-var useAVX = true
-
-var useSSE = true
 
 var isHelp = false
 
 func main() {
-	buildmode.AddBuildModeAsFlag(&buildMode)
+	buildmode.AddBuildModeAsFlag(&buildArgs.BuildMode)
 
-	flag.StringVar(&cCompiler, C_COMPILER_LONG_FLAG, cCompiler, "")
-	flag.StringVar(&cCompiler, C_COMPILER_SHORT_FLAG, cCompiler, "")
+	flag.StringVar(&buildArgs.CCompiler, C_COMPILER_LONG_FLAG, buildArgs.CCompiler, "")
+	flag.StringVar(&buildArgs.CCompiler, C_COMPILER_SHORT_FLAG, buildArgs.CCompiler, "")
 
-	flag.StringVar(&linker, LINKER_LONG_FLAG, linker, "")
-	flag.StringVar(&linker, LINKER_SHORT_FLAG, linker, "")
+	flag.StringVar(&buildArgs.Linker, LINKER_LONG_FLAG, buildArgs.Linker, "")
+	flag.StringVar(&buildArgs.Linker, LINKER_SHORT_FLAG, buildArgs.Linker, "")
 
 	flag.StringVar(&targets, SELECT_TARGETS_LONG_FLAG, "", "")
 	flag.StringVar(&targets, SELECT_TARGETS_SHORT_FLAG, "", "")
 
-	flag.BoolVar(&testBuild, TEST_BUILD_LONG_FLAG, testBuild, "")
-	flag.BoolVar(&testBuild, TEST_BUILD_SHORT_FLAG, testBuild, "")
+	flag.BoolVar(&buildArgs.TestBuild, TEST_BUILD_LONG_FLAG, buildArgs.TestBuild, "")
+	flag.BoolVar(&buildArgs.TestBuild, TEST_BUILD_SHORT_FLAG, buildArgs.TestBuild, "")
 
-	flag.BoolVar(&runTests, RUN_TESTS_LONG_FLAG, runTests, "")
-	flag.BoolVar(&runTests, RUN_TESTS_SHORT_FLAG, runTests, "")
+	flag.BoolVar(&buildArgs.RunTests, RUN_TESTS_LONG_FLAG, buildArgs.RunTests, "")
+	flag.BoolVar(&buildArgs.RunTests, RUN_TESTS_SHORT_FLAG, buildArgs.RunTests, "")
 
-	flag.IntVar(&threads, THREADS_LONG_FLAG, threads, "")
+	flag.IntVar(&buildArgs.Threads, THREADS_LONG_FLAG, buildArgs.Threads, "")
 
-	flag.BoolVar(&useAVX, AVX_LONG_FLAG, useAVX, "")
+	flag.BoolVar(&buildArgs.UseAVX, AVX_LONG_FLAG, buildArgs.UseAVX, "")
 
-	flag.BoolVar(&useSSE, SSE_LONG_FLAG, useSSE, "")
+	flag.BoolVar(&buildArgs.UseSSE, SSE_LONG_FLAG, buildArgs.UseSSE, "")
 
 	help.AddHelpAsFlag(&isHelp)
 
@@ -92,7 +76,7 @@ func main() {
 
 	var showHelpAndExit = false
 
-	if !buildmode.IsValidBuildMode(buildMode) {
+	if !buildmode.IsValidBuildMode(buildArgs.BuildMode) {
 		showHelpAndExit = true
 	}
 
@@ -108,43 +92,31 @@ func main() {
 		os.Exit(exit.EXIT_MISSING_ARGUMENT)
 	}
 
-	selectedTargets = strings.FieldsFunc(targets, func(r rune) bool {
+	buildArgs.SelectedTargets = strings.FieldsFunc(targets, func(r rune) bool {
 		return r == ','
 	})
 
 	configuration.DisplayConfiguration()
-	buildmode.DisplayBuildModeConfiguration(buildMode)
-	configuration.DisplayStringArgument(C_COMPILER_LONG_FLAG, cCompiler)
-	configuration.DisplayStringArgument(LINKER_LONG_FLAG, linker)
+	buildmode.DisplayBuildModeConfiguration(buildArgs.BuildMode)
+	configuration.DisplayStringArgument(C_COMPILER_LONG_FLAG, buildArgs.CCompiler)
+	configuration.DisplayStringArgument(LINKER_LONG_FLAG, buildArgs.Linker)
 
 	var targetsConfiguration string
-	if len(selectedTargets) > 0 {
-		targetsConfiguration = converter.ArrayIntoPrintableString(selectedTargets[:])
+	if len(buildArgs.SelectedTargets) > 0 {
+		targetsConfiguration = converter.ArrayIntoPrintableString(buildArgs.SelectedTargets[:])
 	} else {
 		targetsConfiguration = DEFAULT_TARGETS
 	}
 	configuration.DisplayStringArgument(SELECT_TARGETS_LONG_FLAG, targetsConfiguration)
 
-	configuration.DisplayBoolArgument(TEST_BUILD_LONG_FLAG, testBuild)
-	configuration.DisplayBoolArgument(RUN_TESTS_LONG_FLAG, runTests)
-	configuration.DisplayIntArgument(THREADS_LONG_FLAG, threads)
-	configuration.DisplayBoolArgument(AVX_LONG_FLAG, useAVX)
-	configuration.DisplayBoolArgument(SSE_LONG_FLAG, useSSE)
+	configuration.DisplayBoolArgument(TEST_BUILD_LONG_FLAG, buildArgs.TestBuild)
+	configuration.DisplayBoolArgument(RUN_TESTS_LONG_FLAG, buildArgs.RunTests)
+	configuration.DisplayIntArgument(THREADS_LONG_FLAG, buildArgs.Threads)
+	configuration.DisplayBoolArgument(AVX_LONG_FLAG, buildArgs.UseAVX)
+	configuration.DisplayBoolArgument(SSE_LONG_FLAG, buildArgs.UseSSE)
 	fmt.Printf("\n")
 
-	buildargs := projects.BuildArgs{
-		CCompiler:       cCompiler,
-		Linker:          linker,
-		BuildMode:       buildMode,
-		Threads:         threads,
-		SelectedTargets: selectedTargets,
-		TestBuild:       testBuild,
-		RunTests:        runTests,
-		UseAVX:          useAVX,
-		UseSSE:          useSSE,
-	}
-
-	var result = projects.Build(&buildargs)
+	var result = projects.Build(&buildArgs)
 
 	switch result {
 	case projects.Success:
@@ -163,23 +135,23 @@ func usage() {
 	fmt.Printf("\n")
 	flags.DisplayOptionalFlags()
 
-	buildmode.DisplayBuildMode(buildMode)
+	buildmode.DisplayBuildMode(buildArgs.BuildMode)
 
-	flags.DisplayArgumentInput(C_COMPILER_SHORT_FLAG, C_COMPILER_LONG_FLAG, "Set the c-compiler", fmt.Sprint(cCompiler))
+	flags.DisplayArgumentInput(C_COMPILER_SHORT_FLAG, C_COMPILER_LONG_FLAG, "Set the c-compiler", fmt.Sprint(buildArgs.CCompiler))
 
-	flags.DisplayArgumentInput(LINKER_SHORT_FLAG, LINKER_LONG_FLAG, "Set the linker", fmt.Sprint(linker))
+	flags.DisplayArgumentInput(LINKER_SHORT_FLAG, LINKER_LONG_FLAG, "Set the linker", fmt.Sprint(buildArgs.Linker))
 
 	flags.DisplayArgumentInput(SELECT_TARGETS_SHORT_FLAG, SELECT_TARGETS_LONG_FLAG, "Select specific target(s, comma-separated) to be built", DEFAULT_TARGETS)
 
-	flags.DisplayArgumentInput(TEST_BUILD_SHORT_FLAG, TEST_BUILD_LONG_FLAG, "Build for tests", fmt.Sprint(testBuild))
+	flags.DisplayArgumentInput(TEST_BUILD_SHORT_FLAG, TEST_BUILD_LONG_FLAG, "Build for tests", fmt.Sprint(buildArgs.TestBuild))
 
-	flags.DisplayArgumentInput(RUN_TESTS_SHORT_FLAG, RUN_TESTS_LONG_FLAG, "Run tests", fmt.Sprint(runTests))
+	flags.DisplayArgumentInput(RUN_TESTS_SHORT_FLAG, RUN_TESTS_LONG_FLAG, "Run tests", fmt.Sprint(buildArgs.RunTests))
 
-	flags.DisplayLongFlagArgumentInput(THREADS_LONG_FLAG, "Set the number of threads to use for compiling", fmt.Sprint(threads))
+	flags.DisplayLongFlagArgumentInput(THREADS_LONG_FLAG, "Set the number of threads to use for compiling", fmt.Sprint(buildArgs.Threads))
 
-	flags.DisplayLongFlagArgumentInput(AVX_LONG_FLAG, "Set SSE", fmt.Sprint(useSSE))
+	flags.DisplayLongFlagArgumentInput(AVX_LONG_FLAG, "Set SSE", fmt.Sprint(buildArgs.UseSSE))
 
-	flags.DisplayLongFlagArgumentInput(SSE_LONG_FLAG, "Set AVX", fmt.Sprint(useAVX))
+	flags.DisplayLongFlagArgumentInput(SSE_LONG_FLAG, "Set AVX", fmt.Sprint(buildArgs.UseAVX))
 
 	help.DisplayHelp()
 	fmt.Printf("\n")
