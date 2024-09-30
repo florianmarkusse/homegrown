@@ -3,11 +3,13 @@ package main
 import (
 	"cmd/common"
 	"cmd/common/argument"
-	"cmd/common/buildmode"
 	"cmd/common/cmake"
 	"cmd/common/configuration"
 	"cmd/common/converter"
+	"cmd/common/error"
 	"cmd/common/flags"
+	"cmd/common/flags/buildmode"
+	"cmd/common/flags/help"
 	"flag"
 	"fmt"
 	"os"
@@ -42,14 +44,6 @@ const AVX_LONG_FLAG = "avx"
 
 const SSE_LONG_FLAG = "sse"
 
-const HELP_LONG_FLAG = "help"
-const HELP_SHORT_FLAG = "h"
-
-const EXIT_SUCCESS = 0
-const EXIT_MISSING_ARGUMENT = 1
-const EXIT_CLI_PARSING_ERROR = 2
-const EXIT_TARGET_ERROR = 3
-
 var buildMode = buildmode.PossibleBuildModes[0]
 
 var cCompiler = "clang-19"
@@ -57,7 +51,6 @@ var cCompiler = "clang-19"
 var linker = "ld"
 
 var targets string
-var usingTargets = false
 var selectedTargets []string
 
 var testBuild = false
@@ -70,7 +63,7 @@ var useAVX = true
 
 var useSSE = true
 
-var help = false
+var isHelp = false
 
 func displayProjectBuild(project string) {
 	fmt.Printf("%sGoing to build %s project%s\n", common.CYAN, project, common.RESET)
@@ -100,8 +93,7 @@ func main() {
 
 	flag.BoolVar(&useSSE, SSE_LONG_FLAG, useSSE, "")
 
-	flag.BoolVar(&help, HELP_LONG_FLAG, help, "")
-	flag.BoolVar(&help, HELP_SHORT_FLAG, help, "")
+	help.AddHelpAsFlag(&isHelp)
 
 	flag.Usage = usage
 	flag.Parse()
@@ -112,22 +104,21 @@ func main() {
 		showHelpAndExit = true
 	}
 
-	if help {
+	if isHelp {
 		showHelpAndExit = true
 	}
 
 	if showHelpAndExit {
 		usage()
-		if help {
-			os.Exit(EXIT_SUCCESS)
+		if isHelp {
+			os.Exit(error.EXIT_SUCCESS)
 		}
-		os.Exit(EXIT_MISSING_ARGUMENT)
+		os.Exit(error.EXIT_MISSING_ARGUMENT)
 	}
 
 	selectedTargets = strings.FieldsFunc(targets, func(r rune) bool {
 		return r == ','
 	})
-	usingTargets = len(selectedTargets) > 0
 
 	configuration.DisplayConfiguration()
 	buildmode.DisplayBuildModeConfiguration(buildMode)
@@ -135,7 +126,7 @@ func main() {
 	configuration.DisplayStringArgument(LINKER_LONG_FLAG, linker)
 
 	var targetsConfiguration string
-	if usingTargets {
+	if len(selectedTargets) > 0 {
 		targetsConfiguration = converter.ArrayIntoPrintableString(selectedTargets[:])
 	} else {
 		targetsConfiguration = DEFAULT_TARGETS
@@ -167,10 +158,10 @@ func main() {
 
 func findAndRunTests(kernelBuildDirectory string) {
 	if !runTests {
-		os.Exit(EXIT_SUCCESS)
+		os.Exit(error.EXIT_SUCCESS)
 	}
 
-	if usingTargets {
+	if len(selectedTargets) > 0 {
 		for _, target := range selectedTargets {
 			var findCommand = fmt.Sprintf("find %s -executable -type f -name \"%s\"", kernelBuildDirectory, target)
 			var testFile, err = script.Exec(findCommand).String()
@@ -178,18 +169,18 @@ func findAndRunTests(kernelBuildDirectory string) {
 				fmt.Sprintf("%sFinding test targets to run errored!%s\n", common.RED, common.RESET)
 				fmt.Println(findCommand)
 				fmt.Println(err)
-				os.Exit(EXIT_TARGET_ERROR)
+				os.Exit(error.EXIT_TARGET_ERROR)
 			}
 			script.Exec(testFile).Stdout()
 		}
 
-		os.Exit(EXIT_SUCCESS)
+		os.Exit(error.EXIT_SUCCESS)
 	}
 
 	var findCommand = fmt.Sprintf("find %s -executable -type f -name \"*-tests*\" -exec {} \\;", kernelBuildDirectory)
 	script.Exec(findCommand).Stdout()
 
-	os.Exit(EXIT_SUCCESS)
+	os.Exit(error.EXIT_SUCCESS)
 }
 
 func usage() {
@@ -215,13 +206,13 @@ func usage() {
 
 	flags.DisplayLongFlagArgumentInput(SSE_LONG_FLAG, "Set AVX", fmt.Sprint(useAVX))
 
-	flags.DisplayNoDefaultArgumentInput(HELP_SHORT_FLAG, HELP_LONG_FLAG, "Display this help message")
+	help.DisplayHelp()
 	fmt.Printf("\n")
-	flags.DisplayExitCodes()
-	flags.DisplayExitCode(EXIT_SUCCESS, "Success")
-	flags.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Incorrect argument(s)")
-	flags.DisplayExitCode(EXIT_CLI_PARSING_ERROR, "CLI parsing error")
-	flags.DisplayExitCode(EXIT_TARGET_ERROR, "Targets to build error")
+	error.DisplayExitCodes()
+	error.DisplayExitCode(error.EXIT_SUCCESS)
+	error.DisplayExitCode(error.EXIT_MISSING_ARGUMENT)
+	error.DisplayExitCode(error.EXIT_CLI_PARSING_ERROR)
+	error.DisplayExitCode(error.EXIT_TARGET_ERROR)
 	fmt.Printf("\n")
 	flags.DisplayExamples()
 	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
@@ -244,7 +235,7 @@ func buildKernel(buildDirectory string) {
 	buildOptions := strings.Builder{}
 	cmake.AddCommonBuildOptions(&buildOptions, buildDirectory, threads)
 
-	if usingTargets {
+	if len(selectedTargets) > 0 {
 		targetsString := strings.Builder{}
 		for _, target := range selectedTargets {
 			targetsString.WriteString(target)

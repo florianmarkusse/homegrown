@@ -3,7 +3,9 @@ package main
 import (
 	"cmd/common/argument"
 	"cmd/common/configuration"
+	"cmd/common/error"
 	"cmd/common/flags"
+	"cmd/common/flags/help"
 	"flag"
 	"fmt"
 	"os"
@@ -23,13 +25,6 @@ const VERBOSE_SHORT_FLAG = "v"
 const DEBUG_LONG_FLAG = "debug"
 const DEBUG_SHORT_FLAG = "d"
 
-const HELP_LONG_FLAG = "help"
-const HELP_SHORT_FLAG = "h"
-
-const EXIT_SUCCESS = 0
-const EXIT_MISSING_ARGUMENT = 1
-const EXIT_CLI_PARSING_ERROR = 2
-
 func usage() {
 	var usageFlags = fmt.Sprintf("--%s <os_location> --%s <uefi_location>", OS_LOCATION_LONG_FLAG, UEFI_LOCATION_LONG_FLAG)
 	flags.DisplayUsage(usageFlags)
@@ -40,12 +35,12 @@ func usage() {
 	flags.DisplayOptionalFlags()
 	flags.DisplayArgumentInput(VERBOSE_SHORT_FLAG, VERBOSE_LONG_FLAG, "Enable verbose QEMU", fmt.Sprint(verbose))
 	flags.DisplayArgumentInput(DEBUG_SHORT_FLAG, DEBUG_LONG_FLAG, "Wait for gdb to connect to port 1234 before running", fmt.Sprint(debug))
-	flags.DisplayNoDefaultArgumentInput(HELP_SHORT_FLAG, HELP_LONG_FLAG, "Display this help message")
+	help.DisplayHelp()
 	fmt.Printf("\n")
-	flags.DisplayExitCodes()
-	flags.DisplayExitCode(EXIT_SUCCESS, "Success")
-	flags.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Incorrect argument(s)")
-	flags.DisplayExitCode(EXIT_CLI_PARSING_ERROR, "CLI parsing error")
+	error.DisplayExitCodes()
+	error.DisplayExitCode(error.EXIT_SUCCESS)
+	error.DisplayExitCode(error.EXIT_MISSING_ARGUMENT)
+	error.DisplayExitCode(error.EXIT_CLI_PARSING_ERROR)
 	fmt.Printf("\n")
 	flags.DisplayExamples()
 	fmt.Printf("  %s --%s test.hdd --%s bios.bin\n", filepath.Base(os.Args[0]), OS_LOCATION_LONG_FLAG, UEFI_LOCATION_LONG_FLAG)
@@ -57,7 +52,7 @@ var osLocation string
 var uefiLocation string
 var verbose = false
 var debug = false
-var help = false
+var isHelp = false
 
 const QEMU_EXECUTABLE = "qemu-system-x86_64"
 
@@ -74,8 +69,7 @@ func main() {
 	flag.BoolVar(&debug, DEBUG_LONG_FLAG, debug, "")
 	flag.BoolVar(&debug, DEBUG_SHORT_FLAG, debug, "")
 
-	flag.BoolVar(&help, HELP_LONG_FLAG, help, "")
-	flag.BoolVar(&help, HELP_SHORT_FLAG, help, "")
+	help.AddHelpAsFlag(&isHelp)
 
 	flag.Usage = usage
 	flag.Parse()
@@ -88,16 +82,16 @@ func main() {
 	if uefiLocation == "" {
 		showHelpAndExit = true
 	}
-	if help {
+	if isHelp {
 		showHelpAndExit = true
 	}
 
 	if showHelpAndExit {
 		usage()
-		if help {
-			os.Exit(EXIT_SUCCESS)
+		if isHelp {
+			os.Exit(error.EXIT_SUCCESS)
 		} else {
-			os.Exit(EXIT_MISSING_ARGUMENT)
+			os.Exit(error.EXIT_MISSING_ARGUMENT)
 		}
 	}
 
@@ -106,7 +100,6 @@ func main() {
 	configuration.DisplayStringArgument(UEFI_LOCATION_LONG_FLAG, uefiLocation)
 	configuration.DisplayBoolArgument(VERBOSE_LONG_FLAG, verbose)
 	configuration.DisplayBoolArgument(DEBUG_LONG_FLAG, debug)
-	configuration.DisplayBoolArgument(HELP_LONG_FLAG, help)
 	fmt.Printf("\n")
 
 	qemuOptions := strings.Builder{}

@@ -20,10 +20,6 @@ func DisplayOptionalFlags() {
 	fmt.Printf("%sOptional%s Flags:\n", common.BOLD, common.RESET)
 }
 
-func DisplayExitCodes() {
-	fmt.Printf("%s%sExit codes%s:\n", common.CYAN, common.BOLD, common.RESET)
-}
-
 func DisplayExamples() {
 	fmt.Printf("%s%sExamples%s:\n", common.BLUE, common.BOLD, common.RESET)
 }
