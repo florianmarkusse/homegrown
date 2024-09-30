@@ -4,10 +4,6 @@ set -eo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 cd ../
 
-YELLOW='\033[33m'
-BOLD='\033[1m'
-NO_COLOR='\033[0m'
-
 BUILD_MODES=("Release" "Debug")
 BUILD_MODE="${BUILD_MODES[0]}"
 
@@ -48,18 +44,6 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
-BUILD_OPTIONS=(
-    -m "${BUILD_MODE}"
-)
-
-cmd/compile.elf "${BUILD_OPTIONS[@]}"
-cmd/create-test-image.sh "${BUILD_OPTIONS[@]}"
-
-RUN_QEMU_OPTIONS=(
-    -o test.hdd
-    -u bios.bin
-)
-
-[ "$BUILD_MODE" = "Debug" ] && RUN_QEMU_OPTIONS+=(-d) && RUN_QEMU_OPTIONS+=(-v)
-
-cmd/run-qemu.elf "${RUN_QEMU_OPTIONS[@]}"
+find projects/uefi/code/build -executable -type f -name "uefi-${BUILD_MODE}" -exec cp {} BOOTX64.EFI \;
+find projects/kernel/code/build -executable -type f -name "kernel-${BUILD_MODE}.bin" -exec cp {} kernel.bin \;
+find projects/uefi-image-creator/code/build -type f -name "uefi-image-creator-${BUILD_MODE}" -exec {} --data-size 32 -ae /EFI/BOOT/ BOOTX64.EFI -ad kernel.bin \;
