@@ -59,4 +59,3 @@ func DisplayNoDefaultArgumentInput(shortFlag string, longFlag string, descriptio
 func DisplayExitCode(code uint8, description string) {
 	fmt.Printf("  %-21d %s\n", code, addDescription(description))
 }
-

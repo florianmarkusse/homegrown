@@ -3,8 +3,10 @@ package main
 import (
 	"cmd/common"
 	"cmd/common/argument"
+	"cmd/common/buildmode"
 	"cmd/common/cmake"
 	"cmd/common/configuration"
+	"cmd/common/converter"
 	"cmd/common/flags"
 	"flag"
 	"fmt"
@@ -17,9 +19,6 @@ import (
 )
 
 // TODO: Add flag to  redirect stderr on builds
-
-const BUILD_MODE_LONG_FLAG = "build-mode"
-const BUILD_MODE_SHORT_FLAG = "m"
 
 const C_COMPILER_LONG_FLAG = "c-compiler"
 const C_COMPILER_SHORT_FLAG = "c"
@@ -51,8 +50,7 @@ const EXIT_MISSING_ARGUMENT = 1
 const EXIT_CLI_PARSING_ERROR = 2
 const EXIT_TARGET_ERROR = 3
 
-var possibleBuildModes = [...]string{"Release", "Debug", "Profiling", "Fuzzing"}
-var buildMode = possibleBuildModes[0]
+var buildMode = buildmode.PossibleBuildModes[0]
 
 var cCompiler = "clang-19"
 
@@ -78,21 +76,8 @@ func displayProjectBuild(project string) {
 	fmt.Printf("%sGoing to build %s project%s\n", common.CYAN, project, common.RESET)
 }
 
-func arrayIntoPrintableString(array []string) string {
-	builder := strings.Builder{}
-	for i, element := range array {
-		builder.WriteString(element)
-		if i != len(array)-1 {
-			builder.WriteString(" ")
-		}
-	}
-
-	return builder.String()
-}
-
 func main() {
-	flag.StringVar(&buildMode, BUILD_MODE_LONG_FLAG, buildMode, "")
-	flag.StringVar(&buildMode, BUILD_MODE_SHORT_FLAG, buildMode, "")
+	buildmode.AddBuildModeAsFlag(&buildMode)
 
 	flag.StringVar(&cCompiler, C_COMPILER_LONG_FLAG, cCompiler, "")
 	flag.StringVar(&cCompiler, C_COMPILER_SHORT_FLAG, cCompiler, "")
@@ -123,13 +108,7 @@ func main() {
 
 	var showHelpAndExit = false
 
-	var correctBuildMode = false
-	for _, mode := range possibleBuildModes {
-		if buildMode == mode {
-			correctBuildMode = true
-		}
-	}
-	if !correctBuildMode {
+	if !buildmode.IsValidBuildMode(buildMode) {
 		showHelpAndExit = true
 	}
 
@@ -151,13 +130,13 @@ func main() {
 	usingTargets = len(selectedTargets) > 0
 
 	configuration.DisplayConfiguration()
-	configuration.DisplayStringArgument(BUILD_MODE_LONG_FLAG, buildMode)
+	buildmode.DisplayBuildModeConfiguration(buildMode)
 	configuration.DisplayStringArgument(C_COMPILER_LONG_FLAG, cCompiler)
 	configuration.DisplayStringArgument(LINKER_LONG_FLAG, linker)
 
 	var targetsConfiguration string
 	if usingTargets {
-		targetsConfiguration = arrayIntoPrintableString(selectedTargets[:])
+		targetsConfiguration = converter.ArrayIntoPrintableString(selectedTargets[:])
 	} else {
 		targetsConfiguration = DEFAULT_TARGETS
 	}
@@ -218,10 +197,7 @@ func usage() {
 	fmt.Printf("\n")
 	flags.DisplayOptionalFlags()
 
-	// Not sure why go doesnt understand string lengths of this one, but whatever
-	var buildModeDescription = fmt.Sprintf("Set the build mode (%s%s%s)        ", common.WHITE,
-		arrayIntoPrintableString(possibleBuildModes[:]), common.RESET)
-	flags.DisplayArgumentInput(BUILD_MODE_SHORT_FLAG, BUILD_MODE_LONG_FLAG, buildModeDescription, buildMode)
+	buildmode.DisplayBuildMode(buildMode)
 
 	flags.DisplayArgumentInput(C_COMPILER_SHORT_FLAG, C_COMPILER_LONG_FLAG, "Set the c-compiler", fmt.Sprint(cCompiler))
 
@@ -250,7 +226,7 @@ func usage() {
 	flags.DisplayExamples()
 	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
 	fmt.Printf("  %s -%s=%s --%s text,log --%s -%s\n", filepath.Base(os.Args[0]),
-		BUILD_MODE_LONG_FLAG, possibleBuildModes[1], SELECT_TARGETS_LONG_FLAG, TEST_BUILD_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
+		buildmode.BUILD_MODE_LONG_FLAG, buildmode.PossibleBuildModes[1], SELECT_TARGETS_LONG_FLAG, TEST_BUILD_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
 	fmt.Printf("\n")
 }
 
