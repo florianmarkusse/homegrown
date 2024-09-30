@@ -1,4 +1,4 @@
-package error
+package exit
 
 import (
 	"cmd/common"
@@ -11,7 +11,7 @@ const EXIT_MISSING_ARGUMENT = 1
 const EXIT_CLI_PARSING_ERROR = 2
 const EXIT_TARGET_ERROR = 3
 
-var errorToString = [...]string{
+var exitToString = [...]string{
 	"Success",
 	"Incorrect argument(s)",
 	"CLI parsing error",
@@ -23,5 +23,5 @@ func DisplayExitCodes() {
 }
 
 func DisplayExitCode(exitCode uint8) {
-	flags.DisplayExitCode(exitCode, errorToString[exitCode])
+	flags.DisplayExitCode(exitCode, exitToString[exitCode])
 }

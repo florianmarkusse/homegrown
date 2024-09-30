@@ -2,6 +2,7 @@ package main
 
 import (
 	"cmd/common/configuration"
+	"cmd/common/exit"
 	"cmd/common/flags"
 	"cmd/common/flags/buildmode"
 	"flag"
@@ -14,10 +15,6 @@ var buildMode = buildmode.PossibleBuildModes[0]
 
 var isHelp = false
 
-const EXIT_SUCCESS = 0
-const EXIT_MISSING_ARGUMENT = 1
-const EXIT_CLI_PARSING_ERROR = 2
-
 func usage() {
 	flags.DisplayUsage("")
 	fmt.Printf("\n")
@@ -26,10 +23,10 @@ func usage() {
 	buildmode.DisplayBuildMode(buildMode)
 
 	fmt.Printf("\n")
-	flags.DisplayExitCodes()
-	flags.DisplayExitCode(EXIT_SUCCESS, "Success")
-	flags.DisplayExitCode(EXIT_MISSING_ARGUMENT, "Incorrect argument(s)")
-	flags.DisplayExitCode(EXIT_CLI_PARSING_ERROR, "CLI parsing error")
+	exit.DisplayExitCodes()
+	exit.DisplayExitCode(exit.EXIT_SUCCESS)
+	exit.DisplayExitCode(exit.EXIT_MISSING_ARGUMENT)
+	exit.DisplayExitCode(exit.EXIT_CLI_PARSING_ERROR)
 	fmt.Printf("\n")
 	flags.DisplayExamples()
 	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
@@ -57,9 +54,9 @@ func main() {
 	if showHelpAndExit {
 		usage()
 		if isHelp {
-			os.Exit(EXIT_SUCCESS)
+			os.Exit(exit.EXIT_SUCCESS)
 		}
-		os.Exit(EXIT_MISSING_ARGUMENT)
+		os.Exit(exit.EXIT_MISSING_ARGUMENT)
 	}
 
 	configuration.DisplayConfiguration()
