@@ -8,29 +8,20 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
-
-	"github.com/bitfield/script"
 )
 
 func findAndRunTests(args *BuildArgs, kernelBuildDirectory string) BuildResult {
 	if len(args.SelectedTargets) > 0 {
 		for _, target := range args.SelectedTargets {
-			var findCommand = fmt.Sprintf("find %s -executable -type f -name \"%s\"", kernelBuildDirectory, target)
-			var testFile, err = script.Exec(findCommand).String()
-			if err != nil {
-				fmt.Sprintf("%sFinding test targets to run errored!%s\n", common.RED, common.RESET)
-				fmt.Println(findCommand)
-				fmt.Println(err)
-				return Failure
-			}
-			script.Exec(testFile).Stdout()
+			var findCommand = fmt.Sprintf("find %s -executable -type f -name \"%s\" -exec {} \\;", kernelBuildDirectory, target)
+			argument.ExecCommand(findCommand)
 		}
 
 		return Success
 	}
 
 	var findCommand = fmt.Sprintf("find %s -executable -type f -name \"*-tests*\" -exec {} \\;", kernelBuildDirectory)
-	script.Exec(findCommand).Stdout()
+	argument.ExecCommand(findCommand)
 
 	return Success
 }
@@ -47,12 +38,12 @@ func buildStandardProject(args *BuildArgs, codeFolder string) {
 	configureOptions := strings.Builder{}
 	cmake.AddCommonConfigureOptions(&configureOptions, codeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode)
 
-	argument.RunCommand(common.CMAKE_EXECUTABLE, configureOptions.String())
+	argument.ExecCommand(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, configureOptions.String()))
 
 	buildOptions := strings.Builder{}
 	cmake.AddCommonBuildOptions(&buildOptions, buildDirectory, args.Threads)
 
-	argument.RunCommand(common.CMAKE_EXECUTABLE, buildOptions.String())
+	argument.ExecCommand(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, buildOptions.String()))
 }
 
 func buildKernel(args *BuildArgs, buildDirectory string) {
@@ -64,7 +55,7 @@ func buildKernel(args *BuildArgs, buildDirectory string) {
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D USE_SSE=%t", args.UseSSE))
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D UNIT_TEST_BUILD=%t", args.TestBuild))
 
-	argument.RunCommand(common.CMAKE_EXECUTABLE, configureOptions.String())
+	argument.ExecCommand(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, configureOptions.String()))
 
 	buildOptions := strings.Builder{}
 	cmake.AddCommonBuildOptions(&buildOptions, buildDirectory, args.Threads)
@@ -78,7 +69,7 @@ func buildKernel(args *BuildArgs, buildDirectory string) {
 		argument.AddArgument(&buildOptions, fmt.Sprintf("--target %s", targetsString.String()))
 	}
 
-	argument.RunCommand(common.CMAKE_EXECUTABLE, buildOptions.String())
+	argument.ExecCommand(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, buildOptions.String()))
 
 	findOptions := strings.Builder{}
 	argument.AddArgument(&findOptions, buildDirectory)
@@ -87,7 +78,7 @@ func buildKernel(args *BuildArgs, buildDirectory string) {
 	// NOTE: Using copy here because sym linking gave issues???
 	argument.AddArgument(&findOptions, fmt.Sprintf("-exec cp -f {} %s \\;", common.KERNEL_CODE_FOLDER))
 
-	argument.RunCommand("find", findOptions.String())
+	argument.ExecCommand(fmt.Sprintf("find %s", findOptions.String()))
 }
 
 type BuildArgs struct {

@@ -50,5 +50,5 @@ func Run(args *QemuArgs) {
 		argument.AddArgument(&qemuOptions, "-enable-kvm")
 	}
 
-	argument.RunCommand(QEMU_EXECUTABLE, qemuOptions.String())
+	argument.ExecCommand(fmt.Sprintf("%s %s", QEMU_EXECUTABLE, qemuOptions.String()))
 }

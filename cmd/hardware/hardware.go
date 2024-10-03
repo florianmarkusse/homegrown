@@ -3,7 +3,7 @@ package main
 import (
 	"cmd/clean/remove"
 	"cmd/common"
-	"cmd/common/cmd"
+	"cmd/common/argument"
 	"cmd/common/exit"
 	"cmd/common/uefiimage"
 	"cmd/compile/projects"
@@ -24,7 +24,7 @@ func main() {
 	uefiimage.CreateUefiImage(projects.DefaultBuildArgs.BuildMode)
 
 	writeToUSBCommand := fmt.Sprintf("sudo dd bs=4M if=%s/test.hdd of=/dev/sdc1 conv=notrunc", common.RepoRoot)
-	if err := cmd.ExecCommand(writeToUSBCommand); err != nil {
+	if err := argument.ExecCommand(writeToUSBCommand); err != nil {
 		log.Fatalf("Failed to write to USB: %v", err)
 	}
 }
