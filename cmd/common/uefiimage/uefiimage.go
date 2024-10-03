@@ -1,18 +1,24 @@
 package uefiimage
 
 import (
+	"cmd/common/cmd"
 	"fmt"
-
-	"github.com/bitfield/script"
+	"log"
 )
 
 func CreateUefiImage(buildMode string) {
-	var copyEfiCommand = fmt.Sprintf("find projects/uefi/code/build -executable -type f -name \"uefi-%s\" -exec cp {} BOOTX64.EFI \\;", buildMode)
-	script.Exec(copyEfiCommand)
+	copyEfiCommand := fmt.Sprintf("find projects/uefi/code/build -executable -type f -name \"uefi-%s\" -exec cp {} BOOTX64.EFI \\;", buildMode)
+	if err := cmd.ExecCommand(copyEfiCommand); err != nil {
+		log.Fatalf("Failed to copy EFI file: %v", err)
+	}
 
-	var copyKernelCommand = fmt.Sprintf("find projects/kernel/code/build -executable -type f -name \"kernel-%s.bin\" -exec cp {} kernel.bin \\;", buildMode)
-	script.Exec(copyKernelCommand)
+	copyKernelCommand := fmt.Sprintf("find projects/kernel/code/build -executable -type f -name \"kernel-%s.bin\" -exec cp {} kernel.bin \\;", buildMode)
+	if err := cmd.ExecCommand(copyKernelCommand); err != nil {
+		log.Fatalf("Failed to copy kernel file: %v", err)
+	}
 
-	var createTestImageCommand = fmt.Sprintf("find projects/uefi-image-creator/code/build -type f -name \"uefi-image-creator-%s\" -exec {} --data-size 32 -ae /EFI/BOOT/ BOOTX64.EFI -ad kernel.bin \\;", buildMode)
-	script.Exec(createTestImageCommand)
+	createTestImageCommand := fmt.Sprintf("find projects/uefi-image-creator/code/build -type f -name \"uefi-image-creator-%s\" -exec {} --data-size 32 -ae /EFI/BOOT/ BOOTX64.EFI -ad kernel.bin \\;", buildMode)
+	if err := cmd.ExecCommand(createTestImageCommand); err != nil {
+		log.Fatalf("Failed to create UEFI image: %v", err)
+	}
 }
