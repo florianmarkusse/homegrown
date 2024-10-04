@@ -1,16 +1,13 @@
 project(memory-manipulation LANGUAGES C ASM)
 
-set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
-set(LIBRARY_TYPE "STATIC")
-
-add_library(${LIBRARY} ${LIBRARY_TYPE} "src/manipulation.c")
+add_library(${PROJECT_NAME} STATIC "src/manipulation.c")
 
 target_include_directories(
-    ${LIBRARY}
+    ${PROJECT_NAME}
     PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
 )
 
 target_include_directories(
-    ${LIBRARY}
+    ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

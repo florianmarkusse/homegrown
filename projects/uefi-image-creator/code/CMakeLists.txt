@@ -4,11 +4,11 @@ include("../../setup.cmake")
 
 add_subdirectory(util)
 
-add_executable(${MAIN_RESULT} "src/main.c")
+add_executable(${PROJECT_NAME} "src/main.c")
 
 target_include_directories(
-    ${MAIN_RESULT}
+    ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${MAIN_RESULT} PRIVATE util-${CMAKE_BUILD_TYPE})
+target_link_libraries(${PROJECT_NAME} PRIVATE util)

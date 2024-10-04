@@ -18,8 +18,6 @@ if(NOT "${USE_SSE}")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mno-sse -mno-sse2")
 endif()
 
-set(MAIN_RESULT "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
-
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE
         "Release"

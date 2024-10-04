@@ -8,7 +8,7 @@ set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 include("../../setup.cmake")
 
 add_executable(
-    ${MAIN_RESULT}
+    ${PROJECT_NAME}
     #  "src/bootboot.c"
     #  "src/smp.S"
     "src/main.c"
@@ -24,16 +24,16 @@ add_executable(
 )
 
 target_include_directories(
-    ${MAIN_RESULT}
+    ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 target_include_directories(
-    ${MAIN_RESULT}
+    ${PROJECT_NAME}
     PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
 )
 
 target_link_libraries(
-    ${MAIN_RESULT}
+    ${PROJECT_NAME}
     PRIVATE
         "-target x86_64-unknown-windows"
         "-ffreestanding"

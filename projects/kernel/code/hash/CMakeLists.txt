@@ -1,11 +1,8 @@
 project(hash LANGUAGES C ASM)
 
-set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
-set(LIBRARY_TYPE "STATIC")
-
 add_library(
-    ${LIBRARY}
-    ${LIBRARY_TYPE}
+    ${PROJECT_NAME}
+    STATIC
     "src/msi/common.c"
     "src/msi/string-set.c"
     "src/msi/u16-set.c"
@@ -17,13 +14,13 @@ add_library(
 )
 
 target_include_directories(
-    ${LIBRARY}
+    ${PROJECT_NAME}
     PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
 )
 target_include_directories(
-    ${LIBRARY}
+    ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${LIBRARY} PUBLIC util-${CMAKE_BUILD_TYPE})
-target_link_libraries(${LIBRARY} PUBLIC memory-management-${CMAKE_BUILD_TYPE})
+target_link_libraries(${PROJECT_NAME} PUBLIC util)
+target_link_libraries(${PROJECT_NAME} PUBLIC memory-management)

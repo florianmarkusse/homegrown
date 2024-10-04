@@ -13,7 +13,7 @@ include("../../setup.cmake")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
 # TODO: SSE is still broken!!!
-add_library(${MAIN_RESULT} OBJECT "src/main.c")
+add_library(${PROJECT_NAME} OBJECT "src/main.c")
 
 # Needs to be on top, since it takes care of the compile definition!
 if("${UNIT_TEST_BUILD}")
@@ -34,11 +34,11 @@ add_subdirectory("util")
 add_subdirectory("status")
 
 target_include_directories(
-    ${MAIN_RESULT}
+    ${PROJECT_NAME}
     PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 target_include_directories(
-    ${MAIN_RESULT}
+    ${PROJECT_NAME}
     PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
 )
 
@@ -49,12 +49,9 @@ target_include_directories(
 set(LINKING_LIBRARIES_LOCATIONS)
 
 function(add_to_linker name)
-    set(DEPENDENT_NAME ${name}-${CMAKE_BUILD_TYPE})
-    target_link_libraries(${MAIN_RESULT} PRIVATE ${DEPENDENT_NAME})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${name})
     string(REPLACE "-" "/" slashenated "${name}")
-    set(lib_path
-        "${CMAKE_CURRENT_BINARY_DIR}/${slashenated}/lib${DEPENDENT_NAME}.a"
-    )
+    set(lib_path "${CMAKE_CURRENT_BINARY_DIR}/${slashenated}/lib${name}.a")
     list(APPEND LINKING_LIBRARIES_LOCATIONS ${lib_path})
     set(LINKING_LIBRARIES_LOCATIONS ${LINKING_LIBRARIES_LOCATIONS} PARENT_SCOPE)
 endfunction()
@@ -110,32 +107,32 @@ if("${UNIT_TEST_BUILD}")
     return()
 endif()
 
-set(LINKER_TARGET "${MAIN_RESULT}-linker")
+set(LINKER_TARGET "${PROJECT_NAME}-linker")
 add_custom_target(
     ${LINKER_TARGET}
     ALL
     COMMAND
         ${CMAKE_LINKER} -n -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
-        -o ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
-        $<TARGET_OBJECTS:${MAIN_RESULT}> ${RESOURCE_OBJECTS}
+        -o ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
+        $<TARGET_OBJECTS:${PROJECT_NAME}> ${RESOURCE_OBJECTS}
         ${LINKING_LIBRARIES_LOCATIONS}
     COMMAND
-        objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT} >
-        ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.asm
+        objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME} >
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.asm
     COMMAND
-        objdump -x ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT} >
-        ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.objdump
+        objdump -x ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME} >
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.objdump
     COMMAND_EXPAND_LISTS
     VERBATIM
     BYPRODUCTS
-        ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.asm
-        ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}.objdump
-    COMMENT "Linking ${MAIN_RESULT}"
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.asm
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.objdump
+    COMMENT "Linking ${PROJECT_NAME}"
 )
-add_dependencies(${LINKER_TARGET} embedded-resources ${MAIN_RESULT})
+add_dependencies(${LINKER_TARGET} embedded-resources ${PROJECT_NAME})
 
-set(BINARIZER "${MAIN_RESULT}-binarizer")
-set(MAIN_RESULT_BIN "${MAIN_RESULT}.bin")
+set(BINARIZER "${PROJECT_NAME}-binarizer")
+set(PROJECT_NAME_BIN "${PROJECT_NAME}.bin")
 set(KERNEL_MAGIC_FOLDER
     "${REPO_ROOT}/projects/interoperation/code/include/interoperation/generated"
 )
@@ -144,16 +141,16 @@ add_custom_target(
     ${BINARIZER}
     ALL
     COMMAND
-        objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
-        ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}
+        objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_BIN}
     COMMAND
         mkdir -p ${KERNEL_MAGIC_FOLDER} && python3
         "${REPO_ROOT}/projects/interoperation/code/create_magic.py"
-        "${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT_BIN}" ${KERNEL_MAGIC_OUTPUT}
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${MAIN_RESULT}
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_BIN}" ${KERNEL_MAGIC_OUTPUT}
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
     COMMAND_EXPAND_LISTS
     BYPRODUCTS ${KERNEL_MAGIC_OUTPUT}
     VERBATIM
-    COMMENT "Copying binary data from ${MAIN_RESULT} into ${MAIN_RESULT_BIN}"
+    COMMENT "Copying binary data from ${PROJECT_NAME} into ${PROJECT_NAME_BIN}"
 )
 add_dependencies(${BINARIZER} ${LINKER_TARGET})

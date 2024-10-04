@@ -1,8 +1,5 @@
 project(cpu LANGUAGES C ASM)
 
-set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
-set(LIBRARY_TYPE "STATIC")
-
 set(SOURCE_FILES)
 
 if("${UNIT_TEST_BUILD}")
@@ -17,17 +14,17 @@ else()
     )
 endif()
 
-add_library(${LIBRARY} ${LIBRARY_TYPE} ${SOURCE_FILES})
+add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
 
 if("${UNIT_TEST_BUILD}")
-    target_link_libraries(${LIBRARY} PRIVATE util-${CMAKE_BUILD_TYPE})
+    target_link_libraries(${PROJECT_NAME} PRIVATE util)
 endif()
 
 target_include_directories(
-    ${LIBRARY}
+    ${PROJECT_NAME}
     PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
 )
 target_include_directories(
-    ${LIBRARY}
+    ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

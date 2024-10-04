@@ -1,9 +1,8 @@
 project(util LANGUAGES C)
 
-set(FLO_UTIL_LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
-set(LIBRARY_TYPE "STATIC")
-
-add_library(${FLO_UTIL_LIBRARY} ${LIBRARY_TYPE}
+add_library(
+    ${PROJECT_NAME}
+    STATIC
     "src/file/read.c"
     "src/file/path.c"
     "src/hash/msi/common.c"
@@ -20,7 +19,7 @@ add_library(${FLO_UTIL_LIBRARY} ${LIBRARY_TYPE}
     "src/log.c"
 )
 
-target_include_directories(${FLO_UTIL_LIBRARY}
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+target_include_directories(
+    ${PROJECT_NAME}
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

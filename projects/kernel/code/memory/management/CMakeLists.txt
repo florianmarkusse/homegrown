@@ -2,16 +2,13 @@
 # a later stage.
 project(memory-management LANGUAGES C ASM)
 
-set(LIBRARY "${PROJECT_NAME}-${CMAKE_BUILD_TYPE}")
-set(LIBRARY_TYPE "STATIC")
-
 if("${UNIT_TEST_BUILD}")
     add_subdirectory(tests)
 endif()
 
 add_library(
-    ${LIBRARY}
-    ${LIBRARY_TYPE}
+    ${PROJECT_NAME}
+    STATIC
     "src/allocator/arena.c"
     # NOTE: Unused for now.
     # "src/allocator/buddy.c"
@@ -23,14 +20,14 @@ add_library(
 )
 
 target_include_directories(
-    ${LIBRARY}
+    ${PROJECT_NAME}
     PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
 )
 target_include_directories(
-    ${LIBRARY}
+    ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${LIBRARY} PUBLIC util-${CMAKE_BUILD_TYPE})
-target_link_libraries(${LIBRARY} PUBLIC cpu-${CMAKE_BUILD_TYPE})
-target_link_libraries(${LIBRARY} PUBLIC memory-manipulation-${CMAKE_BUILD_TYPE})
+target_link_libraries(${PROJECT_NAME} PUBLIC util)
+target_link_libraries(${PROJECT_NAME} PUBLIC cpu)
+target_link_libraries(${PROJECT_NAME} PUBLIC memory-manipulation)
