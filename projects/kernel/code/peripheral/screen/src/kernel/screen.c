@@ -40,6 +40,12 @@ typedef struct {
     U8 glyphs[];
 } __attribute__((packed)) psf2_t;
 
+static psf2_t glyphs_new = {
+#embed "font.psf"
+};
+static psf2_t glyphs_new_o = {
+#embed "font.psf.o"
+};
 extern psf2_t font asm("_binary____resources_font_psf_start");
 
 #define BYTES_PER_PIXEL 4
@@ -529,6 +535,10 @@ bool flushToScreen(U8_max_a buffer) {
 }
 
 void initScreen(ScreenDimension dimension, Arena *perm) {
+    psf2_t old = font;
+    psf2_t new = glyphs_new;
+    psf2_t newBin = glyphs_new_o;
+
     buf = NEW(perm, U8, FILE_BUF_LEN);
     // Need correct alignment
     U32 *doubleBuffer =
