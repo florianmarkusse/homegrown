@@ -1,16 +1,14 @@
 package cmake
 
 import (
-	"cmd/common"
 	"cmd/common/argument"
 	"fmt"
 	"strings"
 )
 
-func KernelBuildDirectory(testBuild bool, cCompiler string) string {
-
+func BuildDirectoryRoot(codeDirectory string, testBuild bool, cCompiler string) string {
 	buildDirectory := strings.Builder{}
-	buildDirectory.WriteString(fmt.Sprintf("%s/", common.KERNEL_CODE_FOLDER))
+	buildDirectory.WriteString(fmt.Sprintf("%s/", codeDirectory))
 	buildDirectory.WriteString("build/")
 	if testBuild {
 		buildDirectory.WriteString("test/")

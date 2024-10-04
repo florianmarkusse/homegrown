@@ -10,17 +10,18 @@ import (
 	"strings"
 )
 
-func findAndRunTests(args *BuildArgs, kernelBuildDirectory string) BuildResult {
+func findAndRunTests(args *BuildArgs, codeDirectory string) BuildResult {
+	var buildDirectory = cmake.BuildDirectoryRoot(codeDirectory, args.TestBuild, args.CCompiler)
 	if len(args.SelectedTargets) > 0 {
 		for _, target := range args.SelectedTargets {
-			var findCommand = fmt.Sprintf("find %s -executable -type f -name \"%s\" -exec {} \\;", kernelBuildDirectory, target)
+			var findCommand = fmt.Sprintf("find %s -executable -type f -name \"%s\" -exec {} \\;", buildDirectory, target)
 			argument.ExecCommand(findCommand)
 		}
 
 		return Success
 	}
 
-	var findCommand = fmt.Sprintf("find %s -executable -type f -name \"*-tests*\" -exec {} \\;", kernelBuildDirectory)
+	var findCommand = fmt.Sprintf("find %s -executable -type f -name \"*-tests*\" -exec {} \\;", buildDirectory)
 	argument.ExecCommand(findCommand)
 
 	return Success
@@ -33,7 +34,7 @@ func displayProjectBuild(project string) {
 func buildStandardProject(args *BuildArgs, codeFolder string) {
 	displayProjectBuild(codeFolder)
 
-	var buildDirectory = codeFolder + "/build"
+	var buildDirectory = cmake.BuildDirectoryRoot(codeFolder, args.TestBuild, args.CCompiler)
 
 	configureOptions := strings.Builder{}
 	cmake.AddCommonConfigureOptions(&configureOptions, codeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode)
@@ -46,8 +47,10 @@ func buildStandardProject(args *BuildArgs, codeFolder string) {
 	argument.ExecCommand(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, buildOptions.String()))
 }
 
-func buildKernel(args *BuildArgs, buildDirectory string) {
+func buildKernel(args *BuildArgs) {
 	displayProjectBuild(common.KERNEL_CODE_FOLDER)
+
+	var buildDirectory = cmake.BuildDirectoryRoot(common.KERNEL_CODE_FOLDER, args.TestBuild, args.CCompiler)
 
 	configureOptions := strings.Builder{}
 	cmake.AddCommonConfigureOptions(&configureOptions, common.KERNEL_CODE_FOLDER, buildDirectory, args.CCompiler, args.Linker, args.BuildMode)
@@ -114,9 +117,7 @@ var DefaultBuildArgs = BuildArgs{
 
 func Build(args *BuildArgs) BuildResult {
 	// NOTE: Using waitgroups is currently slower than just running synchronously
-
-	var kernelBuildDirectory = cmake.KernelBuildDirectory(args.TestBuild, args.CCompiler)
-	buildKernel(args, kernelBuildDirectory)
+	buildKernel(args)
 
 	fmt.Println("Building Because of LSP purposes")
 	buildStandardProject(args, common.INTEROPERATION_CODE_FOLDER)
@@ -125,7 +126,7 @@ func Build(args *BuildArgs) BuildResult {
 		if !args.RunTests {
 			return Success
 		}
-		findAndRunTests(args, kernelBuildDirectory)
+		findAndRunTests(args, common.KERNEL_CODE_FOLDER)
 		return Success
 	}
 

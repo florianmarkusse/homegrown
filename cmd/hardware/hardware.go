@@ -8,7 +8,6 @@ import (
 	"cmd/common/uefiimage"
 	"cmd/compile/projects"
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -21,10 +20,8 @@ func main() {
 		os.Exit(exit.EXIT_TARGET_ERROR)
 	}
 
-	uefiimage.CreateUefiImage(projects.DefaultBuildArgs.BuildMode)
+	uefiimage.CreateUefiImage(projects.DefaultBuildArgs.CCompiler, projects.DefaultBuildArgs.BuildMode)
 
 	writeToUSBCommand := fmt.Sprintf("sudo dd bs=4M if=%s/test.hdd of=/dev/sdc1 conv=notrunc", common.RepoRoot)
-	if err := argument.ExecCommand(writeToUSBCommand); err != nil {
-		log.Fatalf("Failed to write to USB: %v", err)
-	}
+	argument.ExecCommand(writeToUSBCommand)
 }
