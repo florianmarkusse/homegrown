@@ -3,12 +3,13 @@
 #include "cpu/x86.h"
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "interoperation/memory/definitions.h"
+#include "memory/management/allocator/macros.h"
 #include "memory/management/definitions.h"
 #include "memory/management/virtual.h"
 #include "memory/manipulation/manipulation.h"
 #include "util/assert.h" // for ASSERT
-#include "util/maths.h"  // for RING_PLUS, RING_INCREMENT, RING_MINUS
-#include "memory/management/allocator/macros.h"
+#include "util/macros.h"
+#include "util/maths.h" // for RING_PLUS, RING_INCREMENT, RING_MINUS
 
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
@@ -36,7 +37,7 @@ typedef struct {
     U32 bytesperglyph;
     U32 height;
     U32 width;
-    U8 glyphs;
+    U8 glyphs[];
 } __attribute__((packed)) psf2_t;
 
 extern psf2_t glyphs asm("_binary____resources_font_psf_start");
@@ -111,19 +112,27 @@ static void drawTerminalBox() {
 }
 
 static void drawGlyph(U8 ch, U64 topRightGlyphOffset) {
-    U8 *glyph = &(glyphs.glyphs) + ch * glyphs.bytesperglyph;
+    U8 *glyphStart = &(glyphs.glyphs[ch * glyphs.bytesperglyph]);
     U64 glyphOffset = topRightGlyphOffset;
     for (U32 y = 0; y < glyphs.height; y++) {
         // TODO: use SIMD instructions?
         U64 line = glyphOffset;
         U32 mask = 1 << (glyphs.width - 1);
+        U8 glyphLine = *glyphStart;
+        // NOTE: The important part is that the glyphLine captures the
+        // whole of the line of the glyph, e.g., it covers one line of the glyph
+        //
+        // +----------+ +--+
+        // 000001100000 0000
+        // 000011110000 0000
+        ASSERT(glyphs.width <= SIZEOF(glyphLine));
         for (U32 x = 0; x < glyphs.width; x++) {
             dim.backingBuffer[line] =
-                ((((U32)*glyph) & (mask)) != 0) * HAXOR_WHITE;
+                (((glyphLine) & (mask)) != 0) * HAXOR_WHITE;
             mask >>= 1;
             line++;
         }
-        glyph += bytesPerLine;
+        glyphStart += bytesPerLine;
         glyphOffset += dim.scanline;
     }
 }
