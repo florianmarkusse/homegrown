@@ -67,42 +67,6 @@ add_to_linker("util")
 add_to_linker("cpu")
 add_to_linker("memory-manipulation")
 
-set(RESOURCES_NAME "resources")
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME})
-set(RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../${RESOURCES_NAME}")
-file(GLOB_RECURSE RESOURCE_FILES ${RESOURCE_DIR}/*)
-set(RESOURCE_OBJECTS)
-foreach(RESOURCE_FILE ${RESOURCE_FILES})
-    string(REPLACE "${RESOURCE_DIR}/" "" RESOURCE_OBJECT ${RESOURCE_FILE})
-    string(
-        REPLACE
-        "${CMAKE_CURRENT_SOURCE_DIR}/"
-        ""
-        LOCAL_RESOURCE_FILE
-        ${RESOURCE_FILE}
-    )
-    set(RESOURCE_OBJECT "${RESOURCE_OBJECT}.o")
-
-    set(RESOURCE_OBJECT
-        "${CMAKE_CURRENT_BINARY_DIR}/${RESOURCES_NAME}/${RESOURCE_OBJECT}"
-    )
-    list(APPEND RESOURCE_OBJECTS ${RESOURCE_OBJECT})
-
-    add_custom_command(
-        OUTPUT ${RESOURCE_OBJECT}
-        COMMAND
-            ${CMAKE_LINKER} -r -b binary -o ${RESOURCE_OBJECT}
-            ${LOCAL_RESOURCE_FILE}
-        DEPENDS ${LOCAL_RESOURCE_FILE}
-        VERBATIM
-        COMMAND_EXPAND_LISTS
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT
-            "Creating binary from ${LOCAL_RESOURCE_FILE} into ${RESOURCE_OBJECT}"
-    )
-endforeach()
-add_custom_target(embedded-resources ALL DEPENDS ${RESOURCE_OBJECTS})
-
 if("${UNIT_TEST_BUILD}")
     return()
 endif()
@@ -129,7 +93,7 @@ add_custom_target(
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.objdump
     COMMENT "Linking ${PROJECT_NAME}"
 )
-add_dependencies(${LINKER_TARGET} embedded-resources ${PROJECT_NAME})
+add_dependencies(${LINKER_TARGET} ${PROJECT_NAME})
 
 set(BINARIZER "${PROJECT_NAME}-binarizer")
 set(PROJECT_NAME_BIN "${PROJECT_NAME}.bin")
