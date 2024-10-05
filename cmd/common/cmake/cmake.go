@@ -20,7 +20,7 @@ func BuildDirectoryRoot(codeDirectory string, testBuild bool, cCompiler string) 
 	return buildDirectory.String()
 }
 
-func AddCommonConfigureOptions(options *strings.Builder, codeDirectory string, buildDirectory string, cCompiler string, linker string, buildMode string, isKernel bool) {
+func AddCommonConfigureOptions(options *strings.Builder, codeDirectory string, buildDirectory string, cCompiler string, linker string, buildMode string, isFreestanding bool) {
 	argument.AddArgument(options, fmt.Sprintf("-S %s", codeDirectory))
 	argument.AddArgument(options, fmt.Sprintf("-B %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_C_COMPILER=%s", cCompiler))
@@ -30,7 +30,7 @@ func AddCommonConfigureOptions(options *strings.Builder, codeDirectory string, b
 
 	var iwyuString = strings.Builder{}
 	iwyuString.WriteString("-D CMAKE_C_INCLUDE_WHAT_YOU_USE=\"include-what-you-use;-w;-Xiwyu;")
-	if isKernel {
+	if isFreestanding {
 		iwyuString.WriteString("--no_default_mappings")
 	}
 	iwyuString.WriteString("\"")

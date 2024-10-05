@@ -49,7 +49,7 @@ func populatErrorWriter(errorsToFile bool, codeDirectory string) []io.Writer {
 	return result
 }
 
-func buildStandardProject(args *BuildArgs, codeFolder string) {
+func buildStandardProject(args *BuildArgs, codeFolder string, isFreestanding bool) {
 	displayProjectBuild(codeFolder)
 
 	var buildDirectory = cmake.BuildDirectoryRoot(codeFolder, args.TestBuild, args.CCompiler)
@@ -57,7 +57,7 @@ func buildStandardProject(args *BuildArgs, codeFolder string) {
 	var errorWriters []io.Writer = populatErrorWriter(args.ErrorsToFile, codeFolder)
 
 	configureOptions := strings.Builder{}
-	cmake.AddCommonConfigureOptions(&configureOptions, codeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, false)
+	cmake.AddCommonConfigureOptions(&configureOptions, codeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, isFreestanding)
 
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, configureOptions.String()), errorWriters...)
 
@@ -145,7 +145,7 @@ func Build(args *BuildArgs) BuildResult {
 	buildKernel(args)
 
 	fmt.Println("Building Because of LSP purposes")
-	buildStandardProject(args, common.INTEROPERATION_CODE_FOLDER)
+	buildStandardProject(args, common.INTEROPERATION_CODE_FOLDER, true)
 
 	if args.TestBuild {
 		if !args.RunTests {
@@ -155,7 +155,7 @@ func Build(args *BuildArgs) BuildResult {
 		return Success
 	}
 
-	buildStandardProject(args, common.UEFI_IMAGE_CREATOR_CODE_FOLDER)
-	buildStandardProject(args, common.UEFI_CODE_FOLDER)
+	buildStandardProject(args, common.UEFI_IMAGE_CREATOR_CODE_FOLDER, false)
+	buildStandardProject(args, common.UEFI_CODE_FOLDER, true)
 	return Success
 }
