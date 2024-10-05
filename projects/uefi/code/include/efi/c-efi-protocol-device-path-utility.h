@@ -16,20 +16,20 @@ extern "C" {
 #include "c-efi-base.h"
 #include "c-efi-protocol-device-path.h"
 
-#define DEVICE_PATH_UTILITIES_PROTOCOL_GUID                              \
-    EFI_GUID(0x379be4e, 0xd706, 0x437d, 0xb0, 0x37, 0xed, 0xb8, 0x2f, 0xb7,  \
-               0x72, 0xa4)
+static constexpr auto DEVICE_PATH_UTILITIES_PROTOCOL_GUID =
+    (Guid){.ms1 = 0x379be4e,
+           .ms2 = 0xd706,
+           .ms3 = 0x437d,
+           .ms4 = {0xb0, 0x37, 0xed, 0xb8, 0x2f, 0xb7, 0x72, 0xa4}};
 
 typedef struct DevicePathUtilitiesProtocol {
-    USize(EFICALL *get_device_path_size)(
-        DevicePathProtocol *device_path);
+    USize(EFICALL *get_device_path_size)(DevicePathProtocol *device_path);
     DevicePathProtocol *(EFICALL *duplicate_device_path)(
         DevicePathProtocol *device_path);
-    DevicePathProtocol *(EFICALL *append_device_path)(
-        DevicePathProtocol *src1, DevicePathProtocol *src2);
+    DevicePathProtocol *(EFICALL *append_device_path)(DevicePathProtocol *src1,
+                                                      DevicePathProtocol *src2);
     DevicePathProtocol *(EFICALL *append_device_node)(
-        DevicePathProtocol *device_path,
-        DevicePathProtocol *device_node);
+        DevicePathProtocol *device_path, DevicePathProtocol *device_node);
     DevicePathProtocol *(EFICALL *append_device_path_instance)(
         DevicePathProtocol *device_path,
         DevicePathProtocol *device_path_instance);
@@ -39,8 +39,8 @@ typedef struct DevicePathUtilitiesProtocol {
     bool(EFICALL *is_device_path_multi_instance)(
         DevicePathProtocol *device_path);
     DevicePathProtocol *(EFICALL *create_device_node)(U8 node_type,
-                                                           U8 node_subtype,
-                                                           U16 node_length);
+                                                      U8 node_subtype,
+                                                      U16 node_length);
 } DevicePathUtilitiesProtocol;
 
 #ifdef __cplusplus

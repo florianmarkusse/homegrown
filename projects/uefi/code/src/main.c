@@ -29,9 +29,6 @@
 //     __asm__ __volatile__("1: cli; hlt; jmp 1b");
 // }
 
-#define HAXOR_GREEN 0x0000FF00
-#define HAXOR_WHITE 0x00FFFFFF
-
 void flo_printToScreen(PhysicalAddress graphics, U32 color) {
     for (U64 x = 0; x < 100; x++) {
         ((U32 *)graphics)[x] = color;

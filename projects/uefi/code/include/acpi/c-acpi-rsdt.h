@@ -3,7 +3,7 @@
 
 #include "interoperation/types.h"
 
-#define ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN 4
+static constexpr auto ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN = 4;
 
 typedef struct __attribute((packed)) {
     U8 signature[ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN];

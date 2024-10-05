@@ -5,11 +5,14 @@
 extern "C" {
 #endif
 
+#include "acpi/guid.h"
 #include "c-efi-base.h"
 
-#define BLOCK_IO_PROTOCOL_GUID                                           \
-    EFI_GUID(0x964e5b21, 0x6459, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
-               0x72, 0x3b)
+static constexpr auto BLOCK_IO_PROTOCOL_GUID =
+    (Guid){.ms1 = 0x964e5b21,
+           .ms2 = 0x6459,
+           .ms3 = 0x11d2,
+           .ms4 = {0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b}};
 
 typedef struct {
     U32 MediaId;
@@ -31,9 +34,9 @@ typedef struct BlockIoProtocol {
     BlockIoMedia *Media;
     // Not implemented cause we not needed (yet)
     void *Reset;
-    Status(EFICALL *readBlocks)(BlockIoProtocol *this_,
-                                     U32 mediaID, Lba startingLBA,
-                                     USize bufferSize, void *buffer);
+    Status(EFICALL *readBlocks)(BlockIoProtocol *this_, U32 mediaID,
+                                Lba startingLBA, USize bufferSize,
+                                void *buffer);
 
     void *WriteBlocks;
     void *FlushBlocks;

@@ -8,9 +8,11 @@ extern "C" {
 #include "c-efi-base.h"
 #include "c-efi-system.h"
 
-#define FILE_INFO_ID                                                     \
-    EFI_GUID(0x09576e92, 0x6d3f, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
-               0x72, 0x3b)
+static constexpr auto FILE_INFO_ID =
+    (Guid){.ms1 = 0x09576e92,
+           .ms2 = 0x6d3f,
+           .ms3 = 0x11d2,
+           .ms4 = {0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b}};
 
 typedef struct {
     U64 size;
@@ -25,41 +27,34 @@ typedef struct {
 } FileInfo;
 
 // Open Modes
-#define FILE_MODE_READ 0x0000000000000001
-#define FILE_MODE_WRITE 0x0000000000000002
-#define FILE_MODE_CREATE 0x8000000000000000
+static constexpr auto FILE_MODE_READ = 0x0000000000000001;
+static constexpr auto FILE_MODE_WRITE = 0x0000000000000002;
+static constexpr auto FILE_MODE_CREATE = 0x8000000000000000;
 
 // File Attributes
-#define FILE_READ_ONLY 0x0000000000000001
-#define FILE_HIDDEN 0x0000000000000002
-#define FILE_SYSTEM 0x0000000000000004
-#define FILE_RESERVED 0x0000000000000008
-#define FILE_DIRECTORY 0x0000000000000010
-#define FILE_ARCHIVE 0x0000000000000020
-#define FILE_VALID_ATTR 0x0000000000000037
+static constexpr auto FILE_READ_ONLY = 0x0000000000000001;
+static constexpr auto FILE_HIDDEN = 0x0000000000000002;
+static constexpr auto FILE_SYSTEM = 0x0000000000000004;
+static constexpr auto FILE_RESERVED = 0x0000000000000008;
+static constexpr auto FILE_DIRECTORY = 0x0000000000000010;
+static constexpr auto FILE_ARCHIVE = 0x0000000000000020;
+static constexpr auto FILE_VALID_ATTR = 0x0000000000000037;
 
 typedef struct FileProtocol {
     U64 Revision;
-    Status(EFICALL *open)(FileProtocol *this_,
-                               FileProtocol **newHandle,
-                               U16 *fileName, U64 openMode,
-                               U64 attributes);
+    Status(EFICALL *open)(FileProtocol *this_, FileProtocol **newHandle,
+                          U16 *fileName, U64 openMode, U64 attributes);
     Status(EFICALL *close)(FileProtocol *this_);
     Status(EFICALL *delete)(FileProtocol *this_);
-    Status(EFICALL *read)(FileProtocol *this_, USize *bufferSize,
-                               void *buffer);
+    Status(EFICALL *read)(FileProtocol *this_, USize *bufferSize, void *buffer);
     Status(EFICALL *write)(FileProtocol *this_, USize *bufferSize,
-                                void *buffer);
-    Status(EFICALL *getPosisition)(FileProtocol *this_,
-                                        U64 position);
-    Status(EFICALL *setPosisition)(FileProtocol *this_,
-                                        U64 position);
-    Status(EFICALL *getInfo)(FileProtocol *this_,
-                                  Guid *informationType,
-                                  USize *bufferSize, void *buffer);
-    Status(EFICALL *setInfo)(FileProtocol *this_,
-                                  Guid *informationType,
-                                  USize bufferSize, void *buffer);
+                           void *buffer);
+    Status(EFICALL *getPosisition)(FileProtocol *this_, U64 position);
+    Status(EFICALL *setPosisition)(FileProtocol *this_, U64 position);
+    Status(EFICALL *getInfo)(FileProtocol *this_, Guid *informationType,
+                             USize *bufferSize, void *buffer);
+    Status(EFICALL *setInfo)(FileProtocol *this_, Guid *informationType,
+                             USize bufferSize, void *buffer);
     Status(EFICALL *flush)(FileProtocol *this_);
 
     // the functions below are not (yet) implemented

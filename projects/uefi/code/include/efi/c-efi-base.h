@@ -124,76 +124,73 @@ typedef USize Status;
 
 #if __UINTPTR_MAX__ == __UINT32_MAX__
 #define STATUS_C U32_C
-#define STATUS_WIDTH 32
+static constexpr auto STATUS_WIDTH = 32;
 #elif __UINTPTR_MAX__ == __UINT64_MAX__
 #define STATUS_C U64_C
-#define STATUS_WIDTH 64
+static constexpr auto STATUS_WIDTH = 64;
 #else
 #error "Unsupported value of __UINTPTR_MAX__"
 #endif
 
-#define STATUS_ERROR_MASK                                                \
-    (STATUS_C(0x80) << (STATUS_WIDTH - 8))
-#define STATUS_ERROR_OEM_MASK                                            \
-    (STATUS_C(0xc0) << (STATUS_WIDTH - 8))
-#define STATUS_WARNING_MASK                                              \
-    (STATUS_C(0x00) << (STATUS_WIDTH - 8))
-#define STATUS_WARNING_OEM_MASK                                          \
-    (STATUS_C(0x40) << (STATUS_WIDTH - 8))
+static constexpr auto STATUS_ERROR_MASK =
+    (STATUS_C(0x80) << (STATUS_WIDTH - 8));
+static constexpr auto STATUS_ERROR_OEM_MASK =
+    (STATUS_C(0xc0) << (STATUS_WIDTH - 8));
+static constexpr auto STATUS_WARNING_MASK =
+    (STATUS_C(0x00) << (STATUS_WIDTH - 8));
+static constexpr auto STATUS_WARNING_OEM_MASK =
+    (STATUS_C(0x40) << (STATUS_WIDTH - 8));
 
 #define STATUS_ERROR_C(_x) (STATUS_C(_x) | STATUS_ERROR_MASK)
-#define STATUS_ERROR_OEM_C(_x)                                           \
-    (STATUS_C(_x) | STATUS_ERROR_OEM_MASK)
-#define STATUS_WARNING_C(_x)                                             \
-    (STATUS_C(_x) | STATUS_WARNING_MASK)
-#define STATUS_WARNING_OEM_C(_x)                                         \
-    (STATUS_C(_x) | STATUS_WARNING_OEM_MASK)
+#define STATUS_ERROR_OEM_C(_x) (STATUS_C(_x) | STATUS_ERROR_OEM_MASK)
+#define STATUS_WARNING_C(_x) (STATUS_C(_x) | STATUS_WARNING_MASK)
+#define STATUS_WARNING_OEM_C(_x) (STATUS_C(_x) | STATUS_WARNING_OEM_MASK)
 
 #define ERROR(_x) (!!((_x) & STATUS_ERROR_MASK))
 
-#define SUCCESS STATUS_C(0)
+static constexpr auto SUCCESS = STATUS_C(0);
 
-#define LOAD_ERROR STATUS_ERROR_C(1)
-#define INVALID_PARAMETER STATUS_ERROR_C(2)
-#define UNSUPPORTED STATUS_ERROR_C(3)
-#define BAD_BUFFER_SIZE STATUS_ERROR_C(4)
-#define BUFFER_TOO_SMALL STATUS_ERROR_C(5)
-#define NOT_READY STATUS_ERROR_C(6)
-#define DEVICE_ERROR STATUS_ERROR_C(7)
-#define WRITE_PROTECTED STATUS_ERROR_C(8)
-#define OUT_OF_RESOURCES STATUS_ERROR_C(9)
-#define VOLUME_CORRUPTED STATUS_ERROR_C(10)
-#define VOLUME_FULL STATUS_ERROR_C(11)
-#define NO_MEDIA STATUS_ERROR_C(12)
-#define MEDIA_CHANGED STATUS_ERROR_C(13)
-#define NOT_FOUND STATUS_ERROR_C(14)
-#define ACCESS_DENIED STATUS_ERROR_C(15)
-#define NO_RESPONSE STATUS_ERROR_C(16)
-#define NO_MAPPING STATUS_ERROR_C(17)
-#define TIMEOUT STATUS_ERROR_C(18)
-#define NOT_STARTED STATUS_ERROR_C(19)
-#define ALREADY_STARTED STATUS_ERROR_C(20)
-#define ABORTED STATUS_ERROR_C(21)
-#define ICMP_ERROR STATUS_ERROR_C(22)
-#define TFTP_ERROR STATUS_ERROR_C(23)
-#define PROTOCOL_ERROR STATUS_ERROR_C(24)
-#define INCOMPATIBLE_VERSION STATUS_ERROR_C(25)
-#define SECURITY_VIOLATION STATUS_ERROR_C(26)
-#define CRC_ERROR STATUS_ERROR_C(27)
-#define END_OF_MEDIA STATUS_ERROR_C(28)
-#define END_OF_FILE STATUS_ERROR_C(31)
-#define INVALID_LANGUAGE STATUS_ERROR_C(32)
-#define COMPROMISED_DATA STATUS_ERROR_C(33)
-#define IP_ADDRESS_CONFLICT STATUS_ERROR_C(34)
-#define HTTP_ERROR STATUS_ERROR_C(35)
+static constexpr auto LOAD_ERROR = STATUS_ERROR_C(1);
+static constexpr auto INVALID_PARAMETER = STATUS_ERROR_C(2);
+static constexpr auto UNSUPPORTED = STATUS_ERROR_C(3);
+static constexpr auto BAD_BUFFER_SIZE = STATUS_ERROR_C(4);
+static constexpr auto BUFFER_TOO_SMALL = STATUS_ERROR_C(5);
+static constexpr auto NOT_READY = STATUS_ERROR_C(6);
+static constexpr auto DEVICE_ERROR = STATUS_ERROR_C(7);
+static constexpr auto WRITE_PROTECTED = STATUS_ERROR_C(8);
+static constexpr auto OUT_OF_RESOURCES = STATUS_ERROR_C(9);
+static constexpr auto VOLUME_CORRUPTED = STATUS_ERROR_C(10);
+static constexpr auto VOLUME_FULL = STATUS_ERROR_C(11);
+static constexpr auto NO_MEDIA = STATUS_ERROR_C(12);
+static constexpr auto MEDIA_CHANGED = STATUS_ERROR_C(13);
+static constexpr auto NOT_FOUND = STATUS_ERROR_C(14);
+static constexpr auto ACCESS_DENIED = STATUS_ERROR_C(15);
+static constexpr auto NO_RESPONSE = STATUS_ERROR_C(16);
+static constexpr auto NO_MAPPING = STATUS_ERROR_C(17);
+static constexpr auto TIMEOUT = STATUS_ERROR_C(18);
+static constexpr auto NOT_STARTED = STATUS_ERROR_C(19);
+static constexpr auto ALREADY_STARTED = STATUS_ERROR_C(20);
+static constexpr auto ABORTED = STATUS_ERROR_C(21);
+static constexpr auto ICMP_ERROR = STATUS_ERROR_C(22);
+static constexpr auto TFTP_ERROR = STATUS_ERROR_C(23);
+static constexpr auto PROTOCOL_ERROR = STATUS_ERROR_C(24);
+static constexpr auto INCOMPATIBLE_VERSION = STATUS_ERROR_C(25);
+static constexpr auto SECURITY_VIOLATION = STATUS_ERROR_C(26);
+static constexpr auto CRC_ERROR = STATUS_ERROR_C(27);
+static constexpr auto END_OF_MEDIA = STATUS_ERROR_C(28);
+static constexpr auto END_OF_FILE = STATUS_ERROR_C(31);
+static constexpr auto INVALID_LANGUAGE = STATUS_ERROR_C(32);
+static constexpr auto COMPROMISED_DATA = STATUS_ERROR_C(33);
+static constexpr auto IP_ADDRESS_CONFLICT = STATUS_ERROR_C(34);
+static constexpr auto HTTP_ERROR = STATUS_ERROR_C(35);
 
-#define WARN_UNKNOWN_GLYPH STATUS_WARNING_C(1)
-#define WARN_DELETE_FAILURE STATUS_WARNING_C(2)
-#define WARN_WRITE_FAILURE STATUS_WARNING_C(3)
-#define WARN_BUFFER_TOO_SMALL STATUS_WARNING_C(4)
-#define WARN_STALE_DATA STATUS_WARNING_C(5)
-#define WARN_FILE_SYSTEM STATUS_WARNING_C(6)
-#define WARN_RESET_REQUIRED STATUS_WARNING_C(7)
+static constexpr auto WARN_UNKNOWN_GLYPH = STATUS_WARNING_C(1);
+static constexpr auto WARN_DELETE_FAILURE = STATUS_WARNING_C(2);
+static constexpr auto WARN_WRITE_FAILURE = STATUS_WARNING_C(3);
+static constexpr auto WARN_BUFFER_TOO_SMALL = STATUS_WARNING_C(4);
+static constexpr auto WARN_STALE_DATA = STATUS_WARNING_C(5);
+static constexpr auto WARN_FILE_SYSTEM = STATUS_WARNING_C(6);
+static constexpr auto WARN_RESET_REQUIRED = STATUS_WARNING_C(7);
 
 /**
  * Handle, Event, Lba, Tpl, PhysicalAddress,

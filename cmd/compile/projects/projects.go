@@ -34,7 +34,18 @@ func displayProjectBuild(project string) {
 	fmt.Printf("%sGoing to build %s project%s\n", common.CYAN, project, common.RESET)
 }
 
-func populatErrorWriter(errorsToFile bool, codeDirectory string) []io.Writer {
+func copyCompileCommands(buildDirectory string, codeDirectory string) {
+	findOptions := strings.Builder{}
+	argument.AddArgument(&findOptions, buildDirectory)
+	argument.AddArgument(&findOptions, "-maxdepth 1")
+	argument.AddArgument(&findOptions, "-name \"compile_commands.json\"")
+	// NOTE: Using copy here because sym linking gave issues???
+	argument.AddArgument(&findOptions, fmt.Sprintf("-exec cp -f {} %s \\;", codeDirectory))
+
+	argument.ExecCommand(fmt.Sprintf("find %s", findOptions.String()))
+}
+
+func populateErrorWriter(errorsToFile bool, codeDirectory string) []io.Writer {
 	if !errorsToFile {
 		return []io.Writer{}
 	}
@@ -54,7 +65,7 @@ func buildStandardProject(args *BuildArgs, codeFolder string, isFreestanding boo
 
 	var buildDirectory = cmake.BuildDirectoryRoot(codeFolder, args.TestBuild, args.CCompiler)
 
-	var errorWriters []io.Writer = populatErrorWriter(args.ErrorsToFile, codeFolder)
+	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, codeFolder)
 
 	configureOptions := strings.Builder{}
 	cmake.AddCommonConfigureOptions(&configureOptions, codeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, isFreestanding)
@@ -65,6 +76,8 @@ func buildStandardProject(args *BuildArgs, codeFolder string, isFreestanding boo
 	cmake.AddCommonBuildOptions(&buildOptions, buildDirectory, args.Threads)
 
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, buildOptions.String()), errorWriters...)
+
+	copyCompileCommands(buildDirectory, codeFolder)
 }
 
 func buildKernel(args *BuildArgs) {
@@ -73,7 +86,7 @@ func buildKernel(args *BuildArgs) {
 
 	var buildDirectory = cmake.BuildDirectoryRoot(common.KERNEL_CODE_FOLDER, args.TestBuild, args.CCompiler)
 
-	var errorWriters []io.Writer = populatErrorWriter(args.ErrorsToFile, common.KERNEL_CODE_FOLDER)
+	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, common.KERNEL_CODE_FOLDER)
 
 	configureOptions := strings.Builder{}
 	cmake.AddCommonConfigureOptions(&configureOptions, common.KERNEL_CODE_FOLDER, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, true)
@@ -97,14 +110,7 @@ func buildKernel(args *BuildArgs) {
 
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, buildOptions.String()), errorWriters...)
 
-	findOptions := strings.Builder{}
-	argument.AddArgument(&findOptions, buildDirectory)
-	argument.AddArgument(&findOptions, "-maxdepth 1")
-	argument.AddArgument(&findOptions, "-name \"compile_commands.json\"")
-	// NOTE: Using copy here because sym linking gave issues???
-	argument.AddArgument(&findOptions, fmt.Sprintf("-exec cp -f {} %s \\;", common.KERNEL_CODE_FOLDER))
-
-	argument.ExecCommand(fmt.Sprintf("find %s", findOptions.String()))
+	copyCompileCommands(buildDirectory, common.KERNEL_CODE_FOLDER)
 }
 
 type BuildArgs struct {

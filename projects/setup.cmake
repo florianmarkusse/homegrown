@@ -7,7 +7,7 @@ option(USE_AVX "Use AVX" TRUE)
 option(USE_SSE "Use SSE" TRUE)
 
 set(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS} -march=native -m64 -Wall -Wextra -Wconversion -Wno-sign-conversion -Wdouble-promotion -Wvla -W"
+    "${CMAKE_C_FLAGS} -march=native -m64 -Wall -Wextra -Wconversion -Wno-incompatible-pointer-types-discards-qualifiers -Wno-sign-conversion -Wdouble-promotion -Wvla -W"
 )
 if(NOT "${USE_AVX}")
     add_compile_definitions("NO_AVX")

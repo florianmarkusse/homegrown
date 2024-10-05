@@ -13,7 +13,12 @@ extern "C" {
 
 #include "util/assert.h"
 
-#define FLO_EMPTY_STRING ((flo_string){NULL, 0})
+typedef struct {
+    unsigned char *buf;
+    ptrdiff_t len;
+} flo_string;
+
+static constexpr flo_string FLO_EMPTY_STRING = ((flo_string){NULL, 0});
 #define FLO_STRING(s) ((flo_string){(unsigned char *)(s), sizeof(s) - 1})
 #define FLO_STRING_LEN(s, len) ((flo_string){(unsigned char *)(s), len})
 #define FLO_STRING_PTRS(begin, end)                                            \
@@ -31,11 +36,6 @@ extern "C" {
             FLO_STRING_LEN(appendingBuf, (string1).len + (string2).len);       \
         FLO_MACRO_VAR(appendedString);                                         \
     })
-
-typedef struct {
-    unsigned char *buf;
-    ptrdiff_t len;
-} flo_string;
 
 __attribute__((unused)) static inline bool flo_stringEquals(flo_string a,
                                                             flo_string b) {

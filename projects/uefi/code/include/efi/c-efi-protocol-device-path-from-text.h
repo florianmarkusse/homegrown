@@ -13,12 +13,15 @@
 extern "C" {
 #endif
 
+#include "acpi/guid.h"
 #include "c-efi-base.h"
 #include "c-efi-protocol-device-path.h"
 
-#define DEVICE_PATH_FROM_TEXT_PROTOCOL_GUID                              \
-    EFI_GUID(0x5c99a21, 0xc70f, 0x4ad2, 0x8a, 0x5f, 0x35, 0xdf, 0x33, 0x43,  \
-               0xf5, 0x1e)
+static constexpr auto DEVICE_PATH_FROM_TEXT_PROTOCOL_GUID =
+    (Guid){.ms1 = 0x5c99a21,
+           .ms2 = 0xc70f,
+           .ms3 = 0x4ad2,
+           .ms4 = {0x8a, 0x5f, 0x35, 0xdf, 0x33, 0x43, 0xf5, 0x1e}};
 
 typedef struct DevicePathFromTextProtocol {
     DevicePathProtocol *(EFICALL *convert_text_to_device_node)(

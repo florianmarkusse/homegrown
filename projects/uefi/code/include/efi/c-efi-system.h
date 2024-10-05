@@ -32,10 +32,10 @@ extern "C" {
  * helper functions to query and set the system time.
  */
 
-#define TIME_ADJUST_DAYLIGHT U8_C(0x01)
-#define TIME_IN_DAYLIGHT U8_C(0x02)
+static constexpr U8 TIME_ADJUST_DAYLIGHT = 0x01;
+static constexpr U8 TIME_IN_DAYLIGHT = 0x02;
 
-#define UNSPECIFIED_TIMEZONE I16_C(0x07ff)
+static constexpr I16 UNSPECIFIED_TIMEZONE = 0x07ff;
 
 typedef struct Time {
     U16 year;
@@ -65,16 +65,17 @@ typedef struct TimeCapabilities {
  * but persistent storage might not be available.
  */
 
-#define VARIABLE_NON_VOLATILE U32_C(0x00000001)
-#define VARIABLE_BOOTSERVICE_ACCESS U32_C(0x00000002)
-#define VARIABLE_RUNTIME_ACCESS U32_C(0x00000004)
-#define VARIABLE_HARDWARE_ERROR_RECORD U32_C(0x00000008)
-#define VARIABLE_AUTHENTICATED_WRITE_ACCESS U32_C(0x00000010)
-#define VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS U32_C(0x00000020)
-#define VARIABLE_APPEND_WRITE U32_C(0x00000040)
-#define VARIABLE_ENHANCED_AUTHENTICATED_ACCESS U32_C(0x00000080)
+static constexpr U32 VARIABLE_NON_VOLATILE = 0x00000001;
+static constexpr U32 VARIABLE_BOOTSERVICE_ACCESS = 0x00000002;
+static constexpr U32 VARIABLE_RUNTIME_ACCESS = 0x00000004;
+static constexpr U32 VARIABLE_HARDWARE_ERROR_RECORD = 0x00000008;
+static constexpr U32 VARIABLE_AUTHENTICATED_WRITE_ACCESS = 0x00000010;
+static constexpr U32 VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS =
+    0x00000020;
+static constexpr U32 VARIABLE_APPEND_WRITE = 0x00000040;
+static constexpr U32 VARIABLE_ENHANCED_AUTHENTICATED_ACCESS = 0x00000080;
 
-#define VARIABLE_AUTHENTICATION_3_CERT_ID_SHA256 U32_C(1)
+static constexpr U32 VARIABLE_AUTHENTICATION_3_CERT_ID_SHA256 = 1;
 
 typedef struct VariableAuthentication3CertId {
     U8 type;
@@ -92,8 +93,8 @@ typedef struct VariableAuthentication2 {
     U8 auth_info[]; /* WIN_CERTIFICATE_UEFI_ID from PE/COFF */
 } VariableAuthentication2;
 
-#define VARIABLE_AUTHENTICATION_3_TIMESTAMP_TYPE U32_C(1)
-#define VARIABLE_AUTHENTICATION_3_NONCE_TYPE U32_C(2)
+static constexpr U32 VARIABLE_AUTHENTICATION_3_TIMESTAMP_TYPE = 1;
+static constexpr U32 VARIABLE_AUTHENTICATION_3_NONCE_TYPE = 2;
 
 typedef struct VariableAuthentication3 {
     U8 version;
@@ -107,9 +108,11 @@ typedef struct VariableAuthentication3Nonce {
     U8 nonce[];
 } VariableAuthentication3Nonce;
 
-#define HARDWARE_ERROR_VARIABLE_GUID                                           \
-    EFI_GUID(0x414E6BDD, 0xE47B, 0x47cc, 0xB2, 0x44, 0xBB, 0x61, 0x02, 0x0C,   \
-             0xF5, 0x16)
+static constexpr auto HARDWARE_ERROR_VARIABLE_GUID =
+    (Guid){.ms1 = 0x414E6BDD,
+           .ms2 = 0xE47B,
+           .ms3 = 0x47cc,
+           .ms4 = {0xB2, 0x44, 0xBB, 0x61, 0x02, 0x0C, 0xF5, 0x16}};
 
 /*
  * Virtual Mappings
@@ -120,7 +123,7 @@ typedef struct VariableAuthentication3Nonce {
  * services).
  */
 
-#define OPTIONAL_POINTER U32_C(0x00000001)
+static constexpr U32 OPTIONAL_POINTER = 0x00000001;
 
 /*
  * System Reset
@@ -153,9 +156,9 @@ typedef struct CapsuleBlockDescriptor {
     };
 } CapsuleBlockDescriptor;
 
-#define CAPSULE_FLAGS_PERSIST_ACROSS_RESET U32(0x00010000)
-#define CAPSULE_FLAGS_POPULATE_SYSTEM_TABLE U32(0x00020000)
-#define CAPSULE_FLAGS_INITIATE_RESET U32(0x00040000)
+static constexpr U32 CAPSULE_FLAGS_PERSIST_ACROSS_RESET = 0x00010000;
+static constexpr U32 CAPSULE_FLAGS_POPULATE_SYSTEM_TABLE = 0x00020000;
+static constexpr U32 CAPSULE_FLAGS_INITIATE_RESET = 0x00040000;
 
 typedef struct CapsuleHeader {
     Guid capsule_guid;
@@ -164,17 +167,22 @@ typedef struct CapsuleHeader {
     U32 capsule_image_size;
 } CapsuleHeader;
 
-#define OS_INDICATIONS_BOOT_TO_FW_UI U64_C(0x0000000000000001)
-#define OS_INDICATIONS_TIMESTAMP_REVOCATION U64_C(0x0000000000000002)
-#define OS_INDICATIONS_FILE_CAPSULE_DELIVERY_SUPPORTED U64_C(0x0000000000000004)
-#define OS_INDICATIONS_FMP_CAPSULE_SUPPORTED U64_C(0x0000000000000008)
-#define OS_INDICATIONS_CAPSULE_RESULT_VAR_SUPPORTED U64_C(0x0000000000000010)
-#define OS_INDICATIONS_START_OS_RECOVERY U64_C(0x0000000000000020)
-#define OS_INDICATIONS_START_PLATFORM_RECOVERY U64_C(0x0000000000000040)
+static constexpr U64 OS_INDICATIONS_BOOT_TO_FW_UI = 0x0000000000000001;
+static constexpr U64 OS_INDICATIONS_TIMESTAMP_REVOCATION = 0x0000000000000002;
+static constexpr U64 OS_INDICATIONS_FILE_CAPSULE_DELIVERY_SUPPORTED =
+    0x0000000000000004;
+static constexpr U64 OS_INDICATIONS_FMP_CAPSULE_SUPPORTED = 0x0000000000000008;
+static constexpr U64 OS_INDICATIONS_CAPSULE_RESULT_VAR_SUPPORTED =
+    0x0000000000000010;
+static constexpr U64 OS_INDICATIONS_START_OS_RECOVERY = 0x0000000000000020;
+static constexpr U64 OS_INDICATIONS_START_PLATFORM_RECOVERY =
+    0x0000000000000040;
 
-#define CAPSULE_REPORT_GUID                                                    \
-    EFI_GUID(0x39b68c46, 0xf7fb, 0x441b, 0xb6, 0xec, 0x16, 0xb0, 0xf6, 0x98,   \
-             0x21, 0xf3)
+static constexpr auto CAPSULE_REPORT_GUID =
+    (Guid){.ms1 = 0x39b68c46,
+           .ms2 = 0xf7fb,
+           .ms3 = 0x441b,
+           .ms4 = {0xb6, 0xec, 0x16, 0xb0, 0xf6, 0x98, 0x21, 0xf3}};
 
 typedef struct CapsuleResultVariableHeader {
     U32 variable_total_size;
@@ -207,30 +215,40 @@ typedef struct CapsuleResultVariableFMP {
  * to adjust the priority of your callbacks and current task.
  */
 
-#define EVT_TIMER U32_C(0x80000000)
-#define EVT_RUNTIME U32_C(0x40000000)
-#define EVT_NOTIFY_WAIT U32_C(0x00000100)
-#define EVT_NOTIFY_SIGNAL U32_C(0x00000200)
-#define EVT_SIGNAL_EXIT_BOOT_SERVICES U32_C(0x00000201)
-#define EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE U32_C(0x60000202)
+static constexpr U32 EVT_TIMER = 0x80000000;
+static constexpr U32 EVT_RUNTIME = 0x40000000;
+static constexpr U32 EVT_NOTIFY_WAIT = 0x00000100;
+static constexpr U32 EVT_NOTIFY_SIGNAL = 0x00000200;
+static constexpr U32 EVT_SIGNAL_EXIT_BOOT_SERVICES = 0x00000201;
+static constexpr U32 EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE = 0x60000202;
 
 typedef void(EFICALL *EventNotify)(Event event, void *context);
 
-#define EVENT_GROUP_EXIT_BOOT_SERVICES                                         \
-    EFI_GUID(0x27abf055, 0xb1b8, 0x4c26, 0x80, 0x48, 0x74, 0x8f, 0x37, 0xba,   \
-             0xa2, 0xdf)
-#define EVENT_GROUP_VIRTUAL_ADDRESS_CHANGE                                     \
-    EFI_GUID(0x13fa7698, 0xc831, 0x49c7, 0x87, 0xea, 0x8f, 0x43, 0xfc, 0xc2,   \
-             0x51, 0x96)
-#define EVENT_GROUP_MEMORY_MAP_CHANGE                                          \
-    EFI_GUID(0x78bee926, 0x692f, 0x48fd, 0x9e, 0xdb, 0x1, 0x42, 0x2e, 0xf0,    \
-             0xd7, 0xab)
-#define EVENT_GROUP_READY_TO_BOOT                                              \
-    EFI_GUID(0x7ce88fb3, 0x4bd7, 0x4679, 0x87, 0xa8, 0xa8, 0xd8, 0xde, 0xe5,   \
-             0x0d, 0x2b)
-#define EVENT_GROUP_RESET_SYSTEM                                               \
-    EFI_GUID(0x62da6a56, 0x13fb, 0x485a, 0xa8, 0xda, 0xa3, 0xdd, 0x79, 0x12,   \
-             0xcb, 0x6b)
+static constexpr auto EVENT_GROUP_EXIT_BOOT_SERVICES =
+    (Guid){.ms1 = 0x27abf055,
+           .ms2 = 0xb1b8,
+           .ms3 = 0x4c26,
+           .ms4 = {0x80, 0x48, 0x74, 0x8f, 0x37, 0xba, 0xa2, 0xdf}};
+static constexpr auto EVENT_GROUP_VIRTUAL_ADDRESS_CHANGE =
+    (Guid){.ms1 = 0x13fa7698,
+           .ms2 = 0xc831,
+           .ms3 = 0x49c7,
+           .ms4 = {0x87, 0xea, 0x8f, 0x43, 0xfc, 0xc2, 0x51, 0x96}};
+static constexpr auto EVENT_GROUP_MEMORY_MAP_CHANGE =
+    (Guid){.ms1 = 0x78bee926,
+           .ms2 = 0x692f,
+           .ms3 = 0x48fd,
+           .ms4 = {0x9e, 0xdb, 0x1, 0x42, 0x2e, 0xf0, 0xd7, 0xab}};
+static constexpr auto EVENT_GROUP_READY_TO_BOOT =
+    (Guid){.ms1 = 0x7ce88fb3,
+           .ms2 = 0x4bd7,
+           .ms3 = 0x4679,
+           .ms4 = {0x87, 0xa8, 0xa8, 0xd8, 0xde, 0xe5, 0x0d, 0x2b}};
+static constexpr auto EVENT_GROUP_RESET_SYSTEM =
+    (Guid){.ms1 = 0x62da6a56,
+           .ms2 = 0x13fb,
+           .ms3 = 0x485a,
+           .ms4 = {0xa8, 0xda, 0xa3, 0xdd, 0x79, 0x12, 0xcb, 0x6b}};
 
 typedef enum TimerDelay {
     TIMER_CANCEL,
@@ -238,10 +256,10 @@ typedef enum TimerDelay {
     TIMER_RELATIVE,
 } TimerDelay;
 
-#define TPL_APPLICATION 4
-#define TPL_CALLBACK 8
-#define TPL_NOTIFY 16
-#define TPL_HIGH_LEVEL 31
+static constexpr auto TPL_APPLICATION = 4;
+static constexpr auto TPL_CALLBACK = 8;
+static constexpr auto TPL_NOTIFY = 16;
+static constexpr auto TPL_HIGH_LEVEL = 31;
 
 /*
  * Memory management
@@ -279,12 +297,12 @@ typedef enum LocateSearchType {
     BY_PROTOCOL,
 } LocateSearchType;
 
-#define OPEN_PROTOCOL_BY_HANDLE_PROTOCOL U32_C(0x00000001)
-#define OPEN_PROTOCOL_GET_PROTOCOL U32_C(0x00000002)
-#define OPEN_PROTOCOL_TEST_PROTOCOL U32_C(0x00000004)
-#define OPEN_PROTOCOL_BY_CHILD_CONTROLLER U32_C(0x00000008)
-#define OPEN_PROTOCOL_BY_DRIVER U32_C(0x00000010)
-#define OPEN_PROTOCOL_EXCLUSIVE U32_C(0x00000020)
+static constexpr U32 OPEN_PROTOCOL_BY_HANDLE_PROTOCOL = 0x00000001;
+static constexpr U32 OPEN_PROTOCOL_GET_PROTOCOL = 0x00000002;
+static constexpr U32 OPEN_PROTOCOL_TEST_PROTOCOL = 0x00000004;
+static constexpr U32 OPEN_PROTOCOL_BY_CHILD_CONTROLLER = 0x00000008;
+static constexpr U32 OPEN_PROTOCOL_BY_DRIVER = 0x00000010;
+static constexpr U32 OPEN_PROTOCOL_EXCLUSIVE = 0x00000020;
 
 typedef struct OpenProtocolInformationEntry {
     Handle agent_handle;
@@ -301,25 +319,36 @@ typedef struct OpenProtocolInformationEntry {
  * ConfigurationTable structure as header.
  */
 
-#define SAL_SYSTEM_TABLE_GUID                                                  \
-    EFI_GUID(0xeb9d2d32, 0x2d88, 0x11d3, 0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f,   \
-             0xc1, 0x4d)
-#define SMBIOS_TABLE_GUID                                                      \
-    EFI_GUID(0xeb9d2d31, 0x2d88, 0x11d3, 0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f,   \
-             0xc1, 0x4d)
-#define SMBIOS3_TABLE_GUID                                                     \
-    EFI_GUID(0xf2fd1544, 0x9794, 0x4a2c, 0x99, 0x2e, 0xe5, 0xbb, 0xcf, 0x20,   \
-             0xe3, 0x94)
-#define MPS_TABLE_GUID                                                         \
-    EFI_GUID(0xeb9d2d2f, 0x2d88, 0x11d3, 0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f,   \
-             0xc1, 0x4d)
+static constexpr auto SAL_SYSTEM_TABLE_GUID =
+    (Guid){.ms1 = 0xeb9d2d32,
+           .ms2 = 0x2d88,
+           .ms3 = 0x11d3,
+           .ms4 = {0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f, 0xc1, 0x4d}};
+static constexpr auto SMBIOS_TABLE_GUID =
+    (Guid){.ms1 = 0xeb9d2d31,
+           .ms2 = 0x2d88,
+           .ms3 = 0x11d3,
+           .ms4 = {0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f, 0xc1, 0x4d}};
+static constexpr auto SMBIOS3_TABLE_GUID =
+    (Guid){.ms1 = 0xf2fd1544,
+           .ms2 = 0x9794,
+           .ms3 = 0x4a2c,
+           .ms4 = {0x99, 0x2e, 0xe5, 0xbb, 0xcf, 0x20, 0xe3, 0x94}};
+static constexpr auto MPS_TABLE_GUID =
+    (Guid){.ms1 = 0xeb9d2d2f,
+           .ms2 = 0x2d88,
+           .ms3 = 0x11d3,
+           .ms4 = {0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f, 0xc1, 0x4d}};
+static constexpr auto PROPERTIES_TABLE_GUID =
+    (Guid){.ms1 = 0x880aaca3,
+           .ms2 = 0x4adc,
+           .ms3 = 0x4a04,
+           .ms4 = {0x90, 0x79, 0xb7, 0x47, 0x34, 0x8, 0x25, 0xe5}};
 
-#define PROPERTIES_TABLE_GUID                                                  \
-    EFI_GUID(0x880aaca3, 0x4adc, 0x4a04, 0x90, 0x79, 0xb7, 0x47, 0x34, 0x8,    \
-             0x25, 0xe5)
-#define PROPERTIES_TABLE_VERSION U32_C(0x00010000)
+static constexpr U32 PROPERTIES_TABLE_VERSION = 0x00010000;
 
-#define PROPERTIES_RUNTIME_MEMORY_PROTECTION_NON_EXECUTABLE_PE_DATA U64_C(0x1)
+static constexpr U64
+    PROPERTIES_RUNTIME_MEMORY_PROTECTION_NON_EXECUTABLE_PE_DATA = 0x1;
 
 typedef struct PropertiesTable {
     U32 version;
@@ -327,10 +356,13 @@ typedef struct PropertiesTable {
     U64 memory_protection_attribute;
 } PropertiesTable;
 
-#define MEMORY_ATTRIBUTES_TABLE_GUID                                           \
-    EFI_GUID(0xdcfa911d, 0x26eb, 0x469f, 0xa2, 0x20, 0x38, 0xb7, 0xdc, 0x46,   \
-             0x12, 0x20)
-#define MEMORY_ATTRIBUTES_TABLE_VERSION U32_C(0x00000001)
+static constexpr auto MEMORY_ATTRIBUTES_TABLE_GUID =
+    (Guid){.ms1 = 0xdcfa911d,
+           .ms2 = 0x26eb,
+           .ms3 = 0x469f,
+           .ms4 = {0xa2, 0x20, 0x38, 0xb7, 0xdc, 0x46, 0x12, 0x20}};
+
+static constexpr U32 MEMORY_ATTRIBUTES_TABLE_VERSION = 0x00000001;
 
 typedef struct MemoryAttributesTable {
     U32 version;
@@ -350,17 +382,17 @@ typedef struct MemoryAttributesTable {
  * extensions).
  */
 
-#define EFI_2_70_SYSTEM_TABLE_REVISION ((2 << 16) | (70))
-#define EFI_2_60_SYSTEM_TABLE_REVISION ((2 << 16) | (60))
-#define EFI_2_50_SYSTEM_TABLE_REVISION ((2 << 16) | (50))
-#define EFI_2_40_SYSTEM_TABLE_REVISION ((2 << 16) | (40))
-#define EFI_2_31_SYSTEM_TABLE_REVISION ((2 << 16) | (31))
-#define EFI_2_30_SYSTEM_TABLE_REVISION ((2 << 16) | (30))
-#define EFI_2_20_SYSTEM_TABLE_REVISION ((2 << 16) | (20))
-#define EFI_2_10_SYSTEM_TABLE_REVISION ((2 << 16) | (10))
-#define EFI_2_00_SYSTEM_TABLE_REVISION ((2 << 16) | (0))
-#define EFI_1_10_SYSTEM_TABLE_REVISION ((1 << 16) | (10))
-#define EFI_1_02_SYSTEM_TABLE_REVISION ((1 << 16) | (2))
+static constexpr auto EFI_2_70_SYSTEM_TABLE_REVISION = ((2 << 16) | (70));
+static constexpr auto EFI_2_60_SYSTEM_TABLE_REVISION = ((2 << 16) | (60));
+static constexpr auto EFI_2_50_SYSTEM_TABLE_REVISION = ((2 << 16) | (50));
+static constexpr auto EFI_2_40_SYSTEM_TABLE_REVISION = ((2 << 16) | (40));
+static constexpr auto EFI_2_31_SYSTEM_TABLE_REVISION = ((2 << 16) | (31));
+static constexpr auto EFI_2_30_SYSTEM_TABLE_REVISION = ((2 << 16) | (30));
+static constexpr auto EFI_2_20_SYSTEM_TABLE_REVISION = ((2 << 16) | (20));
+static constexpr auto EFI_2_10_SYSTEM_TABLE_REVISION = ((2 << 16) | (10));
+static constexpr auto EFI_2_00_SYSTEM_TABLE_REVISION = ((2 << 16) | (0));
+static constexpr auto EFI_1_10_SYSTEM_TABLE_REVISION = ((1 << 16) | (10));
+static constexpr auto EFI_1_02_SYSTEM_TABLE_REVISION = ((1 << 16) | (2));
 #define SPECIFICATION_VERSION SYSTEM_TABLE_REVISION
 #define SYSTEM_TABLE_REVISION EFI_2_70_SYSTEM_TABLE_REVISION
 #define RUNTIME_SERVICES_REVISION SPECIFICATION_VERSION
@@ -374,7 +406,8 @@ typedef struct TableHeader {
     U32 reserved;
 } TableHeader;
 
-#define RUNTIME_TABLE_SIGNATURE U64_C(0x56524553544e5552) /* "RUNTSERV" */
+static constexpr U64 RUNTIME_TABLE_SIGNATURE =
+    0x56524553544e5552 /* "RUNTSERV" */;
 
 typedef struct RuntimeServices {
     TableHeader hdr;
@@ -418,7 +451,8 @@ typedef struct RuntimeServices {
                                          U64 *maximum_variable_size);
 } RuntimeServices;
 
-#define BOOT_SERVICES_SIGNATURE U64_C(0x56524553544f4f42) /* "BOOTSERV" */
+static constexpr U64 BOOT_SERVICES_SIGNATURE =
+    0x56524553544f4f42 /* "BOOTSERV" */;
 
 typedef struct BootServices {
     TableHeader hdr;
@@ -528,7 +562,8 @@ typedef struct BootServices {
                                      Event *event);
 } BootServices;
 
-#define SYSTEM_TABLE_SIGNATURE U64_C(0x5453595320494249) /* "IBI SYST" */
+static constexpr U64 SYSTEM_TABLE_SIGNATURE =
+    0x5453595320494249 /* "IBI SYST" */;
 
 typedef struct SystemTable {
     TableHeader hdr;

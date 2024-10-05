@@ -10,14 +10,14 @@
 #include "efi/c-efi-protocol-graphics-output.h"
 #include "efi/c-efi-protocol-loaded-image.h"
 #include "efi/c-efi-protocol-simple-file-system.h"
-#include "efi/c-efi-protocol-simple-text-input.h" // for InputKey, Sim...
+#include "efi/c-efi-protocol-simple-text-input.h"  // for InputKey, Sim...
 #include "efi/c-efi-protocol-simple-text-output.h" // for SimpleTextOutputP...
 #include "efi/c-efi-system.h"                      // for SystemTable
 #include "gdt.h"
 #include "globals.h"
 #include "interoperation/kernel-parameters.h"
-#include "memory/boot-functions.h"
 #include "interoperation/memory/definitions.h"
+#include "memory/boot-functions.h"
 #include "memory/standard.h"
 #include "printing.h"
 #include "string.h"
@@ -56,7 +56,7 @@ typedef struct {
     U32 echksum;
 } __attribute__((packed)) ACPI_RSDPTR;
 
-#define PAGESIZE 4096
+static constexpr auto PAGESIZE = 4096;
 
 /**
  * return type for fs drivers
@@ -271,10 +271,10 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
     do {                                                                       \
         if (ncycles) {                                                         \
             __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));                  \
-            endtime = (((U64)b << 32) | a) + (n) * ncycles;                \
+            endtime = (((U64)b << 32) | a) + (n) * ncycles;                    \
             do {                                                               \
                 __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));              \
-                currtime = ((U64)b << 32) | a;                             \
+                currtime = ((U64)b << 32) | a;                                 \
             } while (currtime < endtime);                                      \
         } else                                                                 \
             __asm__ __volatile__(                                              \
@@ -285,13 +285,13 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
     } while (0)
 #define send_ipi(a, m, v)                                                      \
     do {                                                                       \
-        while (*((volatile U32 *)(lapic_addr + 0x300)) & (1 << 12))        \
+        while (*((volatile U32 *)(lapic_addr + 0x300)) & (1 << 12))            \
             __asm__ __volatile__("pause" : : : "memory");                      \
-        *((volatile U32 *)(lapic_addr + 0x310)) =                          \
-            (*((volatile U32 *)(lapic_addr + 0x310)) & 0x00ffffff) |       \
+        *((volatile U32 *)(lapic_addr + 0x310)) =                              \
+            (*((volatile U32 *)(lapic_addr + 0x310)) & 0x00ffffff) |           \
             ((a) << 24);                                                       \
-        *((volatile U32 *)(lapic_addr + 0x300)) =                          \
-            (*((volatile U32 *)(lapic_addr + 0x300)) & (m)) | (v);         \
+        *((volatile U32 *)(lapic_addr + 0x300)) =                              \
+            (*((volatile U32 *)(lapic_addr + 0x300)) & (m)) | (v);             \
     } while (0)
 
     globals.st->con_out->output_string(globals.st->con_out,
@@ -375,8 +375,8 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
             // iterate on ACPI table pointers
             for (r = *((U32 *)(pe + 4)); ptr < pe + r;
                  ptr += pe[0] == 'X' ? 8 : 4) {
-                data = (U8 *)(U64)(pe[0] == 'X' ? *((U64 *)ptr)
-                                                        : *((U32 *)ptr));
+                data =
+                    (U8 *)(U64)(pe[0] == 'X' ? *((U64 *)ptr) : *((U32 *)ptr));
                 if (!memcmp(data, "APIC", 4)) {
                     // found MADT, iterate on its variable length entries
                     lapic_addr = (U64)(*((U32 *)(data + 0x24)));
@@ -420,8 +420,7 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
 
     mapMemoryAt(0, 0, (1ULL << 34)); // First 16 GiB
 
-    mapMemoryAt((U64)kernelContent.buf, KERNEL_START,
-                (U32)kernelContent.len);
+    mapMemoryAt((U64)kernelContent.buf, KERNEL_START, (U32)kernelContent.len);
 
     PhysicalAddress kernelParams = allocAndZero(1);
     mapMemoryAt(kernelParams, KERNEL_PARAMS_START, PAGE_FRAME_SIZE);
@@ -457,11 +456,11 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
     // Get memory map
     bool apmemfree = false;
     MemoryInfo memoryInfo = getMemoryInfo();
-    for (USize i = 0;
-         i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize; i++) {
+    for (USize i = 0; i < memoryInfo.memoryMapSize / memoryInfo.descriptorSize;
+         i++) {
         MemoryDescriptor *mement =
             (MemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
-                                     (i * memoryInfo.descriptorSize));
+                                 (i * memoryInfo.descriptorSize));
 
         if (mement == NULL ||
             (mement->physical_start == 0 && mement->number_of_pages == 0)) {

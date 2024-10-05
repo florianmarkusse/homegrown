@@ -16,11 +16,13 @@ extern "C" {
 #include "c-efi-base.h"
 #include "c-efi-system.h"
 
-#define LOADED_IMAGE_PROTOCOL_GUID                                       \
-    EFI_GUID(0x5B1B31A1, 0x9562, 0x11d2, 0x8E, 0x3F, 0x00, 0xA0, 0xC9, 0x69, \
-               0x72, 0x3B)
+static constexpr auto LOADED_IMAGE_PROTOCOL_GUID =
+    (Guid){.ms1 = 0x5B1B31A1,
+           .ms2 = 0x9562,
+           .ms3 = 0x11d2,
+           .ms4 = {0x8E, 0x3F, 0x00, 0xA0, 0xC9, 0x69, 0x72, 0x3B}};
 
-#define LOADED_IMAGE_PROTOCOL_REVISION U32_C(0x1000)
+static constexpr U32 LOADED_IMAGE_PROTOCOL_REVISION = 0x1000;
 
 typedef struct LoadedImageProtocol {
     U32 revision;

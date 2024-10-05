@@ -5,11 +5,14 @@
 extern "C" {
 #endif
 
+#include "acpi/guid.h"
 #include "c-efi-base.h"
 
-#define GRAPHICS_OUTPUT_PROTOCOL_GUID                                    \
-    EFI_GUID(0x9042a9de, 0x23dc, 0x4a38, 0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, \
-               0x51, 0x6a)
+static constexpr auto GRAPHICS_OUTPUT_PROTOCOL_GUID =
+    (Guid){.ms1 = 0x9042a9de,
+           .ms2 = 0x23dc,
+           .ms3 = 0x4a38,
+           .ms4 = {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}};
 
 typedef struct {
     U8 Blue;
@@ -60,17 +63,14 @@ typedef struct {
 } GraphicsOutputProtocolMode;
 
 typedef struct GraphicsOutputProtocol {
-    Status(EFICALL *queryMode)(GraphicsOutputProtocol *this_,
-                                    U32 modeNumber, USize *sizeOfInfo,
-                                    GraphicsOutputModeInformation **info);
-    Status(EFICALL *setMode)(GraphicsOutputProtocol *this_,
-                                  U32 modeNumber);
-    Status(EFICALL *blt)(GraphicsOutputProtocol *this_,
-                              BltPixel *bltBuffer,
-                              BltOperation bltOperation, USize sourceX,
-                              USize sourceY, USize destinationX,
-                              USize destinationY, USize width,
-                              USize height, USize delta);
+    Status(EFICALL *queryMode)(GraphicsOutputProtocol *this_, U32 modeNumber,
+                               USize *sizeOfInfo,
+                               GraphicsOutputModeInformation **info);
+    Status(EFICALL *setMode)(GraphicsOutputProtocol *this_, U32 modeNumber);
+    Status(EFICALL *blt)(GraphicsOutputProtocol *this_, BltPixel *bltBuffer,
+                         BltOperation bltOperation, USize sourceX,
+                         USize sourceY, USize destinationX, USize destinationY,
+                         USize width, USize height, USize delta);
     GraphicsOutputProtocolMode *mode;
 } GraphicsOutputProtocol;
 

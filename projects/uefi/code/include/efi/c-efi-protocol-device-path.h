@@ -13,18 +13,21 @@
 extern "C" {
 #endif
 
+#include "acpi/guid.h"
 #include "c-efi-base.h"
 
-#define DEVICE_PATH_PROTOCOL_GUID                                        \
-    EFI_GUID(0x09576e91, 0x6d3f, 0x11d2, 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, \
-               0x72, 0x3b)
+static constexpr auto DEVICE_PATH_PROTOCOL_GUID =
+    (Guid){.ms1 = 0x09576e91,
+           .ms2 = 0x6d3f,
+           .ms3 = 0x11d2,
+           .ms4 = {0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b}};
 
-#define DEVICE_PATH_TYPE_HARDWARE U8_C(0x01)
-#define DEVICE_PATH_TYPE_ACPI U8_C(0x02)
-#define DEVICE_PATH_TYPE_MESSAGE U8_C(0x03)
-#define DEVICE_PATH_TYPE_MEDIA U8_C(0x04)
-#define DEVICE_PATH_TYPE_BIOS U8_C(0x05)
-#define DEVICE_PATH_TYPE_END U8_C(0x7f)
+static constexpr U8 DEVICE_PATH_TYPE_HARDWARE = 0x01;
+static constexpr U8 DEVICE_PATH_TYPE_ACPI = 0x02;
+static constexpr U8 DEVICE_PATH_TYPE_MESSAGE = 0x03;
+static constexpr U8 DEVICE_PATH_TYPE_MEDIA = 0x04;
+static constexpr U8 DEVICE_PATH_TYPE_BIOS = 0x05;
+static constexpr U8 DEVICE_PATH_TYPE_END = 0x7f;
 
 /**
  * DevicePathProtocol: Device Paths
@@ -51,21 +54,21 @@ typedef struct DevicePathProtocol {
     U8 length[2];
 } DevicePathProtocol;
 
-#define DEVICE_PATH_SUBTYPE_END_ALL U8_C(0xff)
-#define DEVICE_PATH_SUBTYPE_END_INSTANCE U8_C(0x01)
+static constexpr U8 DEVICE_PATH_SUBTYPE_END_ALL = 0xff;
+static constexpr U8 DEVICE_PATH_SUBTYPE_END_INSTANCE = 0x01;
 
-#define DEVICE_PATH_SUBTYPE_HARDWARE_PCI U8_C(0x01)
-#define DEVICE_PATH_SUBTYPE_HARDWARE_PCCARD U8_C(0x02)
-#define DEVICE_PATH_SUBTYPE_HARDWARE_MMAP U8_C(0x03)
-#define DEVICE_PATH_SUBTYPE_HARDWARE_VENDOR U8_C(0x04)
-#define DEVICE_PATH_SUBTYPE_HARDWARE_CONTROLLER U8_C(0x05)
-#define DEVICE_PATH_SUBTYPE_HARDWARE_BMC U8_C(0x06)
+static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_PCI = 0x01;
+static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_PCCARD = 0x02;
+static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_MMAP = 0x03;
+static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_VENDOR = 0x04;
+static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_CONTROLLER = 0x05;
+static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_BMC = 0x06;
 
-#define DEVICE_PATH_NULL                                                 \
-    {                                                                          \
-        .type = DEVICE_PATH_TYPE_END,                                    \
-        .subtype = DEVICE_PATH_SUBTYPE_END_ALL, .length = {4, 0},        \
-    }
+static constexpr auto DEVICE_PATH_NULL = (DevicePathProtocol){
+    .type = DEVICE_PATH_TYPE_END,
+    .subtype = DEVICE_PATH_SUBTYPE_END_ALL,
+    .length = {4, 0},
+};
 
 #ifdef __cplusplus
 }

@@ -5,19 +5,22 @@
 extern "C" {
 #endif
 
+#include "acpi/guid.h"
 #include "c-efi-base.h"
 
-#define ACPI_TABLE_PROTOCOL_GUID                                         \
-    EFI_GUID(0xffe06bdd, 0x6107, 0x46a6, 0x7b, 0xb2, 0x5a, 0x9c, 0x7e, 0xc5, \
-               0x27, 0x5c)
+static constexpr auto ACPI_TABLE_PROTOCOL_GUID =
+    (Guid){.ms1 = 0xffe06bdd,
+           .ms2 = 0x6107,
+           .ms3 = 0x46a6,
+           .ms4 = {0x7b, 0xb2, 0x5a, 0x9c, 0x7e, 0xc5, 0x27, 0x5c}};
 
 typedef struct ACPITableProtocol {
     Status(EFICALL *installACPITable)(ACPITableProtocol *this_,
-                                           void *ACPITableBuffer,
-                                           USize ACPITableBufferSize,
-                                           USize *tableKey);
+                                      void *ACPITableBuffer,
+                                      USize ACPITableBufferSize,
+                                      USize *tableKey);
     Status(EFICALL *uninstallACPITable)(ACPITableProtocol *this_,
-                                             USize tableKey);
+                                        USize tableKey);
 } ACPITableProtocol;
 
 #ifdef __cplusplus
