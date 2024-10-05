@@ -12,8 +12,8 @@ extern "C" {
 #include <stddef.h>            // for ptrdiff_t
 #include <stdint.h>            // for uint32_t, uint64_t
 
-#define FLO_NEWLINE 0x01
-#define FLO_FLUSH 0x02
+static constexpr auto FLO_NEWLINE = 0x01;
+static constexpr auto FLO_FLUSH = 0x02;
 
 // TODO: is there a way to directly append to a write buffer instead of going
 // through a string first?

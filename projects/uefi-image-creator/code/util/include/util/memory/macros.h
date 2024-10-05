@@ -7,8 +7,8 @@ extern "C" {
 
 #include <stdint.h>
 
-#define FLO_ZERO_MEMORY 0x01
-#define FLO_NULL_ON_FAIL 0x02
+static constexpr auto FLO_ZERO_MEMORY = 0x01;
+static constexpr auto FLO_NULL_ON_FAIL = 0x02;
 
 #define FLO_SIZEOF(x) (ptrdiff_t)sizeof(x)
 #define FLO_COUNTOF(a) (FLO_SIZEOF(a) / FLO_SIZEOF(*(a)))

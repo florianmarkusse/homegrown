@@ -25,7 +25,7 @@ size_t memoryCap = (size_t)1 << 21;
 // exits on error.
 void *fileCloser[5];
 typedef FLO_MAX_LENGTH_ARRAY(FILE *) flo_FILEPtr_max_a;
-#define MAX_OPEN_FILES 64
+static constexpr auto MAX_OPEN_FILES = 64;
 // TODO: check returns of fseek beby
 // TODO: add all files when open to this stack/array
 FILE *openFilesBuf[MAX_OPEN_FILES];
@@ -186,8 +186,8 @@ typedef enum {
     TYPE_FILE, // Regular file
 } File_Type;
 
-#define MAX_FILES 10
-#define MAX_FILE_LEN (1 << 8)
+static constexpr auto MAX_FILES = 10;
+static constexpr auto MAX_FILE_LEN = (1 << 8);
 
 // Internal Options object for commandline args
 typedef struct {

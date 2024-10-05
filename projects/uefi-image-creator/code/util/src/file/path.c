@@ -5,7 +5,7 @@
 #include <string.h>            // for memcpy
 #include <sys/stat.h>          // for mkdir
 
-#define FULL_ACCESS 0700
+static constexpr auto FULL_ACCESS = 0700;
 
 void flo_createPath(flo_string fileLocation, flo_arena scratch) {
     ptrdiff_t currentIndex = 0;

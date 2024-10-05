@@ -6,8 +6,8 @@
 #include <string.h>             // for memcpy, memset, strlen
 #include <unistd.h>             // for isatty, write, STDERR_FILENO, STDOUT...
 
-#define FLO_LOG_STD_BUFFER_LEN 1 << 10
-#define FLO_STRING_CONVERTER_BUF_LEN 1 << 10
+static constexpr auto FLO_LOG_STD_BUFFER_LEN = 1 << 10;
+static constexpr auto FLO_STRING_CONVERTER_BUF_LEN = 1 << 10;
 
 unsigned char stdoutBuf[FLO_LOG_STD_BUFFER_LEN];
 unsigned char stderrBuf[FLO_LOG_STD_BUFFER_LEN];
