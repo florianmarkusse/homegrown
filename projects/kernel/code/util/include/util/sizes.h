@@ -1,9 +1,9 @@
 #ifndef UTIL_SIZES_H
 #define UTIL_SIZES_H
 
-#define KiB (1 << 10)
-#define MiB (1 << 20)
-#define GiB (1 << 30)
-#define TiB (1ULL << 40)
+static constexpr auto KiB = (1 << 10);
+static constexpr auto MiB = (1 << 20);
+static constexpr auto GiB = (1 << 30);
+static constexpr auto TiB = (1ULL << 40);
 
 #endif

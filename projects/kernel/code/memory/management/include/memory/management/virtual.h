@@ -2,9 +2,9 @@
 #define MEMORY_MANAGEMENT_VIRTUAL_H
 
 #include "interoperation/kernel-parameters.h"
+#include "interoperation/memory/definitions.h"
 #include "interoperation/types.h"
 #include "memory/management/definitions.h"
-#include "interoperation/memory/definitions.h"
 
 typedef struct {
     U64 address : 48;
@@ -83,7 +83,7 @@ typedef enum {
     PAT_NUMS
 } PATEncoding;
 
-#define PAT_LOCATION 0x277
+static constexpr auto PAT_LOCATION = 0x277;
 
 typedef struct {
     U8 pat : 3;

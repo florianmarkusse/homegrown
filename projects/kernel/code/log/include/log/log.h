@@ -8,8 +8,8 @@
 #include "text/string.h"
 #include "util/macros.h"
 
-#define NEWLINE 0x01
-#define FLUSH 0x02
+static constexpr auto NEWLINE = 0x01;
+static constexpr auto FLUSH = 0x02;
 
 void initLogger(Arena *perm);
 

@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-#define ZERO_MEMORY 0x01
-#define NULL_ON_FAIL 0x02
+static constexpr auto ZERO_MEMORY = 0x01;
+static constexpr auto NULL_ON_FAIL = 0x02;
 
 #ifdef __cplusplus
 }

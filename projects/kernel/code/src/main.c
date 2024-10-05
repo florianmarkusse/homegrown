@@ -14,7 +14,7 @@
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
-#define INIT_MEMORY (64 * MiB)
+static constexpr auto INIT_MEMORY = (64 * MiB);
 
 __attribute__((section("kernel-start"))) int kernelmain() {
     initIDT();

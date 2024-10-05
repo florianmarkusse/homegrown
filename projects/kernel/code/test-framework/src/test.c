@@ -33,7 +33,7 @@ typedef struct {
     string topic;
 } TestTopic;
 
-#define MAX_TEST_TOPICS 1 << 6
+static constexpr auto MAX_TEST_TOPICS = 1 << 6;
 
 static TestTopic testTopics[MAX_TEST_TOPICS];
 static U64 nextTestTopic = 0;

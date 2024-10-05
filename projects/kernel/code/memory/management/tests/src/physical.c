@@ -15,8 +15,8 @@
 #include <string.h>
 #include <sys/mman.h>
 
-#define TOTAL_BASE_PAGES (U64)(512 * 512 * 5)
-#define MEMORY (PAGE_FRAME_SIZE * TOTAL_BASE_PAGES)
+static constexpr auto TOTAL_BASE_PAGES = (U64)(512 * 512 * 5);
+static constexpr auto MEMORY = (PAGE_FRAME_SIZE * TOTAL_BASE_PAGES);
 
 #define WITH_INIT_TEST(testString)                                             \
     resetTriggeredFaults();                                                    \

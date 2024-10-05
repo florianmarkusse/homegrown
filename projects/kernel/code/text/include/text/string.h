@@ -18,7 +18,7 @@ typedef struct {
 typedef DYNAMIC_ARRAY(string) string_d_a;
 typedef MAX_LENGTH_ARRAY(string) string_max_a;
 
-#define EMPTY_STRING ((string){NULL, 0})
+static constexpr string EMPTY_STRING = ((string){0, 0});
 #define STRING(s) ((string){(U8 *)(s), sizeof(s) - 1})
 #define STRING_LEN(s, len) ((string){(U8 *)(s), len})
 #define STRING_PTRS(begin, end) ((string){(U8 *)(begin), ((end) - (begin))})

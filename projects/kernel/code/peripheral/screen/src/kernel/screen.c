@@ -45,13 +45,13 @@ static U8 glyphsBinary[] = {
 };
 static psf2_t *font = (psf2_t *)&glyphsBinary;
 
-#define BYTES_PER_PIXEL 4
-#define VERTICAL_PIXEL_MARGIN 20
-#define HORIZONTAL_PIXEL_MARGIN 20
-#define HAXOR_GREEN 0x0000FF00
-#define HAXOR_WHITE 0x00FFFFFF
+static constexpr auto BYTES_PER_PIXEL = 4;
+static constexpr auto VERTICAL_PIXEL_MARGIN = 20;
+static constexpr auto HORIZONTAL_PIXEL_MARGIN = 20;
+static constexpr auto HAXOR_GREEN = 0x0000FF00;
+static constexpr auto HAXOR_WHITE = 0x00FFFFFF;
 
-#define TAB_SIZE_IN_GLYPHS (1 << 2)
+static constexpr auto TAB_SIZE_IN_GLYPHS = (1 << 2);
 
 // NOTE: we write to this variable all the time, care should be taken when we
 // move to multithreading
@@ -68,8 +68,8 @@ static U32 glyphStartVerticalOffset;
 static U16 ringGlyphsPerLine;
 static U16 ringGlyphsPerColumn;
 
-#define MAX_SCROLLBACK_LINES (1ULL << 13ULL)
-#define FILE_BUF_LEN (1ULL << 16ULL)
+static constexpr auto MAX_SCROLLBACK_LINES = (1ULL << 13ULL);
+static constexpr auto FILE_BUF_LEN = (1ULL << 16ULL);
 
 static U64 *logicalLineLens;
 static U64 logicalLines[MAX_SCROLLBACK_LINES];

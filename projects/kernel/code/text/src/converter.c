@@ -1,10 +1,10 @@
 #include "interoperation/array-types.h"
-#include "text/string.h"
 #include "interoperation/types.h"
 #include "memory/manipulation/manipulation.h"
+#include "text/string.h"
 #include "util/assert.h"
 
-#define STRING_CONVERTER_BUF_LEN 1 << 10
+static constexpr auto STRING_CONVERTER_BUF_LEN = 1 << 10;
 U8 stringConverterBuf[STRING_CONVERTER_BUF_LEN];
 static U8_a stringConverterBuffer =
     (U8_a){.buf = stringConverterBuf, .len = STRING_CONVERTER_BUF_LEN};

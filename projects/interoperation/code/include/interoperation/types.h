@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-static constexpr auto NULL = ((void *)0);
+static constexpr void *NULL = ((void *)0);
 
 #if !defined(__INT8_TYPE__) || !defined(__UINT8_TYPE__) ||                     \
     !defined(__INT16_TYPE__) || !defined(__UINT16_TYPE__) ||                   \

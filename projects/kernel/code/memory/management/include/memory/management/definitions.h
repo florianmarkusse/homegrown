@@ -13,7 +13,7 @@ typedef struct {
 typedef MAX_LENGTH_ARRAY(PagedMemory) PagedMemory_max_a;
 typedef ARRAY(PagedMemory) PagedMemory_a;
 
-#define NUM_PAGE_SIZES 3
+static constexpr auto NUM_PAGE_SIZES = 3;
 typedef enum : U64 {
     BASE_PAGE = PAGE_FRAME_SIZE,
     LARGE_PAGE = LARGE_PAGE_SIZE,

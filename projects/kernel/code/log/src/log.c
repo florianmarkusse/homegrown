@@ -11,7 +11,7 @@
 // TODO: Do we want to just have this as static memory in unit tests???
 // TODO: Idea is to have a single flush buffer per thread and have it flush to
 // the file buffer sometimes.
-#define FLUSH_BUFFER_SIZE (2 * MiB)
+static constexpr auto FLUSH_BUFFER_SIZE = (2 * MiB);
 
 static U8_max_a flushBuf;
 
