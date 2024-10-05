@@ -43,7 +43,6 @@ typedef struct {
 static U8 glyphsBinary[] = {
 #embed "font.psf"
 };
-// NOTE: Not sure why we cant directly cast it?
 static psf2_t *font = (psf2_t *)glyphsBinary;
 
 #define BYTES_PER_PIXEL 4
