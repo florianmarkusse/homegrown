@@ -6,6 +6,9 @@ import (
 	"cmd/common/cmake"
 	"cmd/common/flags/buildmode"
 	"fmt"
+	"io"
+	"log"
+	"os"
 	"runtime"
 	"strings"
 )
@@ -31,26 +34,46 @@ func displayProjectBuild(project string) {
 	fmt.Printf("%sGoing to build %s project%s\n", common.CYAN, project, common.RESET)
 }
 
+func populatErrorWriter(errorsToFile bool, codeDirectory string) []io.Writer {
+	if !errorsToFile {
+		return []io.Writer{}
+	}
+
+	var errorFile = fmt.Sprintf("%s/stderr.txt", codeDirectory)
+	file, err := os.Create(errorFile)
+	if err != nil {
+		log.Fatalf("Failed to create file to redirect errors to")
+	}
+
+	var result = []io.Writer{file}
+	return result
+}
+
 func buildStandardProject(args *BuildArgs, codeFolder string) {
 	displayProjectBuild(codeFolder)
 
 	var buildDirectory = cmake.BuildDirectoryRoot(codeFolder, args.TestBuild, args.CCompiler)
 
+	var errorWriters []io.Writer = populatErrorWriter(args.ErrorsToFile, codeFolder)
+
 	configureOptions := strings.Builder{}
 	cmake.AddCommonConfigureOptions(&configureOptions, codeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode)
 
-	argument.ExecCommand(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, configureOptions.String()))
+	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, configureOptions.String()), errorWriters...)
 
 	buildOptions := strings.Builder{}
 	cmake.AddCommonBuildOptions(&buildOptions, buildDirectory, args.Threads)
 
-	argument.ExecCommand(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, buildOptions.String()))
+	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, buildOptions.String()), errorWriters...)
 }
 
 func buildKernel(args *BuildArgs) {
+
 	displayProjectBuild(common.KERNEL_CODE_FOLDER)
 
 	var buildDirectory = cmake.BuildDirectoryRoot(common.KERNEL_CODE_FOLDER, args.TestBuild, args.CCompiler)
+
+	var errorWriters []io.Writer = populatErrorWriter(args.ErrorsToFile, common.KERNEL_CODE_FOLDER)
 
 	configureOptions := strings.Builder{}
 	cmake.AddCommonConfigureOptions(&configureOptions, common.KERNEL_CODE_FOLDER, buildDirectory, args.CCompiler, args.Linker, args.BuildMode)
@@ -58,7 +81,7 @@ func buildKernel(args *BuildArgs) {
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D USE_SSE=%t", args.UseSSE))
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D UNIT_TEST_BUILD=%t", args.TestBuild))
 
-	argument.ExecCommand(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, configureOptions.String()))
+	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, configureOptions.String()), errorWriters...)
 
 	buildOptions := strings.Builder{}
 	cmake.AddCommonBuildOptions(&buildOptions, buildDirectory, args.Threads)
@@ -72,7 +95,7 @@ func buildKernel(args *BuildArgs) {
 		argument.AddArgument(&buildOptions, fmt.Sprintf("--target %s", targetsString.String()))
 	}
 
-	argument.ExecCommand(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, buildOptions.String()))
+	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, buildOptions.String()), errorWriters...)
 
 	findOptions := strings.Builder{}
 	argument.AddArgument(&findOptions, buildDirectory)
@@ -88,6 +111,7 @@ type BuildArgs struct {
 	CCompiler       string
 	Linker          string
 	BuildMode       string
+	ErrorsToFile    bool
 	Threads         int
 	SelectedTargets []string
 	TestBuild       bool
@@ -107,6 +131,7 @@ var DefaultBuildArgs = BuildArgs{
 	CCompiler:       "clang-19",
 	Linker:          "ld",
 	BuildMode:       buildmode.DefaultBuildMode(),
+	ErrorsToFile:    false,
 	Threads:         runtime.NumCPU(),
 	SelectedTargets: []string{},
 	TestBuild:       false,

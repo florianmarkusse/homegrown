@@ -42,7 +42,15 @@ func getRepoRoot() string {
 var RepoRoot = getRepoRoot()
 
 var PROJECT_FOLDER = RepoRoot + "projects/"
-var KERNEL_CODE_FOLDER = PROJECT_FOLDER + "kernel/code"
-var INTEROPERATION_CODE_FOLDER = PROJECT_FOLDER + "interoperation/code"
-var UEFI_IMAGE_CREATOR_CODE_FOLDER = PROJECT_FOLDER + "uefi-image-creator/code"
-var UEFI_CODE_FOLDER = PROJECT_FOLDER + "uefi/code"
+
+var KERNEL_FOLDER = PROJECT_FOLDER + "kernel/"
+var KERNEL_CODE_FOLDER = KERNEL_FOLDER + "code"
+
+var INTEROPERATION_FOLDER = PROJECT_FOLDER + "interoperation/"
+var INTEROPERATION_CODE_FOLDER = INTEROPERATION_FOLDER + "code"
+
+var UEFI_IMAGE_CREATOR_FOLDER = PROJECT_FOLDER + "uefi-image-creator/"
+var UEFI_IMAGE_CREATOR_CODE_FOLDER = UEFI_IMAGE_CREATOR_FOLDER + "code"
+
+var UEFI_FOLDER = PROJECT_FOLDER + "uefi/"
+var UEFI_CODE_FOLDER = UEFI_FOLDER + "code"

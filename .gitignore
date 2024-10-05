@@ -5,6 +5,7 @@
 .cache
 /tests/build/
 *.dot*
+stderr.txt
 
 # IDE-specific files and directories
 .vscode/

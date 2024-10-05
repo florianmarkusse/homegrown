@@ -23,6 +23,9 @@ const C_COMPILER_SHORT_FLAG = "c"
 const LINKER_LONG_FLAG = "linker"
 const LINKER_SHORT_FLAG = "l"
 
+const ERRORS_TO_FILE_LONG_FLAG = "errors-to-file"
+const ERRORS_TO_FILE_SHORT_FLAG = "e"
+
 const SELECT_TARGETS_LONG_FLAG = "targets"
 const SELECT_TARGETS_SHORT_FLAG = "s"
 const DEFAULT_TARGETS = "_ALL_"
@@ -56,6 +59,9 @@ func main() {
 
 	flag.StringVar(&targets, SELECT_TARGETS_LONG_FLAG, "", "")
 	flag.StringVar(&targets, SELECT_TARGETS_SHORT_FLAG, "", "")
+
+	flag.BoolVar(&buildArgs.ErrorsToFile, ERRORS_TO_FILE_LONG_FLAG, buildArgs.ErrorsToFile, "")
+	flag.BoolVar(&buildArgs.ErrorsToFile, ERRORS_TO_FILE_SHORT_FLAG, buildArgs.ErrorsToFile, "")
 
 	flag.BoolVar(&buildArgs.TestBuild, TEST_BUILD_LONG_FLAG, buildArgs.TestBuild, "")
 	flag.BoolVar(&buildArgs.TestBuild, TEST_BUILD_SHORT_FLAG, buildArgs.TestBuild, "")
@@ -140,6 +146,7 @@ func usage() {
 	flags.DisplayArgumentInput(C_COMPILER_SHORT_FLAG, C_COMPILER_LONG_FLAG, "Set the c-compiler", fmt.Sprint(buildArgs.CCompiler))
 
 	flags.DisplayArgumentInput(LINKER_SHORT_FLAG, LINKER_LONG_FLAG, "Set the linker", fmt.Sprint(buildArgs.Linker))
+	flags.DisplayArgumentInput(ERRORS_TO_FILE_SHORT_FLAG, ERRORS_TO_FILE_LONG_FLAG, "Save errors to file", fmt.Sprint(buildArgs.ErrorsToFile))
 
 	flags.DisplayArgumentInput(SELECT_TARGETS_SHORT_FLAG, SELECT_TARGETS_LONG_FLAG, "Select specific target(s, comma-separated) to be built", DEFAULT_TARGETS)
 
