@@ -57,7 +57,7 @@ func buildStandardProject(args *BuildArgs, codeFolder string) {
 	var errorWriters []io.Writer = populatErrorWriter(args.ErrorsToFile, codeFolder)
 
 	configureOptions := strings.Builder{}
-	cmake.AddCommonConfigureOptions(&configureOptions, codeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode)
+	cmake.AddCommonConfigureOptions(&configureOptions, codeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, false)
 
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, configureOptions.String()), errorWriters...)
 
@@ -76,7 +76,7 @@ func buildKernel(args *BuildArgs) {
 	var errorWriters []io.Writer = populatErrorWriter(args.ErrorsToFile, common.KERNEL_CODE_FOLDER)
 
 	configureOptions := strings.Builder{}
-	cmake.AddCommonConfigureOptions(&configureOptions, common.KERNEL_CODE_FOLDER, buildDirectory, args.CCompiler, args.Linker, args.BuildMode)
+	cmake.AddCommonConfigureOptions(&configureOptions, common.KERNEL_CODE_FOLDER, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, true)
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D USE_AVX=%t", args.UseAVX))
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D USE_SSE=%t", args.UseSSE))
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D UNIT_TEST_BUILD=%t", args.TestBuild))

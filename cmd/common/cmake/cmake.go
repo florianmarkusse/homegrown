@@ -20,14 +20,21 @@ func BuildDirectoryRoot(codeDirectory string, testBuild bool, cCompiler string) 
 	return buildDirectory.String()
 }
 
-func AddCommonConfigureOptions(options *strings.Builder, codeDirectory string, buildDirectory string, cCompiler string, linker string, buildMode string) {
+func AddCommonConfigureOptions(options *strings.Builder, codeDirectory string, buildDirectory string, cCompiler string, linker string, buildMode string, isKernel bool) {
 	argument.AddArgument(options, fmt.Sprintf("-S %s", codeDirectory))
 	argument.AddArgument(options, fmt.Sprintf("-B %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_C_COMPILER=%s", cCompiler))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_LINKER=%s", linker))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_BUILD_TYPE=%s", buildMode))
 	argument.AddArgument(options, fmt.Sprintf("--graphviz=%s/output.dot", codeDirectory))
-	argument.AddArgument(options, "-D CMAKE_C_INCLUDE_WHAT_YOU_USE=\"include-what-you-use;-w;-Xiwyu;--no_default_mappings\"")
+
+	var iwyuString = strings.Builder{}
+	iwyuString.WriteString("-D CMAKE_C_INCLUDE_WHAT_YOU_USE=\"include-what-you-use;-w;-Xiwyu;")
+	if isKernel {
+		iwyuString.WriteString("--no_default_mappings")
+	}
+	iwyuString.WriteString("\"")
+	argument.AddArgument(options, iwyuString.String())
 }
 
 func AddCommonBuildOptions(options *strings.Builder, buildDirectory string, threads int) {
