@@ -128,7 +128,7 @@ static void drawGlyph(U8 ch, U64 topRightGlyphOffset) {
         // +----------+ +--+
         // 000001100000 0000
         // 000011110000 0000
-        ASSERT(font->width <= SIZEOF(glyphLine));
+        ASSERT(font->width <= sizeof(glyphLine));
         for (U32 x = 0; x < font->width; x++) {
             dim.backingBuffer[line] =
                 (((glyphLine) & (mask)) != 0) * HAXOR_WHITE;

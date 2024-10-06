@@ -6,11 +6,11 @@ U64 appendToSimpleBuffer(string data, U8_d_a *array, Arena *perm) {
         U64 newCap = (array->len + data.len) * 2;
         if (array->buf == NULL) {
             array->cap = data.len;
-            array->buf = alloc(perm, SIZEOF(U8), ALIGNOF(U8), newCap, 0);
+            array->buf = alloc(perm, sizeof(U8), alignof(U8), newCap, 0);
         } else if (perm->end == (U8 *)(array->buf - array->cap)) {
-            alloc(perm, SIZEOF(U8), ALIGNOF(U8), newCap, 0);
+            alloc(perm, sizeof(U8), alignof(U8), newCap, 0);
         } else {
-            void *buf = alloc(perm, SIZEOF(U8), ALIGNOF(U8), newCap, 0);
+            void *buf = alloc(perm, sizeof(U8), alignof(U8), newCap, 0);
             memcpy(buf, array->buf, array->len);
             array->buf = buf;
         }

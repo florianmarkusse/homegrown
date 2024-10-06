@@ -1,7 +1,7 @@
 #include "util/log.h"
 #include "util/assert.h"        // for FLO_ASSERT
 #include "util/maths.h"         // for FLO_MIN
-#include "util/memory/macros.h" // for FLO_ALIGNOF, FLO_SIZEOF
+#include "util/memory/macros.h" // for alignof, sizeof
 #include "util/types.h"         // for flo_char_a, flo_char_d_a
 #include <string.h>             // for memcpy, memset, strlen
 #include <unistd.h>             // for isatty, write, STDERR_FILENO, STDOUT...
@@ -28,14 +28,14 @@ uint32_t flo_appendToSimpleBuffer(flo_string data, flo_char_d_a *array,
         ptrdiff_t newCap = (array->len + data.len) * 2;
         if (array->buf == NULL) {
             array->cap = data.len;
-            array->buf = flo_alloc(perm, FLO_SIZEOF(unsigned char),
-                                   FLO_ALIGNOF(unsigned char), newCap, 0);
+            array->buf = flo_alloc(perm, sizeof(unsigned char),
+                                   alignof(unsigned char), newCap, 0);
         } else if (perm->end == (char *)(array->buf - array->cap)) {
-            flo_alloc(perm, FLO_SIZEOF(unsigned char),
-                      FLO_ALIGNOF(unsigned char), newCap, 0);
+            flo_alloc(perm, sizeof(unsigned char),
+                      alignof(unsigned char), newCap, 0);
         } else {
-            void *buf = flo_alloc(perm, FLO_SIZEOF(unsigned char),
-                                  FLO_ALIGNOF(unsigned char), newCap, 0);
+            void *buf = flo_alloc(perm, sizeof(unsigned char),
+                                  alignof(unsigned char), newCap, 0);
             memcpy(buf, array->buf, array->len);
             array->buf = buf;
         }

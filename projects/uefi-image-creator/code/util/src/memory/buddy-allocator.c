@@ -1,6 +1,6 @@
 #include "util/memory/buddy-allocator.h"
 #include "util/assert.h"        // for FLO_ASSERT
-#include "util/memory/macros.h" // for FLO_SIZEOF, FLO_NULL_ON_FAIL, FLO_ZE...
+#include "util/memory/macros.h" // for sizeof, FLO_NULL_ON_FAIL, FLO_ZE...
 #include <string.h>             // for memset
 
 flo_BuddyBlock *flo_splitBuddy(flo_BuddyBlock *block, size_t size) {
@@ -163,7 +163,7 @@ flo_buddyAlloc(flo_BuddyAllocator *buddyAllocator, ptrdiff_t size,
     FLO_ASSERT(size > 0);
 
     size_t total = size * count;
-    size_t totalSize = total + FLO_SIZEOF(flo_BuddyBlock);
+    size_t totalSize = total + sizeof(flo_BuddyBlock);
 
     flo_BuddyBlock *found = flo_findBestBuddy(buddyAllocator->head,
                                               buddyAllocator->tail, totalSize);
@@ -176,7 +176,7 @@ flo_buddyAlloc(flo_BuddyAllocator *buddyAllocator, ptrdiff_t size,
 
     if (found != NULL) {
         found->isFree = false;
-        void *result = (void *)((char *)found + FLO_SIZEOF(flo_BuddyBlock));
+        void *result = (void *)((char *)found + sizeof(flo_BuddyBlock));
         if (FLO_ZERO_MEMORY & flags) {
             memset(result, 0, total);
         }
@@ -195,7 +195,7 @@ void flo_freeBuddy(flo_BuddyAllocator *buddyAllocator, void *data) {
     FLO_ASSERT(data < (void *)buddyAllocator->tail);
 
     flo_BuddyBlock *block =
-        (flo_BuddyBlock *)((char *)data - FLO_SIZEOF(flo_BuddyBlock));
+        (flo_BuddyBlock *)((char *)data - sizeof(flo_BuddyBlock));
     block->isFree = true;
 
     flo_coalesceBuddies(buddyAllocator->head, buddyAllocator->tail);

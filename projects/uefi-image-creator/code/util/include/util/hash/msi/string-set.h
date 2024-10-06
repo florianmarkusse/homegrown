@@ -54,8 +54,8 @@ flo_HashComparisonStatus flo_msi_equalsStringSet(flo_msi_String *set1,
 //     if ((uint32_t)index->len >= ((uint32_t)1 << index->exp) / 2) {
 //         flo_string_HashIndex newIndex =
 //             (flo_string_HashIndex){.exp = index->exp + 1};
-//         flo_newMSISet(&newIndex, FLO_SIZEOF(*newIndex.buf),
-//                       FLO_ALIGNOF(*newIndex.buf), perm);
+//         flo_newMSISet(&newIndex, sizeof(*newIndex.buf),
+//                       alignof(*newIndex.buf), perm);
 //         rehashIndex(index, &newIndex);
 //         *index = newIndex;
 //     }

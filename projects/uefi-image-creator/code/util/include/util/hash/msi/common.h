@@ -7,7 +7,7 @@ extern "C" {
 
 #include "util/macros.h"        // for FLO_MACRO_VAR
 #include "util/memory/arena.h"  // for flo_arena
-#include "util/memory/macros.h" // for FLO_ALIGNOF, FLO_SIZEOF
+#include "util/memory/macros.h" // for alignof, sizeof
 #include <stddef.h>             // for ptrdiff_t
 #include <stdint.h>             // for uint32_t, int32_t, uint64_t
 
@@ -60,8 +60,8 @@ typedef FLO_MSI_SET(char) SetSlice;
     ({                                                                         \
         T FLO_MACRO_VAR(newSet) = (T){.exp = (exponent)};                      \
         flo_msi_newSet(&FLO_MACRO_VAR(newSet),                                 \
-                       FLO_SIZEOF(*FLO_MACRO_VAR(newSet).buf),                 \
-                       FLO_ALIGNOF(*FLO_MACRO_VAR(newSet).buf), perm);         \
+                       sizeof(*FLO_MACRO_VAR(newSet).buf),                 \
+                       alignof(*FLO_MACRO_VAR(newSet).buf), perm);         \
         FLO_MACRO_VAR(newSet);                                                 \
     })
 

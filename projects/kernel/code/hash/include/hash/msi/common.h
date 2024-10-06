@@ -58,8 +58,8 @@ typedef MSI_SET(U8) SetSlice;
 #define NEW_MSI_SET(T, exponent, perm)                                         \
     ({                                                                         \
         T MACRO_VAR(newSet) = (T){.exp = (exponent)};                          \
-        msi_newSet(&MACRO_VAR(newSet), SIZEOF(*MACRO_VAR(newSet).buf),         \
-                   ALIGNOF(*MACRO_VAR(newSet).buf), perm);                     \
+        msi_newSet(&MACRO_VAR(newSet), sizeof(*MACRO_VAR(newSet).buf),         \
+                   alignof(*MACRO_VAR(newSet).buf), perm);                     \
         MACRO_VAR(newSet);                                                     \
     })
 

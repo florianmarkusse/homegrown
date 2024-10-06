@@ -51,8 +51,8 @@ HashComparisonStatus msi_equalsStringSet(msi_string *set1, msi_string *set2);
 //     if ((U32)index->len >= ((U32)1 << index->exp) / 2) {
 //         string_hashIndex newIndex =
 //             (string_hashIndex){.exp = index->exp + 1};
-//         newMSISet(&newIndex, SIZEOF(*newIndex.buf),
-//                       ALIGNOF(*newIndex.buf), perm);
+//         newMSISet(&newIndex, sizeof(*newIndex.buf),
+//                       alignof(*newIndex.buf), perm);
 //         rehashIndex(index, &newIndex);
 //         *index = newIndex;
 //     }

@@ -25,7 +25,7 @@ PoolAllocator createPoolAllocator(I8 *buffer, I64 cap, I64 chunkSize) {
 
     ASSERT(chunkSize > 0);
     ASSERT((chunkSize & (chunkSize - 1)) == 0);
-    ASSERT(chunkSize > SIZEOF(PoolHead));
+    ASSERT(chunkSize > sizeof(PoolHead));
 
     ASSERT(cap > chunkSize);
 

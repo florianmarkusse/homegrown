@@ -25,7 +25,7 @@ flo_PoolAllocator flo_createPoolAllocator(char *buffer, ptrdiff_t cap,
 
     FLO_ASSERT(chunkSize > 0);
     FLO_ASSERT((chunkSize & (chunkSize - 1)) == 0);
-    FLO_ASSERT(chunkSize > FLO_SIZEOF(flo_PoolHead));
+    FLO_ASSERT(chunkSize > sizeof(flo_PoolHead));
 
     FLO_ASSERT(cap > chunkSize);
 

@@ -60,7 +60,7 @@ __attribute((unused)) static void flo_grow(void *slice, ptrdiff_t size,
 
 #define FLO_COPY_DYNAMIC_ARRAY(newArr, oldArr, t, a)                           \
     newArr.buf = FLO_NEW(a, t, (oldArr).len);                                  \
-    memcpy((newArr).buf, (oldArr).buf, (oldArr).len *FLO_SIZEOF(t));           \
+    memcpy((newArr).buf, (oldArr).buf, (oldArr).len *sizeof(t));           \
     (newArr).len = (oldArr).len;                                               \
     (newArr).cap = (oldArr).len;
 
@@ -69,8 +69,8 @@ __attribute((unused)) static void flo_grow(void *slice, ptrdiff_t size,
         typeof(s) FLO_MACRO_VAR(s_) = (s);                                     \
         typeof(a) FLO_MACRO_VAR(a_) = (a);                                     \
         if (FLO_MACRO_VAR(s_)->len >= FLO_MACRO_VAR(s_)->cap) {                \
-            flo_grow(FLO_MACRO_VAR(s_), FLO_SIZEOF(*FLO_MACRO_VAR(s_)->buf),   \
-                     FLO_ALIGNOF(*FLO_MACRO_VAR(s_)->buf), FLO_MACRO_VAR(a_),  \
+            flo_grow(FLO_MACRO_VAR(s_), sizeof(*FLO_MACRO_VAR(s_)->buf),   \
+                     alignof(*FLO_MACRO_VAR(s_)->buf), FLO_MACRO_VAR(a_),  \
                      0);                                                       \
         }                                                                      \
         FLO_MACRO_VAR(s_)->buf + FLO_MACRO_VAR(s_)->len++;                     \
@@ -80,8 +80,8 @@ __attribute((unused)) static void flo_grow(void *slice, ptrdiff_t size,
         typeof(s) FLO_MACRO_VAR(s_) = (s);                                     \
         typeof(a) FLO_MACRO_VAR(a_) = (a);                                     \
         if (FLO_MACRO_VAR(s_)->len >= FLO_MACRO_VAR(s_)->cap) {                \
-            flo_grow(FLO_MACRO_VAR(s_), FLO_SIZEOF(*FLO_MACRO_VAR(s_)->buf),   \
-                     FLO_ALIGNOF(*FLO_MACRO_VAR(s_)->buf), FLO_MACRO_VAR(a_),  \
+            flo_grow(FLO_MACRO_VAR(s_), sizeof(*FLO_MACRO_VAR(s_)->buf),   \
+                     alignof(*FLO_MACRO_VAR(s_)->buf), FLO_MACRO_VAR(a_),  \
                      f);                                                       \
         }                                                                      \
         FLO_MACRO_VAR(s_)->buf + FLO_MACRO_VAR(s_)->len++;                     \

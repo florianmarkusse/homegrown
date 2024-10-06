@@ -10,10 +10,8 @@ extern "C" {
 static constexpr auto FLO_ZERO_MEMORY = 0x01;
 static constexpr auto FLO_NULL_ON_FAIL = 0x02;
 
-#define FLO_SIZEOF(x) (ptrdiff_t)sizeof(x)
-#define FLO_COUNTOF(a) (FLO_SIZEOF(a) / FLO_SIZEOF(*(a)))
+#define FLO_COUNTOF(a) (sizeof(a) / sizeof(*(a)))
 #define FLO_LENGTHOF(s) (FLO_COUNTOF(s) - 1)
-#define FLO_ALIGNOF(t) (_Alignof(t))
 
 #ifdef __cplusplus
 }
