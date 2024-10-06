@@ -13,7 +13,6 @@ extern "C" {
 #define STRINGIFY(x) STR_HELPER(x)
 
 #define COUNTOF(a) (sizeof(a) / sizeof(*(a)))
-#define LENGTHOF(s) (COUNTOF(s) - 1)
 
 #ifdef __cplusplus
 }
