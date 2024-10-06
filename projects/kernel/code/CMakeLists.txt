@@ -8,6 +8,10 @@ if(NOT "${UNIT_TEST_BUILD}")
     set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 endif()
 
+set(CMAKE_C_FLAGS
+    "${CMAKE_C_FLAGS} --embed-dir=${CMAKE_SOURCE_DIR}/../resources"
+)
+
 include("../../setup.cmake")
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")

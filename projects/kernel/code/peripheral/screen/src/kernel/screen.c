@@ -41,7 +41,7 @@ typedef struct {
 } __attribute__((packed)) psf2_t;
 
 static U8 glyphsBinary[] = {
-#embed "../../../../../resources/font.psf"
+#embed "font.psf"
 };
 static psf2_t *font = (psf2_t *)&glyphsBinary;
 
