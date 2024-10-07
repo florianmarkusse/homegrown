@@ -43,14 +43,53 @@ var RepoRoot = getRepoRoot()
 
 var PROJECT_FOLDER = RepoRoot + "projects/"
 
-var KERNEL_FOLDER = PROJECT_FOLDER + "kernel/"
-var KERNEL_CODE_FOLDER = KERNEL_FOLDER + "code"
+type Project int64
 
-var INTEROPERATION_FOLDER = PROJECT_FOLDER + "interoperation/"
-var INTEROPERATION_CODE_FOLDER = INTEROPERATION_FOLDER + "code"
+type ProjectStructure struct {
+	Folder         string
+	CodeFolder     string
+	IsFreeStanding bool
+}
 
-var UEFI_IMAGE_CREATOR_FOLDER = PROJECT_FOLDER + "uefi-image-creator/"
-var UEFI_IMAGE_CREATOR_CODE_FOLDER = UEFI_IMAGE_CREATOR_FOLDER + "code"
+var kernelFolder = PROJECT_FOLDER + "kernel/"
+var interoperationFolder = PROJECT_FOLDER + "interoperation/"
+var uefiImageCreatorFolder = PROJECT_FOLDER + "uefi-image-creator/"
+var uefiFolder = PROJECT_FOLDER + "uefi/"
+var imageBuilderFolder = PROJECT_FOLDER + "image-builder/"
 
-var UEFI_FOLDER = PROJECT_FOLDER + "uefi/"
-var UEFI_CODE_FOLDER = UEFI_FOLDER + "code"
+// If you add a project, add an enum value and add it to the array below!
+const (
+	KERNEL Project = iota
+	INTEROPERATION
+	UEFI_IMAGE_CREATOR
+	UEFI
+	IMAGE_BUILDER
+)
+
+var PROJECTS = []ProjectStructure{
+	ProjectStructure{
+		Folder:         kernelFolder,
+		CodeFolder:     kernelFolder + "code",
+		IsFreeStanding: true,
+	},
+	ProjectStructure{
+		Folder:         interoperationFolder,
+		CodeFolder:     interoperationFolder + "code",
+		IsFreeStanding: true,
+	},
+	ProjectStructure{
+		Folder:         uefiImageCreatorFolder,
+		CodeFolder:     uefiImageCreatorFolder + "code",
+		IsFreeStanding: false,
+	},
+	ProjectStructure{
+		Folder:         uefiFolder,
+		CodeFolder:     uefiFolder + "code",
+		IsFreeStanding: true,
+	},
+	ProjectStructure{
+		Folder:         imageBuilderFolder,
+		CodeFolder:     imageBuilderFolder + "code",
+		IsFreeStanding: false,
+	},
+}

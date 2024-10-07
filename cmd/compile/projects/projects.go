@@ -60,15 +60,15 @@ func populateErrorWriter(errorsToFile bool, codeDirectory string) []io.Writer {
 	return result
 }
 
-func buildStandardProject(args *BuildArgs, codeFolder string, isFreestanding bool) {
-	displayProjectBuild(codeFolder)
+func buildStandardProject(args *BuildArgs, project *common.ProjectStructure) {
+	displayProjectBuild(project.CodeFolder)
 
-	var buildDirectory = cmake.BuildDirectoryRoot(codeFolder, args.TestBuild, args.CCompiler)
+	var buildDirectory = cmake.BuildDirectoryRoot(project.CodeFolder, args.TestBuild, args.CCompiler)
 
-	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, codeFolder)
+	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, project.CodeFolder)
 
 	configureOptions := strings.Builder{}
-	cmake.AddCommonConfigureOptions(&configureOptions, codeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, isFreestanding)
+	cmake.AddCommonConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, project.IsFreeStanding)
 
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, configureOptions.String()), errorWriters...)
 
@@ -77,19 +77,18 @@ func buildStandardProject(args *BuildArgs, codeFolder string, isFreestanding boo
 
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, buildOptions.String()), errorWriters...)
 
-	copyCompileCommands(buildDirectory, codeFolder)
+	copyCompileCommands(buildDirectory, project.CodeFolder)
 }
 
-func buildKernel(args *BuildArgs) {
+func buildKernel(args *BuildArgs, project *common.ProjectStructure) {
+	displayProjectBuild(project.CodeFolder)
 
-	displayProjectBuild(common.KERNEL_CODE_FOLDER)
+	var buildDirectory = cmake.BuildDirectoryRoot(project.CodeFolder, args.TestBuild, args.CCompiler)
 
-	var buildDirectory = cmake.BuildDirectoryRoot(common.KERNEL_CODE_FOLDER, args.TestBuild, args.CCompiler)
-
-	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, common.KERNEL_CODE_FOLDER)
+	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, project.CodeFolder)
 
 	configureOptions := strings.Builder{}
-	cmake.AddCommonConfigureOptions(&configureOptions, common.KERNEL_CODE_FOLDER, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, true)
+	cmake.AddCommonConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, project.IsFreeStanding)
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D USE_AVX=%t", args.UseAVX))
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D USE_SSE=%t", args.UseSSE))
 	argument.AddArgument(&configureOptions, fmt.Sprintf("-D UNIT_TEST_BUILD=%t", args.TestBuild))
@@ -110,7 +109,7 @@ func buildKernel(args *BuildArgs) {
 
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", common.CMAKE_EXECUTABLE, buildOptions.String()), errorWriters...)
 
-	copyCompileCommands(buildDirectory, common.KERNEL_CODE_FOLDER)
+	copyCompileCommands(buildDirectory, project.CodeFolder)
 }
 
 type BuildArgs struct {
@@ -120,6 +119,7 @@ type BuildArgs struct {
 	ErrorsToFile    bool
 	Threads         int
 	SelectedTargets []string
+	Projects        []string
 	TestBuild       bool
 	RunTests        bool
 	UseAVX          bool
@@ -140,6 +140,7 @@ var DefaultBuildArgs = BuildArgs{
 	ErrorsToFile:    false,
 	Threads:         runtime.NumCPU(),
 	SelectedTargets: []string{},
+	Projects:        []string{},
 	TestBuild:       false,
 	RunTests:        false,
 	UseAVX:          true,
@@ -148,20 +149,25 @@ var DefaultBuildArgs = BuildArgs{
 
 func Build(args *BuildArgs) BuildResult {
 	// NOTE: Using waitgroups is currently slower than just running synchronously
-	buildKernel(args)
+
+	if len(args.Projects) > 0 {
+	}
+
+	buildKernel(args, &common.PROJECTS[common.KERNEL])
 
 	fmt.Println("Building Because of LSP purposes")
-	buildStandardProject(args, common.INTEROPERATION_CODE_FOLDER, true)
+	buildStandardProject(args, &common.PROJECTS[common.INTEROPERATION])
 
 	if args.TestBuild {
 		if !args.RunTests {
 			return Success
 		}
-		findAndRunTests(args, common.KERNEL_CODE_FOLDER)
+		findAndRunTests(args, common.PROJECTS[common.KERNEL].CodeFolder)
 		return Success
 	}
 
-	buildStandardProject(args, common.UEFI_IMAGE_CREATOR_CODE_FOLDER, false)
-	buildStandardProject(args, common.UEFI_CODE_FOLDER, true)
+	buildStandardProject(args, &common.PROJECTS[common.UEFI_IMAGE_CREATOR])
+	buildStandardProject(args, &common.PROJECTS[common.UEFI])
+	buildStandardProject(args, &common.PROJECTS[common.IMAGE_BUILDER])
 	return Success
 }
