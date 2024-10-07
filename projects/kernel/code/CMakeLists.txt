@@ -3,6 +3,7 @@ project(kernel LANGUAGES C ASM)
 
 if(NOT "${UNIT_TEST_BUILD}")
     set(CMAKE_C_FLAGS
+        # TODO: SSE is still broken!!!
         "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector -mno-sse -mno-sse2"
     )
     set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
@@ -16,12 +17,9 @@ include("../../setup.cmake")
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
-# TODO: SSE is still broken!!!
 add_library(${PROJECT_NAME} OBJECT "src/main.c")
 
-# Needs to be on top, since it takes care of the compile definition!
 if("${UNIT_TEST_BUILD}")
-    add_compile_definitions(UNIT_TEST_BUILD)
     add_subdirectory("test-framework")
 endif()
 
@@ -43,7 +41,7 @@ target_include_directories(
 )
 target_include_directories(
     ${PROJECT_NAME}
-    PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
+    PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
 
 # Adds the linking library location in reverse order. Remember the linker tries
@@ -102,7 +100,7 @@ add_dependencies(${LINKER_TARGET} ${PROJECT_NAME})
 set(BINARIZER "${PROJECT_NAME}-binarizer")
 set(PROJECT_NAME_BIN "${PROJECT_NAME}.bin")
 set(KERNEL_MAGIC_FOLDER
-    "${REPO_ROOT}/projects/interoperation/code/include/interoperation/generated"
+    "${REPO_PROJECTS}/interoperation/code/include/interoperation/generated"
 )
 set(KERNEL_MAGIC_OUTPUT "${KERNEL_MAGIC_FOLDER}/kernel-magic.h")
 add_custom_target(
@@ -113,7 +111,7 @@ add_custom_target(
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_BIN}
     COMMAND
         mkdir -p ${KERNEL_MAGIC_FOLDER} && python3
-        "${REPO_ROOT}/projects/interoperation/code/create_magic.py"
+        "${REPO_PROJECTS}/interoperation/code/create_magic.py"
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_BIN}" ${KERNEL_MAGIC_OUTPUT}
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
     COMMAND_EXPAND_LISTS

@@ -38,10 +38,6 @@ const RUN_TESTS_SHORT_FLAG = "r"
 
 const THREADS_LONG_FLAG = "threads"
 
-const AVX_LONG_FLAG = "avx"
-
-const SSE_LONG_FLAG = "sse"
-
 var buildArgs = projects.DefaultBuildArgs
 
 var targets string
@@ -70,10 +66,6 @@ func main() {
 	flag.BoolVar(&buildArgs.RunTests, RUN_TESTS_SHORT_FLAG, buildArgs.RunTests, "")
 
 	flag.IntVar(&buildArgs.Threads, THREADS_LONG_FLAG, buildArgs.Threads, "")
-
-	flag.BoolVar(&buildArgs.UseAVX, AVX_LONG_FLAG, buildArgs.UseAVX, "")
-
-	flag.BoolVar(&buildArgs.UseSSE, SSE_LONG_FLAG, buildArgs.UseSSE, "")
 
 	help.AddHelpAsFlag(&isHelp)
 
@@ -118,8 +110,6 @@ func main() {
 	configuration.DisplayBoolArgument(TEST_BUILD_LONG_FLAG, buildArgs.TestBuild)
 	configuration.DisplayBoolArgument(RUN_TESTS_LONG_FLAG, buildArgs.RunTests)
 	configuration.DisplayIntArgument(THREADS_LONG_FLAG, buildArgs.Threads)
-	configuration.DisplayBoolArgument(AVX_LONG_FLAG, buildArgs.UseAVX)
-	configuration.DisplayBoolArgument(SSE_LONG_FLAG, buildArgs.UseSSE)
 	fmt.Printf("\n")
 
 	var result = projects.Build(&buildArgs)
@@ -155,10 +145,6 @@ func usage() {
 	flags.DisplayArgumentInput(RUN_TESTS_SHORT_FLAG, RUN_TESTS_LONG_FLAG, "Run tests", fmt.Sprint(buildArgs.RunTests))
 
 	flags.DisplayLongFlagArgumentInput(THREADS_LONG_FLAG, "Set the number of threads to use for compiling", fmt.Sprint(buildArgs.Threads))
-
-	flags.DisplayLongFlagArgumentInput(AVX_LONG_FLAG, "Set SSE", fmt.Sprint(buildArgs.UseSSE))
-
-	flags.DisplayLongFlagArgumentInput(SSE_LONG_FLAG, "Set AVX", fmt.Sprint(buildArgs.UseAVX))
 
 	help.DisplayHelp()
 	fmt.Printf("\n")

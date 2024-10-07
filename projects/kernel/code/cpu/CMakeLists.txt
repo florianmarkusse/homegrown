@@ -22,7 +22,7 @@ endif()
 
 target_include_directories(
     ${PROJECT_NAME}
-    PUBLIC "${REPO_ROOT}/projects/interoperation/code/include"
+    PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
 target_include_directories(
     ${PROJECT_NAME}
