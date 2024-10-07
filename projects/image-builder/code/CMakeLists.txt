@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(image-builder LANGUAGES C ASM)
 include("../../setup.cmake")
+include("../../print-configuration.cmake")
 
 add_subdirectory(util)
 

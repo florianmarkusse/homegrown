@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmd/common/cmake"
 	"cmd/common/configuration"
 	"cmd/common/converter"
 	"cmd/common/exit"
@@ -26,6 +27,9 @@ const LINKER_SHORT_FLAG = "l"
 const ERRORS_TO_FILE_LONG_FLAG = "errors-to-file"
 const ERRORS_TO_FILE_SHORT_FLAG = "e"
 
+const PROJECTS_LONG_FLAG = "projects"
+const PROJECTS_SHORT_FLAG = "p"
+
 const SELECT_TARGETS_LONG_FLAG = "targets"
 const SELECT_TARGETS_SHORT_FLAG = "s"
 const DEFAULT_TARGETS = "_ALL_"
@@ -40,7 +44,8 @@ const THREADS_LONG_FLAG = "threads"
 
 var buildArgs = projects.DefaultBuildArgs
 
-var targets string
+var projectsToBuild string
+var targetsToBuild string
 
 var isHelp = false
 
@@ -53,8 +58,11 @@ func main() {
 	flag.StringVar(&buildArgs.Linker, LINKER_LONG_FLAG, buildArgs.Linker, "")
 	flag.StringVar(&buildArgs.Linker, LINKER_SHORT_FLAG, buildArgs.Linker, "")
 
-	flag.StringVar(&targets, SELECT_TARGETS_LONG_FLAG, "", "")
-	flag.StringVar(&targets, SELECT_TARGETS_SHORT_FLAG, "", "")
+	flag.StringVar(&projectsToBuild, PROJECTS_LONG_FLAG, "", "")
+	flag.StringVar(&projectsToBuild, PROJECTS_SHORT_FLAG, "", "")
+
+	flag.StringVar(&targetsToBuild, SELECT_TARGETS_LONG_FLAG, "", "")
+	flag.StringVar(&targetsToBuild, SELECT_TARGETS_SHORT_FLAG, "", "")
 
 	flag.BoolVar(&buildArgs.ErrorsToFile, ERRORS_TO_FILE_LONG_FLAG, buildArgs.ErrorsToFile, "")
 	flag.BoolVar(&buildArgs.ErrorsToFile, ERRORS_TO_FILE_SHORT_FLAG, buildArgs.ErrorsToFile, "")
@@ -78,6 +86,22 @@ func main() {
 		showHelpAndExit = true
 	}
 
+	buildArgs.SelectedProjects = strings.FieldsFunc(projectsToBuild, func(r rune) bool {
+		return r == ','
+	})
+
+	for _, selectedProject := range buildArgs.SelectedProjects {
+		var isValidProjectName = false
+		for _, configuredProjects := range cmake.ConfiguredProjects {
+			if selectedProject == configuredProjects {
+				isValidProjectName = true
+			}
+		}
+		if !isValidProjectName {
+			showHelpAndExit = true
+		}
+	}
+
 	if isHelp {
 		showHelpAndExit = true
 	}
@@ -90,7 +114,7 @@ func main() {
 		os.Exit(exit.EXIT_MISSING_ARGUMENT)
 	}
 
-	buildArgs.SelectedTargets = strings.FieldsFunc(targets, func(r rune) bool {
+	buildArgs.SelectedTargets = strings.FieldsFunc(targetsToBuild, func(r rune) bool {
 		return r == ','
 	})
 
@@ -98,6 +122,14 @@ func main() {
 	buildmode.DisplayBuildModeConfiguration(buildArgs.BuildMode)
 	configuration.DisplayStringArgument(C_COMPILER_LONG_FLAG, buildArgs.CCompiler)
 	configuration.DisplayStringArgument(LINKER_LONG_FLAG, buildArgs.Linker)
+
+	var projectsConfiguration string
+	if len(buildArgs.SelectedProjects) > 0 {
+		projectsConfiguration = converter.ArrayIntoPrintableString(buildArgs.SelectedProjects[:])
+	} else {
+		projectsConfiguration = converter.ArrayIntoPrintableString(cmake.ConfiguredProjects)
+	}
+	configuration.DisplayStringArgument(PROJECTS_LONG_FLAG, projectsConfiguration)
 
 	var targetsConfiguration string
 	if len(buildArgs.SelectedTargets) > 0 {
@@ -139,6 +171,7 @@ func usage() {
 	flags.DisplayArgumentInput(ERRORS_TO_FILE_SHORT_FLAG, ERRORS_TO_FILE_LONG_FLAG, "Save errors to file", fmt.Sprint(buildArgs.ErrorsToFile))
 
 	flags.DisplayArgumentInput(SELECT_TARGETS_SHORT_FLAG, SELECT_TARGETS_LONG_FLAG, "Select specific target(s, comma-separated) to be built", DEFAULT_TARGETS)
+	flags.DisplayArgumentInput(PROJECTS_SHORT_FLAG, PROJECTS_LONG_FLAG, "Select specific project(s, comma-separated) to be built", converter.ArrayIntoPrintableString(cmake.ConfiguredProjects))
 
 	flags.DisplayArgumentInput(TEST_BUILD_SHORT_FLAG, TEST_BUILD_LONG_FLAG, "Build for tests", fmt.Sprint(buildArgs.TestBuild))
 

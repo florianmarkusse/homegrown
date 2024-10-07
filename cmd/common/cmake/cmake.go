@@ -60,6 +60,18 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 	},
 }
 
+func getConfiguredProjects() []string {
+	var result = make([]string, 0)
+
+	for name, _ := range PROJECT_STRUCTURES {
+		result = append(result, name)
+	}
+
+	return result
+}
+
+var ConfiguredProjects = getConfiguredProjects()
+
 func BuildDirectoryRoot(codeDirectory string, testBuild bool, cCompiler string) string {
 	buildDirectory := strings.Builder{}
 	buildDirectory.WriteString(fmt.Sprintf("%s/", codeDirectory))

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 project(kernel LANGUAGES C ASM)
+include("../../setup.cmake")
 
 if(NOT "${UNIT_TEST_BUILD}")
     set(CMAKE_C_FLAGS
@@ -7,15 +9,12 @@ if(NOT "${UNIT_TEST_BUILD}")
         "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector -mno-sse -mno-sse2"
     )
     set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
+    set(CMAKE_C_FLAGS
+        "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}/kernel/resources"
+    )
 endif()
 
-set(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS} --embed-dir=${CMAKE_SOURCE_DIR}/../resources"
-)
-
-include("../../setup.cmake")
-
-set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+include("../../print-configuration.cmake")
 
 add_library(${PROJECT_NAME} OBJECT "src/main.c")
 

@@ -30,10 +30,6 @@ func findAndRunTests(args *BuildArgs, codeDirectory string) BuildResult {
 	return Success
 }
 
-func displayProjectBuild(project string) {
-	fmt.Printf("%sGoing to build %s project%s\n", common.CYAN, project, common.RESET)
-}
-
 func copyCompileCommands(buildDirectory string, codeDirectory string) {
 	findOptions := strings.Builder{}
 	argument.AddArgument(&findOptions, buildDirectory)
@@ -61,8 +57,6 @@ func populateErrorWriter(errorsToFile bool, codeDirectory string) []io.Writer {
 }
 
 func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
-	displayProjectBuild(project.CodeFolder)
-
 	var buildDirectory = cmake.BuildDirectoryRoot(project.CodeFolder, args.TestBuild, args.CCompiler)
 
 	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, project.CodeFolder)
@@ -79,15 +73,15 @@ func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
 }
 
 type BuildArgs struct {
-	CCompiler       string
-	Linker          string
-	BuildMode       string
-	ErrorsToFile    bool
-	Threads         int
-	SelectedTargets []string
-	Projects        []string
-	TestBuild       bool
-	RunTests        bool
+	CCompiler        string
+	Linker           string
+	BuildMode        string
+	ErrorsToFile     bool
+	Threads          int
+	SelectedTargets  []string
+	SelectedProjects []string
+	TestBuild        bool
+	RunTests         bool
 }
 
 type BuildResult uint8
@@ -98,38 +92,50 @@ const (
 )
 
 var DefaultBuildArgs = BuildArgs{
-	CCompiler:       "clang-19",
-	Linker:          "ld",
-	BuildMode:       buildmode.DefaultBuildMode(),
-	ErrorsToFile:    false,
-	Threads:         runtime.NumCPU(),
-	SelectedTargets: []string{},
-	Projects:        []string{},
-	TestBuild:       false,
-	RunTests:        false,
+	CCompiler:        "clang-19",
+	Linker:           "ld",
+	BuildMode:        buildmode.DefaultBuildMode(),
+	ErrorsToFile:     false,
+	Threads:          runtime.NumCPU(),
+	SelectedTargets:  []string{},
+	SelectedProjects: []string{},
+	TestBuild:        false,
+	RunTests:         false,
+}
+
+func getAllProjects(selectedProjects []string) map[string]*cmake.ProjectStructure {
+	if len(selectedProjects) == 0 {
+		return cmake.PROJECT_STRUCTURES
+	}
+
+	result := make(map[string]*cmake.ProjectStructure)
+
+	for _, name := range selectedProjects {
+		var project = cmake.PROJECT_STRUCTURES[name]
+		result[name] = project
+	}
+
+	return result
 }
 
 func Build(args *BuildArgs) BuildResult {
 	// NOTE: Using waitgroups is currently slower than just running synchronously
 
-	if len(args.Projects) > 0 {
+	var projectsToBuild = getAllProjects(args.SelectedProjects)
+	for name, project := range projectsToBuild {
+		fmt.Printf("Building %s%s%s\n", common.CYAN, name, common.RESET)
+		buildProject(args, project)
 	}
-
-	buildProject(args, cmake.PROJECT_STRUCTURES[cmake.KERNEL])
-
-	fmt.Println("Building Because of LSP purposes")
-	buildProject(args, cmake.PROJECT_STRUCTURES[cmake.INTEROPERATION])
 
 	if args.TestBuild {
 		if !args.RunTests {
 			return Success
 		}
-		findAndRunTests(args, cmake.PROJECT_STRUCTURES[cmake.KERNEL].CodeFolder)
-		return Success
+		for name, project := range projectsToBuild {
+			fmt.Printf("Testing %s%s%s\n", common.CYAN, name, common.RESET)
+			findAndRunTests(args, project.CodeFolder)
+		}
 	}
 
-	buildProject(args, cmake.PROJECT_STRUCTURES[cmake.UEFI_IMAGE_CREATOR])
-	buildProject(args, cmake.PROJECT_STRUCTURES[cmake.UEFI])
-	buildProject(args, cmake.PROJECT_STRUCTURES[cmake.IMAGE_BUILDER])
 	return Success
 }
