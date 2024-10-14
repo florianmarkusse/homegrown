@@ -7,6 +7,15 @@ set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} -march=native -m64 -Wall -Wextra -Wconversion -Wno-incompatible-pointer-types-discards-qualifiers -Wno-sign-conversion -Wdouble-promotion -Wvla -W"
 )
 
+if("${FREESTANDING_BUILD}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -ffreestanding")
+    add_compile_definitions(FREESTANDING_BUILD)
+endif()
+
+if("${UNIT_TEST_BUILD}")
+    add_compile_definitions(UNIT_TEST_BUILD)
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE
         "Release"
@@ -22,10 +31,6 @@ if(VALID_BUILD_TYPE_INDEX EQUAL -1)
         FATAL_ERROR
         "Invalid build type specified. Please choose one of: ${VALID_BUILD_TYPES}"
     )
-endif()
-
-if("${UNIT_TEST_BUILD}")
-    add_compile_definitions(UNIT_TEST_BUILD)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Fuzzing" OR CMAKE_BUILD_TYPE STREQUAL "Debug")

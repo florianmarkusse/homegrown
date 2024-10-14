@@ -1,11 +1,16 @@
 cmake_minimum_required(VERSION 3.22)
-project(image-builder LANGUAGES C ASM)
+project(shared LANGUAGES C ASM)
 include("../../setup.cmake")
 include("../../print-configuration.cmake")
 
-add_subdirectory(util)
-
-add_executable(${PROJECT_NAME} "src/main.c")
+add_library(
+    ${PROJECT_NAME}
+    STATIC
+    "src/allocator/arena.c"
+    "src/allocator/buddy.c"
+    "src/allocator/pool.c"
+    "src/manipulation/manipulation.c"
+)
 
 target_include_directories(
     ${PROJECT_NAME}
@@ -16,5 +21,3 @@ target_include_directories(
     ${PROJECT_NAME}
     PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
-
-target_link_libraries(${PROJECT_NAME} PRIVATE util)

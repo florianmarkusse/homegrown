@@ -6,7 +6,7 @@ include("../../setup.cmake")
 if(NOT "${UNIT_TEST_BUILD}")
     set(CMAKE_C_FLAGS
         # TODO: SSE is still broken!!!
-        "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -nostdinc -nostdlib -m64 -ffreestanding -fno-stack-protector -mno-sse -mno-sse2"
+        "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-sse2"
     )
     set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
     set(CMAKE_C_FLAGS

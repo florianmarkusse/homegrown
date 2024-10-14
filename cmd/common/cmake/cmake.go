@@ -23,6 +23,7 @@ const INTEROPERATION = "interoperation"
 const UEFI_IMAGE_CREATOR = "uefi-image-creator"
 const UEFI = "uefi"
 const IMAGE_BUILDER = "image-builder"
+const SHARED = "shared"
 
 // and here
 var kernelFolder = common.PROJECT_FOLDER + KERNEL + "/"
@@ -30,6 +31,7 @@ var interoperationFolder = common.PROJECT_FOLDER + INTEROPERATION + "/"
 var uefiImageCreatorFolder = common.PROJECT_FOLDER + UEFI_IMAGE_CREATOR + "/"
 var uefiFolder = common.PROJECT_FOLDER + UEFI + "/"
 var imageBuilderFolder = common.PROJECT_FOLDER + IMAGE_BUILDER + "/"
+var sharedFolder = common.PROJECT_FOLDER + SHARED + "/"
 
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
@@ -57,6 +59,11 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Folder:         imageBuilderFolder,
 		CodeFolder:     imageBuilderFolder + "code",
 		IsFreeStanding: false,
+	},
+	SHARED: &ProjectStructure{
+		Folder:         sharedFolder,
+		CodeFolder:     sharedFolder + "code",
+		IsFreeStanding: true,
 	},
 }
 
@@ -92,6 +99,7 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, 
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_C_COMPILER=%s", cCompiler))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_LINKER=%s", linker))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_BUILD_TYPE=%s", buildMode))
+	argument.AddArgument(options, fmt.Sprintf("-D FREESTANDING_BUILD=%t", isFreestanding))
 	argument.AddArgument(options, fmt.Sprintf("--graphviz=%s/output.dot", codeDirectory))
 
 	var iwyuString = strings.Builder{}
