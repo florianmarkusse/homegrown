@@ -3,8 +3,8 @@
 
 #include "common-iterator.h"        // for FLO_TRIE_ITERATOR_HEADER_FILE
 #include "interoperation/types.h"   // for Arena
-#include "shared/allocator/arena.h" // for Arena
-#include "util/text/string.h"       // for string
+#include "shared/memory/allocator/arena.h" // for Arena
+#include "shared/text/string.h"       // for string
 
 typedef struct {
     string key;

@@ -1,12 +1,12 @@
-#include "log/log.h"
+#include "posix/log/log.h"
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "interoperation/memory/sizes.h"
 #include "interoperation/types.h"
-#include "memory/management/allocator/arena.h"
-#include "memory/manipulation/manipulation.h"
-#include "peripheral/screen/screen.h"
-#include "text/string.h"
-#include "util/maths.h"
+#include "shared/maths/maths.h"
+#include "shared/memory/allocator/arena.h"
+#include "shared/memory/manipulation/manipulation.h"
+#include "shared/text/string.h"
+#include <unistd.h>
 
 // TODO: Do we want to just have this as static memory in unit tests???
 // TODO: Idea is to have a single flush buffer per thread and have it flush to
@@ -15,7 +15,6 @@ static constexpr auto FLUSH_BUFFER_SIZE = (2 * MiB);
 
 static U8_max_a flushBuf;
 
-// TODO: remove initlogging in posix World!!!
 void initLogger(Arena *perm) {
     flushBuf = (U8_max_a){.buf = NEW(perm, U8, FLUSH_BUFFER_SIZE),
                           .cap = FLUSH_BUFFER_SIZE,
@@ -26,9 +25,17 @@ void initLogger(Arena *perm) {
 // - The in-memory standin file buffer, this will be replaced by a file
 // buffer in the future.
 bool flushBuffer(U8_max_a *buffer) {
-    flushToScreen(*buffer);
-
-    // TODO: Flush to file system here?
+    for (U64 bytesWritten = 0; bytesWritten < buffer->len;) {
+        U64 partialBytesWritten =
+            write(STDOUT_FILENO, buffer->buf + bytesWritten,
+                  buffer->len - bytesWritten);
+        if (partialBytesWritten < 0) {
+            ASSERT(false);
+            return false;
+        } else {
+            bytesWritten += partialBytesWritten;
+        }
+    }
 
     buffer->len = 0;
 

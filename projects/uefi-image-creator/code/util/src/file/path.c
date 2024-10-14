@@ -1,14 +1,14 @@
 #include "util/file/path.h"
 #include "interoperation/types.h"
-#include "shared/allocator/arena.h" // for FLO_NEW, Arena
-#include "util/text/string.h"       // for flo_firstOccurenceOfFrom, string
+#include "shared/memory/allocator/arena.h" // for FLO_NEW, Arena
+#include "shared/text/string.h"       // for firstOccurenceOfFrom, string
 #include <sys/stat.h>               // for mkdir
 
 static constexpr auto FULL_ACCESS = 0700;
 
 void flo_createPath(string fileLocation, Arena scratch) {
     U64 currentIndex = 0;
-    U64 slashIndex = flo_firstOccurenceOfFrom(fileLocation, '/', currentIndex);
+    U64 slashIndex = firstOccurenceOfFrom(fileLocation, '/', currentIndex);
     if (slashIndex >= 0) {
         U8 *dirPath = NEW(&scratch, U8, fileLocation.len + 1);
         memcpy(dirPath, fileLocation.buf, fileLocation.len);
@@ -22,7 +22,7 @@ void flo_createPath(string fileLocation, Arena scratch) {
 
             currentIndex = slashIndex + 1;
             slashIndex =
-                flo_firstOccurenceOfFrom(fileLocation, '/', currentIndex);
+                firstOccurenceOfFrom(fileLocation, '/', currentIndex);
         }
     }
 }

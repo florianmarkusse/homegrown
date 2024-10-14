@@ -1,8 +1,8 @@
 #include "util/hash/trie/uint16-set.h"
-#include "util/assert.h"                    // for ASSERT
+#include "interoperation/assert.h"                    // for ASSERT
 #include "util/hash/hashes.h"               // for flo_hash16_xm3
 #include "util/hash/trie/common-iterator.h" // for FLO_TRIE_ITERATOR_SOURCE...
-#include "shared/allocator/macros.h"             // for ZERO_MEMORY
+#include "shared/memory/allocator/macros.h"             // for ZERO_MEMORY
 #include <stddef.h>                         // for NULL
 
 bool flo_trie_insertUint16Set(U16 key, flo_trie_Uint16Set **set,

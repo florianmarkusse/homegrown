@@ -1,10 +1,10 @@
 #include "util/file/read.h"
 #include "interoperation/types.h"    // for NULL_ON_FAIL
-#include "shared/allocator/arena.h"  // for FLO_NEW, Arena
-#include "shared/allocator/macros.h" // for NULL_ON_FAIL
+#include "shared/memory/allocator/arena.h"  // for FLO_NEW, Arena
+#include "shared/memory/allocator/macros.h" // for NULL_ON_FAIL
 #include "util/file/file-status.h"   // for FILE_CANT_ALLOCATE, FILE_CANT_OPEN
 #include "util/log.h"                // for FLO_ERROR, FLO_LOG_CHOOSER_IMPL_2
-#include "util/text/string.h"        // for STRING, string
+#include "shared/text/string.h"        // for STRING, string
 #include <errno.h>                   // for errno
 #include <linux/fs.h>                // for BLKGETSIZE64
 #include <stddef.h>                  // for U64

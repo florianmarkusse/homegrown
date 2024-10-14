@@ -21,5 +21,7 @@ target_include_directories(
     PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC shared)
+target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-allocator)
+target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-manipulation)
+target_link_libraries(${PROJECT_NAME} PUBLIC shared-text)
 target_link_libraries(${PROJECT_NAME} PUBLIC util)

@@ -6,8 +6,8 @@ extern "C" {
 #endif
 
 #include "interoperation/types.h"             // for FLO_MACRO_VAR
-#include "shared/allocator/arena.h"           // for Arena
-#include "shared/manipulation/manipulation.h" // for Arena
+#include "shared/memory/allocator/arena.h"           // for Arena
+#include "shared/memory/manipulation/manipulation.h" // for Arena
 #include "util/macros.h"                      // for FLO_MACRO_VAR
 
 /**

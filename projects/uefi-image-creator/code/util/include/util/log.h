@@ -5,12 +5,10 @@
 extern "C" {
 #endif
 
-#include "shared/allocator/arena.h" // for Arena
-#include "types.h"                  // for flo_U8_a, flo_U8_d_a
-#include "util/macros.h"            // for FLO_MACRO_VAR
-#include "util/text/string.h"       // for string, STRING
-#include <stddef.h>                 // for U64
-#include <stdint.h>                 // for U32, U64
+#include "shared/memory/allocator/arena.h" // for Arena
+#include "shared/text/converter.h"
+#include "shared/text/string.h" // for string, STRING
+#include "util/macros.h"        // for FLO_MACRO_VAR
 
 static constexpr auto FLO_NEWLINE = 0x01;
 static constexpr auto FLO_FLUSH = 0x02;
@@ -25,14 +23,14 @@ typedef struct {
 // When adding a value to this enum, also add the right ansi escape code in
 // log.c
 typedef enum {
-    FLO_COLOR_RED,
-    FLO_COLOR_GREEN,
-    FLO_COLOR_YELLOW,
-    FLO_COLOR_BLUE,
-    FLO_COLOR_MAGENTA,
-    FLO_COLOR_CYAN,
-    FLO_COLOR_RESET,
-    FLO_COLOR_NUMS
+    COLOR_RED,
+    COLOR_GREEN,
+    COLOR_YELLOW,
+    COLOR_BLUE,
+    COLOR_MAGENTA,
+    COLOR_CYAN,
+    COLOR_RESET,
+    COLOR_NUMS
 } flo_AnsiColor;
 
 typedef enum { FLO_STDOUT, FLO_STDERR } flo_BufferType;
@@ -74,33 +72,12 @@ string flo_doubleToStringDefault(double data);
 
 string flo_noAppend();
 
-#define FLO_CONVERT_TO_STRING(data)                                            \
-    _Generic((data),                                                           \
-        string: stringToString,                                                \
-        unsigned char *: flo_cStrToString,                                     \
-        U8 *: flo_cStrToString,                                                \
-        void *: flo_ptrToStringDefault,                                        \
-        int *: flo_ptrToStringDefault,                                         \
-        U8 **: flo_ptrToStringDefault,                                         \
-        unsigned int *: flo_ptrToStringDefault,                                \
-        U8: flo_U8ToStringDefault,                                             \
-        U64: flo_ptrdiffToStringDefault,                                       \
-        double: flo_doubleToStringDefault,                                     \
-        U64: flo_uint64ToStringDefault,                                        \
-        U32: flo_uint64ToStringDefault,                                        \
-        U16: flo_uint64ToStringDefault,                                        \
-        uint8_t: flo_uint64ToStringDefault,                                    \
-        int: flo_ptrdiffToStringDefault,                                       \
-        short: flo_ptrdiffToStringDefault,                                     \
-        bool: flo_boolToString,                                                \
-        default: flo_noAppend)(data)
-
 #define FLO_APPEND_DATA(data, buffer, perm)                                    \
-    flo_appendToSimpleBuffer(FLO_CONVERT_TO_STRING(data), buffer, perm)
+    flo_appendToSimpleBuffer(CONVERT_TO_STRING(data), buffer, perm)
 
 #define FLO_LOG_DATA_2(data, buffer) FLO_LOG_DATA_3(data, buffer, 0)
 #define FLO_LOG_DATA_3(data, buffer, flags)                                    \
-    flo_appendToFlushBuffer(FLO_CONVERT_TO_STRING(data), buffer, flags)
+    flo_appendToFlushBuffer(CONVERT_TO_STRING(data), buffer, flags)
 #define FLO_LOG_DATA_X(a, b, c, d, ...) d
 #define FLO_LOG_DATA(...)                                                      \
     FLO_LOG_DATA_X(__VA_ARGS__, FLO_LOG_DATA_3, FLO_LOG_DATA_2)                \

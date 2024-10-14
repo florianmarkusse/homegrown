@@ -5,8 +5,6 @@
 extern "C" {
 #endif
 
-#include "interoperation/types.h"
-
 #define MACRO_VAR(name) _##name##_##MACRO_VAR##__LINE__
 
 #define STR_HELPER(x) #x

@@ -6,8 +6,8 @@ extern "C" {
 #endif
 
 #include "file-status.h"       // for flo_FileStatus
-#include "shared/allocator/arena.h" // for Arena
-#include "util/text/string.h"  // for string
+#include "shared/memory/allocator/arena.h" // for Arena
+#include "shared/text/string.h"  // for string
 #include <stdint.h>            // for U64
 
 flo_FileStatus flo_readFile(U8 *srcPath, string *buffer, Arena *perm);

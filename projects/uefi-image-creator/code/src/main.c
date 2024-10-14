@@ -1,9 +1,9 @@
 #include "crc32-table.h"       // for calculateCRC32
 #include "util/array.h"        // for FLO_MAX_LENGTH_ARRAY
-#include "util/assert.h"       // for FLO_ASSERT
+#include "interoperation/assert.h"       // for FLO_ASSERT
 #include "util/log.h"          // for FLO_LOG_CHOOSER_IMPL_2, FLO_INFO, FLO...
 #include "util/memory/arena.h" // for flo_arena
-#include "util/text/string.h"  // for FLO_STRING
+#include "shared/text/string.h"  // for FLO_STRING
 #include <errno.h>
 #include <inttypes.h> // for uint32_t, uint8_t, uint16_t, uint64_t
 #include <stddef.h>   // for ptrdiff_t

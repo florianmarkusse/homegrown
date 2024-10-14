@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "util/macros.h"
-#include "shared/allocator/arena.h"
+#include "shared/memory/allocator/arena.h"
 #include <string.h>
 
 #define FLO_ARRAY(T)                                                           \

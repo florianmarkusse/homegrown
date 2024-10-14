@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-#include "shared/allocator/arena.h"
-#include "util/text/string.h"
+#include "shared/memory/allocator/arena.h"
+#include "shared/text/string.h"
 
 void flo_createPath(string fileLocation, Arena scratch);
 

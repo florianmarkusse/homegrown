@@ -8,7 +8,7 @@ extern "C" {
 #include "common.h"                           // for MSI_SET
 #include "util/hash/hash-comparison-status.h" // for flo_HashComparisonStatus
 #include "util/macros.h"                      // for FLO_MACRO_VAR
-#include "util/text/string.h"                 // for string
+#include "shared/text/string.h"                 // for string
 
 typedef MSI_SET(string) flo_msi_String;
 

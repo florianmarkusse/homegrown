@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "util/text/string.h"
+#include "shared/text/string.h"
 
 typedef enum {
     HASH_COMPARISON_SUCCESS,

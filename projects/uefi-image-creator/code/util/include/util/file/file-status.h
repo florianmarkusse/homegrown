@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "interoperation/types.h"
-#include "util/text/string.h"
+#include "shared/text/string.h"
 
 // TODO: RENAME WITH FLO_ PREPENXIF
 typedef enum {

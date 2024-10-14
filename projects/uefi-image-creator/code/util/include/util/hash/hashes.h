@@ -9,7 +9,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 
-#include "util/text/string.h"
+#include "shared/text/string.h"
 
 __attribute__((unused)) static U64
 flo_hashStringSkeeto(string string) {

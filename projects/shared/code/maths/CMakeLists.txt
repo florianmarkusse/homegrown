@@ -1,4 +1,4 @@
-project(util LANGUAGES C ASM)
+project(shared-maths LANGUAGES C ASM)
 
 add_library(${PROJECT_NAME} STATIC "src/maths.c")
 

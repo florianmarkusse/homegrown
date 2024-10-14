@@ -1,8 +1,8 @@
 #include "util/hash/msi/common.h"
 #include "interoperation/assert.h" // for ASSERT
-#include "shared/allocator/arena.h"
-#include "shared/allocator/macros.h"
-#include "shared/manipulation/manipulation.h"
+#include "shared/memory/allocator/arena.h"
+#include "shared/memory/allocator/macros.h"
+#include "shared/memory/manipulation/manipulation.h"
 
 /**
  * Written assuming that Arena bumps up! Otherwise the middle case statement

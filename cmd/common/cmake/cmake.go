@@ -24,6 +24,7 @@ const UEFI_IMAGE_CREATOR = "uefi-image-creator"
 const UEFI = "uefi"
 const IMAGE_BUILDER = "image-builder"
 const SHARED = "shared"
+const POSIX = "posix"
 
 // and here
 var kernelFolder = common.PROJECT_FOLDER + KERNEL + "/"
@@ -32,6 +33,7 @@ var uefiImageCreatorFolder = common.PROJECT_FOLDER + UEFI_IMAGE_CREATOR + "/"
 var uefiFolder = common.PROJECT_FOLDER + UEFI + "/"
 var imageBuilderFolder = common.PROJECT_FOLDER + IMAGE_BUILDER + "/"
 var sharedFolder = common.PROJECT_FOLDER + SHARED + "/"
+var posixFolder = common.PROJECT_FOLDER + POSIX + "/"
 
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
@@ -64,6 +66,11 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Folder:              sharedFolder,
 		CodeFolder:          sharedFolder + "code",
 		DefaultFreeStanding: true,
+	},
+	POSIX: &ProjectStructure{
+		Folder:              posixFolder,
+		CodeFolder:          posixFolder + "code",
+		DefaultFreeStanding: false,
 	},
 }
 

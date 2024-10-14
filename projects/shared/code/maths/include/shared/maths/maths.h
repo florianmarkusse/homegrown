@@ -1,5 +1,5 @@
-#ifndef UTIL_MATHS_H
-#define UTIL_MATHS_H
+#ifndef SHARED_MATHS_MATHS_H
+#define SHARED_MATHS_MATHS_H
 
 #ifdef __cplusplus
 extern "C" {

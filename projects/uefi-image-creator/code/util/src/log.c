@@ -1,8 +1,8 @@
 #include "util/log.h"
 #include "interoperation/assert.h" // for ASSERT
 #include "interoperation/types.h"
-#include "shared/allocator/arena.h"
-#include "shared/manipulation/manipulation.h" // for alignof, sizeof
+#include "shared/memory/allocator/arena.h"
+#include "shared/memory/manipulation/manipulation.h" // for alignof, sizeof
 #include "util/maths.h"                       // for FLO_MIN
 #include "util/types.h"                       // for flo_U8_a, flo_U8_d_a
 #include <unistd.h> // for isatty, write, STDERR_FILENO, STDOUT...

@@ -1,8 +1,8 @@
 #include "util/hash/trie/string-uint16-map.h"
-#include "util/assert.h"                    // for ASSERT
+#include "interoperation/assert.h"                    // for ASSERT
 #include "util/hash/hashes.h"               // for flo_hashStringDjb2
 #include "util/hash/trie/common-iterator.h" // for FLO_TRIE_ITERATOR_SOURCE...
-#include "shared/allocator/macros.h"             // for ZERO_MEMORY
+#include "shared/memory/allocator/macros.h"             // for ZERO_MEMORY
 #include <stddef.h>                         // for NULL
 
 U16 flo_trie_insertStringUint16Map(string key, U16 value,
