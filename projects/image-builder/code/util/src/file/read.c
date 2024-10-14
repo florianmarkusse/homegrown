@@ -1,8 +1,8 @@
 #include "util/file/read.h"
 #include "util/file/file-status.h" // for FILE_CANT_ALLOCATE, FILE_CANT_OPEN
 #include "util/log.h"              // for FLO_ERROR, FLO_LOG_CHOOSER_IMPL_2
-#include "util/memory/arena.h"     // for FLO_NEW, flo_arena
-#include "util/memory/macros.h"    // for FLO_NULL_ON_FAIL
+#include "shared/allocator/arena.h"     // for FLO_NEW, flo_arena
+#include "shared/allocator/macros.h"    // for FLO_NULL_ON_FAIL
 #include "util/text/string.h"      // for FLO_STRING, flo_string
 #include <errno.h>                 // for errno
 #include <linux/fs.h>              // for BLKGETSIZE64
@@ -31,7 +31,7 @@ flo_FileStatus flo_readFile(char *srcPath, flo_string *buffer,
     ptrdiff_t dataLen = ftell(srcFile);
     rewind(srcFile);
 
-    (*buffer).buf = FLO_NEW(perm, unsigned char, dataLen, FLO_NULL_ON_FAIL);
+    (*buffer).buf = NEW(perm, unsigned char, dataLen, FLO_NULL_ON_FAIL);
     if ((*buffer).buf == NULL) {
         FLO_FLUSH_AFTER(FLO_STDERR) {
             FLO_ERROR((FLO_STRING("Failed to allocate memory for file ")));

@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "file-status.h"       // for flo_FileStatus
-#include "util/memory/arena.h" // for flo_arena
+#include "shared/allocator/arena.h" // for flo_arena
 #include "util/text/string.h"  // for flo_string
 #include <stdint.h>            // for uint64_t
 

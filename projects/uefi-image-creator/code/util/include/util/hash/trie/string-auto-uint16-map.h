@@ -1,14 +1,14 @@
 #ifndef UTIL_HASH_TRIE_STRING_AUTO_UINT16_MAP_H
 #define UTIL_HASH_TRIE_STRING_AUTO_UINT16_MAP_H
 
-#include "common-iterator.h"   // for FLO_TRIE_ITERATOR_HEADER_FILE
-#include "util/memory/arena.h" // for flo_arena
-#include "util/text/string.h"  // for flo_string
-#include <stdint.h>            // for uint16_t
+#include "common-iterator.h"        // for FLO_TRIE_ITERATOR_HEADER_FILE
+#include "interoperation/types.h"   // for Arena
+#include "shared/allocator/arena.h" // for Arena
+#include "util/text/string.h"       // for string
 
 typedef struct {
-    flo_string key;
-    uint16_t value;
+    string key;
+    U16 value;
 } flo_trie_StringAutoUint16Data;
 
 typedef struct flo_trie_StringAutoUint16Node flo_trie_StringAutoUint16Node;
@@ -18,21 +18,20 @@ struct flo_trie_StringAutoUint16Node {
 };
 
 typedef struct {
-    uint16_t identity;
+    U16 identity;
     flo_trie_StringAutoUint16Node *node;
 } flo_trie_StringAutoUint16Map;
 
 typedef struct {
     bool wasInserted;
-    uint16_t entryIndex;
+    U16 entryIndex;
 } flo_NewStringInsert;
 
 flo_NewStringInsert flo_trie_insertStringAutoUint16Map(
-    flo_string key, flo_trie_StringAutoUint16Map *set, flo_arena *perm);
+    string key, flo_trie_StringAutoUint16Map *set, Arena *perm);
 
-uint16_t
-flo_trie_containsStringAutoUint16Map(flo_string key,
-                                     flo_trie_StringAutoUint16Map *set);
+U16 flo_trie_containsStringAutoUint16Map(string key,
+                                         flo_trie_StringAutoUint16Map *set);
 
 FLO_TRIE_ITERATOR_HEADER_FILE(flo_trie_StringAutoUint16Node,
                               flo_trie_StringAutoUint16IterNode,

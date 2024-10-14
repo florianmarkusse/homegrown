@@ -62,7 +62,7 @@ func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
 	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, project.CodeFolder)
 
 	configureOptions := strings.Builder{}
-	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, project.IsFreeStanding, args.TestBuild)
+	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, project.DefaultFreeStanding, args.TestBuild)
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, configureOptions.String()), errorWriters...)
 
 	buildOptions := strings.Builder{}

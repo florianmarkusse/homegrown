@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+#include "interoperation/types.h"
+#include "util/text/string.h"
+
 // TODO: RENAME WITH FLO_ PREPENXIF
 typedef enum {
     FILE_SUCCESS,
@@ -14,21 +17,21 @@ typedef enum {
     FILE_NUM_STATUS
 } flo_FileStatus;
 
-static char *fileStatusStrings[FILE_NUM_STATUS] = {
-    "Success",
-    "Cannot open file",
-    "Cannot allocate memory",
-    "Cannot read file",
+static string fileStatusStrings[FILE_NUM_STATUS] = {
+    STRING("Success"),
+    STRING("Cannot open file"),
+    STRING("Cannot allocate memory"),
+    STRING("Cannot read file"),
 };
 
 // Not always used, but very handy for those that actually do want readable
 // error codes.
-__attribute__((unused)) static char *
+__attribute__((unused)) static string
 flo_fileStatusToString(flo_FileStatus status) {
     if (status >= 0 && status < FILE_NUM_STATUS) {
         return fileStatusStrings[status];
     }
-    return "Unknown file status code!";
+    return STRING("Unknown file status code!");
 }
 
 #ifdef __cplusplus

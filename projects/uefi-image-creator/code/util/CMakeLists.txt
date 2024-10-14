@@ -13,9 +13,6 @@ add_library(
     "src/hash/trie/uint16-set.c"
     "src/hash/trie/string-auto-uint16-map.c"
     "src/hash/hash-comparison-status.c"
-    "src/memory/arena.c"
-    "src/memory/buddy-allocator.c"
-    "src/memory/pool-allocator.c"
     "src/log.c"
 )
 
@@ -23,3 +20,10 @@ target_include_directories(
     ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+target_include_directories(
+    ${PROJECT_NAME}
+    PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
+)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC shared)

@@ -6,8 +6,8 @@ extern "C" {
 #endif
 
 #include "util/macros.h"        // for FLO_MACRO_VAR
-#include "util/memory/arena.h"  // for flo_arena
-#include "util/memory/macros.h" // for alignof, sizeof
+#include "shared/allocator/arena.h"  // for flo_arena
+#include "shared/allocator/macros.h" // for alignof, sizeof
 #include <stddef.h>             // for ptrdiff_t
 #include <stdint.h>             // for uint32_t, int32_t, uint64_t
 

@@ -1,6 +1,6 @@
-#ifndef UNIT_TEST_BUILD
+#ifdef FREESTANDING_BUILD
 
-#include "shared/manipulation/manipulation.h"
+#include "shared/memory/manipulation/manipulation.h"
 #include "interoperation/types.h"
 
 #define NO_INLINE __attribute__((noinline))

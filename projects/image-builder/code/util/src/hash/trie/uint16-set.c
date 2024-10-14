@@ -2,7 +2,7 @@
 #include "util/assert.h"                    // for FLO_ASSERT
 #include "util/hash/hashes.h"               // for flo_hash16_xm3
 #include "util/hash/trie/common-iterator.h" // for FLO_TRIE_ITERATOR_SOURCE...
-#include "util/memory/macros.h"             // for FLO_ZERO_MEMORY
+#include "shared/allocator/macros.h"             // for FLO_ZERO_MEMORY
 #include <stddef.h>                         // for NULL
 
 bool flo_trie_insertUint16Set(uint16_t key, flo_trie_Uint16Set **set,
@@ -15,7 +15,7 @@ bool flo_trie_insertUint16Set(uint16_t key, flo_trie_Uint16Set **set,
         }
         set = &(*set)->child[hash >> 14];
     }
-    *set = FLO_NEW(perm, flo_trie_Uint16Set, 1, FLO_ZERO_MEMORY);
+    *set = NEW(perm, flo_trie_Uint16Set, 1, FLO_ZERO_MEMORY);
     (*set)->data = key;
     return true;
 }

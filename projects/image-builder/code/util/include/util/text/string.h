@@ -29,7 +29,7 @@ static constexpr flo_string FLO_EMPTY_STRING = ((flo_string){NULL, 0});
 #define FLO_STRING_APPEND(string1, string2, perm)                              \
     ({                                                                         \
         unsigned char *FLO_MACRO_VAR(appendingBuf) =                           \
-            FLO_NEW(perm, unsigned char, (string1).len + (string2).len);       \
+            NEW(perm, unsigned char, (string1).len + (string2).len);       \
         memcpy(appendingBuf, (string1).buf, (string1).len);                    \
         memcpy(appendingBuf + (string1).len, (string2).buf, (string2).len);    \
         flo_string FLO_MACRO_VAR(appendedString) =                             \

@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "interoperation/types.h"
+
 /**
  * Ugly code ahead. Rewriting this iterator each time is a massive pain so I
  * decided to write this grotesque set of macros to automatically build it for
@@ -18,7 +20,7 @@ extern "C" {
         iterNodeName *next;                                                    \
         /* NOLINTNEXTLINE */                                                   \
         T *set;                                                                \
-        unsigned char index;                                                   \
+        U8 index;                                                   \
     };
 
 #define FLO_TRIE_ITERATOR(iterNodeType, iteratorName)                          \
@@ -36,19 +38,19 @@ extern "C" {
     FLO_TRIE_ITERATOR(iterNodeType, iteratorType);                             \
     /* NOLINTNEXTLINE */                                                       \
     iteratorType *createIteratorFunctionName(/* NOLINTNEXTLINE */              \
-                                             setType *set, flo_arena *perm);   \
+                                             setType *set, Arena *perm);       \
     returnType /* NOLINTNEXTLINE */                                            \
-    nextIteratorFunctionName(iteratorType *it, flo_arena *perm);
+    nextIteratorFunctionName(iteratorType *it, Arena *perm);
 
 #define FLO_TRIE_NEW_ITERATOR(stringSetType, iteratorType, iterNodeType,       \
                               functionName)                                    \
     /* NOLINTNEXTLINE */                                                       \
     iteratorType *functionName(/* NOLINTNEXTLINE */                            \
-                               stringSetType *set, flo_arena *perm) {          \
+                               stringSetType *set, Arena *perm) {              \
         /* NOLINTNEXTLINE */                                                   \
-        iteratorType *it = FLO_NEW(perm, iteratorType, 1, FLO_ZERO_MEMORY);    \
+        iteratorType *it = NEW(perm, iteratorType, 1, ZERO_MEMORY);        \
         if (set != NULL) {                                                     \
-            it->head = FLO_NEW(perm, iterNodeType, 1, FLO_ZERO_MEMORY);        \
+            it->head = NEW(perm, iterNodeType, 1, ZERO_MEMORY);            \
             it->head->set = set;                                               \
         }                                                                      \
         return it;                                                             \
@@ -57,9 +59,9 @@ extern "C" {
 #define FLO_TRIE_NEXT_ITERATOR(returnType, iteratorType, iterNodeType,         \
                                functionName)                                   \
     /* NOLINTNEXTLINE */                                                       \
-    returnType functionName(iteratorType *it, flo_arena *perm) {               \
+    returnType functionName(iteratorType *it, Arena *perm) {                   \
         while (it->head) {                                                     \
-            int index = it->head->index++;                                     \
+            U32 index = it->head->index++;                                     \
             if (index == 0) {                                                  \
                 return it->head->set->data;                                    \
             } else if (index == 5) {                                           \
@@ -75,8 +77,7 @@ extern "C" {
                     it->free = it->free->next;                                 \
                     nextIter->index = 0;                                       \
                 } else {                                                       \
-                    nextIter =                                                 \
-                        FLO_NEW(perm, iterNodeType, 1, FLO_ZERO_MEMORY);       \
+                    nextIter = NEW(perm, iterNodeType, 1, ZERO_MEMORY);    \
                 }                                                              \
                 nextIter->set = it->head->set->child[index - 1];               \
                 nextIter->next = it->head;                                     \

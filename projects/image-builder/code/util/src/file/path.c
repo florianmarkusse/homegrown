@@ -1,5 +1,5 @@
 #include "util/file/path.h"
-#include "util/memory/arena.h" // for FLO_NEW, flo_arena
+#include "shared/allocator/arena.h" // for FLO_NEW, flo_arena
 #include "util/text/string.h"  // for flo_firstOccurenceOfFrom, flo_string
 #include <stddef.h>            // for ptrdiff_t
 #include <string.h>            // for memcpy
@@ -12,7 +12,7 @@ void flo_createPath(flo_string fileLocation, flo_arena scratch) {
     ptrdiff_t slashIndex =
         flo_firstOccurenceOfFrom(fileLocation, '/', currentIndex);
     if (slashIndex >= 0) {
-        char *dirPath = FLO_NEW(&scratch, char, fileLocation.len + 1);
+        char *dirPath = NEW(&scratch, char, fileLocation.len + 1);
         memcpy(dirPath, fileLocation.buf, fileLocation.len);
         dirPath[fileLocation.len] = '\0';
 

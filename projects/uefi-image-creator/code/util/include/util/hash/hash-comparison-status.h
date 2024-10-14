@@ -14,7 +14,7 @@ typedef enum {
     HASH_COMPARISON_NUM_STATUS
 } flo_HashComparisonStatus;
 
-flo_string flo_hashComparisonStatusToString(flo_HashComparisonStatus status);
+string flo_hashComparisonStatusToString(flo_HashComparisonStatus status);
 
 #ifdef __cplusplus
 }

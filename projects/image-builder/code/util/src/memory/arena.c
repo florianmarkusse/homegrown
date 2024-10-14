@@ -1,6 +1,6 @@
-#include "util/memory/arena.h"
+#include "shared/allocator/arena.h"
 #include "util/assert.h"        // for FLO_ASSERT
-#include "util/memory/macros.h" // for FLO_NULL_ON_FAIL, FLO_ZERO_MEMORY
+#include "shared/allocator/macros.h" // for FLO_NULL_ON_FAIL, FLO_ZERO_MEMORY
 #include <stdint.h>             // for uintptr_t
 #include <string.h>             // for memcpy, memset
 

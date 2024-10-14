@@ -1,5 +1,5 @@
-#ifndef SHARED_ALLOCATOR_ARENA_H
-#define SHARED_ALLOCATOR_ARENA_H
+#ifndef SHARED_MEMORY_ALLOCATOR_ARENA_H
+#define SHARED_MEMORY_ALLOCATOR_ARENA_H
 
 #include "interoperation/types.h"
 

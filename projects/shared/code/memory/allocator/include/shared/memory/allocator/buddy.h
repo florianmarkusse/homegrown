@@ -1,5 +1,5 @@
-#ifndef SHARED_ALLOCATOR_BUDDY_H
-#define SHARED_ALLOCATOR_BUDDY_H
+#ifndef SHARED_MEMORY_ALLOCATOR_BUDDY_H
+#define SHARED_MEMORY_ALLOCATOR_BUDDY_H
 
 #ifdef __cplusplus
 extern "C" {

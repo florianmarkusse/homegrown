@@ -12,7 +12,7 @@
 #include <string.h>   // for strcmp, memcpy, strlen, strcpy, strncat
 #include <sys/mman.h> // for mmap, munmap, MAP_ANONYMOUS, MAP_FAILED
 #include <time.h>     // for tm, time, localtime, time_t
-#include <uchar.h>    // for char16_t
+#include <uU8.h>    // for U816_t
 
 #define FLO_APPEND_ERRNO                                                       \
     FLO_ERROR(FLO_STRING("Error code: "));                                     \
@@ -59,22 +59,22 @@ typedef struct {
 
 // MBR Partition
 typedef struct {
-    uint8_t boot_indicator;
-    uint8_t starting_chs[3];
-    uint8_t os_type;
-    uint8_t ending_chs[3];
-    uint32_t starting_lba;
-    uint32_t size_lba;
-} __attribute__((packed)) Mbr_Partition;
+    uint8_t bootIndicator;
+    uint8_t startingCHS[3];
+    uint8_t osType;
+    uint8_t endingCHS[3];
+    uint32_t startingLBA;
+    uint32_t sizeLBA;
+} __attribute__((packed)) MBRPartition;
 
 // Master Boot Record
 typedef struct {
-    uint8_t boot_code[440];
-    uint32_t mbr_signature;
+    uint8_t bootCode[440];
+    uint32_t signature;
     uint16_t unknown;
-    Mbr_Partition partition[4];
+    MBRPartition partitions[4];
     uint16_t boot_signature;
-} __attribute__((packed)) Mbr;
+} __attribute__((packed)) MBR;
 
 // GPT Header
 typedef struct {
@@ -103,7 +103,7 @@ typedef struct {
     uint64_t starting_lba;
     uint64_t ending_lba;
     uint64_t attributes;
-    char16_t name[36]; // UCS-2 (UTF-16 limited to code points 0x0000 - 0xFFFF)
+    U816_t name[36]; // UCS-2 (UTF-16 limited to code points 0x0000 - 0xFFFF)
 } __attribute__((packed)) Gpt_Partition_Entry;
 
 // FAT32 Volume Boot Record (VBR)
@@ -191,15 +191,15 @@ static constexpr auto MAX_FILE_LEN = (1 << 8);
 
 // Internal Options object for commandline args
 typedef struct {
-    char *image_name;
+    U8 *image_name;
     uint16_t lba_size;
     uint32_t esp_size;
     uint32_t data_size;
-    char esp_file_paths[MAX_FILES][MAX_FILE_LEN];
+    U8 esp_file_paths[MAX_FILES][MAX_FILE_LEN];
     uint32_t num_esp_file_paths;
     FILE *esp_files[MAX_FILES];
     // TODO: why do esp files work with a file pointer and this exits later?
-    char data_files[MAX_FILES][MAX_FILE_LEN];
+    U8 data_files[MAX_FILES][MAX_FILE_LEN];
     uint32_t num_data_files;
 } Options;
 
@@ -321,18 +321,18 @@ void write_mbr(FILE *image) {
         mbr_image_lbas = 0x100000000;
     }
 
-    Mbr mbr = {
-        .boot_code = {0},
-        .mbr_signature = 0,
+    MBR mbr = {
+        .bootCode = {0},
+        .signature = 0,
         .unknown = 0,
-        .partition[0] =
+        .partitions[0] =
             {
-                .boot_indicator = 0,
-                .starting_chs = {0x00, 0x02, 0x00},
-                .os_type = 0xEE, // Protective GPT
-                .ending_chs = {0xFF, 0xFF, 0xFF},
-                .starting_lba = 0x00000001,
-                .size_lba = (uint32_t)(mbr_image_lbas - 1),
+                .bootIndicator = 0,
+                .startingCHS = {0x00, 0x02, 0x00},
+                .osType = 0xEE, // Protective GPT
+                .endingCHS = {0xFF, 0xFF, 0xFF},
+                .startingLBA = 0x00000001,
+                .sizeLBA = (uint32_t)(mbr_image_lbas - 1),
             },
         .boot_signature = 0xAA55,
     };
@@ -604,7 +604,7 @@ void write_esp(FILE *image) {
 // =============================
 // Add a new directory or file to a given parent directory
 // =============================
-bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
+bool add_file_to_esp(U8 *file_name, FILE *file, FILE *image, File_Type type,
                      uint32_t *parent_dir_cluster) {
     // First grab FAT32 filesystem info for VBR and File System info
     Vbr vbr = {0};
@@ -682,7 +682,7 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
     fseek(image, -32, SEEK_CUR);
 
     // Check name length for FAT 8.3 naming
-    char *dot_pos = strchr(file_name, '.');
+    U8 *dot_pos = strchr(file_name, '.');
     uint64_t name_len = strlen(file_name);
     if ((!dot_pos && name_len > 11) || (dot_pos && name_len > 12) ||
         (dot_pos && dot_pos - file_name > 8)) {
@@ -780,15 +780,15 @@ bool add_file_to_esp(char *file_name, FILE *file, FILE *image, File_Type type,
 //   will add new directories if not found, and
 //   new file at end of path
 // =============================
-bool add_path_to_esp(char *path, FILE *file, FILE *image) {
+bool add_path_to_esp(U8 *path, FILE *file, FILE *image) {
     // Parse input path for each name
     if (*path != '/') {
         return false; // Path must begin with root '/'
     }
 
     File_Type type = TYPE_DIR;
-    char *start = path + 1; // Skip initial slash
-    char *end = start;
+    U8 *start = path + 1; // Skip initial slash
+    U8 *end = start;
     uint32_t dir_cluster =
         2; // Next directory's cluster location; start at root
 
@@ -850,7 +850,7 @@ bool add_path_to_esp(char *path, FILE *file, FILE *image) {
 // Add disk image info file to hold at minimum the size of this disk image
 // =============================
 bool add_disk_image_info_file(FILE *image) {
-    char *file_buf = calloc(1, options.lba_size);
+    U8 *file_buf = calloc(1, options.lba_size);
     snprintf(file_buf, options.lba_size, "DISK_SIZE=%u\n", image_size);
 
     FILE *fp = fopen("DSKIMG.INF", "wbe");
@@ -862,7 +862,7 @@ bool add_disk_image_info_file(FILE *image) {
     fclose(fp);
     fp = fopen("DSKIMG.INF", "rbe");
 
-    char path[25] = {0};
+    U8 path[25] = {0};
     strcpy(path, "/EFI/BOOT/DSKIMG.INF");
     if (!add_path_to_esp(path, fp, image)) {
         return false;
@@ -875,7 +875,7 @@ bool add_disk_image_info_file(FILE *image) {
 // =============================
 // Add file to the Basic Data Partition
 // =============================
-bool add_file_to_data_partition(char *filepath, FILE *image) {
+bool add_file_to_data_partition(U8 *filepath, FILE *image) {
     // Will save location of next spot to put a file in
     static uint64_t starting_lba = 0;
 
@@ -914,8 +914,8 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
     fclose(fp);
 
     // Print info to user
-    char *name = NULL;
-    char *slash = strrchr(filepath, '/');
+    U8 *name = NULL;
+    U8 *slash = strrchr(filepath, '/');
     if (!slash) {
         name = filepath;
     } else {
@@ -926,7 +926,7 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
 
     // Add to info file for each file added
     static bool first_file = true;
-    char info_file[12] = "DATAFLS.INF"; // "Data (partition) files info"
+    U8 info_file[12] = "DATAFLS.INF"; // "Data (partition) files info"
 
     if (first_file) {
         first_file = false;
@@ -941,14 +941,14 @@ bool add_file_to_data_partition(char *filepath, FILE *image) {
     }
 
     file_buf = calloc(1, options.lba_size);
-    snprintf((char *)file_buf, options.lba_size,
+    snprintf((U8 *)file_buf, options.lba_size,
              "FILE_NAME=%s\t"
              "FILE_SIZE=%" PRIu64 "\t"
              "DISK_LBA=%" PRIu64 "\n", // Add newline between files
              name, file_size_bytes,
              data_lba + starting_lba); // Offset from start of data partition
 
-    checkedFwrite(file_buf, strlen((char *)file_buf), fp);
+    checkedFwrite(file_buf, strlen((U8 *)file_buf), fp);
     fclose(fp);
 
     // Set next spot to write a file at
@@ -1043,8 +1043,8 @@ void writeUEFIImage() {
             }
         }
 
-        char info_file[12] = "DATAFLS.INF"; // "Data (partition) files info"
-        char info_path[25] = {0};
+        U8 info_file[12] = "DATAFLS.INF"; // "Data (partition) files info"
+        U8 info_path[25] = {0};
         strcpy(info_path, "/EFI/BOOT/DATAFLS.INF");
 
         fp = fopen(info_file, "rbe");
@@ -1086,7 +1086,7 @@ void writeUEFIImage() {
 // =============================
 // MAIN
 // =============================
-int main(int argc, char *argv[]) {
+int main(int argc, U8 *argv[]) {
     if (__builtin_setjmp(fileCloser)) {
         for (ptrdiff_t i = 0; i < openedFiles.len; i++) {
             if (fclose(openedFiles.buf[i])) {
@@ -1099,7 +1099,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    char *begin = mmap(NULL, memoryCap, PROT_READ | PROT_WRITE,
+    U8 *begin = mmap(NULL, memoryCap, PROT_READ | PROT_WRITE,
                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (begin == MAP_FAILED) {
         FLO_FLUSH_AFTER(FLO_STDERR) {
@@ -1315,7 +1315,7 @@ int main(int argc, char *argv[]) {
                 }
 
                 // Concat file to add to path
-                char *slash = strrchr(argv[i], '/');
+                U8 *slash = strrchr(argv[i], '/');
                 if (!slash) {
                     // Plain file name, no folder path
                     strncat(options.esp_file_paths[options.num_esp_file_paths],

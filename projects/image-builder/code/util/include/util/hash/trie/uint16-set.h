@@ -7,7 +7,7 @@ extern "C" {
 
 #include "common-iterator.h"   // for FLO_TRIE_ITERATOR_HEADER_FILE
 #include "util/macros.h"       // for FLO_MACRO_VAR
-#include "util/memory/arena.h" // for flo_arena
+#include "shared/allocator/arena.h" // for flo_arena
 #include <stdint.h>            // for uint16_t
 
 typedef struct flo_trie_Uint16Set flo_trie_Uint16Set;

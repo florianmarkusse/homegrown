@@ -1,32 +1,33 @@
 #include "util/hash/msi/common.h"
-#include "util/assert.h" // for FLO_ASSERT
-#include <string.h>      // for memset
+#include "interoperation/assert.h" // for ASSERT
+#include "shared/allocator/arena.h"
+#include "shared/allocator/macros.h"
+#include "shared/manipulation/manipulation.h"
 
 /**
- * Written assuming that flo_arena bumps up! Otherwise the middle case statement
+ * Written assuming that Arena bumps up! Otherwise the middle case statement
  * where we only do a times 1 alloc does not hold.
  */
-void flo_msi_newSet(void *setSlice, ptrdiff_t size, ptrdiff_t align,
-                    flo_arena *a) {
+void flo_msi_newSet(void *setSlice, U64 size, U64 align, Arena *a) {
     SetSlice *replica = (SetSlice *)setSlice;
-    FLO_ASSERT(replica->exp > 0);
+    ASSERT(replica->exp > 0);
 
     if (replica->exp >= 31) {
-        FLO_ASSERT(false);
+        ASSERT(false);
         __builtin_longjmp(a->jmp_buf, 1);
     }
 
-    ptrdiff_t cap = 1 << replica->exp;
+    U64 cap = 1 << replica->exp;
 
     if (replica->buf == NULL) {
-        replica->buf = flo_alloc(a, size, align, cap, FLO_ZERO_MEMORY);
+        replica->buf = alloc(a, size, align, cap, ZERO_MEMORY);
     } else if (a->beg == replica->buf + size * cap) {
         memset(replica->buf, 0, size * cap);
-        flo_alloc(a, size, 1, cap, FLO_ZERO_MEMORY);
+        alloc(a, size, 1, cap, ZERO_MEMORY);
         replica->exp++;
         replica->len = 0;
     } else {
-        void *data = flo_alloc(a, 2 * size, align, cap, FLO_ZERO_MEMORY);
+        void *data = alloc(a, 2 * size, align, cap, ZERO_MEMORY);
         replica->buf = data;
         replica->exp++;
         replica->len = 0;

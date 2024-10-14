@@ -1,6 +1,6 @@
 #include "util/memory/pool-allocator.h"
 #include "util/assert.h"        // for FLO_ASSERT
-#include "util/memory/macros.h" // for FLO_NULL_ON_FAIL, FLO_ZERO_MEMORY
+#include "shared/allocator/macros.h" // for FLO_NULL_ON_FAIL, FLO_ZERO_MEMORY
 #include <string.h>             // for memset
 
 void flo_freePool(flo_PoolAllocator *pool) {

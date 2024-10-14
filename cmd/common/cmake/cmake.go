@@ -12,9 +12,9 @@ const EXECUTABLE = "cmake"
 type Project int64
 
 type ProjectStructure struct {
-	Folder         string
-	CodeFolder     string
-	IsFreeStanding bool
+	Folder              string
+	CodeFolder          string
+	DefaultFreeStanding bool
 }
 
 // If you add a project add it here
@@ -36,34 +36,34 @@ var sharedFolder = common.PROJECT_FOLDER + SHARED + "/"
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 	KERNEL: &ProjectStructure{
-		Folder:         kernelFolder,
-		CodeFolder:     kernelFolder + "code",
-		IsFreeStanding: true,
+		Folder:              kernelFolder,
+		CodeFolder:          kernelFolder + "code",
+		DefaultFreeStanding: true,
 	},
 	INTEROPERATION: &ProjectStructure{
-		Folder:         interoperationFolder,
-		CodeFolder:     interoperationFolder + "code",
-		IsFreeStanding: true,
+		Folder:              interoperationFolder,
+		CodeFolder:          interoperationFolder + "code",
+		DefaultFreeStanding: true,
 	},
 	UEFI_IMAGE_CREATOR: &ProjectStructure{
-		Folder:         uefiImageCreatorFolder,
-		CodeFolder:     uefiImageCreatorFolder + "code",
-		IsFreeStanding: false,
+		Folder:              uefiImageCreatorFolder,
+		CodeFolder:          uefiImageCreatorFolder + "code",
+		DefaultFreeStanding: false,
 	},
 	UEFI: &ProjectStructure{
-		Folder:         uefiFolder,
-		CodeFolder:     uefiFolder + "code",
-		IsFreeStanding: true,
+		Folder:              uefiFolder,
+		CodeFolder:          uefiFolder + "code",
+		DefaultFreeStanding: true,
 	},
 	IMAGE_BUILDER: &ProjectStructure{
-		Folder:         imageBuilderFolder,
-		CodeFolder:     imageBuilderFolder + "code",
-		IsFreeStanding: false,
+		Folder:              imageBuilderFolder,
+		CodeFolder:          imageBuilderFolder + "code",
+		DefaultFreeStanding: false,
 	},
 	SHARED: &ProjectStructure{
-		Folder:         sharedFolder,
-		CodeFolder:     sharedFolder + "code",
-		IsFreeStanding: true,
+		Folder:              sharedFolder,
+		CodeFolder:          sharedFolder + "code",
+		DefaultFreeStanding: true,
 	},
 }
 
@@ -93,18 +93,20 @@ func BuildDirectoryRoot(codeDirectory string, testBuild bool, cCompiler string) 
 	return buildDirectory.String()
 }
 
-func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, buildDirectory string, cCompiler string, linker string, buildMode string, isFreestanding bool, testBuild bool) {
+func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, buildDirectory string, cCompiler string, linker string, buildMode string, defaultFreeStanding bool, testBuild bool) {
+	var isFreeStanding = defaultFreeStanding && !testBuild
+
 	argument.AddArgument(options, fmt.Sprintf("-S %s", codeDirectory))
 	argument.AddArgument(options, fmt.Sprintf("-B %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_C_COMPILER=%s", cCompiler))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_LINKER=%s", linker))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_BUILD_TYPE=%s", buildMode))
-	argument.AddArgument(options, fmt.Sprintf("-D FREESTANDING_BUILD=%t", isFreestanding))
+	argument.AddArgument(options, fmt.Sprintf("-D FREESTANDING_BUILD=%t", isFreeStanding))
 	argument.AddArgument(options, fmt.Sprintf("--graphviz=%s/output.dot", codeDirectory))
 
 	var iwyuString = strings.Builder{}
 	iwyuString.WriteString("-D CMAKE_C_INCLUDE_WHAT_YOU_USE=\"include-what-you-use;-w;-Xiwyu;")
-	if isFreestanding {
+	if isFreeStanding {
 		iwyuString.WriteString("--no_default_mappings")
 	}
 	iwyuString.WriteString("\"")

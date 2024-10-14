@@ -1,8 +1,9 @@
 #include "cpu/idt.h"                           // for setupIDT
 #include "interoperation/kernel-parameters.h"  // for KernelParameters
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
-#include "interoperation/types.h"              // for U32
-#include "log/log.h" // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
+#include "interoperation/memory/sizes.h"
+#include "interoperation/types.h" // for U32
+#include "log/log.h"              // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "memory/management/allocator/arena.h"
 #include "memory/management/physical.h"
 #include "memory/management/policy.h"
@@ -10,7 +11,6 @@
 #include "peripheral/screen/screen.h"
 #include "status/memory/status.h"
 #include "text/string.h" // for STRING
-#include "util/sizes.h"
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 

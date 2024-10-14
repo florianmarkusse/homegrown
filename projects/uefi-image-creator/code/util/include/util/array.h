@@ -6,51 +6,51 @@ extern "C" {
 #endif
 
 #include "util/macros.h"
-#include "util/memory/arena.h"
+#include "shared/allocator/arena.h"
 #include <string.h>
 
 #define FLO_ARRAY(T)                                                           \
     struct {                                                                   \
         T *buf;                                                                \
-        ptrdiff_t len;                                                         \
+        U64 len;                                                         \
     }
 
 #define FLO_DYNAMIC_ARRAY(T)                                                   \
     struct {                                                                   \
         T *buf;                                                                \
-        ptrdiff_t len;                                                         \
-        ptrdiff_t cap;                                                         \
+        U64 len;                                                         \
+        U64 cap;                                                         \
     }
 
 #define FLO_MAX_LENGTH_ARRAY(T)                                                \
     struct {                                                                   \
         T *buf;                                                                \
-        ptrdiff_t len;                                                         \
-        ptrdiff_t cap;                                                         \
+        U64 len;                                                         \
+        U64 cap;                                                         \
     }
 
 typedef struct {
-    char *buf;
-    ptrdiff_t len;
-    ptrdiff_t cap;
+    U8 *buf;
+    U64 len;
+    U64 cap;
 } DASlice;
 
 /**
- * Written assuming that flo_arena bumps up! Otherwise the middle case statement
+ * Written assuming that Arena bumps up! Otherwise the middle case statement
  * where we only do a times 1 alloc does not hold.
  */
-__attribute((unused)) static void flo_grow(void *slice, ptrdiff_t size,
-                                           ptrdiff_t align, flo_arena *a,
-                                           unsigned char flags) {
+__attribute((unused)) static void flo_grow(void *slice, U64 size,
+                                           U64 align, Arena *a,
+                                           U8 flags) {
     DASlice *replica = (DASlice *)slice;
 
     if (replica->buf == NULL) {
         replica->cap = 1;
-        replica->buf = flo_alloc(a, 2 * size, align, replica->cap, flags);
+        replica->buf = alloc(a, 2 * size, align, replica->cap, flags);
     } else if (a->beg == replica->buf + size * replica->cap) {
-        flo_alloc(a, size, 1, replica->cap, flags);
+        alloc(a, size, 1, replica->cap, flags);
     } else {
-        void *data = flo_alloc(a, 2 * size, align, replica->cap, flags);
+        void *data = alloc(a, 2 * size, align, replica->cap, flags);
         memcpy(data, replica->buf, size * replica->len);
         replica->buf = data;
     }
@@ -59,7 +59,7 @@ __attribute((unused)) static void flo_grow(void *slice, ptrdiff_t size,
 }
 
 #define FLO_COPY_DYNAMIC_ARRAY(newArr, oldArr, t, a)                           \
-    newArr.buf = FLO_NEW(a, t, (oldArr).len);                                  \
+    newArr.buf = NEW(a, t, (oldArr).len);                                  \
     memcpy((newArr).buf, (oldArr).buf, (oldArr).len *sizeof(t));           \
     (newArr).len = (oldArr).len;                                               \
     (newArr).cap = (oldArr).len;

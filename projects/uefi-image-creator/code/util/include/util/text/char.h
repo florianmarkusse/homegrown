@@ -5,18 +5,18 @@
 extern "C" {
 #endif
 
-__attribute__((unused)) static inline unsigned char
-flo_isAlphabetical(unsigned char ch) {
+__attribute__((unused)) static inline U8
+flo_isAlphabetical(U8 ch) {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
 }
 
-__attribute__((unused)) static inline unsigned char
-flo_isNumerical(unsigned char ch) {
+__attribute__((unused)) static inline U8
+flo_isNumerical(U8 ch) {
     return (ch >= '0' && ch <= '9');
 }
 
-__attribute__((unused)) static inline unsigned char
-flo_isFormattingCharacter(unsigned char ch) {
+__attribute__((unused)) static inline U8
+flo_isFormattingCharacter(U8 ch) {
     return ch == '\t' || ch == '\n' || ch == '\r';
 }
 

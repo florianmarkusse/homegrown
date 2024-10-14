@@ -7,7 +7,7 @@ extern "C" {
 
 #include "common-iterator.h"   // for FLO_TRIE_ITERATOR_HEADER_FILE
 #include "util/macros.h"       // for FLO_MACRO_VAR
-#include "util/memory/arena.h" // for flo_arena
+#include "shared/allocator/arena.h" // for flo_arena
 #include "util/text/string.h"  // for flo_string
 
 typedef struct flo_trie_StringSet flo_trie_StringSet;
@@ -55,9 +55,9 @@ FLO_TRIE_ITERATOR_HEADER_FILE(flo_trie_StringSet, flo_trie_StringIterNode,
 //__attribute((unused)) static flo_trie_Iter *flo_newIter(flo_trie_StringSet
 //*set,
 //                                                        flo_arena *perm) {
-//    flo_trie_Iter *it = FLO_NEW(perm, flo_trie_Iter, 1, FLO_ZERO_MEMORY);
+//    flo_trie_Iter *it = NEW(perm, flo_trie_Iter, 1, FLO_ZERO_MEMORY);
 //    if (set != NULL) {
-//        it->head = FLO_NEW(perm, flo_trie_IterNode, 1, FLO_ZERO_MEMORY);
+//        it->head = NEW(perm, flo_trie_IterNode, 1, FLO_ZERO_MEMORY);
 //        it->head->set = set;
 //    }
 //    return it;
@@ -86,7 +86,7 @@ FLO_TRIE_ITERATOR_HEADER_FILE(flo_trie_StringSet, flo_trie_StringIterNode,
 //                it->free = it->free->next;
 //                nextIter->index = 0;
 //            } else {
-//                nextIter = FLO_NEW(perm, flo_trie_IterNode, 1,
+//                nextIter = NEW(perm, flo_trie_IterNode, 1,
 //                FLO_ZERO_MEMORY);
 //            }
 //            nextIter->set = it->head->set->child[index - 1];

@@ -46,9 +46,9 @@ extern "C" {
     iteratorType *functionName(/* NOLINTNEXTLINE */                            \
                                stringSetType *set, flo_arena *perm) {          \
         /* NOLINTNEXTLINE */                                                   \
-        iteratorType *it = FLO_NEW(perm, iteratorType, 1, FLO_ZERO_MEMORY);    \
+        iteratorType *it = NEW(perm, iteratorType, 1, FLO_ZERO_MEMORY);    \
         if (set != NULL) {                                                     \
-            it->head = FLO_NEW(perm, iterNodeType, 1, FLO_ZERO_MEMORY);        \
+            it->head = NEW(perm, iterNodeType, 1, FLO_ZERO_MEMORY);        \
             it->head->set = set;                                               \
         }                                                                      \
         return it;                                                             \
@@ -76,7 +76,7 @@ extern "C" {
                     nextIter->index = 0;                                       \
                 } else {                                                       \
                     nextIter =                                                 \
-                        FLO_NEW(perm, iterNodeType, 1, FLO_ZERO_MEMORY);       \
+                        NEW(perm, iterNodeType, 1, FLO_ZERO_MEMORY);       \
                 }                                                              \
                 nextIter->set = it->head->set->child[index - 1];               \
                 nextIter->next = it->head;                                     \

@@ -1,5 +1,5 @@
-#ifndef SHARED_ALLOCATOR_POOL_H
-#define SHARED_ALLOCATOR_POOL_H
+#ifndef SHARED_MEMORY_ALLOCATOR_POOL_H
+#define SHARED_MEMORY_ALLOCATOR_POOL_H
 
 #ifdef __cplusplus
 extern "C" {

@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "util/macros.h"
-#include "util/memory/arena.h"
+#include "shared/allocator/arena.h"
 #include <string.h>
 
 #define FLO_ARRAY(T)                                                           \
@@ -59,7 +59,7 @@ __attribute((unused)) static void flo_grow(void *slice, ptrdiff_t size,
 }
 
 #define FLO_COPY_DYNAMIC_ARRAY(newArr, oldArr, t, a)                           \
-    newArr.buf = FLO_NEW(a, t, (oldArr).len);                                  \
+    newArr.buf = NEW(a, t, (oldArr).len);                                  \
     memcpy((newArr).buf, (oldArr).buf, (oldArr).len *sizeof(t));           \
     (newArr).len = (oldArr).len;                                               \
     (newArr).cap = (oldArr).len;

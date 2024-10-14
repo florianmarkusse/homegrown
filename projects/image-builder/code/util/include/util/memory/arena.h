@@ -25,7 +25,7 @@ flo_copyToArena(flo_arena *arena, void *data, ptrdiff_t size, ptrdiff_t align,
 #define FLO_NEW_4(a, t, n, f)                                                  \
     (t *)flo_alloc(a, sizeof(t), alignof(t), n, f)
 #define FLO_NEW_X(a, b, c, d, e, ...) e
-#define FLO_NEW(...)                                                           \
+#define NEW(...)                                                           \
     FLO_NEW_X(__VA_ARGS__, FLO_NEW_4, FLO_NEW_3, FLO_NEW_2)                    \
     (__VA_ARGS__)
 

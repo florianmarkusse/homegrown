@@ -5,12 +5,12 @@
 extern "C" {
 #endif
 
-#include "types.h"             // for flo_char_a, flo_char_d_a
-#include "util/macros.h"       // for FLO_MACRO_VAR
-#include "util/memory/arena.h" // for flo_arena
-#include "util/text/string.h"  // for flo_string, FLO_STRING
-#include <stddef.h>            // for ptrdiff_t
-#include <stdint.h>            // for uint32_t, uint64_t
+#include "shared/allocator/arena.h" // for Arena
+#include "types.h"                  // for flo_U8_a, flo_U8_d_a
+#include "util/macros.h"            // for FLO_MACRO_VAR
+#include "util/text/string.h"       // for string, STRING
+#include <stddef.h>                 // for U64
+#include <stdint.h>                 // for U32, U64
 
 static constexpr auto FLO_NEWLINE = 0x01;
 static constexpr auto FLO_FLUSH = 0x02;
@@ -18,7 +18,7 @@ static constexpr auto FLO_FLUSH = 0x02;
 // TODO: is there a way to directly append to a write buffer instead of going
 // through a string first?
 typedef struct {
-    flo_char_d_a array;
+    flo_U8_d_a array;
     int fileDescriptor;
 } flo_WriteBuffer;
 
@@ -39,59 +39,56 @@ typedef enum { FLO_STDOUT, FLO_STDERR } flo_BufferType;
 
 #define FLO_FLUSH_TO(bufferType) flo_flushBuffer(flo_getWriteBuffer(bufferType))
 
-uint32_t flo_appendToSimpleBuffer(flo_string data, flo_char_d_a *array,
-                                  flo_arena *perm);
+U32 flo_appendToSimpleBuffer(string data, flo_U8_d_a *array, Arena *perm);
 
 bool flo_flushBuffer(flo_WriteBuffer *buffer);
 flo_WriteBuffer *flo_getWriteBuffer(flo_BufferType bufferType);
-uint32_t flo_appendToFlushBuffer(flo_string data, flo_WriteBuffer *buffer,
-                                 unsigned char flags);
+U32 flo_appendToFlushBuffer(string data, flo_WriteBuffer *buffer, U8 flags);
 
-uint32_t flo_appendColor(flo_AnsiColor color, flo_BufferType bufferType);
-uint32_t flo_appendColorReset(flo_BufferType bufferType);
+U32 flo_appendColor(flo_AnsiColor color, flo_BufferType bufferType);
+U32 flo_appendColorReset(flo_BufferType bufferType);
 
-flo_string flo_stringWithMinSize(flo_string data, unsigned char minSize,
-                                 flo_char_a tmp);
-flo_string flo_stringWithMinSizeDefault(flo_string data, unsigned char minSize);
+string stringWithMinSize(string data, U8 minSize, flo_U8_a tmp);
+string stringWithMinSizeDefault(string data, U8 minSize);
 
-flo_string flo_boolToString(bool data);
+string flo_boolToString(bool data);
 
-flo_string flo_ptrToString(void *data, flo_char_a tmp);
-flo_string flo_ptrToStringDefault(void *data);
+string flo_ptrToString(void *data, flo_U8_a tmp);
+string flo_ptrToStringDefault(void *data);
 
-flo_string flo_cStrToString(char *data);
+string flo_cStrToString(U8 *data);
 
-flo_string flo_charToString(char data, flo_char_a tmp);
-flo_string flo_charToStringDefault(char data);
+string flo_U8ToString(U8 data, flo_U8_a tmp);
+string flo_U8ToStringDefault(U8 data);
 
-flo_string flo_stringToString(flo_string data);
+string stringToString(string data);
 
-flo_string flo_uint64ToString(uint64_t data, flo_char_a tmp);
-flo_string flo_uint64ToStringDefault(uint64_t data);
+string flo_uint64ToString(U64 data, flo_U8_a tmp);
+string flo_uint64ToStringDefault(U64 data);
 
-flo_string flo_ptrdiffToString(ptrdiff_t data, flo_char_a tmp);
-flo_string flo_ptrdiffToStringDefault(ptrdiff_t data);
+string flo_ptrdiffToString(U64 data, flo_U8_a tmp);
+string flo_ptrdiffToStringDefault(U64 data);
 
-flo_string flo_doubleToString(double data, flo_char_a tmp);
-flo_string flo_doubleToStringDefault(double data);
+string flo_doubleToString(double data, flo_U8_a tmp);
+string flo_doubleToStringDefault(double data);
 
-flo_string flo_noAppend();
+string flo_noAppend();
 
 #define FLO_CONVERT_TO_STRING(data)                                            \
     _Generic((data),                                                           \
-        flo_string: flo_stringToString,                                        \
-        char *: flo_cStrToString,                                              \
+        string: stringToString,                                                \
         unsigned char *: flo_cStrToString,                                     \
+        U8 *: flo_cStrToString,                                                \
         void *: flo_ptrToStringDefault,                                        \
         int *: flo_ptrToStringDefault,                                         \
-        char **: flo_ptrToStringDefault,                                       \
+        U8 **: flo_ptrToStringDefault,                                         \
         unsigned int *: flo_ptrToStringDefault,                                \
-        char: flo_charToStringDefault,                                         \
-        ptrdiff_t: flo_ptrdiffToStringDefault,                                 \
+        U8: flo_U8ToStringDefault,                                             \
+        U64: flo_ptrdiffToStringDefault,                                       \
         double: flo_doubleToStringDefault,                                     \
-        uint64_t: flo_uint64ToStringDefault,                                   \
-        uint32_t: flo_uint64ToStringDefault,                                   \
-        uint16_t: flo_uint64ToStringDefault,                                   \
+        U64: flo_uint64ToStringDefault,                                        \
+        U32: flo_uint64ToStringDefault,                                        \
+        U16: flo_uint64ToStringDefault,                                        \
         uint8_t: flo_uint64ToStringDefault,                                    \
         int: flo_ptrdiffToStringDefault,                                       \
         short: flo_ptrdiffToStringDefault,                                     \
@@ -130,13 +127,13 @@ flo_string flo_noAppend();
 
 #define FLO_ERROR(data, ...) FLO_LOG(data, FLO_STDERR, ##__VA_ARGS__)
 #define FLO_APPEND_ERRNO_RAW(value)                                            \
-    FLO_ERROR(FLO_STRING("Error code: "));                                     \
+    FLO_ERROR(STRING("Error code: "));                                         \
     FLO_ERROR(value, FLO_NEWLINE);                                             \
-    FLO_ERROR(FLO_STRING("Error message: "));                                  \
+    FLO_ERROR(STRING("Error message: "));                                      \
     FLO_ERROR(strerror(value), FLO_NEWLINE);
 
 #define FLO_FLUSH_AFTER(bufferType)                                            \
-    for (ptrdiff_t FLO_MACRO_VAR(i) = 0; FLO_MACRO_VAR(i) < 1;                 \
+    for (U64 FLO_MACRO_VAR(i) = 0; FLO_MACRO_VAR(i) < 1;                       \
          FLO_MACRO_VAR(i) = (FLO_FLUSH_TO(bufferType), 1))
 
 #ifdef __cplusplus

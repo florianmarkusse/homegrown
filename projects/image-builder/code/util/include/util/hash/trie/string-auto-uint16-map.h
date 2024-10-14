@@ -2,7 +2,7 @@
 #define UTIL_HASH_TRIE_STRING_AUTO_UINT16_MAP_H
 
 #include "common-iterator.h"   // for FLO_TRIE_ITERATOR_HEADER_FILE
-#include "util/memory/arena.h" // for flo_arena
+#include "shared/allocator/arena.h" // for flo_arena
 #include "util/text/string.h"  // for flo_string
 #include <stdint.h>            // for uint16_t
 

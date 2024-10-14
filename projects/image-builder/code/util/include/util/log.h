@@ -7,7 +7,7 @@ extern "C" {
 
 #include "types.h"             // for flo_char_a, flo_char_d_a
 #include "util/macros.h"       // for FLO_MACRO_VAR
-#include "util/memory/arena.h" // for flo_arena
+#include "shared/allocator/arena.h" // for flo_arena
 #include "util/text/string.h"  // for flo_string, FLO_STRING
 #include <stddef.h>            // for ptrdiff_t
 #include <stdint.h>            // for uint32_t, uint64_t

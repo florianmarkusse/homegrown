@@ -5,11 +5,10 @@
 extern "C" {
 #endif
 
-#include "util/macros.h"        // for FLO_MACRO_VAR
-#include "util/memory/arena.h"  // for flo_arena
-#include "util/memory/macros.h" // for alignof, sizeof
-#include <stddef.h>             // for ptrdiff_t
-#include <stdint.h>             // for uint32_t, int32_t, uint64_t
+#include "interoperation/types.h"             // for FLO_MACRO_VAR
+#include "shared/allocator/arena.h"           // for Arena
+#include "shared/manipulation/manipulation.h" // for Arena
+#include "util/macros.h"                      // for FLO_MACRO_VAR
 
 /**
  * Common definitions for MSI string hash.
@@ -17,9 +16,9 @@ extern "C" {
  *
  * This is a double hashed, open address hash table. One can easily add a
  * hashmap on top of this if the need arises.
- * For example, instead of creating a FLO_MSI_SET of string, create one of
+ * For example, instead of creating a MSI_SET of string, create one of
  * {
- *  flo_string key;
+ *  string key;
  *  ValueType {
  *    ...
  *  }
@@ -47,35 +46,34 @@ extern "C" {
  * the new set.
  */
 
-#define FLO_MSI_SET(T)                                                         \
+#define MSI_SET(T)                                                             \
     struct {                                                                   \
         T *buf;                                                                \
-        unsigned char exp;                                                     \
-        ptrdiff_t len;                                                         \
+        U8 exp;                                                                \
+        U64 len;                                                               \
     }
 
-typedef FLO_MSI_SET(char) SetSlice;
+typedef MSI_SET(U8) SetSlice;
 
 #define FLO_NEW_MSI_SET(T, exponent, perm)                                     \
     ({                                                                         \
         T FLO_MACRO_VAR(newSet) = (T){.exp = (exponent)};                      \
         flo_msi_newSet(&FLO_MACRO_VAR(newSet),                                 \
-                       sizeof(*FLO_MACRO_VAR(newSet).buf),                 \
-                       alignof(*FLO_MACRO_VAR(newSet).buf), perm);         \
+                       sizeof(*FLO_MACRO_VAR(newSet).buf),                     \
+                       alignof(*FLO_MACRO_VAR(newSet).buf), perm);             \
         FLO_MACRO_VAR(newSet);                                                 \
     })
 
 // If this ever changes types because it's too small, make sure to test out that
 // it works.
-__attribute((unused)) static inline int32_t
-flo_indexLookup(uint64_t hash, int exp, int32_t idx) {
-    uint32_t mask = ((uint32_t)1 << exp) - 1;
-    uint32_t step = (uint32_t)(hash >> (64 - exp)) | 1;
+__attribute((unused)) static inline U32 flo_indexLookup(U64 hash, U32 exp,
+                                                        U32 idx) {
+    U32 mask = ((U32)1 << exp) - 1;
+    U32 step = (U32)(hash >> (64 - exp)) | 1;
     return (idx + step) & mask;
 }
 
-void flo_msi_newSet(void *setSlice, ptrdiff_t size, ptrdiff_t align,
-                    flo_arena *a);
+void flo_msi_newSet(void *setSlice, U64 size, U64 align, Arena *a);
 
 #ifdef __cplusplus
 }

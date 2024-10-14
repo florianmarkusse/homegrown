@@ -8,7 +8,7 @@ extern "C" {
 #define FLO_MACRO_VAR(name) _##name##_##MACRO_VAR##__LINE__
 
 #define FLO_STR_HELPER(x) #x
-#define FLO_STRINGIFY(x) FLO_STR_HELPER(x)
+#define STRINGIFY(x) FLO_STR_HELPER(x)
 
 #ifdef __cplusplus
 }

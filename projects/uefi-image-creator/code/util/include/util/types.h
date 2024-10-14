@@ -10,16 +10,16 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef FLO_DYNAMIC_ARRAY(flo_string) flo_string_d_a;
-typedef FLO_DYNAMIC_ARRAY(uint64_t) flo_uint64_d_a;
+typedef FLO_DYNAMIC_ARRAY(string) string_d_a;
+typedef FLO_DYNAMIC_ARRAY(U64) flo_uint64_d_a;
 typedef FLO_DYNAMIC_ARRAY(bool) flo_bool_d_a;
-typedef FLO_DYNAMIC_ARRAY(unsigned char) flo_char_d_a;
-typedef FLO_MAX_LENGTH_ARRAY(flo_string) flo_string_max_a;
-typedef FLO_MAX_LENGTH_ARRAY(uint64_t) flo_uint64_max_a;
-typedef FLO_MAX_LENGTH_ARRAY(uint32_t) flo_uint32_max_a;
+typedef FLO_DYNAMIC_ARRAY(U8) flo_U8_d_a;
+typedef FLO_MAX_LENGTH_ARRAY(string) string_max_a;
+typedef FLO_MAX_LENGTH_ARRAY(U64) flo_uint64_max_a;
+typedef FLO_MAX_LENGTH_ARRAY(U32) flo_uint32_max_a;
 typedef FLO_MAX_LENGTH_ARRAY(bool) flo_bool_max_a;
-typedef FLO_ARRAY(unsigned char) flo_char_a;
-typedef FLO_ARRAY(char *) flo_char_ptr_a;
+typedef FLO_ARRAY(U8) flo_U8_a;
+typedef FLO_ARRAY(U8 *) flo_U8_ptr_a;
 typedef FLO_ARRAY(bool) flo_bool_a;
 
 #ifdef __cplusplus

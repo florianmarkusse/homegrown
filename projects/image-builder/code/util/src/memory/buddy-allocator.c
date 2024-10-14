@@ -1,6 +1,6 @@
 #include "util/memory/buddy-allocator.h"
 #include "util/assert.h"        // for FLO_ASSERT
-#include "util/memory/macros.h" // for sizeof, FLO_NULL_ON_FAIL, FLO_ZE...
+#include "shared/allocator/macros.h" // for sizeof, FLO_NULL_ON_FAIL, FLO_ZE...
 #include <string.h>             // for memset
 
 flo_BuddyBlock *flo_splitBuddy(flo_BuddyBlock *block, size_t size) {

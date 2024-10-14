@@ -10,9 +10,9 @@ extern "C" {
 #define FLO_MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define FLO_MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-__attribute__((unused)) static inline uint64_t flo_power(uint64_t base,
-                                                         uint64_t exponent) {
-    uint64_t result = 1;
+__attribute__((unused)) static inline U64 flo_power(U64 base,
+                                                         U64 exponent) {
+    U64 result = 1;
 
     while (exponent > 0) {
         if (exponent & 1) {

@@ -33,7 +33,7 @@ Windows should use `mnt_vhd_windows_powershell.ps1`, which uses powershell comma
 **are comfortable running them automatically. You may mess up your disks if you aren't careful. !!**
 
 ## Dependencies
-C compiler with support for C17 standard or higher (minor changes will be needed if using a standard older than C17), for UTF-16 u"" string literals and uchar.h header.
+C compiler with support for C17 standard or higher (minor changes will be needed if using a standard older than C17), for UTF-16 u"" string literals and uU8.h header.
 Tested with gcc, mingw gcc, and clang.
 
 ## Build

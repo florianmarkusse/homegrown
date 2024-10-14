@@ -11,10 +11,10 @@ extern "C" {
 
 #include "util/text/string.h"
 
-__attribute__((unused)) static uint64_t
-flo_hashStringSkeeto(flo_string string) {
-    uint64_t h = 0x100;
-    for (ptrdiff_t i = 0; i < string.len; i++) {
+__attribute__((unused)) static U64
+flo_hashStringSkeeto(string string) {
+    U64 h = 0x100;
+    for (U64 i = 0; i < string.len; i++) {
         h ^= string.buf[i];
         h *= 1111111111111111111u;
     }
@@ -23,9 +23,9 @@ flo_hashStringSkeeto(flo_string string) {
 
 // http://www.cse.yorku.ca/~oz/hash.html
 // djb2 hash
-__attribute__((unused)) static uint64_t flo_hashStringDjb2(flo_string string) {
-    uint64_t hash = 5381;
-    for (ptrdiff_t i = 0; i < string.len; i++) {
+__attribute__((unused)) static U64 flo_hashStringDjb2(string string) {
+    U64 hash = 5381;
+    for (U64 i = 0; i < string.len; i++) {
         int c = (string.buf[i]);
         hash =
             ((hash << 5) + hash) ^
@@ -38,7 +38,7 @@ __attribute__((unused)) static uint64_t flo_hashStringDjb2(flo_string string) {
 // https://github.com/skeeto/hash-prospector
 // 3-round xorshift-multiply (-Xn3)
 // bias = 0.0045976709018820602
-__attribute__((unused)) static uint16_t flo_hash16_xm3(uint16_t x) {
+__attribute__((unused)) static U16 flo_hash16_xm3(U16 x) {
     x ^= x >> 7;
     x *= 0x2993U;
     x ^= x >> 5;

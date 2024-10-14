@@ -2,7 +2,7 @@
 #include "util/assert.h"                    // for FLO_ASSERT
 #include "util/hash/hashes.h"               // for flo_hashStringDjb2
 #include "util/hash/trie/common-iterator.h" // for FLO_TRIE_ITERATOR_SOURCE...
-#include "util/memory/macros.h"             // for FLO_ZERO_MEMORY
+#include "shared/allocator/macros.h"             // for FLO_ZERO_MEMORY
 #include <stddef.h>                         // for NULL
 
 flo_NewStringInsert flo_trie_insertStringAutoUint16Map(
@@ -21,7 +21,7 @@ flo_NewStringInsert flo_trie_insertStringAutoUint16Map(
         __builtin_longjmp(perm->jmp_buf, 1);
     }
     *currentNode =
-        FLO_NEW(perm, flo_trie_StringAutoUint16Node, 1, FLO_ZERO_MEMORY);
+        NEW(perm, flo_trie_StringAutoUint16Node, 1, FLO_ZERO_MEMORY);
     (*currentNode)->data.key = key;
     (*currentNode)->data.value = ++(set)->identity;
     return (flo_NewStringInsert){.wasInserted = true,

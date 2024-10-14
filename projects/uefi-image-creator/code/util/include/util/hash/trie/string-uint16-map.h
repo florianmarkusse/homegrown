@@ -7,13 +7,13 @@ extern "C" {
 
 #include "common-iterator.h"   // for FLO_TRIE_ITERATOR_HEADER_FILE
 #include "util/macros.h"       // for FLO_MACRO_VAR
-#include "util/memory/arena.h" // for flo_arena
-#include "util/text/string.h"  // for flo_string
-#include <stdint.h>            // for uint16_t
+#include "shared/allocator/arena.h" // for Arena
+#include "util/text/string.h"  // for string
+#include <stdint.h>            // for U16
 
 typedef struct {
-    flo_string key;
-    uint16_t value;
+    string key;
+    U16 value;
 } flo_trie_StringUint16Data;
 
 typedef struct flo_trie_StringUint16Map {
@@ -21,9 +21,9 @@ typedef struct flo_trie_StringUint16Map {
     flo_trie_StringUint16Data data;
 } flo_trie_StringUint16Map;
 
-uint16_t flo_trie_insertStringUint16Map(flo_string key, uint16_t value,
+U16 flo_trie_insertStringUint16Map(string key, U16 value,
                                         flo_trie_StringUint16Map **set,
-                                        flo_arena *perm);
+                                        Arena *perm);
 
 FLO_TRIE_ITERATOR_HEADER_FILE(flo_trie_StringUint16Map,
                               flo_trie_StringUint16IterNode,

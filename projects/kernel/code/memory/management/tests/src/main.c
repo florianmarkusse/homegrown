@@ -1,8 +1,8 @@
+#include "interoperation/memory/sizes.h"
 #include "log/log.h"
 #include "memory/management/allocator/arena.h"
 #include "test-framework/test.h"
 #include "test/physical.h"
-#include "util/sizes.h"
 #include <stdlib.h>
 
 int main() {
