@@ -3,8 +3,8 @@
 #include "interoperation/types.h"
 #include "shared/memory/allocator/arena.h"
 #include "shared/memory/manipulation/manipulation.h" // for alignof, sizeof
-#include "util/maths.h"                       // for FLO_MIN
-#include "util/types.h"                       // for flo_U8_a, flo_U8_d_a
+#include "util/maths.h"                              // for FLO_MIN
+#include "util/types.h"                              // for flo_U8_a, flo_U8_d_a
 #include <unistd.h> // for isatty, write, STDERR_FILENO, STDOUT...
 
 static constexpr auto FLO_LOG_STD_BUFFER_LEN = 1 << 10;
@@ -99,7 +99,7 @@ U32 flo_appendToFlushBuffer(string data, flo_WriteBuffer *buffer, U8 flags) {
     return (U32)data.len;
 }
 
-static string flo_ansiColorToCode[FLO_COLOR_NUMS] = {
+static string ansiColorToCode[FLO_COLOR_NUMS] = {
     STRING("\x1b[31m"), STRING("\x1b[32m"), STRING("\x1b[33m"),
     STRING("\x1b[34m"), STRING("\x1b[35m"), STRING("\x1b[36m"),
     STRING("\x1b[0m"),

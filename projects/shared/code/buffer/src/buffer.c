@@ -1,8 +1,7 @@
-#include "buffer/buffer.h"
-#include "memory/management/allocator/arena.h"
-#include "memory/management/allocator/macros.h"
+#include "shared/buffer/buffer.h"
+#include "shared/memory/allocator/macros.h"
 
-U64 appendToSimpleBuffer(string data, U8_d_a *array, Arena *perm) {
+void appendToSimpleBuffer(string data, U8_d_a *array, Arena *perm) {
     if (array->len + data.len > array->cap) {
         U64 newCap = (array->len + data.len) * 2;
         if (array->buf == NULL) {
@@ -20,5 +19,4 @@ U64 appendToSimpleBuffer(string data, U8_d_a *array, Arena *perm) {
     }
     memcpy(array->buf + array->len, data.buf, data.len);
     array->len += data.len;
-    return data.len;
 }
