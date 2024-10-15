@@ -88,6 +88,7 @@ bool appendColor(AnsiColor color, BufferType bufferType) {
         isatty(buffer->fileDescriptor) ? ansiColorToCode[color] : EMPTY_STRING,
         buffer, 0);
 }
+
 bool appendColorReset(BufferType bufferType) {
     WriteBuffer *buffer = getWriteBuffer(bufferType);
     return appendToFlushBuffer(isatty(buffer->fileDescriptor)

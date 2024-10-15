@@ -7,6 +7,11 @@ add_subdirectory(
     "${REPO_PROJECTS}/shared/code"
     "${CMAKE_CURRENT_BINARY_DIR}/shared"
 )
+
+add_subdirectory(
+    "${REPO_PROJECTS}/posix/code"
+    "${CMAKE_CURRENT_BINARY_DIR}/posix"
+)
 add_subdirectory(util)
 
 add_executable(${PROJECT_NAME} "src/main.c")
@@ -25,3 +30,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-allocator)
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-manipulation)
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-text)
 target_link_libraries(${PROJECT_NAME} PUBLIC util)
+target_link_libraries(${PROJECT_NAME} PUBLIC posix-log)

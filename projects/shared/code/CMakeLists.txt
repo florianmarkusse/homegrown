@@ -10,3 +10,10 @@ add_subdirectory(text)
 add_subdirectory(memory)
 add_subdirectory(maths)
 add_subdirectory(buffer)
+
+# install(
+#     EXPORT sharedTargets
+#     FILE sharedTargets.cmake
+#     NAMESPACE "${PROJECT_NAME}::"
+#     DESTINATION lib/cmake/shared
+# )

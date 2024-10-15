@@ -13,7 +13,6 @@ add_library(
     "src/hash/trie/uint16-set.c"
     "src/hash/trie/string-auto-uint16-map.c"
     "src/hash/hash-comparison-status.c"
-    "src/log.c"
 )
 
 target_include_directories(
@@ -29,3 +28,4 @@ target_include_directories(
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-allocator)
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-manipulation)
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-text)
+target_link_libraries(${PROJECT_NAME} PUBLIC posix-log)
