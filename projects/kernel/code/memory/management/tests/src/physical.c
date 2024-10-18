@@ -1,16 +1,15 @@
 #include "test/physical.h"
 #include "cpu/idt.h"
 #include "interoperation/kernel-parameters.h"
+#include "interoperation/macros.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h"
-#include "log/log.h"
 #include "memory/management/physical.h"
-#include "status/idt/status.h"
-#include "test-framework/test.h"
-#include "text/string.h"
-#include "util/macros.h"
-#include "util/maths.h"
+#include "posix/log/log.h"
+#include "posix/test-framework/test.h"
+#include "shared/maths/maths.h"
+#include "shared/text/string.h"
 #include <errno.h>
 #include <string.h>
 #include <sys/mman.h>
@@ -74,7 +73,7 @@ void testPhysicalMemoryManagement() {
     PhysicalBasePage *pages = mmap(NULL, MEMORY, PROT_READ | PROT_WRITE,
                                    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (pages == MAP_FAILED) {
-        FLUSH_AFTER {
+        FLUSH_AFTER(STDERR) {
             LOG(STRING("Failed to allocate memory!\n"));
             LOG(STRING("Error code: "));
             LOG(errno, NEWLINE);

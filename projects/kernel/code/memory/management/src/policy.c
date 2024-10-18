@@ -4,7 +4,7 @@
 #include "interoperation/memory/definitions.h"
 #include "memory/management/physical.h"
 #include "memory/management/virtual.h"
-#include "util/maths.h"
+#include "shared/maths/maths.h"
 
 void *allocAndMap(U64 bytes) {
     PagedMemory pagedMemory[PAGE_TABLE_ENTRIES];

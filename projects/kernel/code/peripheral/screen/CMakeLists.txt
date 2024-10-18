@@ -1,14 +1,6 @@
 project(peripheral-screen LANGUAGES C ASM)
 
-set(SOURCE_FILES)
-
-if("${UNIT_TEST_BUILD}")
-    list(APPEND SOURCE_FILES "src/posix/screen.c")
-else()
-    list(APPEND SOURCE_FILES "src/kernel/screen.c")
-endif()
-
-add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
+add_library(${PROJECT_NAME} STATIC "src/screen.c")
 
 target_include_directories(
     ${PROJECT_NAME}
@@ -26,6 +18,7 @@ target_include_directories(
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC memory-management)
-target_link_libraries(${PROJECT_NAME} PUBLIC memory-manipulation)
+target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-manipulation)
+target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-allocator)
 target_link_libraries(${PROJECT_NAME} PUBLIC cpu)
 target_link_libraries(${PROJECT_NAME} PUBLIC util)

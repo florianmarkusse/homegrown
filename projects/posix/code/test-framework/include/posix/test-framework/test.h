@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
+#include "interoperation/macros.h" // for MACRO_VAR
 #include "interoperation/types.h"
-#include "log/log.h"     // for string
-#include "text/string.h" // for string
-#include "util/macros.h" // for MACRO_VAR
+#include "posix/log/log.h"      // for string
+#include "shared/text/string.h" // for string
 
 void testSuiteStart(string mainTopic);
 int testSuiteFinish();

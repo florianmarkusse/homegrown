@@ -5,8 +5,8 @@
 #include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h" // for U64, U32, U8
 #include "memory/manipulation/manipulation.h"
-#include "util/assert.h"
-#include "util/maths.h"
+#include "interoperation/assert.h"
+#include "shared/maths/maths.h"
 
 PhysicalMemoryManager basePMM;
 PhysicalMemoryManager largePMM;

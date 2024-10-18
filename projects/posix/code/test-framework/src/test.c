@@ -1,31 +1,8 @@
-#include "test-framework/test.h"
-#include "log/log.h"
-#include "text/string.h" // for STRING, string
-#include "util/assert.h" // for ASSERT
-
-typedef enum {
-    COLOR_RED,
-    COLOR_GREEN,
-    COLOR_YELLOW,
-    COLOR_BLUE,
-    COLOR_MAGENTA,
-    COLOR_CYAN,
-    COLOR_RESET,
-    COLOR_NUMS
-} AnsiColor;
-
-static string ansiColorToCode[COLOR_NUMS] = {
-    STRING("\x1b[31m"), STRING("\x1b[32m"), STRING("\x1b[33m"),
-    STRING("\x1b[34m"), STRING("\x1b[35m"), STRING("\x1b[36m"),
-    STRING("\x1b[0m"),
-};
-
-void appendColor(AnsiColor color) {
-    appendToFlushBuffer(ansiColorToCode[color], 0);
-}
-void appendColorReset() {
-    appendToFlushBuffer(ansiColorToCode[COLOR_RESET], 0);
-}
+#include "posix/test-framework/test.h"
+#include "interoperation/assert.h" // for ASSERT
+#include "interoperation/log.h"    // for ASSERT
+#include "posix/log/log.h"
+#include "shared/text/string.h" // for STRING, string
 
 typedef struct {
     U64 successes;
@@ -51,7 +28,7 @@ void appendSpaces() {
 }
 
 void printTestScore(U64 successes, U64 failures) {
-    FLUSH_AFTER {
+    FLUSH_AFTER(STDOUT) {
         appendSpaces();
 
         LOG((STRING("[ ")));
@@ -63,7 +40,7 @@ void printTestScore(U64 successes, U64 failures) {
 }
 
 void testSuiteStart(string mainTopic) {
-    FLUSH_AFTER {
+    FLUSH_AFTER(STDOUT) {
         LOG((STRING("Starting test suite for ")));
         LOG(mainTopic);
         LOG((STRING(" ...\n\n")));
@@ -78,19 +55,19 @@ int testSuiteFinish() {
 
     printTestScore(globalSuccesses, globalFailures);
     if (globalFailures > 0) {
-        FLUSH_AFTER {
+        FLUSH_AFTER(STDERR) {
             LOG((STRING("\nTest suite ")));
-            appendColor(COLOR_RED);
+            appendColor(COLOR_RED, STDERR);
             LOG((STRING("failed")));
-            appendColorReset();
+            appendColorReset(STDERR);
             LOG((STRING(".\n")));
         }
     } else {
-        FLUSH_AFTER {
+        FLUSH_AFTER(STDOUT) {
             LOG((STRING("\nTest suite ")));
-            appendColor(COLOR_GREEN);
+            appendColor(COLOR_GREEN, STDOUT);
             LOG((STRING("successful")));
-            appendColorReset();
+            appendColorReset(STDOUT);
             LOG((STRING(".\n")));
         }
     }
@@ -101,7 +78,7 @@ int testSuiteFinish() {
 void testTopicStart(string testTopic) {
     addTopic(testTopic);
 
-    FLUSH_AFTER {
+    FLUSH_AFTER(STDOUT) {
         appendSpaces();
         LOG((STRING("Testing ")));
         LOG(testTopic);
@@ -117,7 +94,7 @@ void testTopicFinish() {
 }
 
 void unitTestStart(string testName) {
-    FLUSH_AFTER {
+    FLUSH_AFTER(STDOUT) {
         appendSpaces();
         LOG((STRING("- ")));
         LOG(stringWithMinSizeDefault(testName, 50));
@@ -129,10 +106,10 @@ void testSuccess() {
         testTopics[i].successes++;
     }
 
-    FLUSH_AFTER {
-        appendColor(COLOR_GREEN);
+    FLUSH_AFTER(STDOUT) {
+        appendColor(COLOR_GREEN, STDOUT);
         LOG(stringWithMinSizeDefault(STRING("Success"), 20));
-        appendColorReset();
+        appendColorReset(STDOUT);
         LOG((STRING("\n")));
     }
 }
@@ -142,10 +119,10 @@ void testFailure() {
         testTopics[i].failures++;
     }
 
-    FLUSH_AFTER {
-        appendColor(COLOR_RED);
+    FLUSH_AFTER(STDERR) {
+        appendColor(COLOR_RED, STDERR);
         LOG(stringWithMinSizeDefault(STRING("Failure"), 20));
-        appendColorReset();
+        appendColorReset(STDERR);
         LOG((STRING("\n")));
     }
 }

@@ -2,9 +2,9 @@
 
 #include "cpu/idt.h"
 #include "log/log.h"
-#include "text/string.h"
+#include "shared/text/string.h"
 #include "interoperation/types.h"
-#include "text/converter.h"
+#include "shared/text/converter.h"
 
 static string faultToString[FAULT_NUMS] = {
     STRING("Divide Error"),

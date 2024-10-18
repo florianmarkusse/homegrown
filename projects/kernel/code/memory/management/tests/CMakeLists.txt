@@ -12,5 +12,5 @@ target_include_directories(
 target_link_libraries(${PROJECT_NAME} PUBLIC memory-management)
 target_link_libraries(${PROJECT_NAME} PUBLIC status-idt)
 target_link_libraries(${PROJECT_NAME} PUBLIC text)
-target_link_libraries(${PROJECT_NAME} PUBLIC log)
-target_link_libraries(${PROJECT_NAME} PUBLIC test-framework)
+target_link_libraries(${PROJECT_NAME} PUBLIC posix-log)
+target_link_libraries(${PROJECT_NAME} PUBLIC posix-test-framework)

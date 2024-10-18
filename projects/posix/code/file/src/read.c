@@ -1,4 +1,5 @@
 #include "posix/file/read.h"
+#include "interoperation/log.h"     // for ERROR, LOG_CHOOSER_IMPL_2
 #include "interoperation/types.h"   // for NULL_ON_FAIL
 #include "posix/file/file-status.h" // for FILE_CANT_ALLOCATE, FILE_CANT_OPEN
 #include "posix/log/log.h"          // for ERROR, LOG_CHOOSER_IMPL_2

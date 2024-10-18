@@ -3,36 +3,44 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 project(kernel LANGUAGES C ASM)
 include("../../setup.cmake")
 
+set(CMAKE_C_FLAGS
+    "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}/kernel/resources"
+)
 if(NOT "${UNIT_TEST_BUILD}")
     set(CMAKE_C_FLAGS
         # TODO: SSE is still broken!!!
         "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-sse2"
     )
     set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
-    set(CMAKE_C_FLAGS
-        "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}/kernel/resources"
-    )
 endif()
 
 include("../../print-configuration.cmake")
 
-add_library(${PROJECT_NAME} OBJECT "src/main.c")
-
-if("${UNIT_TEST_BUILD}")
-    add_subdirectory("test-framework")
-endif()
-
-# Unused directories for now
-# add_subdirectory("hash")
-# add_subdirectory("buffer")
+add_subdirectory(
+    "${REPO_PROJECTS}/shared/code"
+    "${CMAKE_CURRENT_BINARY_DIR}/shared"
+)
 
 add_subdirectory("cpu")
 add_subdirectory("memory")
-add_subdirectory("peripheral")
-add_subdirectory("log")
-add_subdirectory("text")
-add_subdirectory("util")
 add_subdirectory("status")
+
+if("${UNIT_TEST_BUILD}")
+    add_subdirectory(
+        "${REPO_PROJECTS}/posix/code"
+        "${CMAKE_CURRENT_BINARY_DIR}/posix"
+    )
+    return()
+endif()
+
+################################################################################
+#       End of common setup, below is only for production kernel build         #
+################################################################################
+
+add_subdirectory("log")
+add_subdirectory("peripheral")
+
+add_library(${PROJECT_NAME} OBJECT "src/main.c")
 
 target_include_directories(
     ${PROJECT_NAME}
@@ -61,17 +69,13 @@ endfunction()
 add_to_linker("status-memory")
 
 add_to_linker("log")
-add_to_linker("text")
 add_to_linker("peripheral-screen")
 add_to_linker("memory-management")
-add_to_linker("util")
 add_to_linker("cpu")
 add_to_linker("memory-manipulation")
+add_to_linker("shared-maths")
 
-if("${UNIT_TEST_BUILD}")
-    return()
-endif()
-
+# TODO: Remove resource objects
 set(LINKER_TARGET "${PROJECT_NAME}-linker")
 add_custom_target(
     ${LINKER_TARGET}
