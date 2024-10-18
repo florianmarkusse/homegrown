@@ -7,7 +7,7 @@ extern "C" {
 
 #include "interoperation/types.h"
 
-#include "text/string.h"
+#include "shared/text/string.h"
 
 static inline U64 hashStringSkeeto(string string) {
     U64 h = 0x100;

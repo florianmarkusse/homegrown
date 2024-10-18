@@ -7,7 +7,7 @@ extern "C" {
 
 #include "common.h" // for MSI_SET
 #include "interoperation/types.h"
-#include "util/macros.h" // for MACRO_VAR
+#include "interoperation/macros.h" // for MACRO_VAR
 
 typedef MSI_SET(U16) msi_U16;
 

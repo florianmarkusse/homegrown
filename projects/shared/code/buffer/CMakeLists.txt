@@ -20,7 +20,7 @@ target_include_directories(
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-text)
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-management)
+target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-manipulation)
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-allocator)
 
 # install(

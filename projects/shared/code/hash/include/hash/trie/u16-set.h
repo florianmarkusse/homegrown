@@ -7,8 +7,8 @@ extern "C" {
 
 #include "common-iterator.h" // for TRIE_ITERATOR_HEADER_FILE
 #include "interoperation/types.h"
-#include "memory/management/allocator/arena.h"
-#include "util/macros.h" // for MACRO_VAR
+#include "shared/memory/allocator/arena.h"
+#include "interoperation/macros.h" // for MACRO_VAR
 
 typedef struct trie_U16Set trie_U16Set;
 struct trie_U16Set {

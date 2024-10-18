@@ -6,9 +6,9 @@ extern "C" {
 #endif
 
 #include "common-iterator.h" // for TRIE_ITERATOR_HEADER_FILE
-#include "memory/management/allocator/arena.h"
-#include "util/macros.h"      // for MACRO_VAR
-#include "text/string.h" // for string
+#include "shared/memory/allocator/arena.h"
+#include "interoperation/macros.h"      // for MACRO_VAR
+#include "shared/text/string.h" // for string
 
 typedef struct trie_stringSet trie_stringSet;
 struct trie_stringSet {

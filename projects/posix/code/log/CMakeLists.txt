@@ -1,6 +1,6 @@
 project(posix-log LANGUAGES C ASM)
 
-add_library(${PROJECT_NAME} STATIC "src/log.c")
+add_library(${PROJECT_NAME} OBJECT "src/log.c")
 
 target_include_directories(
     ${PROJECT_NAME}

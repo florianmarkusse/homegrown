@@ -8,8 +8,8 @@ extern "C" {
 #include "common.h"                      // for MSI_SET
 #include "hash/hash-comparison-status.h" // for HashComparisonStatus
 #include "interoperation/types.h"
-#include "util/macros.h"      // for MACRO_VAR
-#include "text/string.h" // for string
+#include "interoperation/macros.h"      // for MACRO_VAR
+#include "shared/text/string.h" // for string
 
 typedef MSI_SET(string) msi_string;
 
