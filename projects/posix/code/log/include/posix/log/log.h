@@ -36,7 +36,7 @@ bool appendColorReset(BufferType bufferType);
 
 WriteBuffer *getWriteBuffer(BufferType bufferType);
 
-#define FLUSH_TO(bufferType) flushBuffer(flo_getWriteBuffer(bufferType))
+#define FLUSH_TO(bufferType) flushBuffer(getWriteBuffer(bufferType))
 
 #define LOG_DATA_3(data, buffer, flags)                                        \
     appendToFlushBuffer(CONVERT_TO_STRING(data), buffer, flags)

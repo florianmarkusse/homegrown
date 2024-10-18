@@ -1,45 +1,39 @@
-#include "crc32-table.h"       // for calculateCRC32
-#include "util/array.h"        // for FLO_MAX_LENGTH_ARRAY
-#include "interoperation/assert.h"       // for FLO_ASSERT
-#include "util/log.h"          // for FLO_LOG_CHOOSER_IMPL_2, FLO_INFO, FLO...
-#include "util/memory/arena.h" // for flo_arena
-#include "shared/text/string.h"  // for FLO_STRING
+#include "crc32-table.h"           // for calculateCRC32
+#include "interoperation/array.h"  // for ASSERT
+#include "interoperation/assert.h" // for ASSERT
+#include "posix/log/log.h"         // for LOG_CHOOSER_IMPL_2, INFO, FLO...
+#include "shared/dynamic-array/dynamic-array.h" // for MAX_LENGTH_ARRAY
+#include "shared/memory/allocator/arena.h"      // for arena
+#include "shared/text/string.h"                 // for STRING
 #include <errno.h>
-#include <inttypes.h> // for uint32_t, uint8_t, uint16_t, uint64_t
+#include <inttypes.h> // for U32, U8, U16, U64
 #include <stddef.h>   // for ptrdiff_t
 #include <stdio.h>    // for fseek, fprintf, FILE, SEEK_SET, fclose
 #include <stdlib.h>   // for calloc, strtol, rand, srand
 #include <string.h>   // for strcmp, memcpy, strlen, strcpy, strncat
 #include <sys/mman.h> // for mmap, munmap, MAP_ANONYMOUS, MAP_FAILED
 #include <time.h>     // for tm, time, localtime, time_t
-#include <uU8.h>    // for U816_t
 
-#define FLO_APPEND_ERRNO                                                       \
-    FLO_ERROR(FLO_STRING("Error code: "));                                     \
-    FLO_ERROR(errno, FLO_NEWLINE);                                             \
-    FLO_ERROR(FLO_STRING("Error message: "));                                  \
-    FLO_ERROR(strerror(errno), FLO_NEWLINE);
-
-size_t memoryCap = (size_t)1 << 21;
+U64 memoryCap = (U64)1 << 21;
 // Note: we open files in this program which need to be closed when a program
 // exits on error.
 void *fileCloser[5];
-typedef FLO_MAX_LENGTH_ARRAY(FILE *) flo_FILEPtr_max_a;
+typedef MAX_LENGTH_ARRAY(FILE *) FILEPtr_max_a;
 static constexpr auto MAX_OPEN_FILES = 64;
 // TODO: check returns of fseek beby
 // TODO: add all files when open to this stack/array
 FILE *openFilesBuf[MAX_OPEN_FILES];
-flo_FILEPtr_max_a openedFiles = {
+FILEPtr_max_a openedFiles = {
     .buf = openFilesBuf, .cap = MAX_OPEN_FILES, .len = 0};
 
 void *memoryErrors[5];
 
-void checkedFwrite(void *data, uint64_t size, FILE *fd) {
+void checkedFwrite(void *data, U64 size, FILE *fd) {
     if (fwrite(data, 1, size, fd) != size) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Could not write to file descriptor!\n"));
+        FLUSH_AFTER(STDERR) {
+            ERROR(STRING("Could not write to file descriptor!\n"));
         }
-        FLO_ASSERT(false);
+        ASSERT(false);
         __builtin_longjmp(fileCloser, 1);
     }
 }
@@ -49,123 +43,123 @@ void checkedFwrite(void *data, uint64_t size, FILE *fd) {
 // -------------------------------------
 // Globally Unique IDentifier (aka UUID)
 typedef struct {
-    uint32_t time_lo;
-    uint16_t time_mid;
-    uint16_t time_hi_and_ver;     // Highest 4 bits are version #
-    uint8_t clock_seq_hi_and_res; // Highest bits are variant #
-    uint8_t clock_seq_lo;
-    uint8_t node[6];
+    U32 time_lo;
+    U16 time_mid;
+    U16 time_hi_and_ver;     // Highest 4 bits are version #
+    U8 clock_seq_hi_and_res; // Highest bits are variant #
+    U8 clock_seq_lo;
+    U8 node[6];
 } __attribute__((packed)) Guid;
 
 // MBR Partition
 typedef struct {
-    uint8_t bootIndicator;
-    uint8_t startingCHS[3];
-    uint8_t osType;
-    uint8_t endingCHS[3];
-    uint32_t startingLBA;
-    uint32_t sizeLBA;
+    U8 bootIndicator;
+    U8 startingCHS[3];
+    U8 osType;
+    U8 endingCHS[3];
+    U32 startingLBA;
+    U32 sizeLBA;
 } __attribute__((packed)) MBRPartition;
 
 // Master Boot Record
 typedef struct {
-    uint8_t bootCode[440];
-    uint32_t signature;
-    uint16_t unknown;
+    U8 bootCode[440];
+    U32 signature;
+    U16 unknown;
     MBRPartition partitions[4];
-    uint16_t boot_signature;
+    U16 boot_signature;
 } __attribute__((packed)) MBR;
 
 // GPT Header
 typedef struct {
-    uint8_t signature[8];
-    uint32_t revision;
-    uint32_t header_size;
-    uint32_t header_crc32;
-    uint32_t reserved_1;
-    uint64_t my_lba;
-    uint64_t alternate_lba;
-    uint64_t first_usable_lba;
-    uint64_t last_usable_lba;
+    U8 signature[8];
+    U32 revision;
+    U32 header_size;
+    U32 header_crc32;
+    U32 reserved_1;
+    U64 my_lba;
+    U64 alternate_lba;
+    U64 first_usable_lba;
+    U64 last_usable_lba;
     Guid disk_guid;
-    uint64_t partition_table_lba;
-    uint32_t number_of_entries;
-    uint32_t size_of_entry;
-    uint32_t partition_table_crc32;
+    U64 partition_table_lba;
+    U32 number_of_entries;
+    U32 size_of_entry;
+    U32 partition_table_crc32;
 
-    uint8_t reserved_2[512 - 92];
+    U8 reserved_2[512 - 92];
 } __attribute__((packed)) Gpt_Header;
 
 // GPT Partition Entry
 typedef struct {
     Guid partition_type_guid;
     Guid unique_guid;
-    uint64_t starting_lba;
-    uint64_t ending_lba;
-    uint64_t attributes;
-    U816_t name[36]; // UCS-2 (UTF-16 limited to code points 0x0000 - 0xFFFF)
+    U64 starting_lba;
+    U64 ending_lba;
+    U64 attributes;
+    U16 name[36]; // UCS-2 (UTF-16 limited to code points 0x0000 - 0xFFFF)
 } __attribute__((packed)) Gpt_Partition_Entry;
 
 // FAT32 Volume Boot Record (VBR)
 typedef struct {
-    uint8_t BS_jmpBoot[3];
-    uint8_t BS_OEMName[8];
-    uint16_t BPB_BytesPerSec;
-    uint8_t BPB_SecPerClus;
-    uint16_t BPB_RsvdSecCnt;
-    uint8_t BPB_NumFATs;
-    uint16_t BPB_RootEntCnt;
-    uint16_t BPB_TotSec16;
-    uint8_t BPB_Media;
-    uint16_t BPB_FATSz16;
-    uint16_t BPB_SecPerTrk;
-    uint16_t BPB_NumHeads;
-    uint32_t BPB_HiddSec;
-    uint32_t BPB_TotSec32;
-    uint32_t BPB_FATSz32;
-    uint16_t BPB_ExtFlags;
-    uint16_t BPB_FSVer;
-    uint32_t BPB_RootClus;
-    uint16_t BPB_FSInfo;
-    uint16_t BPB_BkBootSec;
-    uint8_t BPB_Reserved[12];
-    uint8_t BS_DrvNum;
-    uint8_t BS_Reserved1;
-    uint8_t BS_BootSig;
-    uint8_t BS_VolID[4];
-    uint8_t BS_VolLab[11];
-    uint8_t BS_FilSysType[8];
+    U8 BS_jmpBoot[3];
+    U8 BS_OEMName[8];
+    U16 BPB_BytesPerSec;
+    U8 BPB_SecPerClus;
+    U16 BPB_RsvdSecCnt;
+    U8 BPB_NumFATs;
+    U16 BPB_RootEntCnt;
+    U16 BPB_TotSec16;
+    U8 BPB_Media;
+    U16 BPB_FATSz16;
+    U16 BPB_SecPerTrk;
+    U16 BPB_NumHeads;
+    U32 BPB_HiddSec;
+    U32 BPB_TotSec32;
+    U32 BPB_FATSz32;
+    U16 BPB_ExtFlags;
+    U16 BPB_FSVer;
+    U32 BPB_RootClus;
+    U16 BPB_FSInfo;
+    U16 BPB_BkBootSec;
+    U8 BPB_Reserved[12];
+    U8 BS_DrvNum;
+    U8 BS_Reserved1;
+    U8 BS_BootSig;
+    U8 BS_VolID[4];
+    U8 BS_VolLab[11];
+    U8 BS_FilSysType[8];
 
     // Not in fatgen103.doc tables
-    uint8_t boot_code[510 - 90];
-    uint16_t bootsect_sig; // 0xAA55
+    U8 boot_code[510 - 90];
+    U16 bootsect_sig; // 0xAA55
 } __attribute__((packed)) Vbr;
 
 // FAT32 File System Info Sector
 typedef struct {
-    uint32_t FSI_LeadSig;
-    uint8_t FSI_Reserved1[480];
-    uint32_t FSI_StrucSig;
-    uint32_t FSI_Free_Count;
-    uint32_t FSI_Nxt_Free;
-    uint8_t FSI_Reserved2[12];
-    uint32_t FSI_TrailSig;
+    U32 FSI_LeadSig;
+    U8 FSI_Reserved1[480];
+    U32 FSI_StrucSig;
+    U32 FSI_Free_Count;
+    U32 FSI_Nxt_Free;
+    U8 FSI_Reserved2[12];
+    U32 FSI_TrailSig;
 } __attribute__((packed)) FSInfo;
 
 // FAT32 Directory Entry (Short Name)
 typedef struct {
-    uint8_t DIR_Name[11];
-    uint8_t DIR_Attr;
-    uint8_t DIR_NTRes;
-    uint8_t DIR_CrtTimeTenth;
-    uint16_t DIR_CrtTime;
-    uint16_t DIR_CrtDate;
-    uint16_t DIR_LstAccDate;
-    uint16_t DIR_FstClusHI;
-    uint16_t DIR_WrtTime;
-    uint16_t DIR_WrtDate;
-    uint16_t DIR_FstClusLO;
-    uint32_t DIR_FileSize;
+    U8 DIR_Name[11];
+    U8 DIR_Attr;
+    U8 DIR_NTRes;
+    U8 DIR_CrtTimeTenth;
+    U16 DIR_CrtTime;
+    U16 DIR_CrtDate;
+    U16 DIR_LstAccDate;
+    U16 DIR_FstClusHI;
+    U16 DIR_WrtTime;
+    U16 DIR_WrtDate;
+    U16 DIR_FstClusLO;
+    U32 DIR_FileSize;
 } __attribute__((packed)) FAT32_Dir_Entry_Short;
 
 // FAT32 Directory Entry Attributes
@@ -192,15 +186,15 @@ static constexpr auto MAX_FILE_LEN = (1 << 8);
 // Internal Options object for commandline args
 typedef struct {
     U8 *image_name;
-    uint16_t lba_size;
-    uint32_t esp_size;
-    uint32_t data_size;
+    U16 lba_size;
+    U32 esp_size;
+    U32 data_size;
     U8 esp_file_paths[MAX_FILES][MAX_FILE_LEN];
-    uint32_t num_esp_file_paths;
+    U32 num_esp_file_paths;
     FILE *esp_files[MAX_FILES];
     // TODO: why do esp files work with a file pointer and this exits later?
     U8 data_files[MAX_FILES][MAX_FILE_LEN];
-    uint32_t num_data_files;
+    U32 num_data_files;
 } Options;
 
 static Options options = {.image_name = "test.hdd",
@@ -230,13 +224,13 @@ enum {
 // -------------------------------------
 // Global Variables
 // -------------------------------------
-uint32_t image_size = 0;
-uint32_t esp_size_lbas = 0, data_size_lbas = 0, image_size_lbas = 0,
-         gpt_table_lbas = 0; // Sizes in lbas
-uint32_t align_lba = 0, esp_lba = 0, data_lba = 0, fat32_fats_lba = 0,
-         fat32_data_lba = 0; // Starting LBA values
+U32 image_size = 0;
+U32 esp_size_lbas = 0, data_size_lbas = 0, image_size_lbas = 0,
+    gpt_table_lbas = 0; // Sizes in lbas
+U32 align_lba = 0, esp_lba = 0, data_lba = 0, fat32_fats_lba = 0,
+    fat32_data_lba = 0; // Starting LBA values
 
-uint64_t bytes_to_lbas(const uint64_t bytes) {
+U64 bytes_to_lbas(const U64 bytes) {
     return (bytes + (options.lba_size - 1)) / options.lba_size;
 }
 
@@ -244,15 +238,15 @@ uint64_t bytes_to_lbas(const uint64_t bytes) {
 // Pad out 0s to full lba size
 // =====================================
 void write_full_options(FILE *image) {
-    uint8_t zero_sector[512];
-    for (uint8_t i = 0;
+    U8 zero_sector[512];
+    for (U8 i = 0;
          i < (options.lba_size - sizeof zero_sector) / sizeof zero_sector;
          i++) {
         checkedFwrite(zero_sector, sizeof zero_sector, image);
     }
 }
 
-uint64_t next_aligned_lba(const uint64_t lba) {
+U64 next_aligned_lba(const U64 lba) {
     return lba - (lba % align_lba) + align_lba;
 }
 
@@ -260,17 +254,17 @@ uint64_t next_aligned_lba(const uint64_t lba) {
 // Create a new Version 4 Variant 2 GUID
 // =====================================
 Guid new_guid(void) {
-    uint8_t rand_arr[16] = {0};
+    U8 rand_arr[16] = {0};
 
-    for (uint8_t i = 0; i < sizeof rand_arr; i++) {
+    for (U8 i = 0; i < sizeof rand_arr; i++) {
         rand_arr[i] = rand() & 0xFF; // Equivalent to modulo 256
     }
 
     // Fill out GUID
     Guid result = {
-        .time_lo = *(uint32_t *)&rand_arr[0],
-        .time_mid = *(uint16_t *)&rand_arr[4],
-        .time_hi_and_ver = *(uint16_t *)&rand_arr[6],
+        .time_lo = *(U32 *)&rand_arr[0],
+        .time_mid = *(U16 *)&rand_arr[4],
+        .time_hi_and_ver = *(U16 *)&rand_arr[6],
         .clock_seq_hi_and_res = rand_arr[8],
         .clock_seq_lo = rand_arr[9],
         .node = {rand_arr[10], rand_arr[11], rand_arr[12], rand_arr[13],
@@ -294,7 +288,7 @@ Guid new_guid(void) {
 // =====================================
 // Get new date/time values for FAT32 directory entries
 // =====================================
-void get_fat_dir_entry_time_date(uint16_t *in_time, uint16_t *in_date) {
+void get_fat_dir_entry_time_date(U16 *in_time, U16 *in_date) {
     time_t curr_time;
     curr_time = time(NULL);
     struct tm tm = *localtime(&curr_time);
@@ -303,20 +297,20 @@ void get_fat_dir_entry_time_date(uint16_t *in_time, uint16_t *in_date) {
     // since 1900,
     //   subtract 80 years for correct year value. Also convert month of year
     //   from 0-11 to 1-12 by adding 1
-    *in_date = (uint16_t)(((tm.tm_year - 80) << 9) | ((tm.tm_mon + 1) << 5) |
-                          tm.tm_mday);
+    *in_date =
+        (U16)(((tm.tm_year - 80) << 9) | ((tm.tm_mon + 1) << 5) | tm.tm_mday);
 
     // Seconds is # 2-second count, 0-29
     if (tm.tm_sec == 60)
         tm.tm_sec = 59;
-    *in_time = (uint16_t)(tm.tm_hour << 11 | tm.tm_min << 5 | (tm.tm_sec / 2));
+    *in_time = (U16)(tm.tm_hour << 11 | tm.tm_min << 5 | (tm.tm_sec / 2));
 }
 
 // =====================================
 // Write protective MBR
 // =====================================
 void write_mbr(FILE *image) {
-    uint64_t mbr_image_lbas = image_size_lbas;
+    U64 mbr_image_lbas = image_size_lbas;
     if (mbr_image_lbas > 0xFFFFFFFF) {
         mbr_image_lbas = 0x100000000;
     }
@@ -332,7 +326,7 @@ void write_mbr(FILE *image) {
                 .osType = 0xEE, // Protective GPT
                 .endingCHS = {0xFF, 0xFF, 0xFF},
                 .startingLBA = 0x00000001,
-                .sizeLBA = (uint32_t)(mbr_image_lbas - 1),
+                .sizeLBA = (U32)(mbr_image_lbas - 1),
             },
         .boot_signature = 0xAA55,
     };
@@ -427,7 +421,7 @@ void write_gpts(FILE *image) {
 void write_esp(FILE *image) {
     // Reserved sectors region --------------------------
     // Fill out Volume Boot Record (VBR)
-    uint8_t reserved_sectors = 32; // FAT32
+    U8 reserved_sectors = 32; // FAT32
     Vbr vbr = {
         .BS_jmpBoot = {0xEB, 0x00, 0x90},
         .BS_OEMName = {"THISDISK"},
@@ -503,12 +497,12 @@ void write_esp(FILE *image) {
 
     // FAT region --------------------------
     // Write FATs (NOTE: FATs will be mirrored)
-    for (uint8_t i = 0; i < vbr.BPB_NumFATs; i++) {
+    for (U8 i = 0; i < vbr.BPB_NumFATs; i++) {
         fseek(image,
               (fat32_fats_lba + (i * vbr.BPB_FATSz32)) * options.lba_size,
               SEEK_SET);
 
-        uint32_t cluster = 0;
+        U32 cluster = 0;
 
         // Cluster 0; FAT identifier, lowest 8 bits are the media type/byte
         cluster = 0xFFFFFF00 | vbr.BPB_Media;
@@ -562,7 +556,7 @@ void write_esp(FILE *image) {
         .DIR_FileSize = 0, // Directories have 0 file size
     };
 
-    uint16_t create_time = 0, create_date = 0;
+    U16 create_time = 0, create_date = 0;
     get_fat_dir_entry_time_date(&create_time, &create_date);
 
     dir_ent.DIR_CrtTime = create_time;
@@ -605,7 +599,7 @@ void write_esp(FILE *image) {
 // Add a new directory or file to a given parent directory
 // =============================
 bool add_file_to_esp(U8 *file_name, FILE *file, FILE *image, File_Type type,
-                     uint32_t *parent_dir_cluster) {
+                     U32 *parent_dir_cluster) {
     // First grab FAT32 filesystem info for VBR and File System info
     Vbr vbr = {0};
     fseek(image, esp_lba * options.lba_size, SEEK_SET);
@@ -622,7 +616,7 @@ bool add_file_to_esp(U8 *file_name, FILE *file, FILE *image, File_Type type,
     }
 
     // Get file size of file
-    uint64_t file_size_bytes = 0, file_size_lbas = 0;
+    U64 file_size_bytes = 0, file_size_lbas = 0;
     if (type == TYPE_FILE) {
         fseek(file, 0, SEEK_END);
         file_size_bytes = ftell(file);
@@ -631,21 +625,21 @@ bool add_file_to_esp(U8 *file_name, FILE *file, FILE *image, File_Type type,
     }
 
     // Get next free cluster in FATs
-    uint32_t next_free_cluster = fsinfo.FSI_Nxt_Free;
-    uint32_t starting_cluster =
+    U32 next_free_cluster = fsinfo.FSI_Nxt_Free;
+    U32 starting_cluster =
         next_free_cluster; // Starting cluster for new dir/file
 
     // Add new clusters to FATs
-    for (uint8_t i = 0; i < vbr.BPB_NumFATs; i++) {
+    for (U8 i = 0; i < vbr.BPB_NumFATs; i++) {
         fseek(image,
               (fat32_fats_lba + (i * vbr.BPB_FATSz32)) * options.lba_size,
               SEEK_SET);
         fseek(image, next_free_cluster * sizeof next_free_cluster, SEEK_CUR);
 
-        uint32_t cluster = fsinfo.FSI_Nxt_Free;
+        U32 cluster = fsinfo.FSI_Nxt_Free;
         next_free_cluster = cluster;
         if (type == TYPE_FILE) {
-            for (uint64_t lba = 0; lba < file_size_lbas - 1; lba++) {
+            for (U64 lba = 0; lba < file_size_lbas - 1; lba++) {
                 cluster++; // Each cluster points to next cluster of file data
                 next_free_cluster++;
                 checkedFwrite(&cluster, sizeof cluster, image);
@@ -683,7 +677,7 @@ bool add_file_to_esp(U8 *file_name, FILE *file, FILE *image, File_Type type,
 
     // Check name length for FAT 8.3 naming
     U8 *dot_pos = strchr(file_name, '.');
-    uint64_t name_len = strlen(file_name);
+    U64 name_len = strlen(file_name);
     if ((!dot_pos && name_len > 11) || (dot_pos && name_len > 12) ||
         (dot_pos && dot_pos - file_name > 8)) {
         return false; // Name is too long or invalid
@@ -697,12 +691,12 @@ bool add_file_to_esp(U8 *file_name, FILE *file, FILE *image, File_Type type,
            11); // Start with all spaces, name/ext will be space padded
 
     if (dot_pos) {
-        uint8_t i = 0;
+        U8 i = 0;
         // Name 8 portion of 8.3
         for (i = 0; i < (dot_pos - file_name); i++)
             dir_entry.DIR_Name[i] = file_name[i];
 
-        uint8_t j = i;
+        U8 j = i;
         while (i < 8)
             dir_entry.DIR_Name[i++] = ' ';
 
@@ -723,7 +717,7 @@ bool add_file_to_esp(U8 *file_name, FILE *file, FILE *image, File_Type type,
         dir_entry.DIR_Attr = ATTR_DIRECTORY;
     }
 
-    uint16_t fat_time, fat_date;
+    U16 fat_time, fat_date;
     get_fat_dir_entry_time_date(&fat_time, &fat_date);
     dir_entry.DIR_CrtTime = fat_time;
     dir_entry.DIR_CrtDate = fat_date;
@@ -734,7 +728,7 @@ bool add_file_to_esp(U8 *file_name, FILE *file, FILE *image, File_Type type,
     dir_entry.DIR_FstClusLO = starting_cluster & 0xFFFF;
 
     if (type == TYPE_FILE) {
-        dir_entry.DIR_FileSize = (uint32_t)file_size_bytes;
+        dir_entry.DIR_FileSize = (U32)file_size_bytes;
     }
 
     checkedFwrite(&dir_entry, sizeof dir_entry, image);
@@ -757,12 +751,12 @@ bool add_file_to_esp(U8 *file_name, FILE *file, FILE *image, File_Type type,
         checkedFwrite(&dir_entry, sizeof dir_entry, image);
     } else {
         // For file, add file data
-        uint8_t *file_buf = calloc(1, options.lba_size);
-        for (uint64_t i = 0; i < file_size_lbas; i++) {
+        U8 *file_buf = calloc(1, options.lba_size);
+        for (U64 i = 0; i < file_size_lbas; i++) {
             // In case last lba is less than a full lba in size, use actual
             // bytes read
             //   to write file to disk image
-            size_t bytes_read = fread(file_buf, 1, options.lba_size, file);
+            U64 bytes_read = fread(file_buf, 1, options.lba_size, file);
             checkedFwrite(file_buf, bytes_read, image);
         }
     }
@@ -789,8 +783,7 @@ bool add_path_to_esp(U8 *path, FILE *file, FILE *image) {
     File_Type type = TYPE_DIR;
     U8 *start = path + 1; // Skip initial slash
     U8 *end = start;
-    uint32_t dir_cluster =
-        2; // Next directory's cluster location; start at root
+    U32 dir_cluster = 2; // Next directory's cluster location; start at root
 
     // Get next name from path, until reached end of path for file to add
     while (type == TYPE_DIR) {
@@ -877,7 +870,7 @@ bool add_disk_image_info_file(FILE *image) {
 // =============================
 bool add_file_to_data_partition(U8 *filepath, FILE *image) {
     // Will save location of next spot to put a file in
-    static uint64_t starting_lba = 0;
+    static U64 starting_lba = 0;
 
     // Go to data partition
     fseek(image, (data_lba + starting_lba) * options.lba_size, SEEK_SET);
@@ -889,7 +882,7 @@ bool add_file_to_data_partition(U8 *filepath, FILE *image) {
     }
 
     // Get file size
-    uint64_t file_size_bytes = 0, file_size_lbas = 0;
+    U64 file_size_bytes = 0, file_size_lbas = 0;
     fseek(fp, 0, SEEK_END);
     file_size_bytes = ftell(fp);
     file_size_lbas = bytes_to_lbas(file_size_bytes);
@@ -906,9 +899,9 @@ bool add_file_to_data_partition(U8 *filepath, FILE *image) {
                 filepath, options.data_size, data_size_lbas);
     }
 
-    uint8_t *file_buf = calloc(1, options.lba_size);
-    for (uint64_t i = 0; i < file_size_lbas; i++) {
-        uint64_t bytes_read = fread(file_buf, 1, options.lba_size, fp);
+    U8 *file_buf = calloc(1, options.lba_size);
+    for (U64 i = 0; i < file_size_lbas; i++) {
+        U64 bytes_read = fread(file_buf, 1, options.lba_size, fp);
         checkedFwrite(file_buf, bytes_read, image);
     }
     fclose(fp);
@@ -968,52 +961,52 @@ void writeUEFIImage() {
     //   2 GPT tables
     //   MBR
     //   GPT headers
-    uint32_t padding =
+    U32 padding =
         (ALIGNMENT * 2 + (options.lba_size * ((gpt_table_lbas * 2) + 1 + 2)));
     image_size = options.esp_size + options.data_size + padding;
-    image_size_lbas = (uint32_t)bytes_to_lbas(image_size);
+    image_size_lbas = (U32)bytes_to_lbas(image_size);
     align_lba = ALIGNMENT / options.lba_size;
     esp_lba = align_lba;
-    esp_size_lbas = (uint32_t)bytes_to_lbas(options.esp_size);
-    data_size_lbas = (uint32_t)bytes_to_lbas(options.data_size);
-    data_lba = (uint32_t)next_aligned_lba(esp_lba + esp_size_lbas);
+    esp_size_lbas = (U32)bytes_to_lbas(options.esp_size);
+    data_size_lbas = (U32)bytes_to_lbas(options.data_size);
+    data_lba = (U32)next_aligned_lba(esp_lba + esp_size_lbas);
 
     // Open image file
     image = fopen(options.image_name, "wb+e");
     if (!image) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Error: could not open file "));
-            FLO_ERROR(options.image_name, FLO_NEWLINE);
+        FLUSH_AFTER(STDERR) {
+            ERROR(STRING("Error: could not open file "));
+            ERROR(options.image_name, NEWLINE);
         }
         __builtin_longjmp(fileCloser, 1);
     }
 
     // Print info on sizes and image for user
-    FLO_FLUSH_AFTER(FLO_STDOUT) {
-        FLO_INFO("IMAGE NAME: ");
-        FLO_INFO(options.image_name, FLO_NEWLINE);
+    FLUSH_AFTER(STDOUT) {
+        INFO(STRING("IMAGE NAME: "));
+        INFO(options.image_name, NEWLINE);
 
-        FLO_INFO("LBA SIZE: ");
-        FLO_INFO(options.lba_size, FLO_NEWLINE);
+        INFO(STRING("LBA SIZE: "));
+        INFO(options.lba_size, NEWLINE);
 
-        FLO_INFO("ESP SIZE: ");
-        FLO_INFO(options.esp_size / ALIGNMENT);
-        FLO_INFO("MiB\n");
+        INFO(STRING("ESP SIZE: "));
+        INFO(options.esp_size / ALIGNMENT);
+        INFO(STRING("MiB\n"));
 
-        FLO_INFO("DATA SIZE: ");
-        FLO_INFO(options.data_size / ALIGNMENT);
-        FLO_INFO("MiB\n");
+        INFO(STRING("DATA SIZE: "));
+        INFO(options.data_size / ALIGNMENT);
+        INFO(STRING("MiB\n"));
 
-        FLO_INFO("PADDING: ");
-        FLO_INFO(padding / ALIGNMENT);
-        FLO_INFO("MiB\n");
+        INFO(STRING("PADDING: "));
+        INFO(padding / ALIGNMENT);
+        INFO(STRING("MiB\n"));
 
-        FLO_INFO("IMAGE SIZE: ");
-        FLO_INFO(image_size / ALIGNMENT);
-        FLO_INFO("MiB\n");
+        INFO(STRING("IMAGE SIZE: "));
+        INFO(image_size / ALIGNMENT);
+        INFO(STRING("MiB\n"));
     }
 
-    srand((uint32_t)time(NULL));
+    srand((U32)time(NULL));
 
     write_mbr(image);
 
@@ -1023,7 +1016,7 @@ void writeUEFIImage() {
 
     if (options.num_esp_file_paths > 0) {
         // Add file paths to EFI System Partition
-        for (uint32_t i = 0; i < options.num_esp_file_paths; i++) {
+        for (U32 i = 0; i < options.num_esp_file_paths; i++) {
             if (!add_path_to_esp(options.esp_file_paths[i],
                                  options.esp_files[i], image)) {
                 fprintf(stderr, "ERROR: Could not add '%s' to ESP\n",
@@ -1035,7 +1028,7 @@ void writeUEFIImage() {
 
     if (options.num_data_files > 0) {
         // Add file paths to Basic Data Partition
-        for (uint32_t i = 0; i < options.num_data_files; i++) {
+        for (U32 i = 0; i < options.num_data_files; i++) {
             if (!add_file_to_data_partition(options.data_files[i], image)) {
                 fprintf(stderr,
                         "ERROR: Could not add file '%s' to data partition\n",
@@ -1062,9 +1055,9 @@ void writeUEFIImage() {
 
     // Pad file to next 4KiB aligned size
     fseek(image, 0, SEEK_END);
-    uint64_t current_size = ftell(image);
-    uint64_t new_size = current_size - (current_size % 4096) + 4096;
-    uint8_t byte = 0;
+    U64 current_size = ftell(image);
+    U64 new_size = current_size - (current_size % 4096) + 4096;
+    U8 byte = 0;
 
     // No vhd footer
     fseek(image, new_size - 1, SEEK_SET);
@@ -1073,7 +1066,7 @@ void writeUEFIImage() {
     // Add disk image info file to hold at minimum the size of this disk image;
     //   this could be used in an EFI application later as part of an installer,
     //   for example
-    image_size = (uint32_t)new_size; // Image size is used to write info file
+    image_size = (U32)new_size; // Image size is used to write info file
     if (!add_disk_image_info_file(image)) {
         fprintf(stderr, "Error: Could not add disk image info file to '%s'\n",
                 options.image_name);
@@ -1086,13 +1079,17 @@ void writeUEFIImage() {
 // =============================
 // MAIN
 // =============================
-int main(int argc, U8 *argv[]) {
+int main(int argc, char *argv[]) {
     if (__builtin_setjmp(fileCloser)) {
-        for (ptrdiff_t i = 0; i < openedFiles.len; i++) {
+        for (U64 i = 0; i < openedFiles.len; i++) {
             if (fclose(openedFiles.buf[i])) {
-                FLO_FLUSH_AFTER(FLO_STDERR) {
-                    FLO_ERROR(FLO_STRING("Failed to close FILE*\n"));
-                    FLO_APPEND_ERRNO
+                FLUSH_AFTER(STDERR) {
+                    ERROR(STRING("Failed to close FILE*\n"));
+                    LOG(STRING("Error code: "));
+                    LOG(errno, NEWLINE);
+                    LOG(STRING("Error message: "));
+                    U8 *errorString = strerror(errno);
+                    LOG(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
                 }
             }
         }
@@ -1100,120 +1097,116 @@ int main(int argc, U8 *argv[]) {
     }
 
     U8 *begin = mmap(NULL, memoryCap, PROT_READ | PROT_WRITE,
-                       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (begin == MAP_FAILED) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Failed to allocate memory!\n"));
-            FLO_APPEND_ERRNO
+        FLUSH_AFTER(STDERR) {
+            ERROR(STRING("Failed to allocate memory!\n"));
+            LOG(STRING("Error code: "));
+            LOG(errno, NEWLINE);
+            LOG(STRING("Error message: "));
+            U8 *errorString = strerror(errno);
+            LOG(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
         }
         return 1;
     }
 
-    flo_arena arena = (flo_arena){
-        .beg = begin, .cap = memoryCap, .end = begin + (ptrdiff_t)(memoryCap)};
+    Arena arena =
+        (Arena){.beg = begin, .curFree = begin, .end = begin + memoryCap};
 
     if (__builtin_setjmp(memoryErrors)) {
-        if (munmap(arena.beg, arena.cap) == -1) {
-            FLO_FLUSH_AFTER(FLO_STDERR) {
-                FLO_ERROR((FLO_STRING("Failed to unmap memory from"
-                                      "arena !\n "
-                                      "Arena Details:\n"
-                                      "  beg: ")));
-                FLO_ERROR(arena.beg);
-                FLO_ERROR((FLO_STRING("\n end: ")));
-                FLO_ERROR(arena.end);
-                FLO_ERROR((FLO_STRING("\n cap: ")));
-                FLO_ERROR(arena.cap);
-                FLO_ERROR((FLO_STRING("\nZeroing Arena regardless.\n")));
+        if (munmap(arena.beg, memoryCap) == -1) {
+            FLUSH_AFTER(STDERR) {
+                ERROR((STRING("Failed to unmap memory from"
+                              "arena !\n "
+                              "Arena Details:\n"
+                              "  beg: ")));
+                ERROR(arena.beg);
+                ERROR((STRING("\n end: ")));
+                ERROR(arena.end);
+                ERROR((STRING("\n cap: ")));
+                ERROR(memoryCap);
+                ERROR((STRING("\nZeroing Arena regardless.\n")));
             }
         }
-        arena.beg = NULL;
-        arena.end = NULL;
-        arena.cap = 0;
-        arena.jmp_buf = NULL;
-        FLO_ERROR(
-            (FLO_STRING("Early exit due to error or OOM/overflow in arena!\n")),
-            FLO_FLUSH);
+        arena = (Arena){0};
+        ERROR((STRING("Early exit due to error or OOM/overflow in arena!\n")),
+              FLUSH);
         __builtin_longjmp(fileCloser, 1);
     }
     arena.jmp_buf = memoryErrors;
 
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
-            FLO_FLUSH_AFTER(FLO_STDOUT) {
-                FLO_INFO(argv[0]);
-                FLO_INFO(FLO_STRING(" [options]\n\noptions:\n"));
+            FLUSH_AFTER(STDOUT) {
+                INFO(STRING_LEN(argv[0], strlen(argv[0])));
+                INFO(STRING(" [options]\n\noptions:\n"));
 
                 // add data files
-                FLO_INFO(
-                    FLO_STRING("-ad --add-data-files\tAdd local files to the "
-                               "basic data partition, annd create a\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING("<DATAFLS.INF> file in the directory "
-                                    "'/EFI/BOOT/' in the ESP.\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING(
-                    "This INF will hold info for each file added.\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(
-                    FLO_STRING("e.g: '-ad info.txt ../folderA/kernel.bin'.\n"));
+                INFO(STRING("-ad --add-data-files\tAdd local files to the "
+                            "basic data partition, annd create a\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("<DATAFLS.INF> file in the directory "
+                            "'/EFI/BOOT/' in the ESP.\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("This INF will hold info for each file added.\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("e.g: '-ad info.txt ../folderA/kernel.bin'.\n"));
 
                 // add esp files
-                FLO_INFO(FLO_STRING("-ae --add-esp-files\tAdd local files to "
-                                    "the generated EFI System Partition.\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING(
+                INFO(STRING("-ae --add-esp-files\tAdd local files to "
+                            "the generated EFI System Partition.\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING(
                     "File paths must start under root '/' and end with a \n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING("slash '/', and all dir/file names are "
-                                    "limited to FAT 8.3\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING("naming. Each file is added in 2 parts; "
-                                    "The 1st arg for\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING(
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("slash '/', and all dir/file names are "
+                            "limited to FAT 8.3\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("naming. Each file is added in 2 parts; "
+                            "The 1st arg for\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING(
                     "the path, and the 2nd arg for the file to add to that\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING("path. ex: '-ae /EFI/BOOT/ file1.txt' "
-                                    "will add the local\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING("file 'file1.txt' to the ESP under the "
-                                    "path '/EFI/BOOT/'.\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING(
-                    "To add multiple files (up to 10), use multiple\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING("<path> <file> args.\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING(
-                    "ex: '-ae /DIR1/ FILE1.TXT /DIR2/ FILE2.TXT'.\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("path. ex: '-ae /EFI/BOOT/ file1.txt' "
+                            "will add the local\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("file 'file1.txt' to the ESP under the "
+                            "path '/EFI/BOOT/'.\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(
+                    STRING("To add multiple files (up to 10), use multiple\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("<path> <file> args.\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("ex: '-ae /DIR1/ FILE1.TXT /DIR2/ FILE2.TXT'.\n"));
 
                 // set data size
-                FLO_INFO(FLO_STRING("-ds --data-size\tSet the size of the "
-                                    "Basic Data Partition in MiB; Minimum\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING("size is 1 MiB\n"));
+                INFO(STRING("-ds --data-size\tSet the size of the "
+                            "Basic Data Partition in MiB; Minimum\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("size is 1 MiB\n"));
 
                 // set esp size
-                FLO_INFO(FLO_STRING("-es --esp-size\t\tSet the size of the "
-                                    "EFI System Partition in MiB\n"));
+                INFO(STRING("-es --esp-size\t\tSet the size of the "
+                            "EFI System Partition in MiB\n"));
 
                 // set lba size
-                FLO_INFO(FLO_STRING("-l --lba-size\t\tSet the lba (sector) "
-                                    "size in bytes; This is \n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING("experimental, as tools are lacking for "
-                                    "proper testing.\n"));
-                FLO_INFO(FLO_STRING("\t\t\t"));
-                FLO_INFO(FLO_STRING("experimental, as tools are lacking Valid "
-                                    "sizes: 512/1024/2048/4096\n"));
+                INFO(STRING("-l --lba-size\t\tSet the lba (sector) "
+                            "size in bytes; This is \n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("experimental, as tools are lacking for "
+                            "proper testing.\n"));
+                INFO(STRING("\t\t\t"));
+                INFO(STRING("experimental, as tools are lacking Valid "
+                            "sizes: 512/1024/2048/4096\n"));
 
                 // set image name
-                FLO_INFO(FLO_STRING("-i --image-name\t\tSet the image name. "
-                                    "Default name is 'test.hdd'\n"));
+                INFO(STRING("-i --image-name\t\tSet the image name. "
+                            "Default name is 'test.hdd'\n"));
 
                 // help
-                FLO_INFO(FLO_STRING("-h --help\t\tPrint this help text\n"));
+                INFO(STRING("-h --help\t\tPrint this help text\n"));
             }
             return 1;
         }
@@ -1232,15 +1225,14 @@ int main(int argc, U8 *argv[]) {
                 return 1;
             }
 
-            uint16_t lba_size = (uint16_t)strtol(argv[i], NULL, 10);
+            U16 lba_size = (U16)strtol(argv[i], NULL, 10);
 
             if (lba_size != 512 && lba_size != 1024 && lba_size != 2048 &&
                 lba_size != 4096) {
-                FLO_FLUSH_AFTER(FLO_STDERR) {
-                    FLO_ERROR(FLO_STRING("Error: Invalid LBA size of "));
-                    FLO_ERROR(lba_size);
-                    FLO_ERROR(
-                        FLO_STRING(", must be one of 512/1024/2048/4096\n"));
+                FLUSH_AFTER(STDERR) {
+                    ERROR(STRING("Error: Invalid LBA size of "));
+                    ERROR(lba_size);
+                    ERROR(STRING(", must be one of 512/1024/2048/4096\n"));
                 }
 
                 return 1;
@@ -1256,7 +1248,7 @@ int main(int argc, U8 *argv[]) {
                 return 1;
             }
 
-            options.esp_size = ALIGNMENT * (uint32_t)strtol(argv[i], NULL, 10);
+            options.esp_size = ALIGNMENT * (U32)strtol(argv[i], NULL, 10);
 
             continue;
         }
@@ -1266,15 +1258,15 @@ int main(int argc, U8 *argv[]) {
                 return 1;
             }
 
-            options.data_size = ALIGNMENT * (uint32_t)strtol(argv[i], NULL, 10);
+            options.data_size = ALIGNMENT * (U32)strtol(argv[i], NULL, 10);
             continue;
         }
 
         if (!strcmp(argv[i], "-ae") || !strcmp(argv[i], "--add-esp-files")) {
             if (i + 2 >= argc) {
-                FLO_FLUSH_AFTER(FLO_STDERR) {
-                    FLO_ERROR(FLO_STRING("Error: Must include at least 1 path "
-                                         "and 1 file to add to ESP\n"));
+                FLUSH_AFTER(STDERR) {
+                    ERROR(STRING("Error: Must include at least 1 path "
+                                 "and 1 file to add to ESP\n"));
                 }
 
                 return 1;
@@ -1293,10 +1285,9 @@ int main(int argc, U8 *argv[]) {
                 // Ensure path starts and ends with a slash '/'
                 if ((argv[i][0] != '/') ||
                     (argv[i][strlen(argv[i]) - 1] != '/')) {
-                    FLO_FLUSH_AFTER(FLO_STDERR) {
-                        FLO_ERROR(FLO_STRING(
-                            "Error: All file paths to add to ESP must "
-                            "start and end with slash '/'\n"));
+                    FLUSH_AFTER(STDERR) {
+                        ERROR(STRING("Error: All file paths to add to ESP must "
+                                     "start and end with slash '/'\n"));
                     }
                     return 1;
                 }
@@ -1306,9 +1297,9 @@ int main(int argc, U8 *argv[]) {
                 options.esp_files[options.num_esp_file_paths] =
                     fopen(argv[i], "rbe");
                 if (!options.esp_files[options.num_esp_file_paths]) {
-                    FLO_FLUSH_AFTER(FLO_STDERR) {
-                        FLO_ERROR(FLO_STRING("Error: Could not fopen file "));
-                        FLO_ERROR(argv[i], FLO_NEWLINE);
+                    FLUSH_AFTER(STDERR) {
+                        ERROR(STRING("Error: Could not fopen file "));
+                        ERROR(STRING_LEN(argv[i], strlen(argv[1])), NEWLINE);
                     }
 
                     return 1;
@@ -1328,10 +1319,10 @@ int main(int argc, U8 *argv[]) {
                 }
 
                 if (++options.num_esp_file_paths == MAX_FILES) {
-                    FLO_FLUSH_AFTER(FLO_STDERR) {
-                        FLO_ERROR(FLO_STRING(
+                    FLUSH_AFTER(STDERR) {
+                        ERROR(STRING(
                             "Error: Number of ESP files to add must be <= "));
-                        FLO_ERROR(MAX_FILES, FLO_NEWLINE);
+                        ERROR(MAX_FILES, NEWLINE);
                     }
 
                     return 1;
@@ -1356,10 +1347,10 @@ int main(int argc, U8 *argv[]) {
                         MAX_FILE_LEN - 1);
 
                 if (++options.num_data_files == MAX_FILES) {
-                    FLO_FLUSH_AFTER(FLO_STDERR) {
-                        FLO_ERROR(FLO_STRING("Error: Number of Data Parition "
-                                             "files to add must be <= "));
-                        FLO_ERROR(MAX_FILES, FLO_NEWLINE);
+                    FLUSH_AFTER(STDERR) {
+                        ERROR(STRING("Error: Number of Data Parition "
+                                     "files to add must be <= "));
+                        ERROR(MAX_FILES, NEWLINE);
                     }
 
                     return 1;
@@ -1377,10 +1368,9 @@ int main(int argc, U8 *argv[]) {
         (options.lba_size == 1024 && options.esp_size < 65) ||
         (options.lba_size == 2048 && options.esp_size < 129) ||
         (options.lba_size == 4096 && options.esp_size < 257)) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(
-                FLO_STRING("Error: ESP Must be a minimum of 33/65/129/257 MiB "
-                           "for LBA sizes 512/1024/2048/4096 respectively\n"));
+        FLUSH_AFTER(STDERR) {
+            ERROR(STRING("Error: ESP Must be a minimum of 33/65/129/257 MiB "
+                         "for LBA sizes 512/1024/2048/4096 respectively\n"));
         }
 
         return 1;

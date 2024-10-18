@@ -1,17 +1,6 @@
-project(shared-hash LANGUAGES C ASM)
+project(posix-file LANGUAGES C ASM)
 
-add_library(
-    ${PROJECT_NAME}
-    OBJECT
-    "src/msi/common.c"
-    "src/msi/string-set.c"
-    "src/msi/u16-set.c"
-    "src/trie/string-set.c"
-    "src/trie/string-u16-map.c"
-    "src/trie/uint16-set.c"
-    "src/trie/string-auto-u16-map.c"
-    "src/hash-comparison-status.c"
-)
+add_library(${PROJECT_NAME} OBJECT "src/path.c" "src/read.c")
 
 target_include_directories(
     ${PROJECT_NAME}
@@ -25,3 +14,5 @@ target_include_directories(
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-allocator)
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-manipulation)
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-text)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC posix-log)

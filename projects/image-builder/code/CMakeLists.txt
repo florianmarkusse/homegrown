@@ -3,8 +3,6 @@ project(image-builder LANGUAGES C ASM)
 include("../../setup.cmake")
 include("../../print-configuration.cmake")
 
-add_subdirectory(util)
-
 add_executable(${PROJECT_NAME} "src/main.c")
 
 target_include_directories(
@@ -16,5 +14,3 @@ target_include_directories(
     ${PROJECT_NAME}
     PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
-
-target_link_libraries(${PROJECT_NAME} PRIVATE util)

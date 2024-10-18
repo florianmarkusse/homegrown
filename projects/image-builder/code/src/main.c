@@ -1,7 +1,5 @@
 #include "interoperation/memory/sizes.h"
 #include "interoperation/types.h"
-#include "util/log.h"
-#include "util/text/string.h" // for FLO_STRING
 #include <sys/mman.h>
 
 // MBR Partition
@@ -26,18 +24,18 @@ typedef struct {
 static constexpr auto MEMORY_CAP = 1 * GiB;
 
 int main() {
-    char *begin = mmap(NULL, MEMORY_CAP, PROT_READ | PROT_WRITE,
-                       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (begin == MAP_FAILED) {
-        FLO_FLUSH_AFTER(FLO_STDERR) {
-            FLO_ERROR(FLO_STRING("Failed to allocate memory!\n"));
-        }
-        return 1;
-    }
-
-    flo_arena arena = (flo_arena){.beg = begin,
-                                  .cap = MEMORY_CAP,
-                                  .end = begin + (ptrdiff_t)(MEMORY_CAP)};
+    /*char *begin = mmap(NULL, MEMORY_CAP, PROT_READ | PROT_WRITE,*/
+    /*                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);*/
+    /*if (begin == MAP_FAILED) {*/
+    /*    FLO_FLUSH_AFTER(FLO_STDERR) {*/
+    /*        FLO_ERROR(FLO_STRING("Failed to allocate memory!\n"));*/
+    /*    }*/
+    /*    return 1;*/
+    /*}*/
+    /**/
+    /*flo_arena arena = (flo_arena){.beg = begin,*/
+    /*                              .cap = MEMORY_CAP,*/
+    /*                              .end = begin + (ptrdiff_t)(MEMORY_CAP)};*/
 
     /*if (__builtin_setjmp(memoryErrors)) {*/
     /*    if (munmap(arena.beg, arena.cap) == -1) {*/
@@ -66,7 +64,7 @@ int main() {
     /*}*/
     /*arena.jmp_buf = memoryErrors;*/
 
-    FLO_FLUSH_AFTER(FLO_STDOUT) { FLO_LOG(FLO_STRING("hi there\n")); }
+    /*FLO_FLUSH_AFTER(FLO_STDOUT) { FLO_LOG(FLO_STRING("hi there\n")); }*/
 
     return 0;
 }

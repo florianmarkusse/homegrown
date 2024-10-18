@@ -11,6 +11,7 @@ add_subdirectory(memory)
 add_subdirectory(maths)
 add_subdirectory(buffer)
 add_subdirectory(hash)
+add_subdirectory(dynamic-array)
 
 # install(
 #     EXPORT sharedTargets
