@@ -21,6 +21,8 @@ add_subdirectory(
     "${CMAKE_CURRENT_BINARY_DIR}/shared"
 )
 
+add_subdirectory("${REPO_PROJECTS}/x86/code" "${CMAKE_CURRENT_BINARY_DIR}/x86")
+
 add_subdirectory("cpu")
 add_subdirectory("memory")
 add_subdirectory("status")

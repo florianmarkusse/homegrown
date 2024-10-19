@@ -5,6 +5,7 @@
 #include "interoperation/memory/definitions.h"
 #include "interoperation/types.h"
 #include "memory/management/definitions.h"
+#include "x86/memory/page.h"
 
 typedef struct {
     U64 address : 48;

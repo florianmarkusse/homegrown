@@ -1,10 +1,10 @@
 #include "status/idt/status.h"
 
 #include "cpu/idt.h"
-#include "log/log.h"
-#include "shared/text/string.h"
+#include "interoperation/log.h"
 #include "interoperation/types.h"
 #include "shared/text/converter.h"
+#include "shared/text/string.h"
 
 static string faultToString[FAULT_NUMS] = {
     STRING("Divide Error"),

@@ -1,6 +1,7 @@
 #include "test/physical.h"
 #include "cpu/idt.h"
 #include "interoperation/kernel-parameters.h"
+#include "interoperation/log.h"
 #include "interoperation/macros.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"

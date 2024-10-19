@@ -1,8 +1,9 @@
 #ifndef MEMORY_MANAGEMENT_POLICY_H
 #define MEMORY_MANAGEMENT_POLICY_H
 
-#include "memory/management/definitions.h"
 #include "interoperation/types.h"
+#include "memory/management/definitions.h"
+#include "x86/memory/page.h"
 
 void *allocContiguousAndMap(U64 numberOfPages, PageSize pageSize);
 void *allocAndMapExplicit(PagedMemory_a request, PageSize pageSize);

@@ -1,11 +1,12 @@
 #include "memory/management/physical.h"
-#include "cpu/idt.h"                           // for triggerFault, FAULT_N...
+#include "cpu/idt.h" // for triggerFault, FAULT_N...
+#include "interoperation/assert.h"
 #include "interoperation/kernel-parameters.h"  // for KernelMemory
+#include "interoperation/log.h"                // for U64, U32, U8
 #include "interoperation/memory/definitions.h" // for PAGE_FRAME_SIZE
 #include "interoperation/memory/descriptor.h"
 #include "interoperation/types.h" // for U64, U32, U8
 #include "memory/manipulation/manipulation.h"
-#include "interoperation/assert.h"
 #include "shared/maths/maths.h"
 
 PhysicalMemoryManager basePMM;
