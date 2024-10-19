@@ -12,6 +12,5 @@ target_include_directories(
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC peripheral-screen)
-target_link_libraries(${PROJECT_NAME} PUBLIC log)
 target_link_libraries(${PROJECT_NAME} PUBLIC cpu)
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-text)

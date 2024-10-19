@@ -1,7 +1,8 @@
 #include "crc32-table.h"           // for calculateCRC32
 #include "interoperation/array.h"  // for ASSERT
 #include "interoperation/assert.h" // for ASSERT
-#include "posix/log/log.h"         // for LOG_CHOOSER_IMPL_2, INFO, FLO...
+#include "interoperation/log.h"
+#include "posix/log/log.h" // for LOG_CHOOSER_IMPL_2, INFO, FLO...
 #include "shared/dynamic-array/dynamic-array.h" // for MAX_LENGTH_ARRAY
 #include "shared/memory/allocator/arena.h"      // for arena
 #include "shared/text/string.h"                 // for STRING
