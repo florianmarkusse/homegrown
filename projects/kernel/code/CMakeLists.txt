@@ -91,6 +91,7 @@ add_custom_target(
         $<TARGET_OBJECTS:memory-management> $<TARGET_OBJECTS:log>
         $<TARGET_OBJECTS:peripheral-screen> $<TARGET_OBJECTS:status-memory>
         $<TARGET_OBJECTS:shared-memory-allocator> $<TARGET_OBJECTS:x86-memory>
+        $<TARGET_OBJECTS:shared-text>
     COMMAND
         objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME} >
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.asm

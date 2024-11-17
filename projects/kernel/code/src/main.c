@@ -1,5 +1,6 @@
-#include "cpu/idt.h"                           // for setupIDT
-#include "interoperation/kernel-parameters.h"  // for KernelParameters
+#include "cpu/idt.h"                          // for setupIDT
+#include "interoperation/kernel-parameters.h" // for KernelParameters
+#include "interoperation/log.h"
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
 #include "interoperation/memory/sizes.h"
 #include "interoperation/types.h" // for U32
@@ -35,7 +36,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                           .end = initMemory + INIT_MEMORY};
     void *jumper[5];
     if (__builtin_setjmp(jumper)) {
-        /*FLUSH_AFTER { LOG(STRING("Ran out of init memory capacity\n")); }*/
+        FLUSH_AFTER { LOG(STRING("Ran out of init memory capacity\n")); }
         while (1) {
             ;
         }
@@ -50,6 +51,8 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                                  .screen = (U32 *)kernelParameters->fb.ptr},
                &arena);
     freeMapped((U64)arena.curFree, arena.end - arena.curFree);
+
+    FLUSH_AFTER { LOG(STRING("HELLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n")); }
 
     FLUSH_AFTER {
         //
