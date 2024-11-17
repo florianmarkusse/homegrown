@@ -25,14 +25,19 @@ add_subdirectory(
 
 add_subdirectory("${REPO_PROJECTS}/x86/code" "${CMAKE_CURRENT_BINARY_DIR}/x86")
 
-add_subdirectory("cpu")
-add_subdirectory("memory")
-
 if("${UNIT_TEST_BUILD}")
     add_subdirectory(
         "${REPO_PROJECTS}/posix/code"
         "${CMAKE_CURRENT_BINARY_DIR}/posix"
     )
+    return()
+endif()
+
+add_subdirectory("cpu")
+add_subdirectory("memory")
+add_subdirectory("status")
+
+if("${UNIT_TEST_BUILD}")
     return()
 endif()
 
@@ -42,7 +47,6 @@ endif()
 
 add_subdirectory("log")
 add_subdirectory("peripheral")
-add_subdirectory("status")
 
 add_library(${PROJECT_NAME} OBJECT "src/main.c")
 
