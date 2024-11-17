@@ -8,7 +8,7 @@ endif()
 
 add_library(
     ${PROJECT_NAME}
-    STATIC
+    OBJECT
     "src/physical.c"
     "src/virtual.c"
     "src/policy.c"

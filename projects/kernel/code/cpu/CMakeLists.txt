@@ -14,7 +14,7 @@ else()
     )
 endif()
 
-add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
+add_library(${PROJECT_NAME} OBJECT ${SOURCE_FILES})
 
 if("${UNIT_TEST_BUILD}")
     target_link_libraries(${PROJECT_NAME} PRIVATE util)

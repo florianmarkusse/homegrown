@@ -1,6 +1,6 @@
 project(status-memory LANGUAGES C ASM)
 
-add_library(${PROJECT_NAME} STATIC "src/memory.c")
+add_library(${PROJECT_NAME} OBJECT "src/memory.c")
 
 target_include_directories(
     ${PROJECT_NAME}
@@ -13,5 +13,6 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PUBLIC cpu)
 target_link_libraries(${PROJECT_NAME} PUBLIC memory-management)
+target_link_libraries(${PROJECT_NAME} PUBLIC log)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-text)

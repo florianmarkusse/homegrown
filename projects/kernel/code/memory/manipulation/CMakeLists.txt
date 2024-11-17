@@ -1,6 +1,6 @@
 project(memory-manipulation LANGUAGES C ASM)
 
-add_library(${PROJECT_NAME} STATIC "src/manipulation.c")
+add_library(${PROJECT_NAME} OBJECT "src/manipulation.c")
 
 target_include_directories(
     ${PROJECT_NAME}

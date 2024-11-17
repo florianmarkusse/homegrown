@@ -3,9 +3,9 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 project(kernel LANGUAGES C ASM)
 include("../../setup.cmake")
 
-set(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}/kernel/resources"
-)
+# set(CMAKE_C_FLAGS
+#     "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}/kernel/resources"
+# )
 if(NOT "${UNIT_TEST_BUILD}")
     set(CMAKE_C_FLAGS
         # TODO: SSE is still broken!!!
@@ -25,7 +25,6 @@ add_subdirectory("${REPO_PROJECTS}/x86/code" "${CMAKE_CURRENT_BINARY_DIR}/x86")
 
 add_subdirectory("cpu")
 add_subdirectory("memory")
-add_subdirectory("status")
 
 if("${UNIT_TEST_BUILD}")
     add_subdirectory(
@@ -41,6 +40,7 @@ endif()
 
 add_subdirectory("log")
 add_subdirectory("peripheral")
+add_subdirectory("status")
 
 add_library(${PROJECT_NAME} OBJECT "src/main.c")
 
@@ -86,7 +86,11 @@ add_custom_target(
         ${CMAKE_LINKER} -n -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
         -o ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
         $<TARGET_OBJECTS:${PROJECT_NAME}> ${RESOURCE_OBJECTS}
-        ${LINKING_LIBRARIES_LOCATIONS}
+        $<TARGET_OBJECTS:shared-maths> $<TARGET_OBJECTS:cpu>
+        $<TARGET_OBJECTS:memory-management> $<TARGET_OBJECTS:log>
+        $<TARGET_OBJECTS:peripheral-screen> $<TARGET_OBJECTS:status-memory>
+        $<TARGET_OBJECTS:shared-memory-manipulation>
+        $<TARGET_OBJECTS:shared-memory-allocator> $<TARGET_OBJECTS:x86-memory>
     COMMAND
         objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME} >
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.asm

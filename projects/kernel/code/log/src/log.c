@@ -1,5 +1,6 @@
 #include "log/log.h"
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
+#include "interoperation/log.h"
 #include "interoperation/memory/sizes.h"
 #include "interoperation/types.h"
 #include "memory/manipulation/manipulation.h"
@@ -8,14 +9,10 @@
 #include "shared/memory/allocator/arena.h"
 #include "shared/text/string.h"
 
-// TODO: Do we want to just have this as static memory in unit tests???
-// TODO: Idea is to have a single flush buffer per thread and have it flush to
-// the file buffer sometimes.
 static constexpr auto FLUSH_BUFFER_SIZE = (2 * MiB);
 
 static U8_max_a flushBuf;
 
-// TODO: remove initlogging in posix World!!!
 void initLogger(Arena *perm) {
     flushBuf = (U8_max_a){.buf = NEW(perm, U8, FLUSH_BUFFER_SIZE),
                           .cap = FLUSH_BUFFER_SIZE,

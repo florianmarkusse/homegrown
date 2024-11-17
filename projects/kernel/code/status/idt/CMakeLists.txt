@@ -1,6 +1,6 @@
 project(status-idt LANGUAGES C ASM)
 
-add_library(${PROJECT_NAME} STATIC "src/status.c")
+add_library(${PROJECT_NAME} OBJECT "src/status.c")
 
 target_include_directories(
     ${PROJECT_NAME}

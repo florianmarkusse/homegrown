@@ -1,6 +1,6 @@
 project(peripheral-screen LANGUAGES C ASM)
 
-add_library(${PROJECT_NAME} STATIC "src/screen.c")
+add_library(${PROJECT_NAME} OBJECT "src/screen.c")
 
 target_include_directories(
     ${PROJECT_NAME}

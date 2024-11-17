@@ -4,13 +4,13 @@
 #include "interoperation/memory/sizes.h"
 #include "interoperation/types.h" // for U32
 #include "log/log.h"              // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
-#include "shared/memory/allocator/arena.h"
 #include "memory/management/physical.h"
 #include "memory/management/policy.h"
 #include "memory/management/virtual.h"
 #include "peripheral/screen/screen.h"
-#include "status/memory/status.h"
+#include "shared/memory/allocator/arena.h"
 #include "shared/text/string.h" // for STRING
+#include "status/memory/status.h"
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 
@@ -35,7 +35,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                           .end = initMemory + INIT_MEMORY};
     void *jumper[5];
     if (__builtin_setjmp(jumper)) {
-        FLUSH_AFTER { LOG(STRING("Ran out of init memory capacity\n")); }
+        /*FLUSH_AFTER { LOG(STRING("Ran out of init memory capacity\n")); }*/
         while (1) {
             ;
         }
