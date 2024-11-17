@@ -17,8 +17,8 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC memory-management)
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-manipulation)
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-allocator)
-target_link_libraries(${PROJECT_NAME} PUBLIC cpu)
-target_link_libraries(${PROJECT_NAME} PUBLIC util)
+target_link_libraries( PRIVATE memory-management)
+target_link_libraries( PRIVATE shared-memory-manipulation)
+target_link_libraries( PRIVATE shared-memory-allocator)
+target_link_libraries( PRIVATE cpu)
+target_link_libraries( PRIVATE util)

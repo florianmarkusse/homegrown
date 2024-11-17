@@ -3,7 +3,7 @@ project(interoperation LANGUAGES C)
 include("../../setup.cmake")
 include("../../print-configuration.cmake")
 
-add_executable(${PROJECT_NAME} "src/main.c")
+add_executable(${PROJECT_NAME} INTERFACE)
 
 target_include_directories(
     ${PROJECT_NAME}

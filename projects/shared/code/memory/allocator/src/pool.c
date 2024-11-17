@@ -1,6 +1,6 @@
 #include "shared/allocator/pool.h"
 
-#include "interoperation/assert.h" // for ASSERT
+#include "platform-abstraction/assert.h" // for ASSERT
 #include "shared/allocator/macros.h"
 #include "shared/manipulation/manipulation.h"
 

@@ -23,9 +23,9 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC cpu)
-target_link_libraries(${PROJECT_NAME} PUBLIC memory-manipulation)
+target_link_libraries( PRIVATE cpu)
+target_link_libraries( PRIVATE memory-manipulation)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-maths)
+target_link_libraries( PRIVATE shared-maths)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC x86-memory)
+target_link_libraries( PRIVATE x86-memory)

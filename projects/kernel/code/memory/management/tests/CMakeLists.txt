@@ -9,8 +9,8 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC memory-management)
-target_link_libraries(${PROJECT_NAME} PUBLIC status-idt)
-target_link_libraries(${PROJECT_NAME} PUBLIC text)
-target_link_libraries(${PROJECT_NAME} PUBLIC posix-log)
-target_link_libraries(${PROJECT_NAME} PUBLIC posix-test-framework)
+target_link_libraries( PRIVATE memory-management)
+target_link_libraries( PRIVATE status-idt)
+target_link_libraries( PRIVATE text)
+target_link_libraries( PRIVATE posix-log)
+target_link_libraries( PRIVATE posix-test-framework)

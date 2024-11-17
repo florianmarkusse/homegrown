@@ -1,5 +1,5 @@
-#ifndef UTIL_MACROS_H
-#define UTIL_MACROS_H
+#ifndef INTEROPERATION_MACROS_H
+#define INTEROPERATION_MACROS_H
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,6 +1,6 @@
 #include "crc32-table.h"           // for calculateCRC32
 #include "interoperation/array.h"  // for ASSERT
-#include "interoperation/assert.h" // for ASSERT
+#include "platform-abstraction/assert.h" // for ASSERT
 #include "interoperation/log.h"
 #include "posix/log/log.h" // for LOG_CHOOSER_IMPL_2, INFO, FLO...
 #include "shared/dynamic-array/dynamic-array.h" // for MAX_LENGTH_ARRAY

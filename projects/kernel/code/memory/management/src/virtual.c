@@ -1,7 +1,7 @@
 #include "memory/management/virtual.h"
 
 #include "cpu/x86.h"
-#include "interoperation/assert.h"
+#include "platform-abstraction/assert.h"
 #include "interoperation/macros.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"

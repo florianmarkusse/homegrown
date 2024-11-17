@@ -4,6 +4,7 @@
 #include "interoperation/array-types.h"
 #include "interoperation/macros.h"
 #include "interoperation/types.h"
+#include "shared/log.h"
 #include "shared/text/converter.h"
 #include "shared/text/string.h"
 

@@ -59,9 +59,9 @@ target_include_directories(
     PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE cpu)
-target_link_libraries(${PROJECT_NAME} PRIVATE log)
-target_link_libraries(${PROJECT_NAME} PRIVATE status-memory)
+target_link_libraries( PRIVATE cpu)
+target_link_libraries( PRIVATE log)
+target_link_libraries( PRIVATE status-memory)
 
 # NOTE: Should add some debug or whatever option that adds all the status libs
 set(OBJECT_TARGETS

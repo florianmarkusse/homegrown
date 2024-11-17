@@ -1,6 +1,6 @@
 #include "memory/management/physical.h"
 #include "cpu/idt.h" // for triggerFault, FAULT_N...
-#include "interoperation/assert.h"
+#include "platform-abstraction/assert.h"
 #include "interoperation/kernel-parameters.h"  // for KernelMemory
 #include "interoperation/log.h"                // for U64, U32, U8
 #include "interoperation/memory/definitions.h" // for PAGE_FRAME_SIZE

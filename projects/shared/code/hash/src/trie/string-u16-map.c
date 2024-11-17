@@ -1,9 +1,9 @@
-#include "hash/trie/string-u16-map.h"
-#include "hash/hashes.h"               // for hashStringDjb2
-#include "hash/trie/common-iterator.h" // for TRIE_ITERATOR_SOURCE...
+#include "shared/hash/trie/string-u16-map.h"
 #include "interoperation/types.h"
+#include "platform-abstraction/assert.h"      // for ASSERT
+#include "shared/hash/hashes.h"               // for hashStringDjb2
+#include "shared/hash/trie/common-iterator.h" // for TRIE_ITERATOR_SOURCE...
 #include "shared/memory/allocator/macros.h"
-#include "interoperation/assert.h" // for ASSERT
 
 U16 trie_insertStringU16Map(string key, U16 value, trie_stringU16Map **set,
                             Arena *perm) {

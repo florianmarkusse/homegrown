@@ -1,5 +1,5 @@
 #include "interoperation/array-types.h"
-#include "interoperation/assert.h"
+#include "platform-abstraction/assert.h"
 #include "interoperation/types.h"
 #include "shared/memory/manipulation/manipulation.h"
 #include "shared/text/string.h"

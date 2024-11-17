@@ -17,7 +17,7 @@ endif()
 add_library(${PROJECT_NAME} OBJECT ${SOURCE_FILES})
 
 if("${UNIT_TEST_BUILD}")
-    target_link_libraries(${PROJECT_NAME} PRIVATE util)
+    target_link_libraries( PRIVATE util)
 endif()
 
 target_include_directories(

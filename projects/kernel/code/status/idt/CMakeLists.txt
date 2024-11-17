@@ -11,7 +11,7 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC peripheral-screen)
-target_link_libraries(${PROJECT_NAME} PUBLIC log)
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-text)
-target_link_libraries(${PROJECT_NAME} PUBLIC cpu)
+target_link_libraries( PRIVATE peripheral-screen)
+target_link_libraries( PRIVATE log)
+target_link_libraries( PRIVATE shared-text)
+target_link_libraries( PRIVATE cpu)

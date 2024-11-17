@@ -1,5 +1,5 @@
-#include "hash/msi/u16-set.h"
-#include "hash/msi/common.h" // for indexLookup
+#include "shared/hash/msi/u16-set.h"
+#include "shared/hash/msi/common.h" // for indexLookup
 
 bool msi_insertU16(U16 value, U64 hash, msi_U16 *index) {
     for (U32 i = (U32)hash;;) {

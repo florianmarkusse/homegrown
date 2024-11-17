@@ -1,4 +1,4 @@
-#include "hash/hash-comparison-status.h"
+#include "shared/hash/hash-comparison-status.h"
 
 static string hashComparisonStatusStrings[HASH_COMPARISON_NUM_STATUS] = {
     STRING("Success"), STRING("Collections have different sizes"),

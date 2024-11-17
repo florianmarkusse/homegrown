@@ -1,6 +1,6 @@
-#include "hash/msi/string-set.h"
-#include "hash/hashes.h"     // for hashStringDjb2
-#include "hash/msi/common.h" // for indexLookup
+#include "shared/hash/msi/string-set.h"
+#include "shared/hash/hashes.h"     // for hashStringDjb2
+#include "shared/hash/msi/common.h" // for indexLookup
 
 bool msi_insertString(string string, U64 hash, msi_string *index) {
     for (U32 i = (U32)hash;;) {

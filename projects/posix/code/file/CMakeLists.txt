@@ -11,10 +11,10 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC platform-abstraction-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-allocator)
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-manipulation)
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-text)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-manipulation)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC posix-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE posix-log)

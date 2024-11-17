@@ -1,14 +1,14 @@
-#ifndef UTIL_HASH_MSI_COMMON_H
-#define UTIL_HASH_MSI_COMMON_H
+#ifndef SHARED_HASH_MSI_COMMON_H
+#define SHARED_HASH_MSI_COMMON_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "interoperation/macros.h" // for MACRO_VAR
 #include "interoperation/types.h"
 #include "shared/memory/allocator/arena.h"
 #include "shared/memory/allocator/macros.h"
-#include "interoperation/macros.h" // for MACRO_VAR
 
 /**
  * Common definitions for MSI string hash.

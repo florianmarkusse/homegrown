@@ -4,6 +4,10 @@ project(shared LANGUAGES C ASM)
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("../../setup.cmake")
     include("../../print-configuration.cmake")
+    add_subdirectory(
+        "${REPO_PROJECTS}/platform-abstraction/code"
+        "${CMAKE_CURRENT_BINARY_DIR}/platform-abstraction"
+    )
 endif()
 
 add_subdirectory(text)

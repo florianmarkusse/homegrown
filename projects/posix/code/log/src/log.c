@@ -2,7 +2,7 @@
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "interoperation/memory/sizes.h"
 #include "interoperation/types.h"
-#include "shared/log/log.h"
+#include "shared/log.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/manipulation/manipulation.h"
 #include "shared/text/string.h"

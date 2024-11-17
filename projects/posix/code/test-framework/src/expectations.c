@@ -1,5 +1,5 @@
 #include "posix/test-framework/expectations.h"
-#include "platform-abstraction/log/log.h" // for ERROR, LOG_CHOOSER_IMPL_2
+#include "platform-abstraction/log.h" // for ERROR, LOG_CHOOSER_IMPL_2
 #include "posix/log/log.h"
 
 void appendExpectCodeWithString(U64 expected, string expectedString, U64 actual,

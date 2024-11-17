@@ -5,11 +5,11 @@
 extern "C" {
 #endif
 
-#include "common.h"                      // for MSI_SET
-#include "hash/hash-comparison-status.h" // for HashComparisonStatus
+#include "common.h"                // for MSI_SET
+#include "interoperation/macros.h" // for MACRO_VAR
 #include "interoperation/types.h"
-#include "interoperation/macros.h"      // for MACRO_VAR
-#include "shared/text/string.h" // for string
+#include "shared/hash/hash-comparison-status.h" // for HashComparisonStatus
+#include "shared/text/string.h"                 // for string
 
 typedef MSI_SET(string) msi_string;
 

@@ -25,9 +25,9 @@ target_include_directories(
     PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-allocator)
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-memory-manipulation)
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-dynamic-array)
-target_link_libraries(${PROJECT_NAME} PUBLIC shared-text)
+target_link_libraries( PRIVATE shared-memory-allocator)
+target_link_libraries( PRIVATE shared-memory-manipulation)
+target_link_libraries( PRIVATE shared-dynamic-array)
+target_link_libraries( PRIVATE shared-text)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC posix-log)
+target_link_libraries( PRIVATE posix-log)

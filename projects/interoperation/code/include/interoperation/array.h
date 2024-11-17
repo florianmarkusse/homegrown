@@ -1,5 +1,5 @@
-#ifndef UTIL_ARRAY_H
-#define UTIL_ARRAY_H
+#ifndef INTEROPERATION_ARRAY_H
+#define INTEROPERATION_ARRAY_H
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,8 +1,8 @@
-#include "hash/trie/string-auto-u16-map.h"
-#include "hash/hashes.h"               // for hashStringDjb2
-#include "hash/trie/common-iterator.h" // for TRIE_ITERATOR_SOURCE...
+#include "shared/hash/trie/string-auto-u16-map.h"
+#include "platform-abstraction/assert.h"      // for ASSERT
+#include "shared/hash/hashes.h"               // for hashStringDjb2
+#include "shared/hash/trie/common-iterator.h" // for TRIE_ITERATOR_SOURCE...
 #include "shared/memory/allocator/macros.h"
-#include "interoperation/assert.h" // for ASSERT
 
 NewStringInsert trie_insertStringAutoU16Map(string key,
                                             trie_stringAutoU16Map *set,
