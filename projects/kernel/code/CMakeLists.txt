@@ -55,29 +55,27 @@ target_include_directories(
     PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
 
-# Adds the linking library location in reverse order. Remember the linker tries
-# to link from last to first argument. So be wise :) This is only for folders
-# that are used inside the kernel. For other builds, e.g., unit tests, CMake
-# can figure it out.
-set(LINKING_LIBRARIES_LOCATIONS)
-
-function(add_to_linker name)
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${name})
-    string(REPLACE "-" "/" slashenated "${name}")
-    set(lib_path "${CMAKE_CURRENT_BINARY_DIR}/${slashenated}/lib${name}.a")
-    list(APPEND LINKING_LIBRARIES_LOCATIONS ${lib_path})
-    set(LINKING_LIBRARIES_LOCATIONS ${LINKING_LIBRARIES_LOCATIONS} PARENT_SCOPE)
-endfunction()
+target_link_libraries(${PROJECT_NAME} PRIVATE cpu)
+target_link_libraries(${PROJECT_NAME} PRIVATE log)
+target_link_libraries(${PROJECT_NAME} PRIVATE status-memory)
 
 # NOTE: Should add some debug or whatever option that adds all the status libs
-add_to_linker("status-memory")
-
-add_to_linker("log")
-add_to_linker("peripheral-screen")
-add_to_linker("memory-management")
-add_to_linker("cpu")
-add_to_linker("memory-manipulation")
-add_to_linker("shared-maths")
+set(OBJECT_TARGETS
+    # Shared
+    $<TARGET_OBJECTS:shared-text>
+    $<TARGET_OBJECTS:shared-maths>
+    $<TARGET_OBJECTS:shared-memory-manipulation>
+    $<TARGET_OBJECTS:shared-memory-allocator>
+    # Architecture-specific
+    $<TARGET_OBJECTS:x86-memory>
+    # Kernel
+    $<TARGET_OBJECTS:memory-management>
+    $<TARGET_OBJECTS:log>
+    $<TARGET_OBJECTS:peripheral-screen>
+    $<TARGET_OBJECTS:cpu>
+    # Kernel Status
+    $<TARGET_OBJECTS:status-memory>
+)
 
 set(LINKER_TARGET "${PROJECT_NAME}-linker")
 add_custom_target(
@@ -86,12 +84,7 @@ add_custom_target(
     COMMAND
         ${CMAKE_LINKER} -n -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
         -o ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
-        $<TARGET_OBJECTS:${PROJECT_NAME}> $<TARGET_OBJECTS:shared-maths>
-        $<TARGET_OBJECTS:shared-memory-manipulation> $<TARGET_OBJECTS:cpu>
-        $<TARGET_OBJECTS:memory-management> $<TARGET_OBJECTS:log>
-        $<TARGET_OBJECTS:peripheral-screen> $<TARGET_OBJECTS:status-memory>
-        $<TARGET_OBJECTS:shared-memory-allocator> $<TARGET_OBJECTS:x86-memory>
-        $<TARGET_OBJECTS:shared-text>
+        $<TARGET_OBJECTS:${PROJECT_NAME}> ${OBJECT_TARGETS}
     COMMAND
         objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME} >
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.asm
