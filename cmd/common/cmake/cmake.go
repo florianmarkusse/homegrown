@@ -25,6 +25,7 @@ const UEFI = "uefi"
 const IMAGE_BUILDER = "image-builder"
 const SHARED = "shared"
 const POSIX = "posix"
+const PLATFORM_ABSTRACTION = "platform-abstraction"
 const X86 = "x86"
 
 // and here
@@ -35,6 +36,7 @@ var uefiFolder = common.PROJECT_FOLDER + UEFI + "/"
 var imageBuilderFolder = common.PROJECT_FOLDER + IMAGE_BUILDER + "/"
 var sharedFolder = common.PROJECT_FOLDER + SHARED + "/"
 var posixFolder = common.PROJECT_FOLDER + POSIX + "/"
+var platformAbstractionFolder = common.PROJECT_FOLDER + PLATFORM_ABSTRACTION + "/"
 var x86Folder = common.PROJECT_FOLDER + X86 + "/"
 
 // and here
@@ -73,6 +75,11 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Folder:              posixFolder,
 		CodeFolder:          posixFolder + "code",
 		DefaultFreeStanding: false,
+	},
+	PLATFORM_ABSTRACTION: &ProjectStructure{
+		Folder:     platformAbstractionFolder,
+		CodeFolder: platformAbstractionFolder + "code",
+		// No default freestanding set because the whole purpose is to provide an integration layer for different platforms
 	},
 	X86: &ProjectStructure{
 		Folder:              x86Folder,

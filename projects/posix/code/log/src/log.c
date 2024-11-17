@@ -1,8 +1,8 @@
 #include "posix/log/log.h"
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
-#include "interoperation/log.h"
 #include "interoperation/memory/sizes.h"
 #include "interoperation/types.h"
+#include "shared/log/log.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/manipulation/manipulation.h"
 #include "shared/text/string.h"
@@ -21,8 +21,7 @@ static WriteBuffer stderrBuffer =
                   .fileDescriptor = STDERR_FILENO};
 
 // We are going to flush to:
-// - The in-memory standin file buffer, this will be replaced by a file
-// buffer in the future.
+// - The in-memory standin file buffer
 bool flushBuffer(WriteBuffer *buffer) {
     for (U64 bytesWritten = 0; bytesWritten < buffer->array.len;) {
         U64 partialBytesWritten =

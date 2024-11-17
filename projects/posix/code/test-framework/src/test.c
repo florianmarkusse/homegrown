@@ -1,6 +1,6 @@
 #include "posix/test-framework/test.h"
-#include "interoperation/assert.h" // for ASSERT
-#include "interoperation/log.h"    // for ASSERT
+#include "interoperation/assert.h"        // for ASSERT
+#include "platform-abstraction/log/log.h" // for ASSERT
 #include "posix/log/log.h"
 #include "shared/text/string.h" // for STRING, string
 

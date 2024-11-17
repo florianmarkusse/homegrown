@@ -1,8 +1,7 @@
 #include "posix/file/read.h"
-#include "interoperation/log.h"     // for ERROR, LOG_CHOOSER_IMPL_2
-#include "interoperation/types.h"   // for NULL_ON_FAIL
+#include "interoperation/types.h"         // for NULL_ON_FAIL
+#include "platform-abstraction/log/log.h" // for ERROR, LOG_CHOOSER_IMPL_2
 #include "posix/file/file-status.h" // for FILE_CANT_ALLOCATE, FILE_CANT_OPEN
-#include "posix/log/log.h"          // for ERROR, LOG_CHOOSER_IMPL_2
 #include "shared/memory/allocator/arena.h" // for NEW, Arena
 #include "shared/memory/allocator/macros.h"
 #include "shared/memory/manipulation/manipulation.h"

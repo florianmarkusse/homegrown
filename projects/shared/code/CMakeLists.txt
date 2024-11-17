@@ -8,6 +8,7 @@ endif()
 
 add_subdirectory(text)
 add_subdirectory(memory)
+add_subdirectory(log)
 add_subdirectory(maths)
 add_subdirectory(buffer)
 add_subdirectory(hash)

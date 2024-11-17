@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(posix LANGUAGES C ASM)
+project(platform-abstraction LANGUAGES C)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("../../setup.cmake")
@@ -8,12 +8,15 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
         "${REPO_PROJECTS}/shared/code"
         "${CMAKE_CURRENT_BINARY_DIR}/shared"
     )
-    add_subdirectory(
-        "${REPO_PROJECTS}/platform-abstraction/code"
-        "${CMAKE_CURRENT_BINARY_DIR}/platform-abstraction"
-    )
 endif()
 
 add_subdirectory(log)
-add_subdirectory(file)
-add_subdirectory(test-framework)
+
+add_library(${PROJECT_NAME} INTERFACE)
+
+target_link_libraries(${PROJECT_NAME} INTERFACE shared-log)
+
+target_include_directories(
+    ${PROJECT_NAME}
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)

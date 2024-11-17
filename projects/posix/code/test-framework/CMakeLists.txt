@@ -1,6 +1,6 @@
 project(posix-test-framework LANGUAGES C)
 
-add_library(${PROJECT_NAME} STATIC "src/test.c" "src/expectations.c")
+add_library(${PROJECT_NAME} OBJECT "src/test.c" "src/expectations.c")
 
 target_include_directories(
     ${PROJECT_NAME}
@@ -10,6 +10,8 @@ target_include_directories(
     ${PROJECT_NAME}
     PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
+
+target_link_libraries(${PROJECT_NAME} PUBLIC platform-abstraction-log)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC shared-text)
 target_link_libraries(${PROJECT_NAME} PUBLIC posix-log)
