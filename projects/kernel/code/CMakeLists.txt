@@ -35,12 +35,11 @@ if("${UNIT_TEST_BUILD}")
         "${REPO_PROJECTS}/posix/code"
         "${CMAKE_CURRENT_BINARY_DIR}/posix"
     )
-    return()
 endif()
 
-add_subdirectory("cpu")
-add_subdirectory("memory")
-add_subdirectory("status")
+add_subdirectory(cpu)
+add_subdirectory(memory)
+add_subdirectory(status)
 
 if("${UNIT_TEST_BUILD}")
     return()
@@ -50,8 +49,8 @@ endif()
 #       End of common setup, below is only for production kernel build         #
 ################################################################################
 
-add_subdirectory("log")
-add_subdirectory("peripheral")
+add_subdirectory(log)
+add_subdirectory(peripheral)
 
 add_library(${PROJECT_NAME} OBJECT "src/main.c")
 
@@ -65,8 +64,10 @@ target_include_directories(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE cpu)
-target_link_libraries(${PROJECT_NAME} PRIVATE log)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE status-memory)
+target_link_libraries(${PROJECT_NAME} PRIVATE memory-management)
+target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
 
 # NOTE: Should add some debug or whatever option that adds all the status libs
 set(OBJECT_TARGETS

@@ -1,6 +1,5 @@
 #include "log/log.h"
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
-#include "interoperation/log.h"
 #include "interoperation/memory/sizes.h"
 #include "interoperation/types.h"
 #include "memory/manipulation/manipulation.h"

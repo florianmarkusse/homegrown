@@ -10,8 +10,17 @@ target_include_directories(
     ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+target_include_directories(
+    ${PROJECT_NAME}
+    INTERFACE $<TARGET_PROPERTY:shared-log,INTERFACE_INCLUDE_DIRECTORIES>
+)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE peripheral-screen)
 target_link_libraries(${PROJECT_NAME} PRIVATE memory-manipulation)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-manipulation)

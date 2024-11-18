@@ -3,7 +3,7 @@ project(cpu LANGUAGES C ASM)
 set(SOURCE_FILES)
 
 if("${UNIT_TEST_BUILD}")
-    list(APPEND SOURCE_FILES "src/posix/idt.c")
+    list(APPEND SOURCE_FILES "src/posix/idt.c" "src/posix/x86.c")
 else()
     list(
         APPEND
@@ -15,10 +15,6 @@ else()
 endif()
 
 add_library(${PROJECT_NAME} OBJECT ${SOURCE_FILES})
-
-if("${UNIT_TEST_BUILD}")
-    target_link_libraries( PRIVATE util)
-endif()
 
 target_include_directories(
     ${PROJECT_NAME}

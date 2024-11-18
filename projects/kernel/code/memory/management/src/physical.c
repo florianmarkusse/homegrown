@@ -6,7 +6,6 @@
 #include "interoperation/types.h" // for U64, U32, U8
 #include "memory/manipulation/manipulation.h"
 #include "shared/assert.h"
-#include "platform-abstraction/log.h" // for U64, U32, U8
 #include "shared/maths/maths.h"
 
 PhysicalMemoryManager basePMM;

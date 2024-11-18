@@ -23,11 +23,10 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE cpu)
 target_link_libraries(${PROJECT_NAME} PRIVATE memory-manipulation)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
