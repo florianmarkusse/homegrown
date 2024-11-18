@@ -7,7 +7,7 @@ extern "C" {
 
 #include "interoperation/array.h"
 #include "interoperation/types.h"
-#include "platform-abstraction/assert.h"
+#include "shared/assert.h"
 #include "shared/memory/manipulation/manipulation.h"
 
 typedef struct {

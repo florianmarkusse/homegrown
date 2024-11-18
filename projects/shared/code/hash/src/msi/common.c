@@ -1,6 +1,6 @@
 #include "shared/hash/msi/common.h"
 #include "interoperation/types.h"
-#include "platform-abstraction/assert.h" // for ASSERT
+#include "shared/assert.h" // for ASSERT
 #include "shared/memory/manipulation/manipulation.h"
 
 /**

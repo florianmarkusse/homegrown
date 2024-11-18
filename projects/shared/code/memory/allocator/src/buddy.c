@@ -1,6 +1,6 @@
 #include "shared/allocator/buddy.h"
-#include "platform-abstraction/assert.h" // for ASSERT
 #include "shared/allocator/macros.h"
+#include "shared/assert.h" // for ASSERT
 #include "shared/manipulation/manipulation.h"
 
 BuddyBlock *splitBuddy(BuddyBlock *block, U64 size) {

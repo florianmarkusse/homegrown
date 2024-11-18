@@ -3,9 +3,9 @@ project(interoperation LANGUAGES C)
 include("../../setup.cmake")
 include("../../print-configuration.cmake")
 
-add_executable(${PROJECT_NAME} INTERFACE)
+add_library(${PROJECT_NAME} INTERFACE)
 
 target_include_directories(
     ${PROJECT_NAME}
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

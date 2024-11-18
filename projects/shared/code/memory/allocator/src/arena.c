@@ -1,5 +1,5 @@
 #include "shared/memory/allocator/arena.h"
-#include "platform-abstraction/assert.h" // for ASSERT
+#include "shared/assert.h" // for ASSERT
 #include "interoperation/types.h"
 #include "shared/memory/allocator/macros.h"
 #include "shared/memory/manipulation/manipulation.h"

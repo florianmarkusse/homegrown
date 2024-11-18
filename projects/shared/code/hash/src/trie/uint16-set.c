@@ -1,4 +1,4 @@
-#include "platform-abstraction/assert.h"      // for ASSERT
+#include "shared/assert.h"      // for ASSERT
 #include "shared/hash/hashes.h"               // for hash16_xm3
 #include "shared/hash/trie/common-iterator.h" // for TRIE_ITERATOR_SOURCE...
 #include "shared/hash/trie/u16-set.h"

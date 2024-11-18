@@ -11,7 +11,7 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries( PRIVATE peripheral-screen)
-target_link_libraries( PRIVATE memory-manipulation)
-target_link_libraries( PRIVATE shared-text)
-target_link_libraries( PRIVATE shared-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE peripheral-screen)
+target_link_libraries(${PROJECT_NAME} PRIVATE memory-manipulation)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)

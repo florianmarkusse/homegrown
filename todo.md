@@ -1,4 +1,5 @@
 - Move basic modules from x/a/a.h to x/a.h
+- Split platform-abstraction project back into separate modules?
 - Make more includes private/interface wherever possible
 - Check that the build does not contain duplicate functions
 - lto stuff

@@ -1,8 +1,7 @@
 #include "posix/test-framework/test.h"
-#include "platform-abstraction/assert.h"        // for ASSERT
 #include "platform-abstraction/log.h" // for ASSERT
-#include "posix/log/log.h"
-#include "shared/text/string.h" // for STRING, string
+#include "shared/assert.h"            // for ASSERT
+#include "shared/text/string.h"       // for STRING, string
 
 typedef struct {
     U64 successes;

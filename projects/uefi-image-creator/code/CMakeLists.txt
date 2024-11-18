@@ -13,6 +13,11 @@ add_subdirectory(
     "${CMAKE_CURRENT_BINARY_DIR}/posix"
 )
 
+add_subdirectory(
+    "${REPO_PROJECTS}/platform-abstraction/code"
+    "${CMAKE_CURRENT_BINARY_DIR}/platform-abstraction"
+)
+
 add_executable(${PROJECT_NAME} "src/main.c")
 
 target_include_directories(
@@ -25,9 +30,10 @@ target_include_directories(
     PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
 
-target_link_libraries( PRIVATE shared-memory-allocator)
-target_link_libraries( PRIVATE shared-memory-manipulation)
-target_link_libraries( PRIVATE shared-dynamic-array)
-target_link_libraries( PRIVATE shared-text)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
 
-target_link_libraries( PRIVATE posix-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-manipulation)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-dynamic-array)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)

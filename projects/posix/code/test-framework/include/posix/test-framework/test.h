@@ -7,7 +7,6 @@ extern "C" {
 
 #include "interoperation/macros.h" // for MACRO_VAR
 #include "interoperation/types.h"
-#include "posix/log/log.h"      // for string
 #include "shared/text/string.h" // for string
 
 void testSuiteStart(string mainTopic);
