@@ -7,7 +7,9 @@ set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} -march=native -m64 -Wall -Wextra -Wconversion -Wno-incompatible-pointer-types-discards-qualifiers -Wno-pointer-sign -Wno-sign-conversion -Wdouble-promotion -Wvla -W"
 )
 
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--warn-once")
+# set(CMAKE_SHARED_LINKER_FLAGS
+#     "${CMAKE_SHARED_LINKER_FLAGS} --warn-once --warn-common -z unique-symbol"
+# )
 
 if("${FREESTANDING_BUILD}")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -ffreestanding")
@@ -43,7 +45,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Profiling")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -O2 -pg")
 endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -flto")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
 endif()
 
 set(REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)

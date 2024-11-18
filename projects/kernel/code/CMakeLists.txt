@@ -87,13 +87,14 @@ set(OBJECT_TARGETS
     $<TARGET_OBJECTS:status-memory>
 )
 
-set(LINKER_TARGET "${PROJECT_NAME}-linker")
+set(LINKER_TARGET "${PROJECT_NAME}.elf")
 add_custom_target(
     ${LINKER_TARGET}
     ALL
     COMMAND
-        ${CMAKE_LINKER} -n -m elf_x86_64 -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld
-        -o ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
+        ${CMAKE_LINKER} -n -m elf_x86_64 ${CMAKE_SHARED_LINKER_FLAGS} -T
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.ld -o
+        ${CMAKE_CURRENT_BINARY_DIR}/${LINKER_TARGET}
         $<TARGET_OBJECTS:${PROJECT_NAME}> ${OBJECT_TARGETS}
     COMMAND
         objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME} >
@@ -106,11 +107,11 @@ add_custom_target(
     BYPRODUCTS
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.asm
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.objdump
-    COMMENT "Linking ${PROJECT_NAME}"
+    COMMENT "Linking ${LINKER_TARGET}"
 )
 add_dependencies(${LINKER_TARGET} ${PROJECT_NAME})
 
-set(BINARIZER "${PROJECT_NAME}-binarizer")
+set(BINARIZER "${PROJECT_NAME}.bin")
 set(PROJECT_NAME_BIN "${PROJECT_NAME}.bin")
 set(KERNEL_MAGIC_FOLDER
     "${REPO_PROJECTS}/interoperation/code/include/interoperation/generated"
@@ -120,7 +121,7 @@ add_custom_target(
     ${BINARIZER}
     ALL
     COMMAND
-        objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
+        objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${LINKER_TARGET}
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_BIN}
     COMMAND
         mkdir -p ${KERNEL_MAGIC_FOLDER} && python3
@@ -130,6 +131,6 @@ add_custom_target(
     COMMAND_EXPAND_LISTS
     BYPRODUCTS ${KERNEL_MAGIC_OUTPUT}
     VERBATIM
-    COMMENT "Copying binary data from ${PROJECT_NAME} into ${PROJECT_NAME_BIN}"
+    COMMENT "Transforming ${LINKER_TARGET} into ${PROJECT_NAME_BIN}"
 )
 add_dependencies(${BINARIZER} ${LINKER_TARGET})
