@@ -54,20 +54,21 @@ add_subdirectory(peripheral)
 
 add_library(${PROJECT_NAME} OBJECT "src/main.c")
 
-target_include_directories(
-    ${PROJECT_NAME}
-    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
-)
-target_include_directories(
-    ${PROJECT_NAME}
-    PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE cpu)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
-target_link_libraries(${PROJECT_NAME} PRIVATE status-memory)
-target_link_libraries(${PROJECT_NAME} PRIVATE memory-management)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-manipulation)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE memory-management)
+target_link_libraries(${PROJECT_NAME} PRIVATE log)
+target_link_libraries(${PROJECT_NAME} PRIVATE peripheral-screen)
+target_link_libraries(${PROJECT_NAME} PRIVATE cpu)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE status-memory)
 
 # NOTE: Should add some debug or whatever option that adds all the status libs
 set(OBJECT_TARGETS
@@ -131,6 +132,6 @@ add_custom_target(
     COMMAND_EXPAND_LISTS
     BYPRODUCTS ${KERNEL_MAGIC_OUTPUT}
     VERBATIM
-    COMMENT "Transforming ${LINKER_TARGET} into ${PROJECT_NAME_BIN}"
+    COMMENT "Transforming ${PROJECT_NAME} into ${PROJECT_NAME_BIN}"
 )
 add_dependencies(${BINARIZER} ${LINKER_TARGET})
