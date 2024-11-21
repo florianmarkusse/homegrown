@@ -46,7 +46,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Profiling")
 endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -flto")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
 endif()
 
 set(REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)

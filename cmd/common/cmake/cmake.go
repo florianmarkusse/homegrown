@@ -139,6 +139,7 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, 
 func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, threads int, targets []string) {
 	argument.AddArgument(options, fmt.Sprintf("--build %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("--parallel %d", threads))
+	argument.AddArgument(options, fmt.Sprintf("-v"))
 
 	if len(targets) > 0 {
 		targetsString := strings.Builder{}

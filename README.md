@@ -3,8 +3,7 @@
 run
 
 ```
-./install-dependencies.sh
-./build-create-run.sh
+./install-dependencies.sh ./build-create-run.sh
 ```
 
 ## Other dependencies to manually install for the moment
@@ -32,3 +31,6 @@ Will currently (probably) break intermittently because of interrupts clobbering 
 ### MP system
 
 - Need to take care of MMTR setting? If I end up doing that.
+
+Without LTO
+121952 Bytes

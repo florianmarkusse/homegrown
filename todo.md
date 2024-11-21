@@ -1,3 +1,5 @@
+- target_link_options for flags!
+- LINK_WHAT_YOU_USE
 - Move basic modules from x/a/a.h to x/a.h
 - Why does test build posix-file ?
 - Move cpu module into posix/kernel and combine into platform-abstraction project

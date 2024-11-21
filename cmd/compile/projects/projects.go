@@ -93,7 +93,7 @@ const (
 
 var DefaultBuildArgs = BuildArgs{
 	CCompiler:        "clang-19",
-	Linker:           "ld",
+	Linker:           "ld.lld",
 	BuildMode:        buildmode.DefaultBuildMode(),
 	ErrorsToFile:     false,
 	Threads:          runtime.NumCPU(),
