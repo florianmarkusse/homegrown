@@ -57,12 +57,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE memory-management)
-target_link_libraries(${PROJECT_NAME} PRIVATE log)
-target_link_libraries(${PROJECT_NAME} PRIVATE peripheral-screen)
-target_link_libraries(${PROJECT_NAME} PRIVATE cpu)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE status-memory)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-management)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-cpu)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-status-memory)
 
 get_target_property(OBJECT_LIBRARIES ${PROJECT_NAME} LINK_LIBRARIES)
 set(OBJECT_TARGETS_LIBRARIES "")

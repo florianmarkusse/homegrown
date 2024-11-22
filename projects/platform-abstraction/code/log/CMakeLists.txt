@@ -8,10 +8,10 @@ target_include_directories(
 )
 
 if("${FREESTANDING_BUILD}")
-    target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:log>)
+    target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:kernel-log>)
     target_include_directories(
         ${PROJECT_NAME}
-        INTERFACE $<TARGET_PROPERTY:log,INCLUDE_DIRECTORIES>
+        INTERFACE $<TARGET_PROPERTY:kernel-log,INCLUDE_DIRECTORIES>
     )
 else()
     target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:posix-log>)

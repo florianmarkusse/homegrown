@@ -1,6 +1,6 @@
 # TODO: maybe split this up in virtual/physical/whatever at
 # a later stage.
-project(memory-management LANGUAGES C ASM)
+project(kernel-memory-management LANGUAGES C ASM)
 
 if("${UNIT_TEST_BUILD}")
     add_subdirectory(tests)
@@ -23,8 +23,8 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE cpu)
-target_link_libraries(${PROJECT_NAME} PRIVATE memory-manipulation)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-cpu)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-manipulation)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)

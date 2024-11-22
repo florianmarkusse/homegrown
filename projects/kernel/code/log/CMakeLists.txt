@@ -1,4 +1,4 @@
-project(log LANGUAGES C ASM)
+project(kernel-log LANGUAGES C ASM)
 
 add_library(${PROJECT_NAME} OBJECT "src/log.c")
 
@@ -15,8 +15,8 @@ target_include_directories(
     INTERFACE $<TARGET_PROPERTY:shared-log,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE peripheral-screen)
-target_link_libraries(${PROJECT_NAME} PRIVATE memory-manipulation)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-manipulation)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)

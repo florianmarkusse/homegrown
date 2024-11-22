@@ -1,4 +1,4 @@
-project(cpu LANGUAGES C ASM)
+project(kernel-cpu LANGUAGES C ASM)
 
 set(SOURCE_FILES)
 

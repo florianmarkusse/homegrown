@@ -1,4 +1,4 @@
-project(status-memory LANGUAGES C ASM)
+project(kernel-status-memory LANGUAGES C ASM)
 
 add_library(${PROJECT_NAME} OBJECT "src/memory.c")
 
@@ -13,8 +13,8 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE cpu)
-target_link_libraries(${PROJECT_NAME} PRIVATE memory-management)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-cpu)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-management)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 

@@ -1,3 +1,3 @@
-project(peripheral LANGUAGES C ASM)
+project(kernel-peripheral LANGUAGES C ASM)
 
 add_subdirectory(screen)

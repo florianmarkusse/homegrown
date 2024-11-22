@@ -1,4 +1,4 @@
-project(memory-manipulation LANGUAGES C ASM)
+project(kernel-memory-manipulation LANGUAGES C ASM)
 
 add_library(${PROJECT_NAME} OBJECT "src/manipulation.c")
 
