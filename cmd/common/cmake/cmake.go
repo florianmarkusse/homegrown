@@ -19,6 +19,21 @@ type ProjectStructure struct {
 	DefaultFreeStanding bool
 }
 
+type CommonConfig struct {
+	CCompiler string
+	Linker    string
+}
+
+var ELF = CommonConfig{
+	CCompiler: "clang-19",
+	Linker:    "ld.lld-19",
+}
+
+var EFI = CommonConfig{
+	CCompiler: "clang-19",
+	Linker:    "lld-link-19",
+}
+
 // If you add a project add it here
 const KERNEL = "kernel"
 const INTEROPERATION = "interoperation"
@@ -44,63 +59,63 @@ var x86Folder = common.PROJECT_FOLDER + X86 + "/"
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 	KERNEL: &ProjectStructure{
-		CCompiler:           "clang-19",
-		Linker:              "ld.lld",
+		CCompiler:           ELF.CCompiler,
+		Linker:              ELF.Linker,
 		Folder:              kernelFolder,
 		CodeFolder:          kernelFolder + "code",
 		DefaultFreeStanding: true,
 	},
 	INTEROPERATION: &ProjectStructure{
-		CCompiler: "clang-19",
+		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
 		Folder:              interoperationFolder,
 		CodeFolder:          interoperationFolder + "code",
 		DefaultFreeStanding: true,
 	},
 	UEFI_IMAGE_CREATOR: &ProjectStructure{
-		CCompiler:           "clang-19",
-		Linker:              "ld.lld",
+		CCompiler:           ELF.CCompiler,
+		Linker:              ELF.Linker,
 		Folder:              uefiImageCreatorFolder,
 		CodeFolder:          uefiImageCreatorFolder + "code",
 		DefaultFreeStanding: false,
 	},
 	UEFI: &ProjectStructure{
-		CCompiler:           "clang-19",
-		Linker:              "lld-link",
+		CCompiler:           EFI.CCompiler,
+		Linker:              EFI.Linker,
 		Folder:              uefiFolder,
 		CodeFolder:          uefiFolder + "code",
 		DefaultFreeStanding: true,
 	},
 	IMAGE_BUILDER: &ProjectStructure{
-		CCompiler:           "clang-19",
-		Linker:              "ld.lld",
+		CCompiler:           ELF.CCompiler,
+		Linker:              ELF.Linker,
 		Folder:              imageBuilderFolder,
 		CodeFolder:          imageBuilderFolder + "code",
 		DefaultFreeStanding: false,
 	},
 	SHARED: &ProjectStructure{
-		CCompiler: "clang-19",
+		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
 		Folder:              sharedFolder,
 		CodeFolder:          sharedFolder + "code",
 		DefaultFreeStanding: true,
 	},
 	POSIX: &ProjectStructure{
-		CCompiler: "clang-19",
+		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
 		Folder:              posixFolder,
 		CodeFolder:          posixFolder + "code",
 		DefaultFreeStanding: false,
 	},
 	PLATFORM_ABSTRACTION: &ProjectStructure{
-		CCompiler: "clang-19",
+		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
 		Folder:     platformAbstractionFolder,
 		CodeFolder: platformAbstractionFolder + "code",
 		// No default freestanding set because the whole purpose is to provide an integration layer for different platforms
 	},
 	X86: &ProjectStructure{
-		CCompiler: "clang-19",
+		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
 		Folder:              x86Folder,
 		CodeFolder:          x86Folder + "code",
