@@ -1,15 +1,8 @@
 - LINK_WHAT_YOU_USE
 - platform-abstraction for status logs? If not debug it can automatically be removed?
+- Does Include what you use still work?
 - Move basic modules from x/a/a.h to x/a.h
 - Why does test build posix-file ?
 - Move cpu module into posix/kernel and combine into platform-abstraction project
 - Move kernel/memory/manipulation too?
-- Split platform-abstraction project back into separate modules?
-- Make more includes private/interface wherever possible
-- Check that the build does not contain duplicate functions
-- lto stuff
 - Start rewrite of image-builder
-
-- Is there a way to only build the libraries a project relies on instead of all the libraries in a certain project?
-  - Do after the transition to object libraries
-  - Can you somehow store the .o files to be reused by another project that uses the same flags?
