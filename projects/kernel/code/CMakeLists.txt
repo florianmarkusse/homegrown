@@ -54,7 +54,15 @@ add_subdirectory(peripheral)
 
 add_library(${PROJECT_NAME} OBJECT "src/main.c")
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
+target_include_directories(
+    ${PROJECT_NAME}
+    PUBLIC "${REPO_PROJECTS}/platform-abstraction/code/log/include"
+)
+
+target_include_directories(
+    ${PROJECT_NAME}
+    PUBLIC "${REPO_PROJECTS}/shared/code/assert/include"
+)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
@@ -70,33 +78,21 @@ target_link_libraries(${PROJECT_NAME} PRIVATE cpu)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE status-memory)
 
-# NOTE: Should add some debug or whatever option that adds all the status libs
-set(OBJECT_TARGETS
-    # Shared
-    $<TARGET_OBJECTS:shared-text>
-    $<TARGET_OBJECTS:shared-maths>
-    $<TARGET_OBJECTS:shared-memory-manipulation>
-    $<TARGET_OBJECTS:shared-memory-allocator>
-    # Architecture-specific
-    $<TARGET_OBJECTS:x86-memory>
-    # Kernel
-    $<TARGET_OBJECTS:memory-management>
-    $<TARGET_OBJECTS:log>
-    $<TARGET_OBJECTS:peripheral-screen>
-    $<TARGET_OBJECTS:cpu>
-    # Kernel Status
-    $<TARGET_OBJECTS:status-memory>
-)
+get_target_property(OBJECT_LIBRARIES ${PROJECT_NAME} LINK_LIBRARIES)
+set(OBJECT_TARGETS_LIBRARIES "")
+foreach(LIB ${OBJECT_LIBRARIES})
+    list(APPEND OBJECT_TARGETS_LIBRARIES "$<TARGET_OBJECTS:${LIB}>")
+endforeach()
 
 set(LINKER_TARGET "${PROJECT_NAME}.elf")
 add_custom_target(
     ${LINKER_TARGET}
     ALL
     COMMAND
-        ${CMAKE_LINKER} -n -m elf_x86_64 ${CMAKE_SHARED_LINKER_FLAGS} -T
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.ld -o
+        ${CMAKE_LINKER} ${COMMON_LINKER_FLAGS} -n -m elf_x86_64
+        ${CMAKE_SHARED_LINKER_FLAGS} -T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld -o
         ${CMAKE_CURRENT_BINARY_DIR}/${LINKER_TARGET}
-        $<TARGET_OBJECTS:${PROJECT_NAME}> ${OBJECT_TARGETS}
+        $<TARGET_OBJECTS:${PROJECT_NAME}> ${OBJECT_TARGETS_LIBRARIES}
     COMMAND
         objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${LINKER_TARGET} >
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.asm

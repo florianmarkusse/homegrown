@@ -20,7 +20,7 @@ func main() {
 		os.Exit(exit.EXIT_TARGET_ERROR)
 	}
 
-	uefiimage.CreateUefiImage(projects.DefaultBuildArgs.CCompiler, projects.DefaultBuildArgs.BuildMode)
+	uefiimage.CreateUefiImage()
 
 	writeToUSBCommand := fmt.Sprintf("sudo dd bs=4M if=%s/test.hdd of=/dev/sdc1 conv=notrunc", common.RepoRoot)
 	argument.ExecCommand(writeToUSBCommand)

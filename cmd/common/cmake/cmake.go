@@ -12,6 +12,8 @@ const EXECUTABLE = "cmake"
 type Project int64
 
 type ProjectStructure struct {
+	CCompiler           string
+	Linker              string
 	Folder              string
 	CodeFolder          string
 	DefaultFreeStanding bool
@@ -42,46 +44,64 @@ var x86Folder = common.PROJECT_FOLDER + X86 + "/"
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 	KERNEL: &ProjectStructure{
+		CCompiler:           "clang-19",
+		Linker:              "ld.lld",
 		Folder:              kernelFolder,
 		CodeFolder:          kernelFolder + "code",
 		DefaultFreeStanding: true,
 	},
 	INTEROPERATION: &ProjectStructure{
+		CCompiler: "clang-19",
+		// No linker because it is an object / interface library
 		Folder:              interoperationFolder,
 		CodeFolder:          interoperationFolder + "code",
 		DefaultFreeStanding: true,
 	},
 	UEFI_IMAGE_CREATOR: &ProjectStructure{
+		CCompiler:           "clang-19",
+		Linker:              "ld.lld",
 		Folder:              uefiImageCreatorFolder,
 		CodeFolder:          uefiImageCreatorFolder + "code",
 		DefaultFreeStanding: false,
 	},
 	UEFI: &ProjectStructure{
+		CCompiler:           "clang-19",
+		Linker:              "lld-link",
 		Folder:              uefiFolder,
 		CodeFolder:          uefiFolder + "code",
 		DefaultFreeStanding: true,
 	},
 	IMAGE_BUILDER: &ProjectStructure{
+		CCompiler:           "clang-19",
+		Linker:              "ld.lld",
 		Folder:              imageBuilderFolder,
 		CodeFolder:          imageBuilderFolder + "code",
 		DefaultFreeStanding: false,
 	},
 	SHARED: &ProjectStructure{
+		CCompiler: "clang-19",
+		// No linker because it is an object / interface library
 		Folder:              sharedFolder,
 		CodeFolder:          sharedFolder + "code",
 		DefaultFreeStanding: true,
 	},
 	POSIX: &ProjectStructure{
+		CCompiler: "clang-19",
+		// No linker because it is an object / interface library
 		Folder:              posixFolder,
 		CodeFolder:          posixFolder + "code",
 		DefaultFreeStanding: false,
 	},
 	PLATFORM_ABSTRACTION: &ProjectStructure{
+		CCompiler: "clang-19",
+		// No linker because it is an object / interface library
 		Folder:     platformAbstractionFolder,
 		CodeFolder: platformAbstractionFolder + "code",
 		// No default freestanding set because the whole purpose is to provide an integration layer for different platforms
 	},
 	X86: &ProjectStructure{
+		CCompiler: "clang-19",
+		// No linker because it is an object / interface library
 		Folder:              x86Folder,
 		CodeFolder:          x86Folder + "code",
 		DefaultFreeStanding: true,
@@ -100,16 +120,16 @@ func getConfiguredProjects() []string {
 
 var ConfiguredProjects = getConfiguredProjects()
 
-func BuildDirectoryRoot(codeDirectory string, testBuild bool, cCompiler string) string {
+func BuildDirectoryRoot(project *ProjectStructure, testBuild bool) string {
 	buildDirectory := strings.Builder{}
-	buildDirectory.WriteString(fmt.Sprintf("%s/", codeDirectory))
+	buildDirectory.WriteString(fmt.Sprintf("%s/", project.CodeFolder))
 	buildDirectory.WriteString("build/")
 	if testBuild {
 		buildDirectory.WriteString("test/")
 	} else {
 		buildDirectory.WriteString("prod/")
 	}
-	buildDirectory.WriteString(fmt.Sprintf("%s/", cCompiler))
+	buildDirectory.WriteString(fmt.Sprintf("%s/", project.CCompiler))
 
 	return buildDirectory.String()
 }

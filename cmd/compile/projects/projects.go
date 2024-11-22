@@ -13,10 +13,10 @@ import (
 	"strings"
 )
 
-func findAndRunTests(args *BuildArgs, codeDirectory string) BuildResult {
-	var buildDirectory = cmake.BuildDirectoryRoot(codeDirectory, args.TestBuild, args.CCompiler)
-	if len(args.SelectedTargets) > 0 {
-		for _, target := range args.SelectedTargets {
+func findAndRunTests(selectedTargets []string, project *cmake.ProjectStructure) BuildResult {
+	var buildDirectory = cmake.BuildDirectoryRoot(project, true)
+	if len(selectedTargets) > 0 {
+		for _, target := range selectedTargets {
 			var findCommand = fmt.Sprintf("find %s -executable -type f -name \"%s\" -exec {} \\;", buildDirectory, target)
 			argument.ExecCommand(findCommand)
 		}
@@ -57,12 +57,12 @@ func populateErrorWriter(errorsToFile bool, codeDirectory string) []io.Writer {
 }
 
 func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
-	var buildDirectory = cmake.BuildDirectoryRoot(project.CodeFolder, args.TestBuild, args.CCompiler)
+	var buildDirectory = cmake.BuildDirectoryRoot(project, args.TestBuild)
 
 	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, project.CodeFolder)
 
 	configureOptions := strings.Builder{}
-	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, args.CCompiler, args.Linker, args.BuildMode, project.DefaultFreeStanding, args.TestBuild)
+	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, project.CCompiler, project.Linker, args.BuildMode, project.DefaultFreeStanding, args.TestBuild)
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, configureOptions.String()), errorWriters...)
 
 	buildOptions := strings.Builder{}
@@ -73,8 +73,6 @@ func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
 }
 
 type BuildArgs struct {
-	CCompiler        string
-	Linker           string
 	BuildMode        string
 	ErrorsToFile     bool
 	Threads          int
@@ -92,8 +90,6 @@ const (
 )
 
 var DefaultBuildArgs = BuildArgs{
-	CCompiler:        "clang-19",
-	Linker:           "ld.lld",
 	BuildMode:        buildmode.DefaultBuildMode(),
 	ErrorsToFile:     false,
 	Threads:          runtime.NumCPU(),
@@ -133,7 +129,7 @@ func Build(args *BuildArgs) BuildResult {
 		}
 		for name, project := range projectsToBuild {
 			fmt.Printf("Testing %s%s%s\n", common.CYAN, name, common.RESET)
-			findAndRunTests(args, project.CodeFolder)
+			findAndRunTests(args.SelectedTargets, project)
 		}
 	}
 

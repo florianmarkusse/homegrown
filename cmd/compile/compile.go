@@ -16,14 +16,6 @@ import (
 	"strings"
 )
 
-// TODO: Add flag to  redirect stderr on builds
-
-const C_COMPILER_LONG_FLAG = "c-compiler"
-const C_COMPILER_SHORT_FLAG = "c"
-
-const LINKER_LONG_FLAG = "linker"
-const LINKER_SHORT_FLAG = "l"
-
 const ERRORS_TO_FILE_LONG_FLAG = "errors-to-file"
 const ERRORS_TO_FILE_SHORT_FLAG = "e"
 
@@ -51,12 +43,6 @@ var isHelp = false
 
 func main() {
 	buildmode.AddBuildModeAsFlag(&buildArgs.BuildMode)
-
-	flag.StringVar(&buildArgs.CCompiler, C_COMPILER_LONG_FLAG, buildArgs.CCompiler, "")
-	flag.StringVar(&buildArgs.CCompiler, C_COMPILER_SHORT_FLAG, buildArgs.CCompiler, "")
-
-	flag.StringVar(&buildArgs.Linker, LINKER_LONG_FLAG, buildArgs.Linker, "")
-	flag.StringVar(&buildArgs.Linker, LINKER_SHORT_FLAG, buildArgs.Linker, "")
 
 	flag.StringVar(&projectsToBuild, PROJECTS_LONG_FLAG, "", "")
 	flag.StringVar(&projectsToBuild, PROJECTS_SHORT_FLAG, "", "")
@@ -120,8 +106,6 @@ func main() {
 
 	configuration.DisplayConfiguration()
 	buildmode.DisplayBuildModeConfiguration(buildArgs.BuildMode)
-	configuration.DisplayStringArgument(C_COMPILER_LONG_FLAG, buildArgs.CCompiler)
-	configuration.DisplayStringArgument(LINKER_LONG_FLAG, buildArgs.Linker)
 
 	var projectsConfiguration string
 	if len(buildArgs.SelectedProjects) > 0 {
@@ -165,9 +149,6 @@ func usage() {
 
 	buildmode.DisplayBuildMode(buildArgs.BuildMode)
 
-	flags.DisplayArgumentInput(C_COMPILER_SHORT_FLAG, C_COMPILER_LONG_FLAG, "Set the c-compiler", fmt.Sprint(buildArgs.CCompiler))
-
-	flags.DisplayArgumentInput(LINKER_SHORT_FLAG, LINKER_LONG_FLAG, "Set the linker", fmt.Sprint(buildArgs.Linker))
 	flags.DisplayArgumentInput(ERRORS_TO_FILE_SHORT_FLAG, ERRORS_TO_FILE_LONG_FLAG, "Save errors to file", fmt.Sprint(buildArgs.ErrorsToFile))
 
 	flags.DisplayArgumentInput(SELECT_TARGETS_SHORT_FLAG, SELECT_TARGETS_LONG_FLAG, "Select specific target(s, comma-separated) to be built", DEFAULT_TARGETS)

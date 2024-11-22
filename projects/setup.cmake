@@ -7,9 +7,7 @@ set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} -march=native -m64 -Wall -Wextra -Wconversion -Wno-incompatible-pointer-types-discards-qualifiers -Wno-pointer-sign -Wno-sign-conversion -Wdouble-promotion -Wvla -W"
 )
 
-# set(CMAKE_SHARED_LINKER_FLAGS
-#     "${CMAKE_SHARED_LINKER_FLAGS} --warn-once --warn-common -z unique-symbol"
-# )
+set(COMMON_LINKER_FLAGS "--warn-common")
 
 if("${FREESTANDING_BUILD}")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -ffreestanding")

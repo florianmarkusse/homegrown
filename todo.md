@@ -1,5 +1,7 @@
+- Move compiler, linker and flag settings to Go per-project configuration instead
 - target_link_options for flags!
 - LINK_WHAT_YOU_USE
+- platform-abstraction for status logs? If not debug it can automatically be removed?
 - Move basic modules from x/a/a.h to x/a.h
 - Why does test build posix-file ?
 - Move cpu module into posix/kernel and combine into platform-abstraction project
