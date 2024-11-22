@@ -22,15 +22,12 @@ add_subproject("shared")
 add_subproject("platform-abstraction")
 add_subproject("x86")
 
-if("${UNIT_TEST_BUILD}")
-    add_subproject("posix")
-endif()
-
 add_subdirectory(cpu)
 add_subdirectory(memory)
 add_subdirectory(status)
 
 if("${UNIT_TEST_BUILD}")
+    add_subproject("posix")
     return()
 endif()
 
