@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
-set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(uefi LANGUAGES C ASM)
-include("../../setup.cmake")
+include(${REPO_PROJECTS}/setup.cmake)
 
 # For some reason, clang-19 does not accept the full file path in --ld-path, so
 # we do it like this
@@ -21,7 +21,7 @@ set(CMAKE_C_FLAGS
 )
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 
-include("../../print-configuration.cmake")
+include(${REPO_PROJECTS}/print-configuration.cmake)
 
 add_executable(
     ${PROJECT_NAME}

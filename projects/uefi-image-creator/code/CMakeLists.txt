@@ -1,23 +1,12 @@
 cmake_minimum_required(VERSION 3.22)
 project(uefi-image-creator LANGUAGES C ASM)
-include("../../setup.cmake")
-include("../../print-configuration.cmake")
+include(${REPO_PROJECTS}/setup.cmake)
+include(${REPO_PROJECTS}/print-configuration.cmake)
 add_link_options(--ld-path=${CMAKE_LINKER})
 
-add_subdirectory(
-    "${REPO_PROJECTS}/shared/code"
-    "${CMAKE_CURRENT_BINARY_DIR}/shared"
-)
-
-add_subdirectory(
-    "${REPO_PROJECTS}/posix/code"
-    "${CMAKE_CURRENT_BINARY_DIR}/posix"
-)
-
-add_subdirectory(
-    "${REPO_PROJECTS}/platform-abstraction/code"
-    "${CMAKE_CURRENT_BINARY_DIR}/platform-abstraction"
-)
+add_subproject("shared")
+add_subproject("posix")
+add_subproject("platform-abstraction")
 
 add_executable(${PROJECT_NAME} "src/main.c")
 

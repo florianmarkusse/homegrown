@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
-set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(kernel LANGUAGES C ASM)
-include("../../setup.cmake")
+include(${REPO_PROJECTS}/setup.cmake)
 
 if(NOT "${UNIT_TEST_BUILD}")
     set(CMAKE_C_FLAGS
@@ -16,25 +16,14 @@ set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}/kernel/resources"
 )
 
-include("../../print-configuration.cmake")
+include(${REPO_PROJECTS}/print-configuration.cmake)
 
-add_subdirectory(
-    "${REPO_PROJECTS}/shared/code"
-    "${CMAKE_CURRENT_BINARY_DIR}/shared"
-)
-
-add_subdirectory(
-    "${REPO_PROJECTS}/platform-abstraction/code"
-    "${CMAKE_CURRENT_BINARY_DIR}/platform-abstraction"
-)
-
-add_subdirectory("${REPO_PROJECTS}/x86/code" "${CMAKE_CURRENT_BINARY_DIR}/x86")
+add_subproject("shared")
+add_subproject("platform-abstraction")
+add_subproject("x86")
 
 if("${UNIT_TEST_BUILD}")
-    add_subdirectory(
-        "${REPO_PROJECTS}/posix/code"
-        "${CMAKE_CURRENT_BINARY_DIR}/posix"
-    )
+    add_subproject("posix")
 endif()
 
 add_subdirectory(cpu)

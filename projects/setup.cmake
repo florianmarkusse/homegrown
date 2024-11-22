@@ -43,3 +43,10 @@ endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -flto")
 endif()
+
+function(add_subproject project)
+    add_subdirectory(
+        "${REPO_PROJECTS}/${project}/code"
+        "${CMAKE_CURRENT_BINARY_DIR}/${project}"
+    )
+endfunction()
