@@ -46,15 +46,15 @@ const PLATFORM_ABSTRACTION = "platform-abstraction"
 const X86 = "x86"
 
 // and here
-var kernelFolder = common.PROJECT_FOLDER + KERNEL + "/"
-var interoperationFolder = common.PROJECT_FOLDER + INTEROPERATION + "/"
-var uefiImageCreatorFolder = common.PROJECT_FOLDER + UEFI_IMAGE_CREATOR + "/"
-var uefiFolder = common.PROJECT_FOLDER + UEFI + "/"
-var imageBuilderFolder = common.PROJECT_FOLDER + IMAGE_BUILDER + "/"
-var sharedFolder = common.PROJECT_FOLDER + SHARED + "/"
-var posixFolder = common.PROJECT_FOLDER + POSIX + "/"
-var platformAbstractionFolder = common.PROJECT_FOLDER + PLATFORM_ABSTRACTION + "/"
-var x86Folder = common.PROJECT_FOLDER + X86 + "/"
+var kernelFolder = common.REPO_PROJECTS + KERNEL + "/"
+var interoperationFolder = common.REPO_PROJECTS + INTEROPERATION + "/"
+var uefiImageCreatorFolder = common.REPO_PROJECTS + UEFI_IMAGE_CREATOR + "/"
+var uefiFolder = common.REPO_PROJECTS + UEFI + "/"
+var imageBuilderFolder = common.REPO_PROJECTS + IMAGE_BUILDER + "/"
+var sharedFolder = common.REPO_PROJECTS + SHARED + "/"
+var posixFolder = common.REPO_PROJECTS + POSIX + "/"
+var platformAbstractionFolder = common.REPO_PROJECTS + PLATFORM_ABSTRACTION + "/"
+var x86Folder = common.REPO_PROJECTS + X86 + "/"
 
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
@@ -158,6 +158,9 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, 
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_LINKER=%s", linker))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_BUILD_TYPE=%s", buildMode))
 	argument.AddArgument(options, fmt.Sprintf("-D FREESTANDING_BUILD=%t", isFreeStanding))
+	argument.AddArgument(options, fmt.Sprintf("-D REPO_ROOT=%s", common.REPO_ROOT))
+	argument.AddArgument(options, fmt.Sprintf("-D REPO_DEPENDENCIES=%s", common.REPO_DEPENDENCIES))
+	argument.AddArgument(options, fmt.Sprintf("-D REPO_PROJECTS=%s", common.REPO_PROJECTS))
 	argument.AddArgument(options, fmt.Sprintf("--graphviz=%s/output.dot", codeDirectory))
 
 	var iwyuString = strings.Builder{}
@@ -174,7 +177,6 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, 
 func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, threads int, targets []string) {
 	argument.AddArgument(options, fmt.Sprintf("--build %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("--parallel %d", threads))
-	argument.AddArgument(options, fmt.Sprintf("-v"))
 
 	if len(targets) > 0 {
 		targetsString := strings.Builder{}

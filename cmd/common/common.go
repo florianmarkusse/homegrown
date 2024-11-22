@@ -37,6 +37,6 @@ func getRepoRoot() string {
 	}
 }
 
-var RepoRoot = getRepoRoot()
-
-var PROJECT_FOLDER = RepoRoot + "projects/"
+var REPO_ROOT = getRepoRoot()
+var REPO_DEPENDENCIES = REPO_ROOT + "dependencies/"
+var REPO_PROJECTS = REPO_ROOT + "projects/"

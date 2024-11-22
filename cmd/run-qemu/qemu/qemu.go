@@ -17,8 +17,8 @@ type QemuArgs struct {
 }
 
 var DefaultQemuArgs = QemuArgs{
-	OsLocation:   common.RepoRoot + "test.hdd",
-	UefiLocation: common.RepoRoot + "bios.bin",
+	OsLocation:   common.REPO_ROOT + "test.hdd",
+	UefiLocation: common.REPO_ROOT + "bios.bin",
 	Verbose:      false,
 	Debug:        false,
 }

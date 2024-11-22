@@ -43,7 +43,3 @@ endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -flto")
 endif()
-
-set(REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
-set(REPO_DEPENDENCIES ${REPO_ROOT}/dependencies)
-set(REPO_PROJECTS ${REPO_ROOT}/projects)
