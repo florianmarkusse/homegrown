@@ -1,8 +1,6 @@
-- LINK_WHAT_YOU_USE
 - platform-abstraction for status logs? If not debug it can automatically be removed?
 - Does Include what you use still work?
 - Move basic modules from x/a/a.h to x/a.h
-- Why does test build posix-file ?
 - Move cpu module into posix/kernel and combine into platform-abstraction project
 - Move kernel/memory/manipulation too?
 - Start rewrite of image-builder

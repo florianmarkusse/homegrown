@@ -38,17 +38,21 @@ endif()
 add_subdirectory(log)
 add_subdirectory(peripheral)
 
-add_library(${PROJECT_NAME} OBJECT "src/main.c")
-
-target_include_directories(
+add_executable(${PROJECT_NAME} "src/main.c")
+set_target_properties(
     ${PROJECT_NAME}
-    PUBLIC "${REPO_PROJECTS}/platform-abstraction/code/log/include"
+    PROPERTIES
+        LINK_FLAGS
+            "-T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld -no-pie -Wl,-n,-m,elf_x86_64,--build-id=none"
+        EXCLUDE_FROM_ALL TRUE
 )
 
 target_include_directories(
     ${PROJECT_NAME}
     PUBLIC "${REPO_PROJECTS}/shared/code/assert/include"
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
@@ -58,40 +62,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-management)
-target_link_libraries(${PROJECT_NAME} PRIVATE kernel-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-cpu)
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-status-memory)
-
-get_target_property(OBJECT_LIBRARIES ${PROJECT_NAME} LINK_LIBRARIES)
-set(OBJECT_TARGETS_LIBRARIES "")
-foreach(LIB ${OBJECT_LIBRARIES})
-    list(APPEND OBJECT_TARGETS_LIBRARIES "$<TARGET_OBJECTS:${LIB}>")
-endforeach()
-
-set(LINKER_TARGET "${PROJECT_NAME}.elf")
-add_custom_target(
-    ${LINKER_TARGET}
-    ALL
-    COMMAND
-        ${CMAKE_LINKER} -n -m elf_x86_64 ${CMAKE_SHARED_LINKER_FLAGS} -T
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.ld -o
-        ${CMAKE_CURRENT_BINARY_DIR}/${LINKER_TARGET}
-        $<TARGET_OBJECTS:${PROJECT_NAME}> ${OBJECT_TARGETS_LIBRARIES}
-    COMMAND
-        objdump -M x86_64 -D ${CMAKE_CURRENT_BINARY_DIR}/${LINKER_TARGET} >
-        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.asm
-    COMMAND
-        objdump -x ${CMAKE_CURRENT_BINARY_DIR}/${LINKER_TARGET} >
-        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.objdump
-    COMMAND_EXPAND_LISTS
-    VERBATIM
-    BYPRODUCTS
-        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.asm
-        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.objdump
-    COMMENT "Linking ${LINKER_TARGET}"
-)
-add_dependencies(${LINKER_TARGET} ${PROJECT_NAME})
 
 set(BINARIZER "${PROJECT_NAME}.bin")
 set(PROJECT_NAME_BIN "${PROJECT_NAME}.bin")
@@ -103,16 +76,16 @@ add_custom_target(
     ${BINARIZER}
     ALL
     COMMAND
-        objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${LINKER_TARGET}
+        objcopy -O binary ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_BIN}
     COMMAND
         mkdir -p ${KERNEL_MAGIC_FOLDER} && python3
         "${REPO_PROJECTS}/interoperation/code/create_magic.py"
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_BIN}" ${KERNEL_MAGIC_OUTPUT}
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LINKER_TARGET}
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
     COMMAND_EXPAND_LISTS
     BYPRODUCTS ${KERNEL_MAGIC_OUTPUT}
     VERBATIM
     COMMENT "Transforming ${PROJECT_NAME} into ${PROJECT_NAME_BIN}"
 )
-add_dependencies(${BINARIZER} ${LINKER_TARGET})
+add_dependencies(${BINARIZER} ${PROJECT_NAME})
