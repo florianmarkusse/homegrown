@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(kernel LANGUAGES C ASM)
 include(${REPO_PROJECTS}/setup.cmake)
+add_link_options(--ld-path=${CMAKE_LINKER})
 
 if(NOT "${UNIT_TEST_BUILD}")
     set(CMAKE_C_FLAGS
