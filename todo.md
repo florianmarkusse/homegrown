@@ -1,6 +1,11 @@
 - platform-abstraction for status logs? If not debug it can automatically be removed?
-- Does Include what you use still work?
 - Move basic modules from x/a/a.h to x/a.h
 - Move cpu module into posix/kernel and combine into platform-abstraction project
 - Move kernel/memory/manipulation too?
+- Turn on CPPcheck?
+- Turn on clang static analyzer
+- Turn on IKOS
+- Turn on UBsan
+- Turn on ASan
+- Why some targets are built when not required
 - Start rewrite of image-builder

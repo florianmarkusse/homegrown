@@ -39,13 +39,8 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
-LLVM_VERSION=19
-echo -e "${BOLD}Installing ${YELLOW}llvm toolchain ${LLVM_VERSION}${NO_COLOR}"
-wget https://apt.llvm.org/llvm.sh
-chmod +x llvm.sh
-sudo ./llvm.sh "${LLVM_VERSION}"
-rm ./llvm.sh
-
+echo -e "${BOLD}Installing ${YELLOW}git${NO_COLOR}"
+sudo apt install -y git
 echo -e "${BOLD}Installing ${YELLOW}cmake${NO_COLOR}"
 sudo apt install -y cmake
 echo -e "${BOLD}Installing ${YELLOW}iwyu${NO_COLOR}"
@@ -62,6 +57,34 @@ echo -e "${BOLD}Installing ${YELLOW}ovmf${NO_COLOR}"
 sudo apt install -y ovmf
 # This is the binary that emulates UEFI on qemu
 cp /usr/share/ovmf/OVMF.fd bios.bin
+
+LLVM_VERSION=19
+echo -e "${BOLD}Installing ${YELLOW}llvm toolchain ${LLVM_VERSION}${NO_COLOR}"
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+sudo ./llvm.sh "${LLVM_VERSION}"
+rm ./llvm.sh
+
+DEPENDENCIES_DIR="dependencies"
+echo -e "${BOLD}Creating ${YELLOW}${DEPENDENCIES_DIR}${NO_COLOR}${BOLD} directory${NO_COLOR}"
+mkdir -p dependencies && cd dependencies
+
+IWYU="include-what-you-use"
+
+if [ -d "$IWYU" ]; then
+    echo -e "${BOLD}Requested ${YELLOW}${IWYU}${NO_COLOR}${BOLD} repo is already downloaded."
+else
+    echo -e "${BOLD}Cloning ${YELLOW}${FASMG_FILE}${NO_COLOR}"
+    git clone https://github.com/${IWYU}/${IWYU}.git
+fi
+cd ${IWYU}
+git checkout master && git fetch && git pull
+git checkout clang_${LLVM_VERSION}
+mkdir build && cd build
+cmake -G "Unix Makefiles" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-${LLVM_VERSION} ..
+make
+sudo make install
+cd ../../
 
 echo -e "${BOLD}Installing ${YELLOW}go${NO_COLOR}"
 echo -e "${BOLD}Removing previous ${YELLOW}go${NO_COLOR}${BOLD} installation (if any)..."
@@ -84,22 +107,6 @@ echo -e "${BOLD}Adding ${YELLOW}go${NO_COLOR}${BOLD} to your system PATH..."
 if ! grep -q "export PATH=$PATH:/usr/local/go/bin" ~/.bashrc; then
     echo "export PATH=$PATH:/usr/local/go/bin" >>~/.bashrc
 fi
-
-# DEPENDENCIES_DIR="dependencies"
-# echo -e "${BOLD}Creating ${YELLOW}${DEPENDENCIES_DIR}${NO_COLOR}${BOLD} directory${NO_COLOR}"
-# mkdir -p dependencies && cd dependencies
-#
-# FASMG_FILE="fasmg.kcm8.zip"
-# FASMG_DIR="fasmg"
-#
-# if [ -d "$FASMG_DIR" ]; then
-#     echo -e "${BOLD}Requested ${YELLOW}${FASMG_DIR}${NO_COLOR}${BOLD} is already downloaded."
-# else
-#     echo -e "${BOLD}Downloading ${YELLOW}${FASMG_FILE}${NO_COLOR}"
-#     wget "https://flatassembler.net/${FASMG_FILE}"
-#     unzip "${FASMG_FILE}" -d fasmg && rm "${FASMG_FILE}"
-# fi
-#
 
 echo -e "${BOLD}${GREEN}Dependencies correctly installed!${NO_COLOR}"
 echo -e "${BOLD}${GREEN}Please reload terminal to update PATH changes!${NO_COLOR}"

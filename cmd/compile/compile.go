@@ -170,7 +170,7 @@ func usage() {
 	fmt.Printf("\n")
 	flags.DisplayExamples()
 	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
-	fmt.Printf("  %s -%s=%s --%s text,log --%s -%s\n", filepath.Base(os.Args[0]),
-		buildmode.BUILD_MODE_LONG_FLAG, buildmode.PossibleBuildModes[1], SELECT_TARGETS_LONG_FLAG, TEST_BUILD_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
+	fmt.Printf("  %s --%s=%s --%s %s,%s --%s -%s\n", filepath.Base(os.Args[0]),
+		buildmode.BUILD_MODE_LONG_FLAG, buildmode.PossibleBuildModes[1], PROJECTS_LONG_FLAG, cmake.KERNEL, cmake.UEFI, TEST_BUILD_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
 	fmt.Printf("\n")
 }
