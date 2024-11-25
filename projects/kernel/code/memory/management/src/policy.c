@@ -7,7 +7,7 @@
 #include "shared/maths/maths.h"
 
 void *allocAndMap(U64 bytes) {
-    PagedMemory pagedMemory[PAGE_TABLE_ENTRIES];
+    PagedMemory pagedMemory[PageTableFormat.ENTRIES];
 
     PageSize pageSize;
     U64 inPages;
@@ -17,7 +17,7 @@ void *allocAndMap(U64 bytes) {
         pageSize = pageSizes[i];
         inPages = CEILING_DIV_VALUE(bytes, pageSize);
 
-        if (i < NUM_PAGE_SIZES - 1 && inPages <= PAGE_TABLE_ENTRIES / 2) {
+        if (i < NUM_PAGE_SIZES - 1 && inPages <= PageTableFormat.ENTRIES / 2) {
             request = (PagedMemory_a){.buf = pagedMemory, .len = inPages};
             return allocAndMapExplicit(request, pageSize);
         }
@@ -26,7 +26,7 @@ void *allocAndMap(U64 bytes) {
     pageSize = pageSizes[NUM_PAGE_SIZES - 1];
     inPages = CEILING_DIV_VALUE(bytes, pageSize);
 
-    if (inPages > PAGE_TABLE_ENTRIES) {
+    if (inPages > PageTableFormat.ENTRIES) {
         triggerFault(FAULT_TOO_LARGE_ALLOCATION);
     }
 

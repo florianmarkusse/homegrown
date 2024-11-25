@@ -1,8 +1,36 @@
 #ifndef X86_MEMORY_VIRTUAL_H
 #define X86_MEMORY_VIRTUAL_H
 
-#include "interoperation/memory/definitions.h"
 #include "interoperation/types.h"
+
+constexpr struct {
+    U64 SHIFT;
+    U64 ENTRIES;
+} PageTableFormat = {.SHIFT = 9, .ENTRIES = (1ULL << PageTableFormat.SHIFT)};
+
+U64 arraysOfThings[PageTableFormat.ENTRIES];
+
+// PAGE TABLE DEFINITIONS FOR X86_64 !!!
+// TODO: These macros are quite confusing, should rewrite them into more
+// sensible constructs when working on virtual memory.
+static constexpr auto PAGE_FRAME_SHIFT = 12ULL;
+static constexpr auto PAGE_FRAME_SIZE = (1ULL << PAGE_FRAME_SHIFT);
+static constexpr auto LARGE_PAGE_SIZE =
+    (PAGE_FRAME_SIZE << PageTableFormat.SHIFT);
+static constexpr auto HUGE_PAGE_SIZE =
+    (LARGE_PAGE_SIZE << PageTableFormat.SHIFT);
+static constexpr auto JUMBO_PAGE_SIZE =
+    (HUGE_PAGE_SIZE
+     << PageTableFormat.SHIFT); // Does not exist but comes in handy. 512GiB
+static constexpr auto WUMBO_PAGE_SIZE =
+    (JUMBO_PAGE_SIZE
+     << PageTableFormat.SHIFT); // Does not exist but comes in handy. 256TiB
+static constexpr auto PAGE_MASK = (PAGE_FRAME_SIZE - 1);
+
+static constexpr auto LEVEL_4_SHIFT = 39U;
+static constexpr auto LEVEL_3_SHIFT = 30U;
+static constexpr auto LEVEL_2_SHIFT = 21U;
+static constexpr auto LEVEL_1_SHIFT = 12U;
 
 static constexpr auto NUM_PAGE_SIZES = 3;
 typedef enum : U64 {

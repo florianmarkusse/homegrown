@@ -24,6 +24,7 @@ set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_subproject("x86")
+add_subproject("shared")
 
 add_executable(
     ${PROJECT_NAME}
@@ -42,6 +43,7 @@ add_executable(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
 
 target_include_directories(
     ${PROJECT_NAME}

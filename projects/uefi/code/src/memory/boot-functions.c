@@ -5,6 +5,7 @@
 #include "interoperation/memory/definitions.h"
 #include "memory/standard.h"
 #include "printing.h"
+#include "shared/maths/maths.h"
 #include "x86/memory/virtual.h"
 
 PhysicalAddress allocAndZero(USize numPages) {
@@ -33,8 +34,8 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
          virt += PAGE_FRAME_SIZE, phys += PAGE_FRAME_SIZE) {
         /* 512G */
         pageEntry =
-            &(((PhysicalAddress *)
-                   globals.level4PageTable)[(virt >> 39L) & PAGE_TABLE_MASK]);
+            &(((PhysicalAddress *)globals.level4PageTable)[RING_RANGE_EXP(
+                virt >> 39L, PageTableFormat.SHIFT)]);
         if (!*pageEntry) {
             PhysicalAddress addr = allocAndZero(1);
             *pageEntry = (addr | (VirtualPageMasks.PAGE_PRESENT |
@@ -48,7 +49,7 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
 
         /* 1G */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[(virt >> 30L) & PAGE_TABLE_MASK]);
+        pageEntry = &(pageEntry[RING_RANGE_EXP(virt >> 30L, PageTableFormat.SHIFT)]);
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (VirtualPageMasks.PAGE_PRESENT |
                                              VirtualPageMasks.PAGE_WRITABLE));
@@ -60,14 +61,14 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
         }
         /* 2M  */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[(virt >> 21L) & PAGE_TABLE_MASK]);
+        pageEntry = &(pageEntry[RING_RANGE_EXP(virt >> 21L, PageTableFormat.SHIFT)]);
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (VirtualPageMasks.PAGE_PRESENT |
                                              VirtualPageMasks.PAGE_WRITABLE));
         }
         /* 4K */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[(virt >> 12L) & PAGE_TABLE_MASK]);
+        pageEntry = &(pageEntry[RING_RANGE_EXP(virt >> 12L, PageTableFormat.SHIFT)]);
         /* if this page is already mapped, that means the kernel has invalid,
          * overlapping segments */
         if (!*pageEntry) {

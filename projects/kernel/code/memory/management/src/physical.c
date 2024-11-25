@@ -13,19 +13,19 @@ PhysicalMemoryManager largePMM;
 PhysicalMemoryManager hugePMM;
 
 static U64 toLargerPages(U64 numberOfPages) {
-    return numberOfPages >> PAGE_TABLE_SHIFT;
+    return numberOfPages >> PageTableFormat.SHIFT;
 }
 
 static U64 toSmallerPages(U64 numberOfPages) {
-    return numberOfPages << PAGE_TABLE_SHIFT;
+    return numberOfPages << PageTableFormat.SHIFT;
 }
 
 static PageSize toLargerPageSize(PageSize pageSize) {
-    return pageSize << PAGE_TABLE_SHIFT;
+    return pageSize << PageTableFormat.SHIFT;
 }
 
 static PageSize toSmallerPageSize(PageSize pageSize) {
-    return pageSize >> PAGE_TABLE_SHIFT;
+    return pageSize >> PageTableFormat.SHIFT;
 }
 
 static void decreasePages(PhysicalMemoryManager *manager, U64 index,
@@ -95,7 +95,7 @@ allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
 
     if (manager->pageSize < HUGE_PAGE) {
         U64 pagesForLargerManager =
-            CEILING_DIV_EXP(numberOfPages, PAGE_TABLE_SHIFT);
+            CEILING_DIV_EXP(numberOfPages, PageTableFormat.SHIFT);
         U64 address = allocContiguousPhysicalPages(
             pagesForLargerManager, toLargerPageSize(manager->pageSize));
 
@@ -148,13 +148,13 @@ allocPhysicalPagesWithManager(PagedMemory_a pages,
         // larger buffer
         PagedMemory_a leftOverRequest = (PagedMemory_a){
             .buf = pages.buf + pages.len,
-            .len = CEILING_DIV_EXP(requestedPages, PAGE_TABLE_SHIFT)};
+            .len = CEILING_DIV_EXP(requestedPages, PageTableFormat.SHIFT)};
 
         PagedMemory_a largerPage = allocPhysicalPages(
             leftOverRequest, toLargerPageSize(manager->pageSize));
         // Convert back to original manager sizes
         for (U64 i = 0; i < largerPage.len; i++) {
-            largerPage.buf[i].numberOfPages *= PAGE_TABLE_ENTRIES;
+            largerPage.buf[i].numberOfPages *= PageTableFormat.ENTRIES;
         }
         freePhysicalPages(largerPage, manager->pageSize);
 
@@ -234,7 +234,7 @@ static void initPMM(PageSize pageType) {
     for (U64 i = 0; i < initedManager->memory.len; i++) {
         PagedMemory memory = initedManager->memory.buf[i];
 
-        if (memory.numberOfPages >= PAGE_TABLE_ENTRIES) {
+        if (memory.numberOfPages >= PageTableFormat.ENTRIES) {
             U64 applicablePageBoundary =
                 ALIGN_UP_VALUE(memory.pageStart, initingManagerPageSize);
             U64 pagesMoved = (applicablePageBoundary - memory.pageStart) /
@@ -242,7 +242,7 @@ static void initPMM(PageSize pageType) {
             U64 pagesFromAlign = memory.numberOfPages - pagesMoved;
             // Now we are actually able to move pages into the PMM at the higher
             // level.
-            if (pagesFromAlign >= PAGE_TABLE_ENTRIES) {
+            if (pagesFromAlign >= PageTableFormat.ENTRIES) {
                 decreasePages(initedManager, i, pagesFromAlign);
                 // We may have 600 free pages that start on the aligned
                 // boundary, but the size of the next level of physical memory
@@ -250,7 +250,7 @@ static void initPMM(PageSize pageType) {
                 // every 512 pages to 1 new page. The rest is leftover and will
                 // be added back to the current level.
                 U64 alignedForNextLevelPages =
-                    ALIGN_DOWN_EXP(pagesFromAlign, PAGE_TABLE_SHIFT);
+                    ALIGN_DOWN_EXP(pagesFromAlign, PageTableFormat.SHIFT);
                 freePhysicalPage(
                     (PagedMemory){.pageStart = applicablePageBoundary,
                                   .numberOfPages = (toLargerPages(

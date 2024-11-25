@@ -112,9 +112,9 @@ void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
         VirtualPageTable *currentTable = level4PageTable;
 
         U64 indexShift = LEVEL_4_SHIFT;
-        for (U8 i = 0; i < depth; i++, indexShift -= PAGE_TABLE_SHIFT) {
+        for (U8 i = 0; i < depth; i++, indexShift -= PageTableFormat.SHIFT) {
             U64 *address = &(currentTable->pages[RING_RANGE_EXP(
-                (virtual >> indexShift), PAGE_TABLE_SHIFT)]);
+                (virtual >> indexShift), PageTableFormat.SHIFT)]);
 
             if (i == depth - 1) {
                 U64 value = VirtualPageMasks.PAGE_PRESENT |
@@ -147,10 +147,10 @@ MappedPage getMappedPage(U64 virtual) {
     U64 *address;
     U8 totalDepth = pageSizeToDepth(BASE_PAGE);
     for (U8 level = 0; level < totalDepth;
-         level++, indexShift -= PAGE_TABLE_SHIFT) {
+         level++, indexShift -= PageTableFormat.SHIFT) {
         address = &(currentTable->pages[RING_RANGE_EXP((virtual >> indexShift),
-                                                       PAGE_TABLE_SHIFT)]);
-        result.pageSize >>= PAGE_TABLE_SHIFT;
+                                                       PageTableFormat.SHIFT)]);
+        result.pageSize >>= PageTableFormat.SHIFT;
 
         if (isExtendedPageLevel(level) &&
             ((*address) & VirtualPageMasks.PAGE_EXTENDED_SIZE)) {

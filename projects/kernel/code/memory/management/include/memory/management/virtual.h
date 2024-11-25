@@ -64,7 +64,7 @@ typedef struct {
 } VirtualRegion;
 
 typedef struct {
-    U64 pages[PAGE_TABLE_ENTRIES];
+    U64 pages[PageTableFormat.ENTRIES];
 } VirtualPageTable;
 
 extern VirtualPageTable *level4PageTable;

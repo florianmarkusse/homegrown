@@ -14,15 +14,15 @@ typedef struct {
 typedef struct {
     union {
         U8 data[LARGE_PAGE_SIZE];
-        PhysicalBasePage basePages[PAGE_TABLE_ENTRIES];
+        PhysicalBasePage basePages[PageTableFormat.ENTRIES];
     };
 } PhysicalLargePage;
 
 typedef struct {
     union {
         U8 data[HUGE_PAGE_SIZE];
-        PhysicalBasePage basePages[PAGE_TABLE_ENTRIES * PAGE_TABLE_ENTRIES];
-        PhysicalLargePage largePages[PAGE_TABLE_ENTRIES];
+        PhysicalBasePage basePages[PageTableFormat.ENTRIES * PageTableFormat.ENTRIES];
+        PhysicalLargePage largePages[PageTableFormat.ENTRIES];
     };
 } PhysicalHugePage;
 

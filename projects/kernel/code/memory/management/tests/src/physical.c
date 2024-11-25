@@ -85,7 +85,7 @@ void testPhysicalMemoryManagement() {
     }
 
     memoryStart = (PhysicalBasePage *)ALIGN_UP_EXP(
-        (U64)pages, PAGE_FRAME_SHIFT + PAGE_TABLE_SHIFT * 2);
+        (U64)pages, PAGE_FRAME_SHIFT + PageTableFormat.SHIFT * 2);
 
     TEST_TOPIC(STRING("Physical Memory Management")) {
         TEST_TOPIC(STRING("Initing")) {
@@ -195,7 +195,7 @@ void testPhysicalMemoryManagement() {
                     createDescriptor(CONVENTIONAL_MEMORY, 500, &index),
                     createDescriptor(CONVENTIONAL_MEMORY, 520, &index),
                     createDescriptor(CONVENTIONAL_MEMORY,
-                                     PAGE_TABLE_ENTRIES - 1, &index),
+                                     PageTableFormat.ENTRIES - 1, &index),
                     createDescriptor(CONVENTIONAL_MEMORY, 1, &index)};
                 KernelMemory kernelMemory =
                     createKernelMemory(descriptors, COUNTOF(descriptors));
@@ -226,7 +226,7 @@ void testPhysicalMemoryManagement() {
                     createDescriptor(CONVENTIONAL_MEMORY, 500, &index),
                     createDescriptor(CONVENTIONAL_MEMORY, 521, &index),
                     createDescriptor(CONVENTIONAL_MEMORY,
-                                     PAGE_TABLE_ENTRIES * 5 + 1, &index)};
+                                     PageTableFormat.ENTRIES * 5 + 1, &index)};
                 KernelMemory kernelMemory =
                     createKernelMemory(descriptors, COUNTOF(descriptors));
 
@@ -285,9 +285,9 @@ void testPhysicalMemoryManagement() {
                     createDescriptor(CONVENTIONAL_MEMORY, 3, &index),
                     createDescriptor(
                         CONVENTIONAL_MEMORY,
-                        PAGE_TABLE_ENTRIES * PAGE_TABLE_ENTRIES - 3, &index),
+                        PageTableFormat.ENTRIES * PageTableFormat.ENTRIES - 3, &index),
                     createDescriptor(CONVENTIONAL_MEMORY,
-                                     PAGE_TABLE_ENTRIES * PAGE_TABLE_ENTRIES,
+                                     PageTableFormat.ENTRIES * PageTableFormat.ENTRIES,
                                      &index)};
                 KernelMemory kernelMemory =
                     createKernelMemory(descriptors, COUNTOF(descriptors));
@@ -358,7 +358,7 @@ void testPhysicalMemoryManagement() {
                     createDescriptor(CONVENTIONAL_MEMORY, 500, &index),
                     createDescriptor(CONVENTIONAL_MEMORY, 521, &index),
                     createDescriptor(CONVENTIONAL_MEMORY,
-                                     PAGE_TABLE_ENTRIES * 5 + 1, &index)};
+                                     PageTableFormat.ENTRIES * 5 + 1, &index)};
                 KernelMemory kernelMemory =
                     createKernelMemory(descriptors, COUNTOF(descriptors));
 
@@ -396,9 +396,9 @@ void testPhysicalMemoryManagement() {
                     createDescriptor(CONVENTIONAL_MEMORY, 3, &index),
                     createDescriptor(
                         CONVENTIONAL_MEMORY,
-                        PAGE_TABLE_ENTRIES * PAGE_TABLE_ENTRIES - 3, &index),
+                        PageTableFormat.ENTRIES * PageTableFormat.ENTRIES - 3, &index),
                     createDescriptor(CONVENTIONAL_MEMORY,
-                                     PAGE_TABLE_ENTRIES * PAGE_TABLE_ENTRIES,
+                                     PageTableFormat.ENTRIES * PageTableFormat.ENTRIES,
                                      &index)};
                 KernelMemory kernelMemory =
                     createKernelMemory(descriptors, COUNTOF(descriptors));
@@ -412,7 +412,7 @@ void testPhysicalMemoryManagement() {
                 allocContiguousPhysicalPages(2, BASE_PAGE);
 
                 allocContiguousPhysicalPages(
-                    PAGE_TABLE_ENTRIES * PAGE_TABLE_ENTRIES, BASE_PAGE);
+                    PageTableFormat.ENTRIES * PageTableFormat.ENTRIES, BASE_PAGE);
 
                 EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
@@ -430,10 +430,10 @@ void testPhysicalMemoryManagement() {
             MemoryDescriptor descriptors[] = {
                 createDescriptor(CONVENTIONAL_MEMORY, 3, &index),
                 createDescriptor(CONVENTIONAL_MEMORY,
-                                 PAGE_TABLE_ENTRIES * PAGE_TABLE_ENTRIES - 3,
+                                 PageTableFormat.ENTRIES * PageTableFormat.ENTRIES - 3,
                                  &index),
                 createDescriptor(CONVENTIONAL_MEMORY,
-                                 PAGE_TABLE_ENTRIES * PAGE_TABLE_ENTRIES,
+                                 PageTableFormat.ENTRIES * PageTableFormat.ENTRIES,
                                  &index)};
             KernelMemory kernelMemory =
                 createKernelMemory(descriptors, COUNTOF(descriptors));
