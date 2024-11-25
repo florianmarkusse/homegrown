@@ -5,7 +5,7 @@
 #include "interoperation/memory/definitions.h"
 #include "interoperation/types.h"
 #include "memory/management/definitions.h"
-#include "x86/memory/page.h"
+#include "x86/memory/virtual.h"
 
 typedef struct {
     U8 data[PAGE_FRAME_SIZE];

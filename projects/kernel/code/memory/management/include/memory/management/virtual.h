@@ -5,7 +5,7 @@
 #include "interoperation/memory/definitions.h"
 #include "interoperation/types.h"
 #include "memory/management/definitions.h"
-#include "x86/memory/page.h"
+#include "x86/memory/virtual.h"
 
 typedef struct {
     U64 address : 48;
@@ -47,8 +47,8 @@ typedef struct {
     };
 } VirtualEntry;
 
-static inline U64 getPhysicalAddress(U64 virtualPage) {
-    return virtualPage & 0x000FFFFFFFFF000;
+static inline U64 getPhysicalAddressFrame(U64 virtualPage) {
+    return virtualPage & VirtualPageMasks.FRAME_OR_NEXT_PAGE_TABLE;
 }
 
 typedef struct {
@@ -71,31 +71,6 @@ extern VirtualPageTable *level4PageTable;
 
 extern VirtualRegion higherHalfRegion;
 extern VirtualRegion lowerHalfRegion; // Start is set in the init function.
-
-typedef enum {
-    PAT_UNCACHABLE_UC = 0x0,
-    PAT_WRITE_COMBINGING_WC = 0x1,
-    PAT_RESERVED_2 = 0x2,
-    PAT_RESERVED_3 = 0x3,
-    PAT_WRITE_THROUGH_WT = 0x4,
-    PAT_WRITE_PROTECTED_WP = 0x5,
-    PAT_WRITE_BACK_WB = 0x6,
-    PAT_UNCACHED_UC_ = 0x7,
-    PAT_NUMS
-} PATEncoding;
-
-static constexpr auto PAT_LOCATION = 0x277;
-
-typedef struct {
-    U8 pat : 3;
-    U8 reserved : 5;
-} PATEntry;
-typedef struct {
-    union {
-        PATEntry pats[8];
-        U64 value;
-    };
-} PAT;
 
 void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory);
 

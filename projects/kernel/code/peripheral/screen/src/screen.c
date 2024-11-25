@@ -2,14 +2,15 @@
 
 #include "cpu/x86.h"
 #include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
-#include "shared/assert.h"      // for ASSERT
 #include "interoperation/macros.h"
 #include "interoperation/memory/definitions.h"
 #include "memory/management/definitions.h"
 #include "memory/management/virtual.h"
 #include "memory/manipulation/manipulation.h"
+#include "shared/assert.h"      // for ASSERT
 #include "shared/maths/maths.h" // for RING_PLUS, RING_INCREMENT, RING_MINUS
 #include "shared/memory/allocator/macros.h"
+#include "x86/memory/pat.h"
 
 // The header contains all the data for each glyph. After that comes numGlyph *
 // bytesPerGlyph bytes.
@@ -547,7 +548,8 @@ void initScreen(ScreenDimension dimension, Arena *perm) {
     PagedMemory pagedMemory = {.pageStart = (U64)dim.screen,
                                .numberOfPages =
                                    CEILING_DIV_EXP(dim.size, PAGE_FRAME_SHIFT)};
-    mapVirtualRegionWithFlags((U64)dim.screen, pagedMemory, BASE_PAGE, PAT_3);
+    mapVirtualRegionWithFlags((U64)dim.screen, pagedMemory, BASE_PAGE,
+                              PATMapping.MAP_3);
     flushCPUCaches();
 
     glyphsPerLine =

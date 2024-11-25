@@ -1,5 +1,6 @@
 - platform-abstraction for status logs? If not debug it can automatically be removed?
 - Move basic modules from x/a/a.h to x/a.h
+- -fwhole-program
 - Move cpu module into posix/kernel and combine into platform-abstraction project
 - Move kernel/memory/manipulation too?
 - Turn on CPPcheck?
@@ -7,5 +8,6 @@
 - Turn on IKOS
 - Turn on UBsan
 - Turn on ASan
+- Fix header guards, make command for this like --errors-to-file for iwyu?
 - Why some targets are built when not required
 - Start rewrite of image-builder

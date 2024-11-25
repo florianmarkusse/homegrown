@@ -5,6 +5,7 @@
 #include "interoperation/memory/definitions.h"
 #include "memory/standard.h"
 #include "printing.h"
+#include "x86/memory/virtual.h"
 
 PhysicalAddress allocAndZero(USize numPages) {
     PhysicalAddress page = 0;
@@ -36,7 +37,8 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
                    globals.level4PageTable)[(virt >> 39L) & PAGE_TABLE_MASK]);
         if (!*pageEntry) {
             PhysicalAddress addr = allocAndZero(1);
-            *pageEntry = (addr | (PAGE_PRESENT | PAGE_WRITABLE));
+            *pageEntry = (addr | (VirtualPageMasks.PAGE_PRESENT |
+                                  VirtualPageMasks.PAGE_WRITABLE));
 
             globals.st->con_out->output_string(globals.st->con_out,
                                                u"INSIDE level 3 is at:");
@@ -48,7 +50,8 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
         pageEntry = &(pageEntry[(virt >> 30L) & PAGE_TABLE_MASK]);
         if (!*pageEntry) {
-            *pageEntry = (allocAndZero(1) | (PAGE_PRESENT | PAGE_WRITABLE));
+            *pageEntry = (allocAndZero(1) | (VirtualPageMasks.PAGE_PRESENT |
+                                             VirtualPageMasks.PAGE_WRITABLE));
 
             globals.st->con_out->output_string(globals.st->con_out,
                                                u"INSIDE level 2 is at:");
@@ -59,7 +62,8 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
         pageEntry = &(pageEntry[(virt >> 21L) & PAGE_TABLE_MASK]);
         if (!*pageEntry) {
-            *pageEntry = (allocAndZero(1) | (PAGE_PRESENT | PAGE_WRITABLE));
+            *pageEntry = (allocAndZero(1) | (VirtualPageMasks.PAGE_PRESENT |
+                                             VirtualPageMasks.PAGE_WRITABLE));
         }
         /* 4K */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
@@ -67,8 +71,10 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
         /* if this page is already mapped, that means the kernel has invalid,
          * overlapping segments */
         if (!*pageEntry) {
-            *pageEntry =
-                phys | (PAGE_PRESENT | PAGE_WRITABLE) | additionalFlags;
+            *pageEntry = phys |
+                         (VirtualPageMasks.PAGE_PRESENT |
+                          VirtualPageMasks.PAGE_WRITABLE) |
+                         additionalFlags;
         }
     }
 }

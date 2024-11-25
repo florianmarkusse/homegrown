@@ -74,7 +74,7 @@ void freeMapped(U64 start, U64 bytes) {
         page = getMappedPage(start);
     }
 
-    U64 physicalOfPage = getPhysicalAddress(page.entry.value);
+    U64 physicalOfPage = getPhysicalAddressFrame(page.entry.value);
 
     PagedMemory pagedEntry =
         (PagedMemory){.pageStart = physicalOfPage, .numberOfPages = 1};
@@ -85,7 +85,7 @@ void freeMapped(U64 start, U64 bytes) {
     start += page.pageSize;
     while (start < end) {
         page = getMappedPage(start);
-        physicalOfPage = getPhysicalAddress(page.entry.value);
+        physicalOfPage = getPhysicalAddressFrame(page.entry.value);
 
         if (physicalOfPage == nextPhysical &&
             previousPageSize == page.pageSize) {

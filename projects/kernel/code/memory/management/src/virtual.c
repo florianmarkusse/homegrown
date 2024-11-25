@@ -10,6 +10,7 @@
 #include "memory/manipulation/manipulation.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
+#include "x86/memory/pat.h"
 
 VirtualPageTable *level4PageTable;
 
@@ -116,14 +117,16 @@ void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
                 (virtual >> indexShift), PAGE_TABLE_SHIFT)]);
 
             if (i == depth - 1) {
-                U64 value =
-                    PAGE_PRESENT | PAGE_WRITABLE | physical | additionalFlags;
+                U64 value = VirtualPageMasks.PAGE_PRESENT |
+                            VirtualPageMasks.PAGE_WRITABLE | physical |
+                            additionalFlags;
                 if (pageType == HUGE_PAGE || pageType == LARGE_PAGE) {
-                    value |= PAGE_EXTENDED_SIZE;
+                    value |= VirtualPageMasks.PAGE_EXTENDED_SIZE;
                 }
                 *address = value;
             } else if (!*address) {
-                U64 value = PAGE_PRESENT | PAGE_WRITABLE;
+                U64 value = VirtualPageMasks.PAGE_PRESENT |
+                            VirtualPageMasks.PAGE_WRITABLE;
                 value |= getZeroBasePage();
                 *address = value;
             }
@@ -149,7 +152,8 @@ MappedPage getMappedPage(U64 virtual) {
                                                        PAGE_TABLE_SHIFT)]);
         result.pageSize >>= PAGE_TABLE_SHIFT;
 
-        if (isExtendedPageLevel(level) && ((*address) & PAGE_EXTENDED_SIZE)) {
+        if (isExtendedPageLevel(level) &&
+            ((*address) & VirtualPageMasks.PAGE_EXTENDED_SIZE)) {
             result.entry = *(VirtualEntry *)address;
             return result;
         }
