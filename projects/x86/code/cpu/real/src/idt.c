@@ -1,4 +1,4 @@
-#include "x86/cpu/idt.h"
+#include "x86/cpu/real/idt.h"
 
 extern void isr0();
 extern void isr1();

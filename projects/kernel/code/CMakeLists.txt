@@ -1,15 +1,23 @@
 cmake_minimum_required(VERSION 3.22)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(kernel LANGUAGES C ASM)
-include(${REPO_PROJECTS}/setup.cmake)
-add_link_options(--ld-path=${CMAKE_LINKER})
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    include("${REPO_PROJECTS}/setup.cmake")
+    include("${REPO_PROJECTS}/print-configuration.cmake")
+    add_link_options("--ld-path=${CMAKE_LINKER}")
 
-if(NOT "${UNIT_TEST_BUILD}")
-    set(CMAKE_C_FLAGS
-        # TODO: SSE is still broken!!!
-        "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-sse2"
-    )
-    set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
+    add_subproject("shared")
+    add_subproject("platform-abstraction")
+    add_subproject("x86")
+
+    if(NOT "${UNIT_TEST_BUILD}")
+        set(CMAKE_C_FLAGS
+            # TODO: SSE is still broken!!!
+            "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-sse2"
+        )
+        set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
+    else()
+    endif()
 endif()
 
 # This is a C-only flag. Don't add this to the ASM flags
@@ -17,27 +25,26 @@ set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}/kernel/resources"
 )
 
-include(${REPO_PROJECTS}/print-configuration.cmake)
-
-add_subproject("shared")
-add_subproject("platform-abstraction")
-add_subproject("x86")
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    include("${REPO_PROJECTS}/print-configuration.cmake")
+endif()
 
 add_subdirectory(cpu)
 add_subdirectory(memory)
 add_subdirectory(status)
+add_subdirectory(log)
+add_subdirectory(peripheral)
 
-if("${UNIT_TEST_BUILD}")
-    add_subproject("posix")
+if("${UNIT_TEST_BUILD}" OR NOT (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR))
+    if("${UNIT_TEST_BUILD}")
+        add_subproject("posix")
+    endif()
     return()
 endif()
 
 ################################################################################
 #       End of common setup, below is only for production kernel build         #
 ################################################################################
-
-add_subdirectory(log)
-add_subdirectory(peripheral)
 
 add_executable(${PROJECT_NAME} "src/main.c")
 set_target_properties(

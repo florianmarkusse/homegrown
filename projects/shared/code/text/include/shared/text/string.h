@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-#include "shared/types/array.h"
-#include "shared/types/types.h"
 #include "shared/assert.h"
 #include "shared/memory/manipulation/manipulation.h"
+#include "shared/types/array.h"
+#include "shared/types/types.h"
 
 typedef struct {
     U8 *buf;

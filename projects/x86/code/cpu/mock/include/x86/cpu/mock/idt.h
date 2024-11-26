@@ -1,7 +1,7 @@
 #ifndef X86_CPU_MOCK_IDT_H
 #define X86_CPU_MOCK_IDT_H
 
-#include "x86/cpu/idt.h"
+#include "x86/cpu/real/idt.h"
 
 void initIDTTest(void *long_jmp[5]);
 bool *getTriggeredFaults();

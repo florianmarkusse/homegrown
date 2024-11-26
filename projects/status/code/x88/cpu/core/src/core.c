@@ -1,9 +1,10 @@
 #include "status/x86/cpu/core.h"
 #include "platform-abstraction/idt.h"
 #include "platform-abstraction/log.h"
-#include "shared/text.h"
+#include "shared/text/string.h"
+#include "shared/types/types.h"
 
-static constexpr string faultToString[FAULT_NUMS] = {
+static string faultToString[FAULT_NUMS] = {
     STRING("Divide Error"),
     STRING("Debug"),
     STRING("Non-Maskable Interrupt"),

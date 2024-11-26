@@ -14,4 +14,4 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     endif()
 endif()
 
-add_subdirectory(cpu)
+add_subdirectory(x88)

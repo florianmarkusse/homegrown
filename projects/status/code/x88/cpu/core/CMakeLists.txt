@@ -11,3 +11,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
