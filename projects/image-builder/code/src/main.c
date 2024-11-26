@@ -1,4 +1,4 @@
-#include "interoperation/memory/sizes.h"
+#include "shared/memory/sizes.h"
 #include "shared/types/types.h"
 #include <sys/mman.h>
 

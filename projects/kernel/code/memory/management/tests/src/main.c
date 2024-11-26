@@ -1,4 +1,4 @@
-#include "interoperation/memory/sizes.h"
+#include "shared/memory/sizes.h"
 #include "platform-abstraction/log.h"
 #include "posix/test-framework/test.h"
 #include "shared/memory/allocator/arena.h"
