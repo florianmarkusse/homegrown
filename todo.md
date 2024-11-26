@@ -1,4 +1,6 @@
 - platform-abstraction for status logs? If not debug it can automatically be removed?
+- Make it so that every add_subdirectory call goes 1 layer deeper in the build directory
+- Fix the kernel build again???
 - Move basic modules from x/a/a.h to x/a.h
 - A lot of projects SHOULD no longer depend on interoperation
 - -fwhole-program
