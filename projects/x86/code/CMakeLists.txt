@@ -9,3 +9,4 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 endif()
 
 add_subdirectory(memory)
+add_subdirectory(cpu)

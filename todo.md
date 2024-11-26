@@ -1,5 +1,6 @@
 - platform-abstraction for status logs? If not debug it can automatically be removed?
 - Move basic modules from x/a/a.h to x/a.h
+- A lot of projects SHOULD no longer depend on interoperation
 - -fwhole-program
 - add verbose flag to cmake , and make possible to just add any -D comma-separated
 - add another build mode : Production? that adds -lto

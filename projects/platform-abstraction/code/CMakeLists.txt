@@ -7,3 +7,4 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 endif()
 
 add_subdirectory(log)
+add_subdirectory(cpu)
