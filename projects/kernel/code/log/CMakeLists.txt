@@ -10,10 +10,6 @@ target_include_directories(
     ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-target_include_directories(
-    ${PROJECT_NAME}
-    INTERFACE $<TARGET_PROPERTY:shared-log,INTERFACE_INCLUDE_DIRECTORIES>
-)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-manipulation)
