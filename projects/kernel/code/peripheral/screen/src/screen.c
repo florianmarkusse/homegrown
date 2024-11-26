@@ -1,7 +1,7 @@
 #include "peripheral/screen/screen.h"
 
 #include "cpu/x86.h"
-#include "interoperation/array-types.h" // for U8_a, uint8_max_a, U8_d_a
+#include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "interoperation/macros.h"
 #include "interoperation/memory/definitions.h"
 #include "memory/management/definitions.h"

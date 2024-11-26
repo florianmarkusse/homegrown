@@ -1,5 +1,5 @@
 #include "shared/hash/trie/string-set.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "shared/assert.h"      // for ASSERT
 #include "shared/hash/hashes.h"               // for hashStringDjb2
 #include "shared/hash/trie/common-iterator.h" // for TRIE_ITERATOR_SOURCE...

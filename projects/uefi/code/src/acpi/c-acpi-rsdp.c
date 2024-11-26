@@ -1,7 +1,7 @@
 #include "acpi/c-acpi-rdsp.h" // for RSDP_REVISION_2, CAcpiRSDPV1, CAcpi...
 #include "acpi/guid.h"        // for Guid, ACPI_TABLE_GUID, EFI_ACPI_20_...
 #include "interoperation/configuration-table.h" // for ConfigurationTable
-#include "interoperation/types.h"               // for USize, U8, NULL, U16, U64
+#include "shared/types/types.h"               // for USize, U8, NULL, U16, U64
 #include "memory/standard.h"                    // for memcmp
 
 bool acpi_checksum(void *ptr, U64 size) {

@@ -1,10 +1,8 @@
 #ifndef MEMORY_DEFINITIONS_H
 #define MEMORY_DEFINITIONS_H
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "x86/memory/virtual.h"
-
-static constexpr auto RED_ZONE_SIZE = (1 << 7);
 
 // TODO: Fix this once uefi code is improved!!!
 static constexpr auto LOWER_HALF_END = 0x0000FFFFFFFFFFFF;

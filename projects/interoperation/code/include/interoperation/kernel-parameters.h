@@ -2,7 +2,7 @@
 #define KERNEL_PARAMETERS_H
 
 #include "interoperation/memory/descriptor.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 typedef struct {
     U64 ptr;
     U64 size;

@@ -1,5 +1,5 @@
 #include "cpu/x86.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "memory/management/physical.h"
 #include "memory/management/virtual.h"
 #include "platform-abstraction/log.h"

@@ -1,5 +1,5 @@
 #include "cpu/idt.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 static bool triggeredFaults[FAULT_NUMS];
 

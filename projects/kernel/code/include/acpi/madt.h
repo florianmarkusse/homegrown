@@ -2,7 +2,7 @@
 #define ACPI_MADT_H
 
 #include "acpi/c-acpi-rsdt.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 typedef struct __attribute((packed)) {
     U8 type;

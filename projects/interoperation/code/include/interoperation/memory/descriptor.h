@@ -5,7 +5,7 @@
 // all the UEFI stuff in the uefi part after which only the necessary data is
 // passed to the kernel as kernel parameters.
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 typedef enum MemoryType : U32 {
     RESERVED_MEMORY_TYPE,
     LOADER_CODE,

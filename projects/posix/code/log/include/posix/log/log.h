@@ -1,9 +1,9 @@
 #ifndef POSIX_LOG_LOG_H
 #define POSIX_LOG_LOG_H
 
-#include "interoperation/array-types.h"
+#include "shared/types/array-types.h"
 #include "interoperation/macros.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "shared/log.h"
 #include "shared/text/converter.h"
 #include "shared/text/string.h"

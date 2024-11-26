@@ -2,7 +2,7 @@
 #include "interoperation/kernel-parameters.h"  // for KernelParameters
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
 #include "interoperation/memory/sizes.h"
-#include "interoperation/types.h" // for U32
+#include "shared/types/types.h" // for U32
 #include "memory/management/physical.h"
 #include "memory/management/policy.h"
 #include "memory/management/virtual.h"

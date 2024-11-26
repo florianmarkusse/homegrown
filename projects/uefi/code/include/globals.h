@@ -2,7 +2,7 @@
 #define GLOBALS_H
 
 #include "efi/c-efi-base.h" // for Handle, SystemTable
-#include "interoperation/types.h"          // for U64, U32
+#include "shared/types/types.h"          // for U64, U32
 
 typedef struct {
     Handle h;

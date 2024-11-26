@@ -3,7 +3,7 @@
 
 #include "efi/c-efi-base.h" // for PhysicalAddress
 #include "interoperation/memory/descriptor.h"
-#include "interoperation/types.h" // for USize, U64, U32
+#include "shared/types/types.h" // for USize, U64, U32
 
 PhysicalAddress allocAndZero(USize numPages);
 void mapMemoryAt(U64 phys, U64 virt, U64 size);

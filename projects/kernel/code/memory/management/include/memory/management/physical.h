@@ -1,9 +1,11 @@
 #ifndef MEMORY_MANAGEMENT_PHYSICAL_H
 #define MEMORY_MANAGEMENT_PHYSICAL_H
 
+// TODO: Move this to x86
+
 #include "interoperation/kernel-parameters.h"
 #include "interoperation/memory/definitions.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "memory/management/definitions.h"
 #include "x86/memory/virtual.h"
 
@@ -21,7 +23,8 @@ typedef struct {
 typedef struct {
     union {
         U8 data[HUGE_PAGE_SIZE];
-        PhysicalBasePage basePages[PageTableFormat.ENTRIES * PageTableFormat.ENTRIES];
+        PhysicalBasePage
+            basePages[PageTableFormat.ENTRIES * PageTableFormat.ENTRIES];
         PhysicalLargePage largePages[PageTableFormat.ENTRIES];
     };
 } PhysicalHugePage;

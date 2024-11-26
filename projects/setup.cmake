@@ -41,7 +41,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Profiling")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -O2 -pg")
 endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -flto")
+    # TODO: Add -flto on production build I guess or on flag?
+    # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -flto")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 endif()
 
 function(add_subproject project)

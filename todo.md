@@ -1,6 +1,8 @@
 - platform-abstraction for status logs? If not debug it can automatically be removed?
 - Move basic modules from x/a/a.h to x/a.h
 - -fwhole-program
+- add verbose flag to cmake , and make possible to just add any -D comma-separated
+- add another build mode : Production? that adds -lto
 - Move cpu module into posix/kernel and combine into platform-abstraction project
 - Move kernel/memory/manipulation too?
 - Turn on CPPcheck?
@@ -11,3 +13,4 @@
 - Fix header guards, make command for this like --errors-to-file for iwyu?
 - Why some targets are built when not required
 - Start rewrite of image-builder
+- Move all virtual & physical memory operations to X86 architecture. All platform-independent code should really just use policy which in turn communicates with the right architecture

@@ -1,13 +1,12 @@
 #ifndef LOG_LOG_H
 #define LOG_LOG_H
 
-#include "interoperation/array-types.h"
 #include "interoperation/macros.h"
-#include "interoperation/types.h"
 #include "shared/log.h"
 #include "shared/memory/allocator/arena.h"
 #include "shared/text/converter.h"
 #include "shared/text/string.h"
+#include "shared/types/types.h"
 
 void initLogger(Arena *perm);
 

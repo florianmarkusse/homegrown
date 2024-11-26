@@ -7,7 +7,7 @@ extern "C" {
 
 #include "common.h"                // for MSI_SET
 #include "interoperation/macros.h" // for MACRO_VAR
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "shared/hash/hash-comparison-status.h" // for HashComparisonStatus
 #include "shared/text/string.h"                 // for string
 

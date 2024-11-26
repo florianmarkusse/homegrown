@@ -1,7 +1,7 @@
 #include "status/idt/status.h"
 
 #include "cpu/idt.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "platform-abstraction/log.h"
 #include "shared/text/converter.h"
 #include "shared/text/string.h"

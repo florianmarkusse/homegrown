@@ -1,5 +1,5 @@
 #include "crc32-table.h"                        // for calculateCRC32
-#include "interoperation/array.h"               // for ASSERT
+#include "shared/types/array.h"               // for ASSERT
 #include "shared/assert.h"        // for ASSERT
 #include "platform-abstraction/log.h"           // for ASSERT
 #include "shared/dynamic-array/dynamic-array.h" // for MAX_LENGTH_ARRAY

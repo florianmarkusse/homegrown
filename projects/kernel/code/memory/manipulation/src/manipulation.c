@@ -1,7 +1,7 @@
 #ifndef UNIT_TEST_BUILD
 
 #include "memory/manipulation/manipulation.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 #define NO_INLINE __attribute__((noinline))
 

@@ -43,7 +43,9 @@ add_executable(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
 
 target_include_directories(
     ${PROJECT_NAME}

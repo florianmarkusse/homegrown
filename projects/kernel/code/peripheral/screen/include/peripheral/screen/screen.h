@@ -1,8 +1,8 @@
 #ifndef PERIPHERAL_SCREEN_SCREEN_H
 #define PERIPHERAL_SCREEN_SCREEN_H
 
-#include "interoperation/array-types.h"
-#include "interoperation/types.h" // for U32, U8, U64, I64, I8, U16
+#include "shared/types/array-types.h"
+#include "shared/types/types.h" // for U32, U8, U64, I64, I8, U16
 #include "shared/memory/allocator/arena.h"
 
 // This struct implicitly assumes that there are 4 bytes per pixel, hence a

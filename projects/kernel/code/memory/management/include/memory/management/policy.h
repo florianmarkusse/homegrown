@@ -1,7 +1,7 @@
 #ifndef MEMORY_MANAGEMENT_POLICY_H
 #define MEMORY_MANAGEMENT_POLICY_H
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "memory/management/definitions.h"
 #include "x86/memory/virtual.h"
 

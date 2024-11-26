@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))

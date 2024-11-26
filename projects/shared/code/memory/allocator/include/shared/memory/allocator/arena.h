@@ -1,7 +1,7 @@
 #ifndef SHARED_MEMORY_ALLOCATOR_ARENA_H
 #define SHARED_MEMORY_ALLOCATOR_ARENA_H
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 typedef struct {
     U8 *curFree;

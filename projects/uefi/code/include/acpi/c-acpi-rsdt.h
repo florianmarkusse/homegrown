@@ -1,7 +1,7 @@
 #ifndef ACPI_C_ACPI_RSDT_H
 #define ACPI_C_ACPI_RSDT_H
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 static constexpr auto ACPI_DESCRIPTION_TABLE_SIGNATURE_LEN = 4;
 

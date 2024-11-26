@@ -1,7 +1,7 @@
 #ifndef CPU_IDT_H
 #define CPU_IDT_H
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 typedef struct {
     U16 limit;

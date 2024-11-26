@@ -1,7 +1,7 @@
 #ifndef MEMORY_STANDARD_H
 #define MEMORY_STANDARD_H
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

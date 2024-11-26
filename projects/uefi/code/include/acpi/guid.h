@@ -1,7 +1,7 @@
 #ifndef ACPI_GUID_H
 #define ACPI_GUID_H
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 /**
  * Guid: Globally Unique Identifier Type

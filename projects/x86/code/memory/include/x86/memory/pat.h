@@ -2,7 +2,7 @@
 #define X86_MEMORY_PAT_H
 
 #include "interoperation/memory/definitions.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "x86/memory/virtual.h"
 
 typedef enum {
@@ -31,7 +31,7 @@ typedef struct {
     };
 } PAT;
 
-constexpr struct {
+static constexpr struct {
     U64 MAP_0;
     U64 MAP_1;
     U64 MAP_2;

@@ -6,8 +6,10 @@
 #include "memory/management/virtual.h"
 #include "shared/maths/maths.h"
 
+// TODO: remove this when CLANG works correctly with constexpr ?
+static constexpr auto pagedMemoryLen = PageTableFormat.ENTRIES;
 void *allocAndMap(U64 bytes) {
-    PagedMemory pagedMemory[PageTableFormat.ENTRIES];
+    PagedMemory pagedMemory[pagedMemoryLen];
 
     PageSize pageSize;
     U64 inPages;

@@ -1,5 +1,5 @@
 #include "shared/maths/maths.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 U64 power(U64 base, U64 exponent) {
     U64 result = 1;

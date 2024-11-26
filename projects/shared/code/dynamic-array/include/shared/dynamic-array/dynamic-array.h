@@ -1,5 +1,5 @@
 #include "interoperation/macros.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "shared/memory/allocator/arena.h"
 
 void grow(void *slice, U64 size, U64 align, Arena *a, U8 flags);

@@ -1,5 +1,5 @@
 #include "cpu/x86.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 // TODO: Actually write tests thet fail because these values are not set
 // Then implement them so that they pass ???

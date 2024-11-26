@@ -1,8 +1,8 @@
 #ifndef MEMORY_MANAGEMENT_DEFINITIONS_H
 #define MEMORY_MANAGEMENT_DEFINITIONS_H
 
-#include "interoperation/array.h"
-#include "interoperation/types.h"
+#include "shared/types/array.h"
+#include "shared/types/types.h"
 
 typedef struct {
     U64 pageStart;

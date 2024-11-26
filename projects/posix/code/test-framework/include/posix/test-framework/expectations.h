@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "shared/text/string.h" // for string
 
 void appendExpectCodeWithString(U64 expected, string expectedString, U64 actual,

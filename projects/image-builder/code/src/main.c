@@ -1,5 +1,5 @@
 #include "interoperation/memory/sizes.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include <sys/mman.h>
 
 // MBR Partition

@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 typedef struct {
     U64 size;

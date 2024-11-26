@@ -16,11 +16,11 @@ add_library(
 
 target_include_directories(
     ${PROJECT_NAME}
-    PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 target_include_directories(
     ${PROJECT_NAME}
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-cpu)
@@ -28,5 +28,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-manipulation)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)

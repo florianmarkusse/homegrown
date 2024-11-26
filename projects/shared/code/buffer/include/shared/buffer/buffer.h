@@ -1,7 +1,7 @@
 #ifndef SHARED_BUFFER_BUFFER_H
 #define SHARED_BUFFER_BUFFER_H
 
-#include "interoperation/array-types.h"
+#include "shared/types/array-types.h"
 #include "shared/memory/allocator/arena.h"
 #include "shared/text/converter.h"
 #include "shared/text/string.h"

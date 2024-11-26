@@ -1,11 +1,12 @@
-#ifndef UTIL_ARRAY_TYPES_H
-#define UTIL_ARRAY_TYPES_H
+#ifndef SHARED_TYPES_ARRAY_TYPES_H
+#define SHARED_TYPES_ARRAY_TYPES_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "interoperation/array.h"
+#include "shared/types/array.h"
+#include "shared/types/types.h"
 
 typedef DYNAMIC_ARRAY(U64) U64_d_a;
 typedef DYNAMIC_ARRAY(bool) bool_d_a;

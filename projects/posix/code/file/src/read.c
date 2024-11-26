@@ -1,5 +1,5 @@
 #include "posix/file/read.h"
-#include "interoperation/types.h"     // for NULL_ON_FAIL
+#include "shared/types/types.h"     // for NULL_ON_FAIL
 #include "platform-abstraction/log.h" // for ERROR, LOG_CHOOSER_IMPL_2
 #include "posix/file/file-status.h"   // for FILE_CANT_ALLOCATE, FILE_CANT_OPEN
 #include "shared/memory/allocator/arena.h" // for NEW, Arena

@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "common-iterator.h" // for TRIE_ITERATOR_HEADER_FILE
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "shared/memory/allocator/arena.h"
 #include "interoperation/macros.h"      // for MACRO_VAR
 #include "shared/text/string.h" // for string

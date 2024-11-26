@@ -4,7 +4,7 @@
 #include "interoperation/macros.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "memory/management/physical.h"
 #include "platform-abstraction/log.h"
 #include "posix/test-framework/test.h"

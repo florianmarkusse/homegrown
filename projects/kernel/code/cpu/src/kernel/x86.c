@@ -1,5 +1,5 @@
 #include "cpu/x86.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 U64 rdmsr(U32 msr) {
     U32 edx;

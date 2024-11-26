@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-#include "interoperation/array.h"
-#include "interoperation/types.h"
+#include "shared/types/array.h"
+#include "shared/types/types.h"
 #include "shared/assert.h"
 #include "shared/memory/manipulation/manipulation.h"
 

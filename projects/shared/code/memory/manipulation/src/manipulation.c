@@ -1,7 +1,7 @@
 #ifdef FREESTANDING_BUILD
 
 #include "shared/memory/manipulation/manipulation.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 #define NO_INLINE __attribute__((noinline))
 

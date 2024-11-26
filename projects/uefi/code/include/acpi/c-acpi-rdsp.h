@@ -2,7 +2,7 @@
 #define ACPI_C_ACPI_RDSP_H
 
 #include "interoperation/configuration-table.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 typedef struct __attribute((packed)) {
     I8 signature[8];

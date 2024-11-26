@@ -15,7 +15,7 @@ int memcmp(const void *dest, const void *src, unsigned long n);
 
 #else
 
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 
 /* Copy N bytes of SRC to DEST.  */
 __attribute((nothrow, nonnull(1, 2))) void *

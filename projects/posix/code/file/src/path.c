@@ -1,5 +1,5 @@
 #include "posix/file/path.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "shared/memory/allocator/arena.h" // for FLO_NEW, Arena
 #include "shared/memory/manipulation/manipulation.h"
 #include "shared/text/string.h" // for firstOccurenceOfFrom, string

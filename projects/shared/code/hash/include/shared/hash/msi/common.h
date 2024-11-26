@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "interoperation/macros.h" // for MACRO_VAR
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "shared/memory/allocator/arena.h"
 #include "shared/memory/allocator/macros.h"
 

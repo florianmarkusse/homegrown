@@ -1,6 +1,6 @@
-#include "interoperation/array-types.h"
+#include "shared/types/array-types.h"
 #include "shared/assert.h"
-#include "interoperation/types.h"
+#include "shared/types/types.h"
 #include "shared/memory/manipulation/manipulation.h"
 #include "shared/text/string.h"
 
