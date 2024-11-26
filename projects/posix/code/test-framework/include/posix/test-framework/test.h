@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "interoperation/macros.h" // for MACRO_VAR
+#include "shared/macros.h" // for MACRO_VAR
 #include "shared/types/types.h"
 #include "shared/text/string.h" // for string
 

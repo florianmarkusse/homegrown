@@ -1,7 +1,7 @@
 #ifndef LOG_LOG_H
 #define LOG_LOG_H
 
-#include "interoperation/macros.h"
+#include "shared/macros.h"
 #include "shared/log.h"
 #include "shared/memory/allocator/arena.h"
 #include "shared/text/converter.h"

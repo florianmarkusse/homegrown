@@ -2,7 +2,7 @@
 #define POSIX_LOG_LOG_H
 
 #include "shared/types/array-types.h"
-#include "interoperation/macros.h"
+#include "shared/macros.h"
 #include "shared/types/types.h"
 #include "shared/log.h"
 #include "shared/text/converter.h"

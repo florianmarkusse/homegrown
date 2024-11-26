@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "common.h"                // for MSI_SET
-#include "interoperation/macros.h" // for MACRO_VAR
+#include "shared/macros.h" // for MACRO_VAR
 #include "shared/types/types.h"
 #include "shared/hash/hash-comparison-status.h" // for HashComparisonStatus
 #include "shared/text/string.h"                 // for string
