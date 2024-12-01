@@ -6,5 +6,5 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_link_options("--ld-path=${CMAKE_LINKER}")
 endif()
 
-add_subdirectory(log)
-add_subdirectory(cpu)
+add_subdirectory_from_root(log)
+add_subdirectory_from_root(cpu)

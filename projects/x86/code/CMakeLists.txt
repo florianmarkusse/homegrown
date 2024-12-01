@@ -9,5 +9,5 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_subproject("platform-abstraction")
 endif()
 
-add_subdirectory(memory)
-add_subdirectory(cpu)
+add_subdirectory_from_root(memory)
+add_subdirectory_from_root(cpu)

@@ -52,3 +52,10 @@ function(add_subproject project)
         "${CMAKE_CURRENT_BINARY_DIR}/${project}"
     )
 endfunction()
+
+function(add_subdirectory_from_root subdirectory)
+    add_subdirectory(
+        ${subdirectory}
+        "${PROJECT_NAME}/${subdirectory}"
+    )
+endfunction()

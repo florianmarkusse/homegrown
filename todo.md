@@ -3,7 +3,7 @@
 - Fix the kernel build again???
 - Move basic modules from x/a/a.h to x/a.h
 - A lot of projects SHOULD no longer depend on interoperation
-- -fwhole-program
+- -fwhole-program -Wswitch-enum
 - add verbose flag to cmake , and make possible to just add any -D comma-separated
 - add another build mode : Production? that adds -lto
 - Move cpu module into posix/kernel and combine into platform-abstraction project
