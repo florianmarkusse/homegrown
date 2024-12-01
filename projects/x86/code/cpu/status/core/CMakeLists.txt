@@ -1,4 +1,4 @@
-project(status-x86-cpu-core LANGUAGES C ASM)
+project(x86-cpu-status-core LANGUAGES C ASM)
 
 add_library(${PROJECT_NAME} OBJECT "src/core.c")
 

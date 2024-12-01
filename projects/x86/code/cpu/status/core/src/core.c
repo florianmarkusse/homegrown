@@ -1,4 +1,4 @@
-#include "status/x86/cpu/core.h"
+#include "x86/cpu/status/core.h"
 #include "platform-abstraction/idt.h"
 #include "platform-abstraction/log.h"
 #include "shared/text/string.h"

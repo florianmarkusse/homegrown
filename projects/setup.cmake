@@ -56,6 +56,6 @@ endfunction()
 function(add_subdirectory_from_root subdirectory)
     add_subdirectory(
         ${subdirectory}
-        "${PROJECT_NAME}/${subdirectory}"
+        "${PROJECT_NAME}-main/${subdirectory}"
     )
 endfunction()

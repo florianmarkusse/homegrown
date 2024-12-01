@@ -44,7 +44,6 @@ const SHARED = "shared"
 const POSIX = "posix"
 const PLATFORM_ABSTRACTION = "platform-abstraction"
 const X86 = "x86"
-const STATUS = "status"
 
 // and here
 var kernelFolder = common.REPO_PROJECTS + KERNEL + "/"
@@ -56,7 +55,6 @@ var sharedFolder = common.REPO_PROJECTS + SHARED + "/"
 var posixFolder = common.REPO_PROJECTS + POSIX + "/"
 var platformAbstractionFolder = common.REPO_PROJECTS + PLATFORM_ABSTRACTION + "/"
 var x86Folder = common.REPO_PROJECTS + X86 + "/"
-var statusFolder = common.REPO_PROJECTS + STATUS + "/"
 
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
@@ -121,13 +119,6 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		// No linker because it is an object / interface library
 		Folder:              x86Folder,
 		CodeFolder:          x86Folder + "code",
-		DefaultFreeStanding: true,
-	},
-	STATUS: &ProjectStructure{
-		CCompiler: EFI.CCompiler,
-		// No linker because it is an object / interface library
-		Folder:              statusFolder,
-		CodeFolder:          statusFolder + "code",
 		DefaultFreeStanding: true,
 	},
 }

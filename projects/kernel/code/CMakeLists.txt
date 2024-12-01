@@ -17,6 +17,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
         )
         set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
     else()
+        add_subproject("posix")
     endif()
 endif()
 
@@ -36,9 +37,6 @@ add_subdirectory_from_root(log)
 add_subdirectory_from_root(peripheral)
 
 if("${UNIT_TEST_BUILD}" OR NOT (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR))
-    if("${UNIT_TEST_BUILD}")
-        add_subproject("posix")
-    endif()
     return()
 endif()
 
