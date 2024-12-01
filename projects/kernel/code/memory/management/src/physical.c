@@ -4,7 +4,7 @@
 #include "interoperation/memory/definitions.h" // for PAGE_FRAME_SIZE
 #include "interoperation/memory/descriptor.h"
 #include "shared/types/types.h" // for U64, U32, U8
-#include "memory/manipulation/manipulation.h"
+#include "shared/memory/manipulation.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
 

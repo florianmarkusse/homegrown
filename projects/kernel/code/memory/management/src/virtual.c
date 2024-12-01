@@ -7,7 +7,7 @@
 #include "shared/types/types.h"
 #include "memory/management/definitions.h"
 #include "memory/management/physical.h"
-#include "memory/manipulation/manipulation.h"
+#include "shared/memory/manipulation.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
 #include "x86/memory/pat.h"

@@ -4,7 +4,7 @@
 #include "shared/types/types.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
-#include "shared/memory/manipulation/manipulation.h"
+#include "shared/memory/manipulation.h"
 #include "shared/text/string.h"
 #include <unistd.h>
 

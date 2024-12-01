@@ -12,7 +12,6 @@ target_include_directories(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
-target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-manipulation)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)

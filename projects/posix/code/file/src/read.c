@@ -4,7 +4,7 @@
 #include "posix/file/file-status.h"   // for FILE_CANT_ALLOCATE, FILE_CANT_OPEN
 #include "shared/memory/allocator/arena.h" // for NEW, Arena
 #include "shared/memory/allocator/macros.h"
-#include "shared/memory/manipulation/manipulation.h"
+#include "shared/memory/manipulation.h"
 #include "shared/text/string.h" // for STRING, string
 #include <errno.h>              // for errno
 #include <linux/fs.h>           // for BLKGETSIZE64

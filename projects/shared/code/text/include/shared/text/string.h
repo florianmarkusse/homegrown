@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "shared/assert.h"
-#include "shared/memory/manipulation/manipulation.h"
+#include "shared/memory/manipulation.h"
 #include "shared/types/array.h"
 #include "shared/types/types.h"
 

@@ -1,7 +1,7 @@
 #include "shared/types/array-types.h"
 #include "shared/assert.h"
 #include "shared/types/types.h"
-#include "shared/memory/manipulation/manipulation.h"
+#include "shared/memory/manipulation.h"
 #include "shared/text/string.h"
 
 static constexpr auto STRING_CONVERTER_BUF_LEN = 1 << 10;

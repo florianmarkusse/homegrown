@@ -25,9 +25,8 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-manipulation)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-manipulation)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-macros)
