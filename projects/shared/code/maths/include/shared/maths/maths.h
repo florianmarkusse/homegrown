@@ -28,7 +28,7 @@ extern "C" {
         typeof(val) _v = (val);                                                \
         int shift = _Generic((divisor),                                        \
             U32: __builtin_ctz(_d),                                            \
-            U64: __builtin_ctzl(_d));                                          \
+            U64: __builtin_ctzll(_d));                                         \
         ((_v + _d - 1) >> shift);                                              \
     })
 
@@ -42,7 +42,7 @@ extern "C" {
     (((val) - (amount)) & ((ringSize) - 1))
 
 static inline U64 next_pow2(U64 x) {
-    return x == 1 ? 1 : 1 << (64 - __builtin_clzl(x - 1));
+    return x == 1 ? 1 : 1 << (64 - __builtin_clzll(x - 1));
 }
 
 #define NEXT_POWER_OF_2(x)                                                     \

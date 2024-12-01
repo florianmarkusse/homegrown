@@ -1,3 +1,5 @@
+- How to make it so that I only include the stuff I need
+- Make platform-abstraction include its own stuff??
 - platform-abstraction for status logs? If not debug it can automatically be removed?
 - Make it so that every add_subdirectory call goes 1 layer deeper in the build directory
 - What is the difference between unit test build and freestanding?
