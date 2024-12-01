@@ -7,13 +7,8 @@ set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} -march=native -m64 -Wall -Wextra -Wconversion -Wno-incompatible-pointer-types-discards-qualifiers -Wno-pointer-sign -Wno-sign-conversion -Wdouble-promotion -Wvla -W"
 )
 
-if("${FREESTANDING_BUILD}")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -ffreestanding")
-    add_compile_definitions(FREESTANDING_BUILD)
-endif()
-
-if("${UNIT_TEST_BUILD}")
-    add_compile_definitions(UNIT_TEST_BUILD)
+if("${BUILD_UNIT_TESTS}")
+    add_compile_definitions(BUILD_UNIT_TESTS)
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -46,6 +41,29 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 endif()
 
+set(VALID_ENVIRONMENTS "freestanding" "posix")
+message(STATUS "suck my nuts ${VALID_ENVIRONMENTS}")
+message(STATUS "suck my nuts ${ENVIRONMENT}")
+list(FIND VALID_ENVIRONMENTS ${ENVIRONMENT} VALID_ENVIRONMENT_INDEX)
+if(VALID_ENVIRONMENT_INDEX EQUAL -1)
+    message(
+        FATAL_ERROR
+        "Invalid environment specified. Please choose one of: ${VALID_ENVIRONMENTS}"
+    )
+endif()
+if(${ENVIRONMENT} STREQUAL "freestanding")
+    add_compile_definitions(FREESTANDING_ENVIRONMENT)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -ffreestanding")
+endif()
+if(${ENVIRONMENT} STREQUAL "posix")
+    add_compile_definitions(POSIX_ENVIRONMENT)
+endif()
+
+# if("${FREESTANDING_ENVIRONMENT}")
+#     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -ffreestanding")
+#     add_compile_definitions(FREESTANDING_ENVIRONMENT)
+# endif()
+
 function(add_subproject project)
     add_subdirectory(
         "${REPO_PROJECTS}/${project}/code"
@@ -54,8 +72,5 @@ function(add_subproject project)
 endfunction()
 
 function(add_subdirectory_from_root subdirectory)
-    add_subdirectory(
-        ${subdirectory}
-        "${PROJECT_NAME}-main/${subdirectory}"
-    )
+    add_subdirectory(${subdirectory} "${PROJECT_NAME}-main/${subdirectory}")
 endfunction()

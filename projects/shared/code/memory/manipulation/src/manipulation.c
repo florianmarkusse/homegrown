@@ -1,4 +1,4 @@
-#ifdef FREESTANDING_BUILD
+#ifdef FREESTANDING_ENVIRONMENT
 
 #include "shared/memory/manipulation.h"
 #include "shared/types/types.h"

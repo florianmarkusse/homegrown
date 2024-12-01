@@ -7,6 +7,7 @@ import (
 	"cmd/common/exit"
 	"cmd/common/flags"
 	"cmd/common/flags/buildmode"
+	"cmd/common/flags/environment"
 	"cmd/common/flags/help"
 	"cmd/compile/projects"
 	"flag"
@@ -26,8 +27,8 @@ const SELECT_TARGETS_LONG_FLAG = "targets"
 const SELECT_TARGETS_SHORT_FLAG = "s"
 const DEFAULT_TARGETS = "_ALL_"
 
-const TEST_BUILD_LONG_FLAG = "test-build"
-const TEST_BUILD_SHORT_FLAG = "t"
+const BUILD_TESTS_LONG_FLAG = "test-build"
+const BUILD_TESTS_SHORT_FLAG = "t"
 
 const RUN_TESTS_LONG_FLAG = "run-tests"
 const RUN_TESTS_SHORT_FLAG = "r"
@@ -53,13 +54,15 @@ func main() {
 	flag.BoolVar(&buildArgs.ErrorsToFile, ERRORS_TO_FILE_LONG_FLAG, buildArgs.ErrorsToFile, "")
 	flag.BoolVar(&buildArgs.ErrorsToFile, ERRORS_TO_FILE_SHORT_FLAG, buildArgs.ErrorsToFile, "")
 
-	flag.BoolVar(&buildArgs.TestBuild, TEST_BUILD_LONG_FLAG, buildArgs.TestBuild, "")
-	flag.BoolVar(&buildArgs.TestBuild, TEST_BUILD_SHORT_FLAG, buildArgs.TestBuild, "")
+	flag.BoolVar(&buildArgs.BuildTests, BUILD_TESTS_LONG_FLAG, buildArgs.BuildTests, "")
+	flag.BoolVar(&buildArgs.BuildTests, BUILD_TESTS_SHORT_FLAG, buildArgs.BuildTests, "")
 
 	flag.BoolVar(&buildArgs.RunTests, RUN_TESTS_LONG_FLAG, buildArgs.RunTests, "")
 	flag.BoolVar(&buildArgs.RunTests, RUN_TESTS_SHORT_FLAG, buildArgs.RunTests, "")
 
 	flag.IntVar(&buildArgs.Threads, THREADS_LONG_FLAG, buildArgs.Threads, "")
+
+	environment.AddEnvironmentAsFlag(&buildArgs.Environment)
 
 	help.AddHelpAsFlag(&isHelp)
 
@@ -69,6 +72,10 @@ func main() {
 	var showHelpAndExit = false
 
 	if !buildmode.IsValidBuildMode(buildArgs.BuildMode) {
+		showHelpAndExit = true
+	}
+
+	if !environment.IsValidEnvironment(buildArgs.Environment) && buildArgs.Environment != "" {
 		showHelpAndExit = true
 	}
 
@@ -123,9 +130,11 @@ func main() {
 	}
 	configuration.DisplayStringArgument(SELECT_TARGETS_LONG_FLAG, targetsConfiguration)
 
-	configuration.DisplayBoolArgument(TEST_BUILD_LONG_FLAG, buildArgs.TestBuild)
+	configuration.DisplayBoolArgument(BUILD_TESTS_LONG_FLAG, buildArgs.BuildTests)
 	configuration.DisplayBoolArgument(RUN_TESTS_LONG_FLAG, buildArgs.RunTests)
 	configuration.DisplayIntArgument(THREADS_LONG_FLAG, buildArgs.Threads)
+	environment.DisplayEnvironmentConfiguration(buildArgs.Environment)
+
 	fmt.Printf("\n")
 
 	var result = projects.Build(&buildArgs)
@@ -148,13 +157,14 @@ func usage() {
 	flags.DisplayOptionalFlags()
 
 	buildmode.DisplayBuildMode(buildArgs.BuildMode)
+	environment.DisplayEnvironment()
 
 	flags.DisplayArgumentInput(ERRORS_TO_FILE_SHORT_FLAG, ERRORS_TO_FILE_LONG_FLAG, "Save errors to file", fmt.Sprint(buildArgs.ErrorsToFile))
 
 	flags.DisplayArgumentInput(SELECT_TARGETS_SHORT_FLAG, SELECT_TARGETS_LONG_FLAG, "Select specific target(s, comma-separated) to be built", DEFAULT_TARGETS)
 	flags.DisplayArgumentInput(PROJECTS_SHORT_FLAG, PROJECTS_LONG_FLAG, "Select specific project(s, comma-separated) to be built", converter.ArrayIntoPrintableString(cmake.ConfiguredProjects))
 
-	flags.DisplayArgumentInput(TEST_BUILD_SHORT_FLAG, TEST_BUILD_LONG_FLAG, "Build for tests", fmt.Sprint(buildArgs.TestBuild))
+	flags.DisplayArgumentInput(BUILD_TESTS_SHORT_FLAG, BUILD_TESTS_LONG_FLAG, "Build for tests", fmt.Sprint(buildArgs.BuildTests))
 
 	flags.DisplayArgumentInput(RUN_TESTS_SHORT_FLAG, RUN_TESTS_LONG_FLAG, "Run tests", fmt.Sprint(buildArgs.RunTests))
 
@@ -171,6 +181,6 @@ func usage() {
 	flags.DisplayExamples()
 	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
 	fmt.Printf("  %s --%s=%s --%s %s,%s --%s -%s\n", filepath.Base(os.Args[0]),
-		buildmode.BUILD_MODE_LONG_FLAG, buildmode.PossibleBuildModes[1], PROJECTS_LONG_FLAG, cmake.KERNEL, cmake.UEFI, TEST_BUILD_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
+		buildmode.BUILD_MODE_LONG_FLAG, buildmode.PossibleBuildModes[1], PROJECTS_LONG_FLAG, cmake.KERNEL, cmake.UEFI, BUILD_TESTS_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
 	fmt.Printf("\n")
 }

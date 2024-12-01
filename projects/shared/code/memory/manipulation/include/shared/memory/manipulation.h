@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#ifdef FREESTANDING_BUILD
+#ifdef FREESTANDING_ENVIRONMENT
 
 #include "shared/types/types.h"
 

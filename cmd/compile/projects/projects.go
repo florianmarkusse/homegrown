@@ -57,12 +57,17 @@ func populateErrorWriter(errorsToFile bool, codeDirectory string) []io.Writer {
 }
 
 func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
-	var buildDirectory = cmake.BuildDirectoryRoot(project, args.TestBuild)
+	var buildDirectory = cmake.BuildDirectoryRoot(project, args.BuildTests)
 
 	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, project.CodeFolder)
 
 	configureOptions := strings.Builder{}
-	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, project.CCompiler, project.Linker, args.BuildMode, project.DefaultFreeStanding, args.TestBuild)
+	var environment string = string(project.Environment)
+	if args.Environment != "" {
+		environment = string(args.Environment)
+	}
+
+	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, project.CCompiler, project.Linker, args.BuildMode, environment, args.BuildTests)
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, configureOptions.String()), errorWriters...)
 
 	buildOptions := strings.Builder{}
@@ -74,11 +79,12 @@ func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
 
 type BuildArgs struct {
 	BuildMode        string
+	Environment      string
 	ErrorsToFile     bool
 	Threads          int
 	SelectedTargets  []string
 	SelectedProjects []string
-	TestBuild        bool
+	BuildTests       bool
 	RunTests         bool
 }
 
@@ -91,11 +97,12 @@ const (
 
 var DefaultBuildArgs = BuildArgs{
 	BuildMode:        buildmode.DefaultBuildMode(),
+	Environment:      "",
 	ErrorsToFile:     false,
 	Threads:          runtime.NumCPU(),
 	SelectedTargets:  []string{},
 	SelectedProjects: []string{},
-	TestBuild:        false,
+	BuildTests:       false,
 	RunTests:         false,
 }
 
@@ -123,7 +130,7 @@ func Build(args *BuildArgs) BuildResult {
 		buildProject(args, project)
 	}
 
-	if args.TestBuild {
+	if args.BuildTests {
 		if !args.RunTests {
 			return Success
 		}

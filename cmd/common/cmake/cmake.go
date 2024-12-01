@@ -3,6 +3,7 @@ package cmake
 import (
 	"cmd/common"
 	"cmd/common/argument"
+	"cmd/common/flags/environment"
 	"fmt"
 	"strings"
 )
@@ -12,11 +13,11 @@ const EXECUTABLE = "cmake"
 type Project int64
 
 type ProjectStructure struct {
-	CCompiler           string
-	Linker              string
-	Folder              string
-	CodeFolder          string
-	DefaultFreeStanding bool
+	CCompiler   string
+	Linker      string
+	Folder      string
+	CodeFolder  string
+	Environment environment.Environment
 }
 
 type CommonConfig struct {
@@ -59,67 +60,67 @@ var x86Folder = common.REPO_PROJECTS + X86 + "/"
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 	KERNEL: &ProjectStructure{
-		CCompiler:           ELF.CCompiler,
-		Linker:              ELF.Linker,
-		Folder:              kernelFolder,
-		CodeFolder:          kernelFolder + "code",
-		DefaultFreeStanding: true,
+		CCompiler:   ELF.CCompiler,
+		Linker:      ELF.Linker,
+		Folder:      kernelFolder,
+		CodeFolder:  kernelFolder + "code",
+		Environment: environment.Freestanding,
 	},
 	INTEROPERATION: &ProjectStructure{
 		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
-		Folder:              interoperationFolder,
-		CodeFolder:          interoperationFolder + "code",
-		DefaultFreeStanding: true,
+		Folder:      interoperationFolder,
+		CodeFolder:  interoperationFolder + "code",
+		Environment: environment.Freestanding,
 	},
 	UEFI_IMAGE_CREATOR: &ProjectStructure{
-		CCompiler:           ELF.CCompiler,
-		Linker:              ELF.Linker,
-		Folder:              uefiImageCreatorFolder,
-		CodeFolder:          uefiImageCreatorFolder + "code",
-		DefaultFreeStanding: false,
+		CCompiler:   ELF.CCompiler,
+		Linker:      ELF.Linker,
+		Folder:      uefiImageCreatorFolder,
+		CodeFolder:  uefiImageCreatorFolder + "code",
+		Environment: environment.Posix,
 	},
 	UEFI: &ProjectStructure{
-		CCompiler:           EFI.CCompiler,
-		Linker:              EFI.Linker,
-		Folder:              uefiFolder,
-		CodeFolder:          uefiFolder + "code",
-		DefaultFreeStanding: true,
+		CCompiler:   EFI.CCompiler,
+		Linker:      EFI.Linker,
+		Folder:      uefiFolder,
+		CodeFolder:  uefiFolder + "code",
+		Environment: environment.Freestanding,
 	},
 	IMAGE_BUILDER: &ProjectStructure{
-		CCompiler:           ELF.CCompiler,
-		Linker:              ELF.Linker,
-		Folder:              imageBuilderFolder,
-		CodeFolder:          imageBuilderFolder + "code",
-		DefaultFreeStanding: false,
+		CCompiler:   ELF.CCompiler,
+		Linker:      ELF.Linker,
+		Folder:      imageBuilderFolder,
+		CodeFolder:  imageBuilderFolder + "code",
+		Environment: environment.Posix,
 	},
 	SHARED: &ProjectStructure{
 		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
-		Folder:              sharedFolder,
-		CodeFolder:          sharedFolder + "code",
-		DefaultFreeStanding: true,
+		Folder:      sharedFolder,
+		CodeFolder:  sharedFolder + "code",
+		Environment: environment.Freestanding,
 	},
 	POSIX: &ProjectStructure{
 		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
-		Folder:              posixFolder,
-		CodeFolder:          posixFolder + "code",
-		DefaultFreeStanding: false,
+		Folder:      posixFolder,
+		CodeFolder:  posixFolder + "code",
+		Environment: environment.Posix,
 	},
 	PLATFORM_ABSTRACTION: &ProjectStructure{
 		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
-		Folder:     platformAbstractionFolder,
-		CodeFolder: platformAbstractionFolder + "code",
-		// No default freestanding set because the whole purpose is to provide an integration layer for different platforms
+		Folder:      platformAbstractionFolder,
+		CodeFolder:  platformAbstractionFolder + "code",
+		Environment: environment.Freestanding,
 	},
 	X86: &ProjectStructure{
 		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
-		Folder:              x86Folder,
-		CodeFolder:          x86Folder + "code",
-		DefaultFreeStanding: true,
+		Folder:      x86Folder,
+		CodeFolder:  x86Folder + "code",
+		Environment: environment.Freestanding,
 	},
 }
 
@@ -149,15 +150,13 @@ func BuildDirectoryRoot(project *ProjectStructure, testBuild bool) string {
 	return buildDirectory.String()
 }
 
-func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, buildDirectory string, cCompiler string, linker string, buildMode string, defaultFreeStanding bool, testBuild bool) {
-	var isFreeStanding = defaultFreeStanding && !testBuild
-
+func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, buildDirectory string, cCompiler string, linker string, buildMode string, env string, buildTests bool) {
 	argument.AddArgument(options, fmt.Sprintf("-S %s", codeDirectory))
 	argument.AddArgument(options, fmt.Sprintf("-B %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_C_COMPILER=%s", cCompiler))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_LINKER=%s", linker))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_BUILD_TYPE=%s", buildMode))
-	argument.AddArgument(options, fmt.Sprintf("-D FREESTANDING_BUILD=%t", isFreeStanding))
+	argument.AddArgument(options, fmt.Sprintf("-D ENVIRONMENT=%s", env))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_ROOT=%s", common.REPO_ROOT))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_DEPENDENCIES=%s", common.REPO_DEPENDENCIES))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_PROJECTS=%s", common.REPO_PROJECTS))
@@ -165,13 +164,13 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, 
 
 	var iwyuString = strings.Builder{}
 	iwyuString.WriteString("-D CMAKE_C_INCLUDE_WHAT_YOU_USE=\"include-what-you-use;-w;-Xiwyu;")
-	if isFreeStanding {
+	if env == string(environment.Freestanding) {
 		iwyuString.WriteString("--no_default_mappings")
 	}
 	iwyuString.WriteString("\"")
 	argument.AddArgument(options, iwyuString.String())
 
-	argument.AddArgument(options, fmt.Sprintf("-D UNIT_TEST_BUILD=%t", testBuild))
+	argument.AddArgument(options, fmt.Sprintf("-D BUILD_UNIT_TESTS=%t", buildTests))
 }
 
 func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, threads int, targets []string) {

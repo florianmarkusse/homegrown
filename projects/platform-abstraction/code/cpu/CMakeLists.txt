@@ -7,7 +7,7 @@ target_include_directories(
     INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-if("${FREESTANDING_BUILD}")
+if("${ENVIRONMENT}" STREQUAL "freestanding")
     target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:x86-cpu-real>)
     target_include_directories(
         ${PROJECT_NAME}

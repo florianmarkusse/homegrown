@@ -2,7 +2,7 @@
 # a later stage.
 project(kernel-memory-management LANGUAGES C ASM)
 
-if("${UNIT_TEST_BUILD}")
+if("${BUILD_UNIT_TESTS}")
     add_subdirectory(tests)
 endif()
 
