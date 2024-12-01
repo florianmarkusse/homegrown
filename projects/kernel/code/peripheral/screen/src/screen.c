@@ -1,6 +1,6 @@
 #include "peripheral/screen/screen.h"
 
-#include "cpu/x86.h"
+#include "platform-abstraction/cpu.h"
 #include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "shared/macros.h"
 #include "interoperation/memory/definitions.h"
@@ -129,7 +129,7 @@ static void drawGlyph(U8 ch, U64 topRightGlyphOffset) {
         // +----------+ +--+
         // 000001100000 0000
         // 000011110000 0000
-        ASSERT(font->width <= sizeof(glyphLine));
+        ASSERT(font->width <= sizeof(glyphLine) * BITS_PER_BYTE);
         for (U32 x = 0; x < font->width; x++) {
             dim.backingBuffer[line] =
                 (((glyphLine) & (mask)) != 0) * HAXOR_WHITE;

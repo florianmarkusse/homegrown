@@ -12,8 +12,8 @@ target_include_directories(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE kernel-cpu)
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-management)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)

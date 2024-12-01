@@ -1,4 +1,4 @@
-#include "cpu/idt.h"                           // for setupIDT
+#include "platform-abstraction/idt.h"                           // for setupIDT
 #include "interoperation/kernel-parameters.h"  // for KernelParameters
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
 #include "shared/memory/sizes.h"

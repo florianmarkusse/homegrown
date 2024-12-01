@@ -116,6 +116,8 @@ static constexpr auto F64_MIN_POS = 2.2250738585072014e-308;
 #define MIN_POS_VALUE(x)                                                       \
     _Generic((x), F32: F32_MIN_POS, F64: F64_MIN_POS, default: "unknown")
 
+static constexpr auto BITS_PER_BYTE = 8;
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,5 +1,5 @@
 #include "test/physical.h"
-#include "cpu/idt.h"
+#include "platform-abstraction/idt.h"
 #include "interoperation/kernel-parameters.h"
 #include "shared/macros.h"
 #include "interoperation/memory/definitions.h"

@@ -1,6 +1,6 @@
 #include "memory/management/policy.h"
 
-#include "cpu/idt.h"
+#include "platform-abstraction/idt.h"
 #include "interoperation/memory/definitions.h"
 #include "memory/management/physical.h"
 #include "memory/management/virtual.h"

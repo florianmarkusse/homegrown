@@ -1,5 +1,5 @@
 #include "memory/management/physical.h"
-#include "cpu/idt.h"                           // for triggerFault, FAULT_N...
+#include "platform-abstraction/idt.h"                           // for triggerFault, FAULT_N...
 #include "interoperation/kernel-parameters.h"  // for KernelMemory
 #include "interoperation/memory/definitions.h" // for PAGE_FRAME_SIZE
 #include "interoperation/memory/descriptor.h"

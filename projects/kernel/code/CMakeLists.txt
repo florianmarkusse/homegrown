@@ -6,17 +6,16 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/print-configuration.cmake")
     add_link_options("--ld-path=${CMAKE_LINKER}")
 
+    set(CMAKE_C_FLAGS
+        # TODO: SSE is still broken!!!
+        "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-avx"
+    )
+    set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
+
     add_subproject("shared")
     add_subproject("platform-abstraction")
     add_subproject("x86")
-
-    if(NOT "${UNIT_TEST_BUILD}")
-        set(CMAKE_C_FLAGS
-            # TODO: SSE is still broken!!!
-            "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-sse2"
-        )
-        set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
-    else()
+    if("${UNIT_TEST_BUILD}")
         add_subproject("posix")
     endif()
 endif()
@@ -30,7 +29,6 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/print-configuration.cmake")
 endif()
 
-add_subdirectory_from_root(cpu)
 add_subdirectory_from_root(memory)
 add_subdirectory_from_root(status)
 add_subdirectory_from_root(log)
@@ -59,6 +57,7 @@ target_include_directories(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
@@ -69,7 +68,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-management)
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
-target_link_libraries(${PROJECT_NAME} PRIVATE kernel-cpu)
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-status-memory)
 
 set(BINARIZER "${PROJECT_NAME}.bin")

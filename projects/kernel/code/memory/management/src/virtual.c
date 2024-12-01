@@ -1,6 +1,6 @@
 #include "memory/management/virtual.h"
 
-#include "cpu/x86.h"
+#include "platform-abstraction/cpu.h"
 #include "shared/macros.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"

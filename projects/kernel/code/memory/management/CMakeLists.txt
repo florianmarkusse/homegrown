@@ -23,7 +23,8 @@ target_include_directories(
     PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE kernel-cpu)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-manipulation)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
