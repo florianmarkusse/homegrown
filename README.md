@@ -3,13 +3,10 @@
 run
 
 ```
-./install-dependencies.sh ./build-create-run.sh
+cmd/install-dependencies.sh
+cmd/build-go.sh
+cmd/compile-run.elf
 ```
-
-## Other dependencies to manually install for the moment
-
-- CMake (new version)
-- Include-what-you-use
 
 ## To run as a standalone operating system
 
