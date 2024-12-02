@@ -65,6 +65,8 @@ chmod +x llvm.sh
 sudo ./llvm.sh "${LLVM_VERSION}"
 rm ./llvm.sh
 
+sudo apt-get install libclang-${LLVM_VERSION}-dev
+
 DEPENDENCIES_DIR="dependencies"
 echo -e "${BOLD}Creating ${YELLOW}${DEPENDENCIES_DIR}${NO_COLOR}${BOLD} directory${NO_COLOR}"
 mkdir -p dependencies && cd dependencies
@@ -81,7 +83,7 @@ cd ${IWYU}
 git checkout master && git fetch && git pull
 git checkout clang_${LLVM_VERSION}
 mkdir build && cd build
-cmake -G "Unix Makefiles" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-${LLVM_VERSION} ..
+cmake -G "Unix Makefiles" -DCMAKE_C_COMPILER=clang-"${LLVM_VERSION}" -DCMAKE_CXX_COMPILER=clang-"${LLVM_VERSION}" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-"${LLVM_VERSION}" ..
 make
 sudo make install
 cd ../../
