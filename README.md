@@ -28,6 +28,3 @@ Will currently (probably) break intermittently because of interrupts clobbering 
 ### MP system
 
 - Need to take care of MMTR setting? If I end up doing that.
-
-Without LTO
-121952 Bytes
