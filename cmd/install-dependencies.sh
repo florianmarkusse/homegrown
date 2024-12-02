@@ -41,10 +41,10 @@ done
 
 echo -e "${BOLD}Installing ${YELLOW}git${NO_COLOR}"
 sudo apt install -y git
+echo -e "${BOLD}Installing ${YELLOW}curl${NO_COLOR}"
+sudo apt install -y curl
 echo -e "${BOLD}Installing ${YELLOW}cmake${NO_COLOR}"
 sudo apt install -y cmake
-echo -e "${BOLD}Installing ${YELLOW}iwyu${NO_COLOR}"
-sudo apt install -y iwyu
 echo -e "${BOLD}Installing ${YELLOW}gcc${NO_COLOR}"
 sudo apt install -y gcc
 echo -e "${BOLD}Installing ${YELLOW}python3${NO_COLOR}"
