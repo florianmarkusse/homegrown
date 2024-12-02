@@ -66,6 +66,7 @@ sudo ./llvm.sh "${LLVM_VERSION}"
 rm ./llvm.sh
 
 sudo apt-get install libclang-${LLVM_VERSION}-dev
+sudo apt-get install libstdc++6
 
 DEPENDENCIES_DIR="dependencies"
 echo -e "${BOLD}Creating ${YELLOW}${DEPENDENCIES_DIR}${NO_COLOR}${BOLD} directory${NO_COLOR}"
