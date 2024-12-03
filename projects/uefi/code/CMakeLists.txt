@@ -25,7 +25,6 @@ include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_subproject("x86")
 add_subproject("platform-abstraction")
-add_subproject("kernel")
 add_subproject("shared")
 
 add_executable(

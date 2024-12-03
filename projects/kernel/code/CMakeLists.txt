@@ -15,9 +15,6 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_subproject("shared")
     add_subproject("platform-abstraction")
     add_subproject("x86")
-    if("${ENVIRONMENT}" STREQUAL "posix")
-        add_subproject("kernel")
-    endif()
 endif()
 
 # This is a C-only flag. Don't add this to the ASM flags
