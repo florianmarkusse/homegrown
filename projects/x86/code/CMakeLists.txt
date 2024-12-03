@@ -14,5 +14,5 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     endif()
 endif()
 
-add_subdirectory_from_root(memory)
-add_subdirectory_from_root(cpu)
+add_subdirectory(memory)
+add_subdirectory(cpu)
