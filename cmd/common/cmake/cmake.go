@@ -17,7 +17,7 @@ type ProjectStructure struct {
 	Linker      string
 	Folder      string
 	CodeFolder  string
-	Environment environment.Environment
+	Environment string
 }
 
 type CommonConfig struct {
@@ -64,63 +64,63 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Linker:      ELF.Linker,
 		Folder:      kernelFolder,
 		CodeFolder:  kernelFolder + "code",
-		Environment: environment.Freestanding,
+		Environment: string(environment.Freestanding),
 	},
 	INTEROPERATION: &ProjectStructure{
 		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
 		Folder:      interoperationFolder,
 		CodeFolder:  interoperationFolder + "code",
-		Environment: environment.Freestanding,
+		Environment: string(environment.Freestanding),
 	},
 	UEFI_IMAGE_CREATOR: &ProjectStructure{
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
 		Folder:      uefiImageCreatorFolder,
 		CodeFolder:  uefiImageCreatorFolder + "code",
-		Environment: environment.Posix,
+		Environment: string(environment.Posix),
 	},
 	UEFI: &ProjectStructure{
 		CCompiler:   EFI.CCompiler,
 		Linker:      EFI.Linker,
 		Folder:      uefiFolder,
 		CodeFolder:  uefiFolder + "code",
-		Environment: environment.Freestanding,
+		Environment: string(environment.Freestanding),
 	},
 	IMAGE_BUILDER: &ProjectStructure{
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
 		Folder:      imageBuilderFolder,
 		CodeFolder:  imageBuilderFolder + "code",
-		Environment: environment.Posix,
+		Environment: string(environment.Posix),
 	},
 	SHARED: &ProjectStructure{
 		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
 		Folder:      sharedFolder,
 		CodeFolder:  sharedFolder + "code",
-		Environment: environment.Freestanding,
+		Environment: string(environment.Freestanding),
 	},
 	POSIX: &ProjectStructure{
 		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
 		Folder:      posixFolder,
 		CodeFolder:  posixFolder + "code",
-		Environment: environment.Posix,
+		Environment: string(environment.Posix),
 	},
 	PLATFORM_ABSTRACTION: &ProjectStructure{
 		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
 		Folder:      platformAbstractionFolder,
 		CodeFolder:  platformAbstractionFolder + "code",
-		Environment: environment.Freestanding,
+		Environment: string(environment.Freestanding),
 	},
 	X86: &ProjectStructure{
 		CCompiler: ELF.CCompiler,
 		// No linker because it is an object / interface library
 		Folder:      x86Folder,
 		CodeFolder:  x86Folder + "code",
-		Environment: environment.Freestanding,
+		Environment: string(environment.Freestanding),
 	},
 }
 
@@ -136,14 +136,21 @@ func getConfiguredProjects() []string {
 
 var ConfiguredProjects = getConfiguredProjects()
 
+func buildOutputPath(cCompiler string, environment string, buildMode string) string {
+	configurationPath := strings.Builder{}
+
+	configurationPath.WriteString("build/")
+	configurationPath.WriteString(fmt.Sprintf("%s/", cCompiler))
+	configurationPath.WriteString(fmt.Sprintf("%s/", environment))
+	configurationPath.WriteString(fmt.Sprintf("%s/", buildMode))
+
+	return configurationPath.String()
+}
+
 func BuildDirectoryRoot(project *ProjectStructure, buildMode string) string {
 	buildDirectory := strings.Builder{}
 	buildDirectory.WriteString(fmt.Sprintf("%s/", project.CodeFolder))
-	buildDirectory.WriteString("build/")
-	buildDirectory.WriteString(fmt.Sprintf("%s/", project.CCompiler))
-	buildDirectory.WriteString(fmt.Sprintf("%s/", project.Linker))
-	buildDirectory.WriteString(fmt.Sprintf("%s/", project.Environment))
-	buildDirectory.WriteString(fmt.Sprintf("%s/", buildMode))
+	buildDirectory.WriteString(buildOutputPath(project.CCompiler, string(project.Environment), buildMode))
 
 	return buildDirectory.String()
 }
@@ -155,10 +162,12 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, 
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_LINKER=%s", linker))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_BUILD_TYPE=%s", buildMode))
 	argument.AddArgument(options, fmt.Sprintf("-D ENVIRONMENT=%s", env))
+	argument.AddArgument(options, fmt.Sprintf("-D BUILD_OUTPUT_PATH=%s", buildOutputPath(cCompiler, env, buildMode)))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_ROOT=%s", common.REPO_ROOT))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_DEPENDENCIES=%s", common.REPO_DEPENDENCIES))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_PROJECTS=%s", common.REPO_PROJECTS))
 	argument.AddArgument(options, fmt.Sprintf("--graphviz=%s/output.dot", codeDirectory))
+	argument.AddArgument(options, fmt.Sprintf("-D BUILD_UNIT_TESTS=%t", buildTests))
 
 	var iwyuString = strings.Builder{}
 	iwyuString.WriteString("-D CMAKE_C_INCLUDE_WHAT_YOU_USE=\"include-what-you-use;-w;-Xiwyu;")
@@ -167,8 +176,6 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, 
 	}
 	iwyuString.WriteString("\"")
 	argument.AddArgument(options, iwyuString.String())
-
-	argument.AddArgument(options, fmt.Sprintf("-D BUILD_UNIT_TESTS=%t", buildTests))
 }
 
 func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, threads int, targets []string) {

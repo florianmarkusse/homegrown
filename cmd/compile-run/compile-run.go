@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 )
 
-var buildArgs = projects.DefaultBuildArgs
+var buildArgs = projects.RunBuildArgs
 var qemuArgs = qemu.DefaultQemuArgs
 
 var isHelp = false

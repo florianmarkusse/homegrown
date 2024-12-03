@@ -42,8 +42,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 set(VALID_ENVIRONMENTS "freestanding" "posix")
-message(STATUS "suck my nuts ${VALID_ENVIRONMENTS}")
-message(STATUS "suck my nuts ${ENVIRONMENT}")
 list(FIND VALID_ENVIRONMENTS ${ENVIRONMENT} VALID_ENVIRONMENT_INDEX)
 if(VALID_ENVIRONMENT_INDEX EQUAL -1)
     message(
@@ -59,15 +57,10 @@ if(${ENVIRONMENT} STREQUAL "posix")
     add_compile_definitions(POSIX_ENVIRONMENT)
 endif()
 
-# if("${FREESTANDING_ENVIRONMENT}")
-#     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -ffreestanding")
-#     add_compile_definitions(FREESTANDING_ENVIRONMENT)
-# endif()
-
 function(add_subproject project)
     add_subdirectory(
         "${REPO_PROJECTS}/${project}/code"
-        "${CMAKE_CURRENT_BINARY_DIR}/${project}"
+        "${REPO_PROJECTS}/${project}/code/${BUILD_OUTPUT_PATH}"
     )
 endfunction()
 

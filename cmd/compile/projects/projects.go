@@ -57,17 +57,16 @@ func populateErrorWriter(errorsToFile bool, codeDirectory string) []io.Writer {
 }
 
 func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
-	var buildDirectory = cmake.BuildDirectoryRoot(project, args.BuildMode)
+	if args.Environment != "" {
+		project.Environment = args.Environment
+	}
 
 	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, project.CodeFolder)
 
 	configureOptions := strings.Builder{}
-	var environment string = string(project.Environment)
-	if args.Environment != "" {
-		environment = string(args.Environment)
-	}
 
-	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, project.CCompiler, project.Linker, args.BuildMode, environment, args.BuildTests)
+	var buildDirectory = cmake.BuildDirectoryRoot(project, args.BuildMode)
+	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, project.CCompiler, project.Linker, args.BuildMode, project.Environment, args.BuildTests)
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, configureOptions.String()), errorWriters...)
 
 	buildOptions := strings.Builder{}
@@ -94,6 +93,17 @@ const (
 	Success BuildResult = iota
 	Failure
 )
+
+var RunBuildArgs = BuildArgs{
+	BuildMode:        buildmode.DefaultBuildMode(),
+	Environment:      "",
+	ErrorsToFile:     false,
+	Threads:          runtime.NumCPU(),
+	SelectedTargets:  []string{},
+	SelectedProjects: []string{cmake.KERNEL, cmake.UEFI_IMAGE_CREATOR, cmake.UEFI},
+	BuildTests:       false,
+	RunTests:         false,
+}
 
 var DefaultBuildArgs = BuildArgs{
 	BuildMode:        buildmode.DefaultBuildMode(),
