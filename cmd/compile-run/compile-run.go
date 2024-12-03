@@ -72,7 +72,7 @@ func main() {
 		os.Exit(exit.EXIT_TARGET_ERROR)
 	}
 
-	uefiimage.CreateUefiImage()
+	uefiimage.CreateUefiImage(buildArgs.BuildMode)
 
 	if buildArgs.BuildMode == string(buildmode.Debug) {
 		qemuArgs.Debug = true

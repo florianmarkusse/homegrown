@@ -5,6 +5,7 @@ import (
 	"cmd/common"
 	"cmd/common/argument"
 	"cmd/common/exit"
+	"cmd/common/flags/buildmode"
 	"cmd/common/uefiimage"
 	"cmd/compile/projects"
 	"fmt"
@@ -20,7 +21,7 @@ func main() {
 		os.Exit(exit.EXIT_TARGET_ERROR)
 	}
 
-	uefiimage.CreateUefiImage()
+	uefiimage.CreateUefiImage(buildmode.DefaultBuildMode())
 
 	writeToUSBCommand := fmt.Sprintf("sudo dd bs=4M if=%s/test.hdd of=/dev/sdc1 conv=notrunc", common.REPO_ROOT)
 	argument.ExecCommand(writeToUSBCommand)

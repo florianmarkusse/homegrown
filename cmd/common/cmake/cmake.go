@@ -136,16 +136,14 @@ func getConfiguredProjects() []string {
 
 var ConfiguredProjects = getConfiguredProjects()
 
-func BuildDirectoryRoot(project *ProjectStructure, testBuild bool) string {
+func BuildDirectoryRoot(project *ProjectStructure, buildMode string) string {
 	buildDirectory := strings.Builder{}
 	buildDirectory.WriteString(fmt.Sprintf("%s/", project.CodeFolder))
 	buildDirectory.WriteString("build/")
-	if testBuild {
-		buildDirectory.WriteString("test/")
-	} else {
-		buildDirectory.WriteString("prod/")
-	}
 	buildDirectory.WriteString(fmt.Sprintf("%s/", project.CCompiler))
+	buildDirectory.WriteString(fmt.Sprintf("%s/", project.Linker))
+	buildDirectory.WriteString(fmt.Sprintf("%s/", project.Environment))
+	buildDirectory.WriteString(fmt.Sprintf("%s/", buildMode))
 
 	return buildDirectory.String()
 }

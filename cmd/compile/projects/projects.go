@@ -13,8 +13,8 @@ import (
 	"strings"
 )
 
-func findAndRunTests(selectedTargets []string, project *cmake.ProjectStructure) BuildResult {
-	var buildDirectory = cmake.BuildDirectoryRoot(project, true)
+func findAndRunTests(selectedTargets []string, project *cmake.ProjectStructure, buildMode string) BuildResult {
+	var buildDirectory = cmake.BuildDirectoryRoot(project, buildMode)
 	if len(selectedTargets) > 0 {
 		for _, target := range selectedTargets {
 			var findCommand = fmt.Sprintf("find %s -executable -type f -name \"%s\" -exec {} \\;", buildDirectory, target)
@@ -57,7 +57,7 @@ func populateErrorWriter(errorsToFile bool, codeDirectory string) []io.Writer {
 }
 
 func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
-	var buildDirectory = cmake.BuildDirectoryRoot(project, args.BuildTests)
+	var buildDirectory = cmake.BuildDirectoryRoot(project, args.BuildMode)
 
 	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, project.CodeFolder)
 
@@ -136,7 +136,7 @@ func Build(args *BuildArgs) BuildResult {
 		}
 		for name, project := range projectsToBuild {
 			fmt.Printf("Testing %s%s%s\n", common.CYAN, name, common.RESET)
-			findAndRunTests(args.SelectedTargets, project)
+			findAndRunTests(args.SelectedTargets, project, args.BuildMode)
 		}
 	}
 
