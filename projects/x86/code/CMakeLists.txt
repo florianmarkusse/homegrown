@@ -11,3 +11,7 @@ endif()
 
 add_subdirectory(memory)
 add_subdirectory(cpu)
+
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    fetch_and_write_project_targets()
+endif()

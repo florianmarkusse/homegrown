@@ -9,7 +9,6 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_subproject("platform-abstraction")
 endif()
 
-set(CMAKE_CURRENT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}")
 add_subdirectory(log)
 add_subdirectory(file)
 add_subdirectory(test-framework)

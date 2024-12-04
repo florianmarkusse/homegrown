@@ -63,3 +63,37 @@ function(add_subproject project)
         "${REPO_PROJECTS}/${project}/code/${BUILD_OUTPUT_PATH}"
     )
 endfunction()
+
+function(get_project_targets result currentDir)
+    get_property(
+        subdirectories
+        DIRECTORY "${currentDir}"
+        PROPERTY SUBDIRECTORIES
+    )
+    foreach(subdirectory IN LISTS subdirectories)
+        get_project_targets(${result} "${subdirectory}")
+    endforeach()
+    get_directory_property(
+        targets
+        DIRECTORY "${currentDir}"
+        BUILDSYSTEM_TARGETS
+    )
+    list(FILTER targets INCLUDE REGEX "^${PROJECT_NAME}.*")
+    set(${result} ${${result}} ${targets} PARENT_SCOPE)
+endfunction()
+
+function(fetch_and_write_project_targets)
+    set(project_targets)
+    get_project_targets(project_targets ${CMAKE_CURRENT_BINARY_DIR})
+
+    message(STATUS "00000000000000000000000000000000")
+    # Print all collected targets
+    foreach(target ${project_targets})
+        message(STATUS "Target: ${target}")
+    endforeach()
+
+    file(WRITE ${PROJECTS_TARGETS_FILE} "")
+    foreach(target ${all_targets})
+        file(APPEND ${PROJECTS_TARGETS_FILE} "${target}\n")
+    endforeach()
+endfunction()

@@ -161,8 +161,8 @@ func BuildDirectoryRoot(project *ProjectStructure, buildMode string) string {
 	return buildDirectory.String()
 }
 
-func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, buildDirectory string, cCompiler string, linker string, buildMode string, env string, buildTests bool) {
-	argument.AddArgument(options, fmt.Sprintf("-S %s", codeDirectory))
+func AddDefaultConfigureOptions(options *strings.Builder, codeFolder string, buildDirectory string, cCompiler string, linker string, buildMode string, env string, buildTests bool) {
+	argument.AddArgument(options, fmt.Sprintf("-S %s", codeFolder))
 	argument.AddArgument(options, fmt.Sprintf("-B %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_C_COMPILER=%s", cCompiler))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_LINKER=%s", linker))
@@ -172,7 +172,12 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeDirectory string, 
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_ROOT=%s", common.REPO_ROOT))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_DEPENDENCIES=%s", common.REPO_DEPENDENCIES))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_PROJECTS=%s", common.REPO_PROJECTS))
-	argument.AddArgument(options, fmt.Sprintf("--graphviz=%s/output.dot", codeDirectory))
+
+	projectsTargetsFile := strings.Builder{}
+	projectsTargetsFile.WriteString(fmt.Sprintf("%s/build/targets.txt", codeFolder))
+	argument.AddArgument(options, fmt.Sprintf("-D PROJECTS_TARGETS_FILE=%s", projectsTargetsFile.String()))
+
+	argument.AddArgument(options, fmt.Sprintf("--graphviz=%s/output.dot", codeFolder))
 	argument.AddArgument(options, fmt.Sprintf("-D BUILD_UNIT_TESTS=%t", buildTests))
 
 	var iwyuString = strings.Builder{}
