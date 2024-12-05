@@ -1,14 +1,9 @@
-- How to make it so that I only include the stuff I need
-- Make platform-abstraction include its own stuff??
 - platform-abstraction for status logs? If not debug it can automatically be removed?
-- Make it so that every add_subdirectory call goes 1 layer deeper in the build directory
-- What is the difference between unit test build and freestanding?
-- Fix the kernel build again???
+  - After moving everything to their correct module, check if kernel/uefi/uefi-image-creator are relying on the platform-abstraction instead of the implementation
 - Move basic modules from x/a/a.h to x/a.h
 - A lot of projects SHOULD no longer depend on interoperation
 - -fwhole-program -Wswitch-enum
 - add verbose flag to cmake , and make possible to just add any -D comma-separated
-- Fix compile-run so that it only builds the required projects
 - add another build mode : Production? that adds -lto
 - Move cpu module into posix/kernel and combine into platform-abstraction project
 - Move kernel/memory/manipulation too?
@@ -18,6 +13,5 @@
 - Turn on UBsan
 - Turn on ASan
 - Fix header guards, make command for this like --errors-to-file for iwyu?
-- Why some targets are built when not required
 - Start rewrite of image-builder
 - Move all virtual & physical memory operations to X86 architecture. All platform-independent code should really just use policy which in turn communicates with the right architecture

@@ -1,15 +1,12 @@
 #include "memory/management/policy.h"
-
-#include "platform-abstraction/idt.h"
 #include "interoperation/memory/definitions.h"
 #include "memory/management/physical.h"
 #include "memory/management/virtual.h"
+#include "platform-abstraction/idt.h"
 #include "shared/maths/maths.h"
 
-// TODO: remove this when CLANG works correctly with constexpr ?
-static constexpr auto pagedMemoryLen = PageTableFormat.ENTRIES;
 void *allocAndMap(U64 bytes) {
-    PagedMemory pagedMemory[pagedMemoryLen];
+    PagedMemory pagedMemory[PageTableFormat.ENTRIES];
 
     PageSize pageSize;
     U64 inPages;
