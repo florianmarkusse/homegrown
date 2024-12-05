@@ -25,7 +25,7 @@ const PROJECTS_SHORT_FLAG = "p"
 
 const SELECT_TARGETS_LONG_FLAG = "targets"
 const SELECT_TARGETS_SHORT_FLAG = "s"
-const DEFAULT_TARGETS = "_ALL_"
+const DEFAULT_TARGETS = "All targets starting with the project's name."
 
 const BUILD_TESTS_LONG_FLAG = "test-build"
 const BUILD_TESTS_SHORT_FLAG = "t"

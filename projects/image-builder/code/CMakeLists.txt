@@ -19,3 +19,7 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-sizes)
+
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    fetch_and_write_project_targets()
+endif()

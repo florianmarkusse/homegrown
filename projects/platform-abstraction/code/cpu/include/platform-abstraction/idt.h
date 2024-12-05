@@ -4,7 +4,7 @@
 #ifdef FREESTANDING_ENVIRONMENT
 #include "x86/cpu/real/idt.h"
 #else
-#include "x86/cpu/real/idt.h"
+#include "x86/cpu/mock/idt.h"
 #endif
 
 #endif

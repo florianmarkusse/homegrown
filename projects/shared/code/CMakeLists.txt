@@ -17,3 +17,7 @@ add_subdirectory(hash)
 add_subdirectory(dynamic-array)
 add_subdirectory(types)
 add_subdirectory(macros)
+
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    fetch_and_write_project_targets()
+endif()

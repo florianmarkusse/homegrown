@@ -6,7 +6,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/print-configuration.cmake")
     add_link_options("--ld-path=${CMAKE_LINKER}")
     add_subproject("shared")
-    add_subproject("platform-abstraction")
+    add_platform_abstraction_and_correct_implementations()
 endif()
 
 add_subdirectory(memory)

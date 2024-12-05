@@ -6,11 +6,9 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_link_options("--ld-path=${CMAKE_LINKER}")
 endif()
 
-if("${ENVIRONMENT}" STREQUAL "freestanding")
-    add_subproject("kernel")
-else()
-    add_subproject("posix")
-endif()
-
 add_subdirectory(log)
 add_subdirectory(cpu)
+
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    fetch_and_write_project_targets()
+endif()

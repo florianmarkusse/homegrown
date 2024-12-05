@@ -1,10 +1,13 @@
 package cmake
 
 import (
+	"bufio"
 	"cmd/common"
 	"cmd/common/argument"
+	"cmd/common/exit"
 	"cmd/common/flags/environment"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -161,7 +164,13 @@ func BuildDirectoryRoot(project *ProjectStructure, buildMode string) string {
 	return buildDirectory.String()
 }
 
-func AddDefaultConfigureOptions(options *strings.Builder, codeFolder string, buildDirectory string, cCompiler string, linker string, buildMode string, env string, buildTests bool) {
+func BuildProjectTargetsFile(codeFolder string) string {
+	projectTargetsFile := strings.Builder{}
+	projectTargetsFile.WriteString(fmt.Sprintf("%s/build/targets.txt", codeFolder))
+	return projectTargetsFile.String()
+}
+
+func AddDefaultConfigureOptions(options *strings.Builder, codeFolder string, buildDirectory string, cCompiler string, linker string, buildMode string, env string, buildTests bool, projectTargetsFile string) {
 	argument.AddArgument(options, fmt.Sprintf("-S %s", codeFolder))
 	argument.AddArgument(options, fmt.Sprintf("-B %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_C_COMPILER=%s", cCompiler))
@@ -172,10 +181,7 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeFolder string, bui
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_ROOT=%s", common.REPO_ROOT))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_DEPENDENCIES=%s", common.REPO_DEPENDENCIES))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_PROJECTS=%s", common.REPO_PROJECTS))
-
-	projectsTargetsFile := strings.Builder{}
-	projectsTargetsFile.WriteString(fmt.Sprintf("%s/build/targets.txt", codeFolder))
-	argument.AddArgument(options, fmt.Sprintf("-D PROJECTS_TARGETS_FILE=%s", projectsTargetsFile.String()))
+	argument.AddArgument(options, fmt.Sprintf("-D PROJECT_TARGETS_FILE=%s", projectTargetsFile))
 
 	argument.AddArgument(options, fmt.Sprintf("--graphviz=%s/output.dot", codeFolder))
 	argument.AddArgument(options, fmt.Sprintf("-D BUILD_UNIT_TESTS=%t", buildTests))
@@ -189,16 +195,36 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeFolder string, bui
 	argument.AddArgument(options, iwyuString.String())
 }
 
-func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, threads int, targets []string) {
+func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, projectTargetsFile string, threads int, targets []string) {
 	argument.AddArgument(options, fmt.Sprintf("--build %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("--parallel %d", threads))
 
+	targetsString := strings.Builder{}
 	if len(targets) > 0 {
-		targetsString := strings.Builder{}
 		for _, target := range targets {
 			targetsString.WriteString(target)
 			targetsString.WriteString(" ")
 		}
+	} else {
+		file, err := os.Open(projectTargetsFile)
+		if err != nil {
+			os.Exit(exit.EXIT_TARGET_ERROR)
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			var target = scanner.Text()
+			targetsString.WriteString(target)
+			targetsString.WriteString(" ")
+		}
+
+		if err := scanner.Err(); err != nil {
+			os.Exit(exit.EXIT_TARGET_ERROR)
+		}
+	}
+
+	if targetsString.Len() > 0 {
 		argument.AddArgument(options, fmt.Sprintf("--target %s", targetsString.String()))
 	}
 }

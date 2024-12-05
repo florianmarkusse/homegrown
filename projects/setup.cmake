@@ -74,26 +74,41 @@ function(get_project_targets result currentDir)
         get_project_targets(${result} "${subdirectory}")
     endforeach()
     get_directory_property(
-        targets
+        all_targets
         DIRECTORY "${currentDir}"
         BUILDSYSTEM_TARGETS
     )
-    list(FILTER targets INCLUDE REGEX "^${PROJECT_NAME}.*")
-    set(${result} ${${result}} ${targets} PARENT_SCOPE)
+    set(buildable_targets)
+    foreach(target IN LISTS all_targets)
+        get_property(target_type TARGET ${target} PROPERTY TYPE)
+        if(NOT target_type STREQUAL "INTERFACE_LIBRARY")
+            list(APPEND buildable_targets ${target})
+        endif()
+    endforeach()
+    list(FILTER buildable_targets INCLUDE REGEX "^${PROJECT_NAME}.*")
+    set(${result} ${${result}} ${buildable_targets} PARENT_SCOPE)
 endfunction()
 
 function(fetch_and_write_project_targets)
     set(project_targets)
     get_project_targets(project_targets ${CMAKE_CURRENT_BINARY_DIR})
 
-    message(STATUS "00000000000000000000000000000000")
-    # Print all collected targets
+    file(WRITE ${PROJECT_TARGETS_FILE} "")
     foreach(target ${project_targets})
-        message(STATUS "Target: ${target}")
+        file(APPEND ${PROJECT_TARGETS_FILE} "${target}\n")
     endforeach()
+endfunction()
 
-    file(WRITE ${PROJECTS_TARGETS_FILE} "")
-    foreach(target ${all_targets})
-        file(APPEND ${PROJECTS_TARGETS_FILE} "${target}\n")
-    endforeach()
+function(add_correct_platfom_abstraction_implementations)
+    if("${ENVIRONMENT}" STREQUAL "freestanding")
+        add_subproject("kernel")
+    endif()
+    if("${ENVIRONMENT}" STREQUAL "posix")
+        add_subproject("posix")
+    endif()
+endfunction()
+
+function(add_platform_abstraction_and_correct_implementations)
+    add_subproject("platform-abstraction")
+    add_correct_platfom_abstraction_implementations()
 endfunction()

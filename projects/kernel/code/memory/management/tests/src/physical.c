@@ -1,16 +1,16 @@
 #include "test/physical.h"
-#include "platform-abstraction/idt.h"
 #include "interoperation/kernel-parameters.h"
-#include "shared/macros.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"
-#include "shared/types/types.h"
 #include "memory/management/physical.h"
+#include "platform-abstraction/idt.h"
 #include "platform-abstraction/log.h"
 #include "posix/test-framework/test.h"
+#include "shared/macros.h"
 #include "shared/maths/maths.h"
 #include "shared/text/string.h"
-#include "status/idt/status.h"
+#include "shared/types/types.h"
+#include "x86/cpu/status/test.h"
 #include <errno.h>
 #include <string.h>
 #include <sys/mman.h>
@@ -285,9 +285,11 @@ void testPhysicalMemoryManagement() {
                     createDescriptor(CONVENTIONAL_MEMORY, 3, &index),
                     createDescriptor(
                         CONVENTIONAL_MEMORY,
-                        PageTableFormat.ENTRIES * PageTableFormat.ENTRIES - 3, &index),
+                        PageTableFormat.ENTRIES * PageTableFormat.ENTRIES - 3,
+                        &index),
                     createDescriptor(CONVENTIONAL_MEMORY,
-                                     PageTableFormat.ENTRIES * PageTableFormat.ENTRIES,
+                                     PageTableFormat.ENTRIES *
+                                         PageTableFormat.ENTRIES,
                                      &index)};
                 KernelMemory kernelMemory =
                     createKernelMemory(descriptors, COUNTOF(descriptors));
@@ -396,9 +398,11 @@ void testPhysicalMemoryManagement() {
                     createDescriptor(CONVENTIONAL_MEMORY, 3, &index),
                     createDescriptor(
                         CONVENTIONAL_MEMORY,
-                        PageTableFormat.ENTRIES * PageTableFormat.ENTRIES - 3, &index),
+                        PageTableFormat.ENTRIES * PageTableFormat.ENTRIES - 3,
+                        &index),
                     createDescriptor(CONVENTIONAL_MEMORY,
-                                     PageTableFormat.ENTRIES * PageTableFormat.ENTRIES,
+                                     PageTableFormat.ENTRIES *
+                                         PageTableFormat.ENTRIES,
                                      &index)};
                 KernelMemory kernelMemory =
                     createKernelMemory(descriptors, COUNTOF(descriptors));
@@ -411,8 +415,9 @@ void testPhysicalMemoryManagement() {
                 allocContiguousPhysicalPages(507, BASE_PAGE);
                 allocContiguousPhysicalPages(2, BASE_PAGE);
 
-                allocContiguousPhysicalPages(
-                    PageTableFormat.ENTRIES * PageTableFormat.ENTRIES, BASE_PAGE);
+                allocContiguousPhysicalPages(PageTableFormat.ENTRIES *
+                                                 PageTableFormat.ENTRIES,
+                                             BASE_PAGE);
 
                 EXPECT_SINGLE_FAULT(FAULT_NO_MORE_PHYSICAL_MEMORY);
 
@@ -429,12 +434,13 @@ void testPhysicalMemoryManagement() {
             U64 index = 0;
             MemoryDescriptor descriptors[] = {
                 createDescriptor(CONVENTIONAL_MEMORY, 3, &index),
-                createDescriptor(CONVENTIONAL_MEMORY,
-                                 PageTableFormat.ENTRIES * PageTableFormat.ENTRIES - 3,
-                                 &index),
-                createDescriptor(CONVENTIONAL_MEMORY,
-                                 PageTableFormat.ENTRIES * PageTableFormat.ENTRIES,
-                                 &index)};
+                createDescriptor(
+                    CONVENTIONAL_MEMORY,
+                    PageTableFormat.ENTRIES * PageTableFormat.ENTRIES - 3,
+                    &index),
+                createDescriptor(
+                    CONVENTIONAL_MEMORY,
+                    PageTableFormat.ENTRIES * PageTableFormat.ENTRIES, &index)};
             KernelMemory kernelMemory =
                 createKernelMemory(descriptors, COUNTOF(descriptors));
 

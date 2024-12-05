@@ -24,8 +24,8 @@ set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_subproject("x86")
-add_subproject("platform-abstraction")
 add_subproject("shared")
+add_platform_abstraction_and_correct_implementations()
 
 add_executable(
     ${PROJECT_NAME}
@@ -56,3 +56,7 @@ target_include_directories(
     ${PROJECT_NAME}
     PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
+
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    fetch_and_write_project_targets()
+endif()

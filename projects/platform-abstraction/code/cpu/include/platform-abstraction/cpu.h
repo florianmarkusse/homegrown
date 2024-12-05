@@ -4,7 +4,7 @@
 #ifdef FREESTANDING_ENVIRONMENT
 #include "x86/cpu/real/cpu.h"
 #else
-#include "x86/cpu/real/mock.h"
+#include "x86/cpu/mock/cpu.h"
 #endif
 
 #endif

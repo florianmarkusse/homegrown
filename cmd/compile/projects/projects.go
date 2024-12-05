@@ -66,11 +66,12 @@ func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
 	configureOptions := strings.Builder{}
 
 	var buildDirectory = cmake.BuildDirectoryRoot(project, args.BuildMode)
-	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, project.CCompiler, project.Linker, args.BuildMode, project.Environment, args.BuildTests)
+	var projectTargetsFile = cmake.BuildProjectTargetsFile(project.CodeFolder)
+	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, project.CCompiler, project.Linker, args.BuildMode, project.Environment, args.BuildTests, projectTargetsFile)
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, configureOptions.String()), errorWriters...)
 
 	buildOptions := strings.Builder{}
-	cmake.AddDefaultBuildOptions(&buildOptions, buildDirectory, args.Threads, args.SelectedTargets)
+	cmake.AddDefaultBuildOptions(&buildOptions, buildDirectory, projectTargetsFile, args.Threads, args.SelectedTargets)
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, buildOptions.String()), errorWriters...)
 
 	copyCompileCommands(buildDirectory, project.CodeFolder)
