@@ -234,5 +234,5 @@ func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, pro
 		argument.AddArgument(options, fmt.Sprintf("--target %s", targetsString.String()))
 	}
 
-	return false
+	return true
 }
