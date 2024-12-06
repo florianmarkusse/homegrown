@@ -7,6 +7,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_link_options("--ld-path=${CMAKE_LINKER}")
     add_subproject("shared")
     add_subproject("platform-abstraction")
+    # NOTE: This really shouldn't happen
     if("${ENVIRONMENT}" STREQUAL "freestanding")
         add_subproject("kernel")
     endif()

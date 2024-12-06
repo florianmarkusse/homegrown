@@ -15,5 +15,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-manipulation)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-memory-manipulation)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)

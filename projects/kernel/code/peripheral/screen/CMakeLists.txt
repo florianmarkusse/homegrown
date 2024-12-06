@@ -21,7 +21,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-management)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-manipulation)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-memory-manipulation)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)

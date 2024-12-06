@@ -1,7 +1,7 @@
 #include "posix/file/path.h"
 #include "shared/types/types.h"
 #include "shared/memory/allocator/arena.h" // for FLO_NEW, Arena
-#include "shared/memory/manipulation.h"
+#include "platform-abstraction/memory/manipulation.h"
 #include "shared/text/string.h" // for firstOccurenceOfFrom, string
 #include <sys/stat.h>           // for mkdir
 

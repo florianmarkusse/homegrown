@@ -1,6 +1,7 @@
 - platform-abstraction for status logs? If not debug it can automatically be removed?
   - After moving everything to their correct module, check if kernel/uefi/uefi-image-creator are relying on the platform-abstraction instead of the implementation
     // TODO: rename this to kernel/log.h
+- ENTRIES SHIFT thing struct clang-19
 - Move basic modules from x/a/a.h to x/a.h
 - A lot of projects SHOULD no longer depend on interoperation
 - -fwhole-program -Wswitch-enum

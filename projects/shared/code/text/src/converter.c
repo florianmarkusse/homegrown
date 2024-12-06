@@ -1,8 +1,8 @@
-#include "shared/types/array-types.h"
+#include "platform-abstraction/memory/manipulation.h"
 #include "shared/assert.h"
-#include "shared/types/types.h"
-#include "shared/memory/manipulation.h"
 #include "shared/text/string.h"
+#include "shared/types/array-types.h"
+#include "shared/types/types.h"
 
 static constexpr auto STRING_CONVERTER_BUF_LEN = 1 << 10;
 U8 stringConverterBuf[STRING_CONVERTER_BUF_LEN];

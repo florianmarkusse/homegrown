@@ -18,14 +18,10 @@ if("${ENVIRONMENT}" STREQUAL "freestanding")
             $<TARGET_PROPERTY:kernel-memory-manipulation,INCLUDE_DIRECTORIES>
     )
 elseif("${ENVIRONMENT}" STREQUAL "posix")
-    target_sources(
-        ${PROJECT_NAME}
-        INTERFACE $<TARGET_OBJECTS:posix-memory-manipulation>
-    )
     target_include_directories(
         ${PROJECT_NAME}
         INTERFACE
-            $<TARGET_PROPERTY:posix-memory-manipulation,INCLUDE_DIRECTORIES>
+            $<TARGET_PROPERTY:posix-memory-manipulation,INTERFACE_INCLUDE_DIRECTORIES>
     )
 else()
     message(FATAL_ERROR "Could not match ENVIRONMENT variable")

@@ -6,7 +6,7 @@
 #include "interoperation/memory/definitions.h"
 #include "memory/management/definitions.h"
 #include "memory/management/virtual.h"
-#include "shared/memory/manipulation.h"
+#include "platform-abstraction/memory/manipulation.h"
 #include "shared/assert.h"      // for ASSERT
 #include "shared/maths/maths.h" // for RING_PLUS, RING_INCREMENT, RING_MINUS
 #include "shared/memory/allocator/macros.h"
