@@ -23,7 +23,6 @@ set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 
 include("${REPO_PROJECTS}/print-configuration.cmake")
 
-add_subproject("x86")
 add_subproject("shared")
 add_platform_abstraction_and_correct_implementations()
 

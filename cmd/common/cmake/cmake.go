@@ -50,15 +50,15 @@ const PLATFORM_ABSTRACTION = "platform-abstraction"
 const X86 = "x86"
 
 // and here
-var kernelFolder = common.REPO_PROJECTS + KERNEL + "/"
-var interoperationFolder = common.REPO_PROJECTS + INTEROPERATION + "/"
-var uefiImageCreatorFolder = common.REPO_PROJECTS + UEFI_IMAGE_CREATOR + "/"
-var uefiFolder = common.REPO_PROJECTS + UEFI + "/"
-var imageBuilderFolder = common.REPO_PROJECTS + IMAGE_BUILDER + "/"
-var sharedFolder = common.REPO_PROJECTS + SHARED + "/"
-var posixFolder = common.REPO_PROJECTS + POSIX + "/"
-var platformAbstractionFolder = common.REPO_PROJECTS + PLATFORM_ABSTRACTION + "/"
-var x86Folder = common.REPO_PROJECTS + X86 + "/"
+var kernelFolder = common.REPO_PROJECTS + "/" + KERNEL + "/"
+var interoperationFolder = common.REPO_PROJECTS + "/" + INTEROPERATION + "/"
+var uefiImageCreatorFolder = common.REPO_PROJECTS + "/" + UEFI_IMAGE_CREATOR + "/"
+var uefiFolder = common.REPO_PROJECTS + "/" + UEFI + "/"
+var imageBuilderFolder = common.REPO_PROJECTS + "/" + IMAGE_BUILDER + "/"
+var sharedFolder = common.REPO_PROJECTS + "/" + SHARED + "/"
+var posixFolder = common.REPO_PROJECTS + "/" + POSIX + "/"
+var platformAbstractionFolder = common.REPO_PROJECTS + "/" + PLATFORM_ABSTRACTION + "/"
+var x86Folder = common.REPO_PROJECTS + "/" + X86 + "/"
 
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
@@ -151,7 +151,7 @@ func buildOutputPath(cCompiler string, linker string, environment string, buildM
 	configurationPath.WriteString(fmt.Sprintf("%s/", cCompiler))
 	configurationPath.WriteString(fmt.Sprintf("%s/", linker))
 	configurationPath.WriteString(fmt.Sprintf("%s/", environment))
-	configurationPath.WriteString(fmt.Sprintf("%s/", buildMode))
+	configurationPath.WriteString(fmt.Sprintf("%s", buildMode))
 
 	return configurationPath.String()
 }
@@ -170,13 +170,14 @@ func BuildProjectTargetsFile(codeFolder string) string {
 	return projectTargetsFile.String()
 }
 
-func AddDefaultConfigureOptions(options *strings.Builder, codeFolder string, buildDirectory string, cCompiler string, linker string, buildMode string, env string, buildTests bool, projectTargetsFile string) {
+func AddDefaultConfigureOptions(options *strings.Builder, codeFolder string, buildDirectory string, cCompiler string, linker string, buildMode string, env string, buildTests bool, projectTargetsFile string, architecture string) {
 	argument.AddArgument(options, fmt.Sprintf("-S %s", codeFolder))
 	argument.AddArgument(options, fmt.Sprintf("-B %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_C_COMPILER=%s", cCompiler))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_LINKER=%s", linker))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_BUILD_TYPE=%s", buildMode))
 	argument.AddArgument(options, fmt.Sprintf("-D ENVIRONMENT=%s", env))
+	argument.AddArgument(options, fmt.Sprintf("-D ARCHITECTURE=%s", architecture))
 	argument.AddArgument(options, fmt.Sprintf("-D BUILD_OUTPUT_PATH=%s", buildOutputPath(cCompiler, linker, env, buildMode)))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_ROOT=%s", common.REPO_ROOT))
 	argument.AddArgument(options, fmt.Sprintf("-D REPO_DEPENDENCIES=%s", common.REPO_DEPENDENCIES))
@@ -195,7 +196,7 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeFolder string, bui
 	argument.AddArgument(options, iwyuString.String())
 }
 
-func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, projectTargetsFile string, threads int, targets []string) {
+func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, projectTargetsFile string, threads int, targets []string) bool {
 	argument.AddArgument(options, fmt.Sprintf("--build %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("--parallel %d", threads))
 
@@ -222,9 +223,16 @@ func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, pro
 		if err := scanner.Err(); err != nil {
 			os.Exit(exit.EXIT_TARGET_ERROR)
 		}
+
+		if targetsString.Len() == 0 {
+			return false
+		}
+
 	}
 
 	if targetsString.Len() > 0 {
 		argument.AddArgument(options, fmt.Sprintf("--target %s", targetsString.String()))
 	}
+
+	return false
 }

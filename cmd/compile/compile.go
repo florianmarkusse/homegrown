@@ -6,6 +6,7 @@ import (
 	"cmd/common/converter"
 	"cmd/common/exit"
 	"cmd/common/flags"
+	"cmd/common/flags/architecture"
 	"cmd/common/flags/buildmode"
 	"cmd/common/flags/environment"
 	"cmd/common/flags/help"
@@ -44,6 +45,9 @@ var isHelp = false
 
 func main() {
 	buildmode.AddBuildModeAsFlag(&buildArgs.BuildMode)
+	architecture.AddArchitectureAsFlag(&buildArgs.Architecture)
+	environment.AddEnvironmentAsFlag(&buildArgs.Environment)
+	help.AddHelpAsFlag(&isHelp)
 
 	flag.StringVar(&projectsToBuild, PROJECTS_LONG_FLAG, "", "")
 	flag.StringVar(&projectsToBuild, PROJECTS_SHORT_FLAG, "", "")
@@ -62,10 +66,6 @@ func main() {
 
 	flag.IntVar(&buildArgs.Threads, THREADS_LONG_FLAG, buildArgs.Threads, "")
 
-	environment.AddEnvironmentAsFlag(&buildArgs.Environment)
-
-	help.AddHelpAsFlag(&isHelp)
-
 	flag.Usage = usage
 	flag.Parse()
 
@@ -76,6 +76,10 @@ func main() {
 	}
 
 	if !environment.IsValidEnvironment(buildArgs.Environment) && buildArgs.Environment != "" {
+		showHelpAndExit = true
+	}
+
+	if !architecture.IsValidArchitecture(buildArgs.Architecture) {
 		showHelpAndExit = true
 	}
 
@@ -113,6 +117,8 @@ func main() {
 
 	configuration.DisplayConfiguration()
 	buildmode.DisplayBuildModeConfiguration(buildArgs.BuildMode)
+	architecture.DisplayArchitectureConfiguration(buildArgs.Architecture)
+	environment.DisplayEnvironmentConfiguration(buildArgs.Environment)
 
 	var projectsConfiguration string
 	if len(buildArgs.SelectedProjects) > 0 {
@@ -133,7 +139,6 @@ func main() {
 	configuration.DisplayBoolArgument(BUILD_TESTS_LONG_FLAG, buildArgs.BuildTests)
 	configuration.DisplayBoolArgument(RUN_TESTS_LONG_FLAG, buildArgs.RunTests)
 	configuration.DisplayIntArgument(THREADS_LONG_FLAG, buildArgs.Threads)
-	environment.DisplayEnvironmentConfiguration(buildArgs.Environment)
 
 	fmt.Printf("\n")
 
@@ -158,6 +163,7 @@ func usage() {
 
 	buildmode.DisplayBuildMode(buildArgs.BuildMode)
 	environment.DisplayEnvironment()
+	architecture.DisplayArchitecture(buildArgs.Architecture)
 
 	flags.DisplayArgumentInput(ERRORS_TO_FILE_SHORT_FLAG, ERRORS_TO_FILE_LONG_FLAG, "Save errors to file", fmt.Sprint(buildArgs.ErrorsToFile))
 

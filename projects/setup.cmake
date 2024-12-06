@@ -57,6 +57,21 @@ if(${ENVIRONMENT} STREQUAL "posix")
     add_compile_definitions(POSIX_ENVIRONMENT)
 endif()
 
+set(VALID_ARCHITECTURES "x86" "mock")
+list(FIND VALID_ARCHITECTURES ${ARCHITECTURE} VALID_ARCHITECTURE_INDEX)
+if(VALID_ARCHITECTURE_INDEX EQUAL -1)
+    message(
+        FATAL_ERROR
+        "Invalid architecture specified. Please choose one of: ${VALID_ARCHITECTURES}"
+    )
+endif()
+if(${ARCHITECTURE} STREQUAL "x86")
+    add_compile_definitions(X86_ARCHITECTURE)
+endif()
+if(${ARCHITECTURE} STREQUAL "posix")
+    add_compile_definitions(MOCK_ARHCITECTURE)
+endif()
+
 function(add_subproject project)
     add_subdirectory(
         "${REPO_PROJECTS}/${project}/code"
@@ -101,8 +116,17 @@ endfunction()
 
 function(add_correct_platfom_abstraction_implementations)
     if("${ENVIRONMENT}" STREQUAL "freestanding")
+        if("${ARCHITECTURE}" STREQUAL "x86")
+            add_subproject("x86")
+        endif()
+        if("${ARCHITECTURE}" STREQUAL "mock")
+            add_subproject("mock")
+        endif()
         add_subproject("kernel")
     elseif("${ENVIRONMENT}" STREQUAL "posix")
+        if("${ARCHITECTURE}" STREQUAL "mock")
+            add_subproject("mock")
+        endif()
         add_subproject("posix")
     else()
         message(FATAL_ERROR "Could not match ENVIRONMENT variable")

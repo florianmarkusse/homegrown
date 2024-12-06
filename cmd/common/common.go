@@ -30,7 +30,7 @@ func getRepoRoot() string {
 
 		homegrownPath := filepath.Join(dir, "homegrown")
 		if _, err := os.Stat(homegrownPath); err == nil {
-			return homegrownPath + "/"
+			return homegrownPath
 		}
 
 		dir = filepath.Dir(dir)
@@ -38,5 +38,5 @@ func getRepoRoot() string {
 }
 
 var REPO_ROOT = getRepoRoot()
-var REPO_DEPENDENCIES = REPO_ROOT + "dependencies/"
-var REPO_PROJECTS = REPO_ROOT + "projects/"
+var REPO_DEPENDENCIES = REPO_ROOT + "/dependencies"
+var REPO_PROJECTS = REPO_ROOT + "/projects"

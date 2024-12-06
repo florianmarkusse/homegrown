@@ -4,6 +4,7 @@ import (
 	"cmd/common"
 	"cmd/common/argument"
 	"cmd/common/cmake"
+	"cmd/common/flags/architecture"
 	"cmd/common/flags/buildmode"
 	"fmt"
 	"io"
@@ -67,13 +68,13 @@ func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
 
 	var buildDirectory = cmake.BuildDirectoryRoot(project, args.BuildMode)
 	var projectTargetsFile = cmake.BuildProjectTargetsFile(project.CodeFolder)
-	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, project.CCompiler, project.Linker, args.BuildMode, project.Environment, args.BuildTests, projectTargetsFile)
+	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, project.CCompiler, project.Linker, args.BuildMode, project.Environment, args.BuildTests, projectTargetsFile, args.Architecture)
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, configureOptions.String()), errorWriters...)
 
 	buildOptions := strings.Builder{}
-	cmake.AddDefaultBuildOptions(&buildOptions, buildDirectory, projectTargetsFile, args.Threads, args.SelectedTargets)
-	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, buildOptions.String()), errorWriters...)
-
+	if cmake.AddDefaultBuildOptions(&buildOptions, buildDirectory, projectTargetsFile, args.Threads, args.SelectedTargets) {
+		argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, buildOptions.String()), errorWriters...)
+	}
 	copyCompileCommands(buildDirectory, project.CodeFolder)
 }
 
@@ -86,6 +87,7 @@ type BuildArgs struct {
 	SelectedProjects []string
 	BuildTests       bool
 	RunTests         bool
+	Architecture     string
 }
 
 type BuildResult uint8
@@ -115,6 +117,7 @@ var DefaultBuildArgs = BuildArgs{
 	SelectedProjects: []string{},
 	BuildTests:       false,
 	RunTests:         false,
+	Architecture:     architecture.DefaultArchitecture(),
 }
 
 func getAllProjects(selectedProjects []string) map[string]*cmake.ProjectStructure {

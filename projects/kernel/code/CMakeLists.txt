@@ -26,10 +26,15 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_link_options("--ld-path=${CMAKE_LINKER}")
 
     add_subproject("shared")
-    add_subproject("x86")
     add_subproject("platform-abstraction")
     if("${ENVIRONMENT}" STREQUAL "posix")
         add_subproject("posix")
+    endif()
+    if("${ARCHITECTURE}" STREQUAL "x86")
+        add_subproject("x86")
+    endif()
+    if("${ARCHITECTURE}" STREQUAL "mock")
+        add_subproject("mock")
     endif()
 endif()
 
@@ -64,7 +69,10 @@ if(
 
     target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
     target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
-    target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-memory-manipulation)
+    target_link_libraries(
+        ${PROJECT_NAME}
+        PRIVATE platform-abstraction-memory-manipulation
+    )
     target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
