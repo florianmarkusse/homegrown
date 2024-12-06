@@ -13,10 +13,12 @@ if("${ENVIRONMENT}" STREQUAL "freestanding")
         ${PROJECT_NAME}
         INTERFACE $<TARGET_PROPERTY:x86-cpu-real,INCLUDE_DIRECTORIES>
     )
-else()
+elseif("${ENVIRONMENT}" STREQUAL "posix")
     target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:x86-cpu-mock>)
     target_include_directories(
         ${PROJECT_NAME}
         INTERFACE $<TARGET_PROPERTY:x86-cpu-mock,INCLUDE_DIRECTORIES>
     )
+else()
+    message(FATAL_ERROR "Could not match ENVIRONMENT variable")
 endif()

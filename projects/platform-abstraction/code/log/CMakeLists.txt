@@ -13,10 +13,12 @@ if("${ENVIRONMENT}" STREQUAL "freestanding")
         ${PROJECT_NAME}
         INTERFACE $<TARGET_PROPERTY:kernel-log,INCLUDE_DIRECTORIES>
     )
-else()
+elseif("${ENVIRONMENT}" STREQUAL "posix")
     target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:posix-log>)
     target_include_directories(
         ${PROJECT_NAME}
         INTERFACE $<TARGET_PROPERTY:posix-log,INCLUDE_DIRECTORIES>
     )
+else()
+    message(FATAL_ERROR "Could not match ENVIRONMENT variable")
 endif()

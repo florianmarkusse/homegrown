@@ -3,8 +3,10 @@
 
 #ifdef FREESTANDING_ENVIRONMENT
 #include "log/log.h"
-#else
+#elif POSIX_ENVIRONMENT
 #include "posix/log/log.h"
+#else
+#error "Could not match ENVIRONMENT"
 #endif
 
 #endif

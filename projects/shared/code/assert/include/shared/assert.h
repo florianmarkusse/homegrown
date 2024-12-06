@@ -10,7 +10,7 @@
     if (!(c)) {                                                                \
         __asm__ __volatile__("1: jmp 1b");                                     \
     }
-#else
+#elif POSIX_ENVIRONMENT
 
 #define BREAKPOINT __asm__ __volatile__("int3; nop");
 
@@ -29,7 +29,8 @@
     if (!(c))                                                                  \
         *(volatile int *)0 = 0;
 #endif
-
+#else
+#error "Could not match ENVIRONMENT"
 #endif
 
 #else
