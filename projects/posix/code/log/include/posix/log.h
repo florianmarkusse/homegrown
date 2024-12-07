@@ -1,12 +1,12 @@
-#ifndef POSIX_LOG_LOG_H
-#define POSIX_LOG_LOG_H
+#ifndef POSIX_LOG_H
+#define POSIX_LOG_H
 
-#include "shared/types/array-types.h"
-#include "shared/macros.h"
-#include "shared/types/types.h"
 #include "shared/log.h"
+#include "shared/macros.h"
 #include "shared/text/converter.h"
 #include "shared/text/string.h"
+#include "shared/types/array-types.h"
+#include "shared/types/types.h"
 
 typedef struct {
     U8_max_a array;

@@ -2,9 +2,9 @@
 #define PLATFORM_ABSTRACTION_LOG_H
 
 #ifdef FREESTANDING_ENVIRONMENT
-#include "log/log.h"
+#include "kernel/log.h"
 #elif POSIX_ENVIRONMENT
-#include "posix/log/log.h"
+#include "posix/log.h"
 #else
 #error "Could not match ENVIRONMENT"
 #endif
