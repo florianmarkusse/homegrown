@@ -9,11 +9,6 @@ target_include_directories(
 
 target_include_directories(
     ${PROJECT_NAME}
-    PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
-)
-
-target_include_directories(
-    ${PROJECT_NAME}
     PUBLIC "${REPO_PROJECTS}/kernel/resources"
 )
 

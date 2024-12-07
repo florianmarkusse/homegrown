@@ -16,12 +16,10 @@ add_subdirectory(status)
 
 target_include_directories(
     ${PROJECT_NAME}
-    PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
-)
-target_include_directories(
-    ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE interoperation)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 target_link_libraries(

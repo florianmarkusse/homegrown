@@ -24,6 +24,7 @@ set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_subproject("shared")
+add_subproject("interoperation")
 add_platform_abstraction_and_correct_implementations()
 
 add_executable(
@@ -42,6 +43,8 @@ add_executable(
     "src/acpi/c-acpi-rsdp.c"
 )
 
+target_link_libraries(${PROJECT_NAME} PRIVATE interoperation)
+
 target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE platform-abstraction-memory-management
@@ -55,10 +58,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
 target_include_directories(
     ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-target_include_directories(
-    ${PROJECT_NAME}
-    PUBLIC "${REPO_PROJECTS}/interoperation/code/include"
 )
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)

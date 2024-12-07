@@ -1,7 +1,6 @@
 #ifndef MEMORY_DEFINITIONS_H
 #define MEMORY_DEFINITIONS_H
 
-// TODO: Fix this once uefi code is improved!!!
 static constexpr auto LOWER_HALF_END = 0x0000FFFFFFFFFFFF;
 static constexpr auto HIGHER_HALF_START = 0xffff800000000000;
 static constexpr auto KERNEL_SPACE_START = 0xfffffffff8000000;
@@ -16,10 +15,5 @@ static constexpr auto KERNEL_PARAMS_START =
 
 static constexpr auto STACK_SIZE = (1ULL << 14);
 static constexpr auto BOTTOM_STACK = (KERNEL_PARAMS_START - STACK_SIZE);
-// #define KERNEL_STACK_START 0xfffffffff6000000
-
-// TODO: Fix this once UEFI code is improved!!
-#define BYTES_TO_PAGE_FRAMES(a)                                                \
-    (((a) >> PAGE_FRAME_SHIFT) + ((a) & PAGE_MASK ? 1 : 0))
 
 #endif

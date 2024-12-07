@@ -26,6 +26,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_link_options("--ld-path=${CMAKE_LINKER}")
 
     add_subproject("shared")
+    add_subproject("interoperation")
     add_subproject("platform-abstraction")
     if("${ENVIRONMENT}" STREQUAL "posix")
         add_subproject("posix")
@@ -61,6 +62,8 @@ if(
         ${PROJECT_NAME}
         PUBLIC "${REPO_PROJECTS}/shared/code/assert/include"
     )
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE interoperation)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
     target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)

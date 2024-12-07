@@ -9,7 +9,6 @@ static constexpr struct {
     U64 ENTRIES;
 } PageTableFormat = {.ENTRIES = (1ULL << 9ULL)};
 
-// PAGE TABLE DEFINITIONS FOR X86_64 !!!
 // TODO: These macros are quite confusing, should rewrite them into more
 // sensible constructs when working on virtual memory.
 static constexpr auto PAGE_FRAME_SHIFT = 12ULL;
@@ -163,5 +162,8 @@ typedef struct {
     PageSize pageSize;
 } MappedPage;
 MappedPage getMappedPage(U64 virtual);
+
+#define BYTES_TO_PAGE_FRAMES(a)                                                \
+    (((a) >> PAGE_FRAME_SHIFT) + ((a) & PAGE_MASK ? 1 : 0))
 
 #endif
