@@ -12,19 +12,19 @@ PhysicalMemoryManager largePMM;
 PhysicalMemoryManager hugePMM;
 
 static U64 toLargerPages(U64 numberOfPages) {
-    return numberOfPages >> PageTableFormat.SHIFT;
+    return numberOfPages / PageTableFormat.ENTRIES;
 }
 
 static U64 toSmallerPages(U64 numberOfPages) {
-    return numberOfPages << PageTableFormat.SHIFT;
+    return numberOfPages * PageTableFormat.ENTRIES;
 }
 
 static PageSize toLargerPageSize(PageSize pageSize) {
-    return pageSize << PageTableFormat.SHIFT;
+    return pageSize * PageTableFormat.ENTRIES;
 }
 
 static PageSize toSmallerPageSize(PageSize pageSize) {
-    return pageSize >> PageTableFormat.SHIFT;
+    return pageSize / PageTableFormat.ENTRIES;
 }
 
 static void decreasePages(PhysicalMemoryManager *manager, U64 index,
@@ -94,7 +94,7 @@ allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
 
     if (manager->pageSize < HUGE_PAGE) {
         U64 pagesForLargerManager =
-            CEILING_DIV_EXP(numberOfPages, PageTableFormat.SHIFT);
+            CEILING_DIV_VALUE(numberOfPages, PageTableFormat.ENTRIES);
         U64 address = allocContiguousPhysicalPages(
             pagesForLargerManager, toLargerPageSize(manager->pageSize));
 
@@ -147,7 +147,7 @@ allocPhysicalPagesWithManager(PagedMemory_a pages,
         // larger buffer
         PagedMemory_a leftOverRequest = (PagedMemory_a){
             .buf = pages.buf + pages.len,
-            .len = CEILING_DIV_EXP(requestedPages, PageTableFormat.SHIFT)};
+            .len = CEILING_DIV_VALUE(requestedPages, PageTableFormat.ENTRIES)};
 
         PagedMemory_a largerPage = allocPhysicalPages(
             leftOverRequest, toLargerPageSize(manager->pageSize));
@@ -249,7 +249,7 @@ static void initPMM(PageSize pageType) {
                 // every 512 pages to 1 new page. The rest is leftover and will
                 // be added back to the current level.
                 U64 alignedForNextLevelPages =
-                    ALIGN_DOWN_EXP(pagesFromAlign, PageTableFormat.SHIFT);
+                    ALIGN_DOWN_VALUE(pagesFromAlign, PageTableFormat.ENTRIES);
                 freePhysicalPage(
                     (PagedMemory){.pageStart = applicablePageBoundary,
                                   .numberOfPages = (toLargerPages(

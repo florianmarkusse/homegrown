@@ -111,10 +111,10 @@ void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
          virtual += pageType, physical += pageType) {
         VirtualPageTable *currentTable = level4PageTable;
 
-        U64 indexShift = LEVEL_4_SHIFT;
-        for (U8 i = 0; i < depth; i++, indexShift -= PageTableFormat.SHIFT) {
-            U64 *address = &(currentTable->pages[RING_RANGE_EXP(
-                (virtual >> indexShift), PageTableFormat.SHIFT)]);
+        U64 pageSize = JUMBO_PAGE_SIZE;
+        for (U8 i = 0; i < depth; i++, pageSize /= PageTableFormat.ENTRIES) {
+            U64 *address = &(currentTable->pages[RING_RANGE_VALUE(
+                (virtual / pageSize), PageTableFormat.ENTRIES)]);
 
             if (i == depth - 1) {
                 U64 value = VirtualPageMasks.PAGE_PRESENT |
@@ -140,17 +140,17 @@ void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
 static bool isExtendedPageLevel(U8 level) { return level == 1 || level == 2; }
 
 MappedPage getMappedPage(U64 virtual) {
-    U64 indexShift = LEVEL_4_SHIFT;
+    U64 pageSize = JUMBO_PAGE_SIZE;
     VirtualPageTable *currentTable = level4PageTable;
     MappedPage result;
     result.pageSize = WUMBO_PAGE_SIZE;
     U64 *address;
     U8 totalDepth = pageSizeToDepth(BASE_PAGE);
     for (U8 level = 0; level < totalDepth;
-         level++, indexShift -= PageTableFormat.SHIFT) {
-        address = &(currentTable->pages[RING_RANGE_EXP((virtual >> indexShift),
-                                                       PageTableFormat.SHIFT)]);
-        result.pageSize >>= PageTableFormat.SHIFT;
+         level++, pageSize /= PageTableFormat.ENTRIES) {
+        address = &(currentTable->pages[RING_RANGE_VALUE(
+            (virtual / pageSize), PageTableFormat.ENTRIES)]);
+        result.pageSize /= PageTableFormat.ENTRIES;
 
         if (isExtendedPageLevel(level) &&
             ((*address) & VirtualPageMasks.PAGE_EXTENDED_SIZE)) {

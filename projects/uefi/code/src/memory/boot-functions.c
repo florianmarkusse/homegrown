@@ -34,8 +34,8 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
          virt += PAGE_FRAME_SIZE, phys += PAGE_FRAME_SIZE) {
         /* 512G */
         pageEntry =
-            &(((PhysicalAddress *)globals.level4PageTable)[RING_RANGE_EXP(
-                virt >> 39L, PageTableFormat.SHIFT)]);
+            &(((PhysicalAddress *)globals.level4PageTable)[RING_RANGE_VALUE(
+                virt >> 39L, PageTableFormat.ENTRIES)]);
         if (!*pageEntry) {
             PhysicalAddress addr = allocAndZero(1);
             *pageEntry = (addr | (VirtualPageMasks.PAGE_PRESENT |
@@ -49,8 +49,8 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
 
         /* 1G */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry =
-            &(pageEntry[RING_RANGE_EXP(virt >> 30L, PageTableFormat.SHIFT)]);
+        pageEntry = &(
+            pageEntry[RING_RANGE_VALUE(virt >> 30L, PageTableFormat.ENTRIES)]);
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (VirtualPageMasks.PAGE_PRESENT |
                                              VirtualPageMasks.PAGE_WRITABLE));
@@ -62,16 +62,16 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
         }
         /* 2M  */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry =
-            &(pageEntry[RING_RANGE_EXP(virt >> 21L, PageTableFormat.SHIFT)]);
+        pageEntry = &(
+            pageEntry[RING_RANGE_VALUE(virt >> 21L, PageTableFormat.ENTRIES)]);
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (VirtualPageMasks.PAGE_PRESENT |
                                              VirtualPageMasks.PAGE_WRITABLE));
         }
         /* 4K */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry =
-            &(pageEntry[RING_RANGE_EXP(virt >> 12L, PageTableFormat.SHIFT)]);
+        pageEntry = &(
+            pageEntry[RING_RANGE_VALUE(virt >> 12L, PageTableFormat.ENTRIES)]);
         /* if this page is already mapped, that means the kernel has invalid,
          * overlapping segments */
         if (!*pageEntry) {
