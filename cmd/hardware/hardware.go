@@ -15,7 +15,7 @@ import (
 func main() {
 	remove.RemoveGeneratedFiles()
 
-	var result = projects.Build(&projects.DefaultBuildArgs)
+	var result = projects.Build(&projects.RunBuildArgs)
 	if result == projects.Failure {
 		fmt.Println("Failed to build project")
 		os.Exit(exit.EXIT_TARGET_ERROR)

@@ -34,6 +34,9 @@ const BUILD_TESTS_SHORT_FLAG = "t"
 const RUN_TESTS_LONG_FLAG = "run-tests"
 const RUN_TESTS_SHORT_FLAG = "r"
 
+const VERBOSE_LONG_FLAG = "verbose"
+const VERBOSE_SHORT_FLAG = "v"
+
 const THREADS_LONG_FLAG = "threads"
 
 var buildArgs = projects.DefaultBuildArgs
@@ -63,6 +66,9 @@ func main() {
 
 	flag.BoolVar(&buildArgs.RunTests, RUN_TESTS_LONG_FLAG, buildArgs.RunTests, "")
 	flag.BoolVar(&buildArgs.RunTests, RUN_TESTS_SHORT_FLAG, buildArgs.RunTests, "")
+
+	flag.BoolVar(&buildArgs.Verbose, VERBOSE_LONG_FLAG, buildArgs.Verbose, "")
+	flag.BoolVar(&buildArgs.Verbose, VERBOSE_SHORT_FLAG, buildArgs.Verbose, "")
 
 	flag.IntVar(&buildArgs.Threads, THREADS_LONG_FLAG, buildArgs.Threads, "")
 
@@ -138,6 +144,7 @@ func main() {
 
 	configuration.DisplayBoolArgument(BUILD_TESTS_LONG_FLAG, buildArgs.BuildTests)
 	configuration.DisplayBoolArgument(RUN_TESTS_LONG_FLAG, buildArgs.RunTests)
+	configuration.DisplayBoolArgument(VERBOSE_LONG_FLAG, buildArgs.Verbose)
 	configuration.DisplayIntArgument(THREADS_LONG_FLAG, buildArgs.Threads)
 
 	fmt.Printf("\n")
@@ -173,6 +180,8 @@ func usage() {
 	flags.DisplayArgumentInput(BUILD_TESTS_SHORT_FLAG, BUILD_TESTS_LONG_FLAG, "Build for tests", fmt.Sprint(buildArgs.BuildTests))
 
 	flags.DisplayArgumentInput(RUN_TESTS_SHORT_FLAG, RUN_TESTS_LONG_FLAG, "Run tests", fmt.Sprint(buildArgs.RunTests))
+
+	flags.DisplayArgumentInput(VERBOSE_SHORT_FLAG, VERBOSE_LONG_FLAG, "Turn on verbose logging", fmt.Sprint(buildArgs.Verbose))
 
 	flags.DisplayLongFlagArgumentInput(THREADS_LONG_FLAG, "Set the number of threads to use for compiling", fmt.Sprint(buildArgs.Threads))
 

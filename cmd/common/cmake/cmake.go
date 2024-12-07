@@ -196,9 +196,12 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeFolder string, bui
 	argument.AddArgument(options, iwyuString.String())
 }
 
-func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, projectTargetsFile string, threads int, targets []string) bool {
+func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, projectTargetsFile string, threads int, targets []string, verbose bool) bool {
 	argument.AddArgument(options, fmt.Sprintf("--build %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("--parallel %d", threads))
+	if verbose {
+		argument.AddArgument(options, fmt.Sprintf("-v"))
+	}
 
 	targetsString := strings.Builder{}
 	if len(targets) > 0 {

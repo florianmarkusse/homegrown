@@ -72,7 +72,7 @@ func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, configureOptions.String()), errorWriters...)
 
 	buildOptions := strings.Builder{}
-	if cmake.AddDefaultBuildOptions(&buildOptions, buildDirectory, projectTargetsFile, args.Threads, args.SelectedTargets) {
+	if cmake.AddDefaultBuildOptions(&buildOptions, buildDirectory, projectTargetsFile, args.Threads, args.SelectedTargets, args.Verbose) {
 		argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, buildOptions.String()), errorWriters...)
 	}
 	copyCompileCommands(buildDirectory, project.CodeFolder)
@@ -88,6 +88,7 @@ type BuildArgs struct {
 	BuildTests       bool
 	RunTests         bool
 	Architecture     string
+	Verbose          bool
 }
 
 type BuildResult uint8
@@ -107,6 +108,7 @@ var RunBuildArgs = BuildArgs{
 	BuildTests:       false,
 	RunTests:         false,
 	Architecture:     architecture.DefaultArchitecture(),
+	Verbose:          false,
 }
 
 var DefaultBuildArgs = BuildArgs{
@@ -119,6 +121,7 @@ var DefaultBuildArgs = BuildArgs{
 	BuildTests:       false,
 	RunTests:         false,
 	Architecture:     architecture.DefaultArchitecture(),
+	Verbose:          false,
 }
 
 func getAllProjects(selectedProjects []string) map[string]*cmake.ProjectStructure {
