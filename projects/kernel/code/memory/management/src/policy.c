@@ -1,8 +1,8 @@
 #include "memory/management/policy.h"
 #include "interoperation/memory/definitions.h"
-#include "memory/management/physical.h"
-#include "memory/management/virtual.h"
 #include "platform-abstraction/idt.h"
+#include "platform-abstraction/memory/management/physical.h"
+#include "platform-abstraction/memory/management/virtual.h"
 #include "shared/maths/maths.h"
 
 void *allocAndMap(U64 bytes) {

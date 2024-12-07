@@ -1,16 +1,16 @@
-#include "memory/management/virtual.h"
+#include "x86/memory/virtual.h"
 
-#include "platform-abstraction/cpu.h"
-#include "shared/macros.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"
-#include "shared/types/types.h"
-#include "memory/management/definitions.h"
-#include "memory/management/physical.h"
+#include "platform-abstraction/cpu.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/assert.h"
+#include "shared/macros.h"
 #include "shared/maths/maths.h"
+#include "shared/memory/management/definitions.h"
+#include "shared/types/types.h"
 #include "x86/memory/pat.h"
+#include "x86/memory/physical.h"
 
 VirtualPageTable *level4PageTable;
 

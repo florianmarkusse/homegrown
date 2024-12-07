@@ -32,14 +32,12 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     endif()
     if("${ARCHITECTURE}" STREQUAL "x86")
         add_subproject("x86")
-    endif()
-    if("${ARCHITECTURE}" STREQUAL "mock")
+    elseif("${ARCHITECTURE}" STREQUAL "mock")
         add_subproject("mock")
     endif()
 endif()
 
 add_subdirectory(memory)
-add_subdirectory(status)
 add_subdirectory(log)
 add_subdirectory(peripheral)
 
@@ -66,6 +64,14 @@ if(
 
     target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
     target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
+    target_link_libraries(
+        ${PROJECT_NAME}
+        PRIVATE platform-abstraction-memory-management
+    )
+    target_link_libraries(
+        ${PROJECT_NAME}
+        PRIVATE platform-abstraction-memory-management-status
+    )
 
     target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
     target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
@@ -79,7 +85,6 @@ if(
 
     target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-management)
     target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
-    target_link_libraries(${PROJECT_NAME} PRIVATE kernel-status-memory)
 
     set(BINARIZER "${PROJECT_NAME}.bin")
     set(PROJECT_NAME_BIN "${PROJECT_NAME}.bin")

@@ -1,12 +1,11 @@
+#include "x86/memory/status.h"
 #include "platform-abstraction/cpu.h"
-#include "shared/types/types.h"
-#include "memory/management/physical.h"
-#include "memory/management/virtual.h"
 #include "platform-abstraction/log.h"
 #include "shared/text/string.h"
-#include "status/memory/status.h"
-#include "x86/memory/virtual.h"
+#include "shared/types/types.h"
 #include "x86/memory/pat.h"
+#include "x86/memory/physical.h"
+#include "x86/memory/virtual.h"
 
 static string pageSizeToString(PageSize pageSize) {
     switch (pageSize) {

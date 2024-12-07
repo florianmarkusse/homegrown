@@ -1,6 +1,6 @@
 - platform-abstraction for status logs? If not debug it can automatically be removed?
   - After moving everything to their correct module, check if kernel/uefi/uefi-image-creator are relying on the platform-abstraction instead of the implementation
-    // TODO: rename this to kernel/log.h
+    // TODO: rename log/log.h this to kernel/log.h
 - ENTRIES SHIFT thing struct clang-19
 - Move basic modules from x/a/a.h to x/a.h
 - A lot of projects SHOULD no longer depend on interoperation
@@ -8,7 +8,6 @@
 - add verbose flag to cmake , and make possible to just add any -D comma-separated
 - add another build mode : Production? that adds -lto
 - Move cpu module into posix/kernel and combine into platform-abstraction project
-- Move kernel/memory/manipulation too?
 - Turn on CPPcheck?
 - Turn on clang static analyzer
 - Turn on IKOS
@@ -17,3 +16,5 @@
 - Fix header guards, make command for this like --errors-to-file for iwyu?
 - Start rewrite of image-builder
 - Move all virtual & physical memory operations to X86 architecture. All platform-independent code should really just use policy which in turn communicates with the right architecture
+
+-rwxrwxr-x 1 florian florian 44032 dec 7 20:51 uefi\*

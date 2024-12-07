@@ -42,8 +42,13 @@ add_executable(
     "src/acpi/c-acpi-rsdp.c"
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
+target_link_libraries(
+    ${PROJECT_NAME}
+    PRIVATE platform-abstraction-memory-management
+)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-management)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
 

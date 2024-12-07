@@ -2,7 +2,6 @@
 #include "interoperation/kernel-parameters.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"
-#include "memory/management/physical.h"
 #include "platform-abstraction/idt.h"
 #include "platform-abstraction/log.h"
 #include "posix/test-framework/test.h"
@@ -11,6 +10,7 @@
 #include "shared/text/string.h"
 #include "shared/types/types.h"
 #include "x86/cpu/status/test.h"
+#include "x86/memory/physical.h"
 #include <errno.h>
 #include <string.h>
 #include <sys/mman.h>

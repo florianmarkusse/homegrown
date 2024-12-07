@@ -1,5 +1,5 @@
-#ifndef STATUS_MEMORY_STATUS_H
-#define STATUS_MEMORY_STATUS_H
+#ifndef X86_MEMORY_STATUS_H
+#define X86_MEMORY_STATUS_H
 
 void appendPhysicalMemoryManagerStatus();
 void appendVirtualMemoryManagerStatus();

@@ -1,15 +1,15 @@
 #include "peripheral/screen/screen.h"
 
-#include "platform-abstraction/cpu.h"
-#include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
-#include "shared/macros.h"
 #include "interoperation/memory/definitions.h"
-#include "memory/management/definitions.h"
-#include "memory/management/virtual.h"
+#include "platform-abstraction/cpu.h"
+#include "platform-abstraction/memory/management/virtual.h"
 #include "platform-abstraction/memory/manipulation.h"
-#include "shared/assert.h"      // for ASSERT
+#include "shared/assert.h" // for ASSERT
+#include "shared/macros.h"
 #include "shared/maths/maths.h" // for RING_PLUS, RING_INCREMENT, RING_MINUS
 #include "shared/memory/allocator/macros.h"
+#include "shared/memory/management/definitions.h"
+#include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "x86/memory/pat.h"
 
 // The header contains all the data for each glyph. After that comes numGlyph *

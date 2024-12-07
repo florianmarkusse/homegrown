@@ -11,7 +11,8 @@
 #include "interoperation/memory/definitions.h" // for BYTES_TO_PAGE_FRAMES
 #include "interoperation/memory/descriptor.h"
 #include "memory/standard.h" // for memcmp
-#include "printing.h"        // for error, printNumber
+#include "platform-abstraction/memory/management/virtual.h"
+#include "printing.h" // for error, printNumber
 
 AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
     Status status;
@@ -148,8 +149,8 @@ AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
 
             PhysicalAddress address;
             status = globals.st->boot_services->allocate_pages(
-                ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGE_FRAMES(alignedBytes),
-                &address);
+                ALLOCATE_ANY_PAGES, LOADER_DATA,
+                BYTES_TO_PAGE_FRAMES(alignedBytes), &address);
             if (ERROR(status)) {
                 error(u"Could not allocete data for disk buffer\r\n");
             }

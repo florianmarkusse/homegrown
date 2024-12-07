@@ -4,9 +4,9 @@
 #include "globals.h"
 #include "interoperation/memory/definitions.h"
 #include "memory/standard.h"
+#include "platform-abstraction/memory/management/virtual.h"
 #include "printing.h"
 #include "shared/maths/maths.h"
-#include "x86/memory/virtual.h"
 
 PhysicalAddress allocAndZero(USize numPages) {
     PhysicalAddress page = 0;
@@ -49,7 +49,8 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
 
         /* 1G */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[RING_RANGE_EXP(virt >> 30L, PageTableFormat.SHIFT)]);
+        pageEntry =
+            &(pageEntry[RING_RANGE_EXP(virt >> 30L, PageTableFormat.SHIFT)]);
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (VirtualPageMasks.PAGE_PRESENT |
                                              VirtualPageMasks.PAGE_WRITABLE));
@@ -61,14 +62,16 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
         }
         /* 2M  */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[RING_RANGE_EXP(virt >> 21L, PageTableFormat.SHIFT)]);
+        pageEntry =
+            &(pageEntry[RING_RANGE_EXP(virt >> 21L, PageTableFormat.SHIFT)]);
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (VirtualPageMasks.PAGE_PRESENT |
                                              VirtualPageMasks.PAGE_WRITABLE));
         }
         /* 4K */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
-        pageEntry = &(pageEntry[RING_RANGE_EXP(virt >> 12L, PageTableFormat.SHIFT)]);
+        pageEntry =
+            &(pageEntry[RING_RANGE_EXP(virt >> 12L, PageTableFormat.SHIFT)]);
         /* if this page is already mapped, that means the kernel has invalid,
          * overlapping segments */
         if (!*pageEntry) {

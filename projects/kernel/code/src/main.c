@@ -1,16 +1,16 @@
-#include "platform-abstraction/idt.h"                           // for setupIDT
 #include "interoperation/kernel-parameters.h"  // for KernelParameters
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
-#include "shared/memory/sizes.h"
-#include "shared/types/types.h" // for U32
-#include "memory/management/physical.h"
 #include "memory/management/policy.h"
-#include "memory/management/virtual.h"
 #include "peripheral/screen/screen.h"
+#include "platform-abstraction/idt.h" // for setupIDT
 #include "platform-abstraction/log.h" // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
+#include "platform-abstraction/memory/management/physical.h"
+#include "platform-abstraction/memory/management/status.h"
+#include "platform-abstraction/memory/management/virtual.h"
 #include "shared/memory/allocator/arena.h"
+#include "shared/memory/sizes.h"
 #include "shared/text/string.h" // for STRING
-#include "status/memory/status.h"
+#include "shared/types/types.h" // for U32
 
 // void appendDescriptionHeaders(RSDPResult rsdp);
 

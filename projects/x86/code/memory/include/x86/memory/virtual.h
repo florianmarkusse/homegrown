@@ -1,6 +1,8 @@
 #ifndef X86_MEMORY_VIRTUAL_H
 #define X86_MEMORY_VIRTUAL_H
 
+#include "interoperation/kernel-parameters.h"
+#include "shared/memory/management/definitions.h"
 #include "shared/types/types.h"
 
 static constexpr struct {
@@ -36,8 +38,6 @@ typedef enum : U64 {
     LARGE_PAGE = LARGE_PAGE_SIZE,
     HUGE_PAGE = HUGE_PAGE_SIZE,
 } PageSize;
-
-extern PageSize pageSizes[NUM_PAGE_SIZES];
 
 typedef struct {
     union {
@@ -131,5 +131,38 @@ static constexpr struct {
                       .PAGE_AVAILABLE_62 = (1ULL << 62),
                       .PAGE_NO_EXECUTE = (1ULL << 63),
                       .FRAME_OR_NEXT_PAGE_TABLE = 0x000FFFFFFFFF000};
+
+extern PageSize pageSizes[NUM_PAGE_SIZES];
+
+static inline U64 getPhysicalAddressFrame(U64 virtualPage) {
+    return virtualPage & VirtualPageMasks.FRAME_OR_NEXT_PAGE_TABLE;
+}
+
+typedef struct {
+    U64 start;
+    U64 end;
+} VirtualRegion;
+
+typedef struct {
+    U64 pages[PageTableFormat.ENTRIES];
+} VirtualPageTable;
+
+extern VirtualPageTable *level4PageTable;
+
+extern VirtualRegion higherHalfRegion;
+extern VirtualRegion lowerHalfRegion; // Start is set in the init function.
+
+void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory);
+
+U64 getVirtualMemory(U64 size, PageSize alignValue);
+void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
+                               PageSize pageType, U64 additionalFlags);
+void mapVirtualRegion(U64 virtual, PagedMemory memory, PageSize pageType);
+
+typedef struct {
+    VirtualEntry entry;
+    PageSize pageSize;
+} MappedPage;
+MappedPage getMappedPage(U64 virtual);
 
 #endif

@@ -5,8 +5,8 @@
 
 #include "interoperation/kernel-parameters.h"
 #include "interoperation/memory/definitions.h"
+#include "shared/memory/management/definitions.h"
 #include "shared/types/types.h"
-#include "memory/management/definitions.h"
 #include "x86/memory/virtual.h"
 
 typedef struct {

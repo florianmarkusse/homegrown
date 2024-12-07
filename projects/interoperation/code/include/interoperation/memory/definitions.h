@@ -1,9 +1,6 @@
 #ifndef MEMORY_DEFINITIONS_H
 #define MEMORY_DEFINITIONS_H
 
-#include "shared/types/types.h"
-#include "x86/memory/virtual.h"
-
 // TODO: Fix this once uefi code is improved!!!
 static constexpr auto LOWER_HALF_END = 0x0000FFFFFFFFFFFF;
 static constexpr auto HIGHER_HALF_START = 0xffff800000000000;
@@ -13,7 +10,7 @@ static constexpr auto KERNEL_SPACE_END =
                         // allocation map starts to complain
 static constexpr auto KERNEL_CODE_START = KERNEL_SPACE_START;
 
-static constexpr auto KERNEL_PARAMS_SIZE = PAGE_FRAME_SIZE;
+static constexpr auto KERNEL_PARAMS_SIZE = (1 << 12);
 static constexpr auto KERNEL_PARAMS_START =
     (KERNEL_SPACE_END - KERNEL_PARAMS_SIZE);
 

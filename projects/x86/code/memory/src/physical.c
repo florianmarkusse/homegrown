@@ -1,12 +1,11 @@
-#include "memory/management/physical.h"
-#include "platform-abstraction/idt.h"                           // for triggerFault, FAULT_N...
-#include "interoperation/kernel-parameters.h"  // for KernelMemory
-#include "interoperation/memory/definitions.h" // for PAGE_FRAME_SIZE
+#include "x86/memory/physical.h"
+#include "interoperation/kernel-parameters.h" // for KernelMemory
 #include "interoperation/memory/descriptor.h"
-#include "shared/types/types.h" // for U64, U32, U8
+#include "platform-abstraction/idt.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
+#include "shared/types/types.h" // for U64, U32, U8
 
 PhysicalMemoryManager basePMM;
 PhysicalMemoryManager largePMM;

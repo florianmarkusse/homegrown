@@ -1,0 +1,10 @@
+#ifndef PLATFORM_ABSTRACTION_MEMORY_MANAGEMENT_PHYSICAL_H
+#define PLATFORM_ABSTRACTION_MEMORY_MANAGEMENT_PHYSICAL_H
+
+#ifdef X86_ARCHITECTURE
+#include "x86/memory/physical.h"
+#else
+#error "Could not match ARCHITECTURE"
+#endif
+
+#endif

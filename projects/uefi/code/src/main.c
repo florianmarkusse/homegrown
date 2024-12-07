@@ -9,10 +9,11 @@
 #include "interoperation/kernel-parameters.h"      // for KernelParameters
 #include "interoperation/memory/definitions.h" // for PAGE_FRAME_SIZE, STACK_...
 #include "interoperation/memory/descriptor.h"
-#include "shared/types/types.h"  // for U64, U32, NULL
 #include "memory/boot-functions.h" // for mapMemoryAt, allo...
-#include "printing.h"              // for error, printNumber
-#include "string.h"                // for AsciString
+#include "platform-abstraction/memory/management/virtual.h"
+#include "printing.h"           // for error, printNumber
+#include "shared/types/types.h" // for U64, U32, NULL
+#include "string.h"             // for AsciString
 
 // static U8 in_exc = 0;
 

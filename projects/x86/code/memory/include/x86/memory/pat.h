@@ -1,7 +1,6 @@
 #ifndef X86_MEMORY_PAT_H
 #define X86_MEMORY_PAT_H
 
-#include "interoperation/memory/definitions.h"
 #include "shared/types/types.h"
 #include "x86/memory/virtual.h"
 
