@@ -1,12 +1,12 @@
 #include "kernel/log.h"
-#include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
-#include "shared/memory/sizes.h"
-#include "shared/types/types.h"
-#include "platform-abstraction/memory/manipulation.h"
 #include "peripheral/screen/screen.h"
+#include "platform-abstraction/memory/manipulation.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/allocator/arena.h"
+#include "shared/memory/sizes.h"
 #include "shared/text/string.h"
+#include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
+#include "shared/types/types.h"
 
 static constexpr auto FLUSH_BUFFER_SIZE = (2 * MiB);
 

@@ -21,7 +21,7 @@ typedef U32 __attribute__((aligned(1))) u32;
 typedef U64 __attribute__((aligned(1))) u64;
 
 __attribute((nothrow, nonnull(1, 2))) void *
-memcpy(void *__restrict dest, const void *__restrict src, I64 n) {
+memcpy(void *__restrict dest, const void *__restrict src, U64 n) {
     I8 *d = (I8 *)dest;
     const I8 *s = (I8 *)src;
 
@@ -96,14 +96,14 @@ typedef __attribute__((__may_alias__)) U64 WT;
  * Dont use UB unless people have been doing it for decades pepelaugh.
  */
 __attribute((nothrow, nonnull(1, 2))) void *memmove(void *dest, const void *src,
-                                                    I64 n) {
+                                                    U64 n) {
     I8 *d = dest;
     const I8 *s = src;
 
     if (d == s) {
         return d;
     }
-    if ((I64)((U64)s - (U64)d - n) <= -2 * n) {
+    if (((U64)s - (U64)d - n) <= -2 * n) {
         return memcpy(d, s, n);
     }
 
@@ -235,7 +235,7 @@ static inline void *huge_memset(void *s, int c, U64 n) {
     return s;
 }
 
-__attribute((nothrow, nonnull(1))) void *memset(void *s, int c, I64 n) {
+__attribute((nothrow, nonnull(1))) void *memset(void *s, int c, U64 n) {
     I8 *p = s;
     I8 X = (I8)c;
 
@@ -265,7 +265,7 @@ __attribute((nothrow, nonnull(1))) void *memset(void *s, int c, I64 n) {
 
 /* Compare N bytes of S1 and S2.  */
 __attribute((nothrow, pure, nonnull(1, 2))) int memcmp(const void *s1,
-                                                       const void *s2, I64 n) {
+                                                       const void *s2, U64 n) {
     U64 i;
 
     /**
