@@ -106,6 +106,7 @@ var RunBuildArgs = BuildArgs{
 	SelectedProjects: []string{cmake.KERNEL, cmake.UEFI_IMAGE_CREATOR, cmake.UEFI},
 	BuildTests:       false,
 	RunTests:         false,
+	Architecture:     architecture.DefaultArchitecture(),
 }
 
 var DefaultBuildArgs = BuildArgs{
