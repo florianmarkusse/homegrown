@@ -1,5 +1,5 @@
-#ifndef TEST_FRAMEWORK_TEST_H
-#define TEST_FRAMEWORK_TEST_H
+#ifndef POSIX_TEST_FRAMEWORK_TEST_H
+#define POSIX_TEST_FRAMEWORK_TEST_H
 
 #ifdef __cplusplus
 extern "C" {
