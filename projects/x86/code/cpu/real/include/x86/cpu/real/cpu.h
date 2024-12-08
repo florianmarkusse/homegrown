@@ -1,5 +1,5 @@
-#ifndef CPU_CPU_H
-#define CPU_CPU_H
+#ifndef X86_CPU_REAL_CPU_H
+#define X86_CPU_REAL_CPU_H
 
 #include "shared/types/types.h"
 
