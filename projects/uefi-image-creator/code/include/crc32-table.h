@@ -1,3 +1,6 @@
+#ifndef CRC32_TABLE_H
+#define CRC32_TABLE_H
+
 #include "shared/types/types.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -58,3 +61,5 @@ U32 calculateCRC32(void *data, U64 size) {
 
     return ~crc;
 }
+
+#endif
