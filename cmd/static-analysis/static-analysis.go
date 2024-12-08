@@ -1,47 +1,61 @@
 package main
 
+import (
+	"cmd/common"
+	"cmd/common/argument"
+	"cmd/common/configuration"
+	"cmd/common/exit"
+	"cmd/common/flags"
+	"cmd/common/flags/help"
+	"cmd/common/project"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+)
+
+var selectedProjects = []string{}
+var projectsToBuild string
+
+var isHelp = false
 
 func usage() {
-	var usageFlags = fmt.Sprintf("")
-	flags.DisplayUsage(usageFlags)
+	flags.DisplayUsage("")
 	fmt.Printf("\n")
 	flags.DisplayOptionalFlags()
-	flags.DisplayArgumentInput(OS_LOCATION_SHORT_FLAG, OS_LOCATION_LONG_FLAG, "Set the OS (.hdd) location", qemuArgs.OsLocation)
-	flags.DisplayArgumentInput(UEFI_LOCATION_SHORT_FLAG, UEFI_LOCATION_LONG_FLAG, "set the UEFI (.bin) location to emulate UEFI environment", qemuArgs.UefiLocation)
-	flags.DisplayArgumentInput(VERBOSE_SHORT_FLAG, VERBOSE_LONG_FLAG, "Enable verbose QEMU", fmt.Sprint(qemuArgs.Verbose))
-	flags.DisplayArgumentInput(DEBUG_SHORT_FLAG, DEBUG_LONG_FLAG, "Wait for gdb to connect to port 1234 before running", fmt.Sprint(qemuArgs.Debug))
+	project.DisplayProject()
 	help.DisplayHelp()
+
 	fmt.Printf("\n")
 	exit.DisplayExitCodes()
 	exit.DisplayExitCode(exit.EXIT_SUCCESS)
 	exit.DisplayExitCode(exit.EXIT_MISSING_ARGUMENT)
 	exit.DisplayExitCode(exit.EXIT_CLI_PARSING_ERROR)
+	exit.DisplayExitCode(exit.EXIT_TARGET_ERROR)
 	fmt.Printf("\n")
 	flags.DisplayExamples()
-	fmt.Printf("  %s --%s test.hdd --%s bios.bin\n", filepath.Base(os.Args[0]), OS_LOCATION_LONG_FLAG, UEFI_LOCATION_LONG_FLAG)
-	fmt.Printf("  %s -%s=test.hdd -%s bios.bin -%s --%s\n", filepath.Base(os.Args[0]), OS_LOCATION_LONG_FLAG, UEFI_LOCATION_SHORT_FLAG, VERBOSE_SHORT_FLAG, DEBUG_LONG_FLAG)
+	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
+	fmt.Printf("  %s --%s %s,%s \n", filepath.Base(os.Args[0]), project.PROJECTS_LONG_FLAG, project.KERNEL, project.UEFI)
 	fmt.Printf("\n")
 }
 
+func analyzeProject(proj *project.ProjectStructure) {
+	var findCommand = fmt.Sprintf("clang-tidy $(find %s -type d \\( -path %s/build \\) -prune -o -type f -name \"*.[ch]\" -print) -p %s", proj.CodeFolder, proj.CodeFolder, proj.CodeFolder)
+	argument.ExecCommand(findCommand)
+}
+
 func main() {
-	flag.StringVar(&qemuArgs.OsLocation, OS_LOCATION_LONG_FLAG, qemuArgs.OsLocation, "")
-	flag.StringVar(&qemuArgs.OsLocation, OS_LOCATION_SHORT_FLAG, qemuArgs.OsLocation, "")
-
-	flag.StringVar(&qemuArgs.UefiLocation, UEFI_LOCATION_LONG_FLAG, qemuArgs.UefiLocation, "")
-	flag.StringVar(&qemuArgs.UefiLocation, UEFI_LOCATION_SHORT_FLAG, qemuArgs.UefiLocation, "")
-
-	flag.BoolVar(&qemuArgs.Verbose, VERBOSE_LONG_FLAG, qemuArgs.Verbose, "")
-	flag.BoolVar(&qemuArgs.Verbose, VERBOSE_SHORT_FLAG, qemuArgs.Verbose, "")
-
-	flag.BoolVar(&qemuArgs.Debug, DEBUG_LONG_FLAG, qemuArgs.Debug, "")
-	flag.BoolVar(&qemuArgs.Debug, DEBUG_SHORT_FLAG, qemuArgs.Debug, "")
-
+	project.AddProjectAsFlag(&projectsToBuild)
 	help.AddHelpAsFlag(&isHelp)
 
 	flag.Usage = usage
 	flag.Parse()
 
 	var showHelpAndExit = false
+
+	if !project.ValidateAndConvertProjects(projectsToBuild, &selectedProjects) {
+		showHelpAndExit = true
+	}
 
 	if isHelp {
 		showHelpAndExit = true
@@ -51,4 +65,16 @@ func main() {
 		usage()
 		if isHelp {
 			os.Exit(exit.EXIT_SUCCESS)
-		} else {
+		}
+		os.Exit(exit.EXIT_MISSING_ARGUMENT)
+	}
+
+	configuration.DisplayConfiguration()
+	project.DisplayProjectConfiguration(selectedProjects)
+
+	var projectsToBuild = project.GetAllProjects(selectedProjects)
+	for name, proj := range projectsToBuild {
+		fmt.Printf("Analyzing %s%s%s\n", common.CYAN, name, common.RESET)
+		analyzeProject(proj)
+	}
+}
