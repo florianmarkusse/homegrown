@@ -1,5 +1,5 @@
-#ifndef TEXT_CONVERTER_H
-#define TEXT_CONVERTER_H
+#ifndef SHARED_TEXT_CONVERTER_H
+#define SHARED_TEXT_CONVERTER_H
 
 #include "shared/types/array-types.h"
 #include "shared/types/types.h"

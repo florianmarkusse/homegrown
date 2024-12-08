@@ -1,5 +1,5 @@
-#ifndef MEMORY_MANAGEMENT_DEFINITIONS_H
-#define MEMORY_MANAGEMENT_DEFINITIONS_H
+#ifndef SHARED_MEMORY_MANAGEMENT_DEFINITIONS_H
+#define SHARED_MEMORY_MANAGEMENT_DEFINITIONS_H
 
 #include "shared/types/array.h"
 #include "shared/types/types.h"

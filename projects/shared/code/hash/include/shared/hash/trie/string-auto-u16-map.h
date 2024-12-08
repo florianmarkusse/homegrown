@@ -1,5 +1,5 @@
-#ifndef HASH_TRIE_STRING_AUTO_U16_MAP_H
-#define HASH_TRIE_STRING_AUTO_U16_MAP_H
+#ifndef SHARED_HASH_TRIE_STRING_AUTO_U16_MAP_H
+#define SHARED_HASH_TRIE_STRING_AUTO_U16_MAP_H
 
 #include "common-iterator.h" // for TRIE_ITERATOR_HEADER_FILE
 #include "shared/types/types.h"

@@ -1,3 +1,6 @@
+#ifndef SHARED_DYNAMIC_ARRAY_DYNAMIC_ARRAY_H
+#define SHARED_DYNAMIC_ARRAY_DYNAMIC_ARRAY_H
+
 #include "shared/macros.h"
 #include "shared/types/types.h"
 #include "shared/memory/allocator/arena.h"
@@ -26,3 +29,5 @@ void grow(void *slice, U64 size, U64 align, Arena *a, U8 flags);
     })
 #define PUSH_X(a, b, c, d, ...) d
 #define PUSH(...) PUSH_X(__VA_ARGS__, PUSH_3, PUSH_2)(__VA_ARGS__)
+
+#endif

@@ -1,5 +1,5 @@
-#ifndef UTIL_HASH_HASHES_H
-#define UTIL_HASH_HASHES_H
+#ifndef SHARED_HASH_HASHES_H
+#define SHARED_HASH_HASHES_H
 
 #ifdef __cplusplus
 extern "C" {

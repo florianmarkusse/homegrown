@@ -1,5 +1,5 @@
-#ifndef UTIL_TEXT_CHAR_H
-#define UTIL_TEXT_CHAR_H
+#ifndef SHARED_TEXT_CHAR_H
+#define SHARED_TEXT_CHAR_H
 
 #ifdef __cplusplus
 extern "C" {
