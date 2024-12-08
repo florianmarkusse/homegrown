@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 #include "c-efi-base.h"
-#include "interoperation/configuration-table.h"
+#include "acpi/configuration-table.h"
 #include "interoperation/memory/descriptor.h"
 
 /*

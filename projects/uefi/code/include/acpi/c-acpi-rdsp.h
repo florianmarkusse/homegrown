@@ -1,7 +1,7 @@
 #ifndef ACPI_C_ACPI_RDSP_H
 #define ACPI_C_ACPI_RDSP_H
 
-#include "interoperation/configuration-table.h"
+#include "acpi/configuration-table.h"
 #include "shared/types/types.h"
 
 typedef struct __attribute((packed)) {
