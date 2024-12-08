@@ -1,7 +1,6 @@
 package main
 
 import (
-	"cmd/common/cmake"
 	"cmd/common/configuration"
 	"cmd/common/converter"
 	"cmd/common/exit"
@@ -10,7 +9,8 @@ import (
 	"cmd/common/flags/buildmode"
 	"cmd/common/flags/environment"
 	"cmd/common/flags/help"
-	"cmd/compile/projects"
+	"cmd/common/project"
+	"cmd/compile/builder"
 	"flag"
 	"fmt"
 	"os"
@@ -39,7 +39,7 @@ const VERBOSE_SHORT_FLAG = "v"
 
 const THREADS_LONG_FLAG = "threads"
 
-var buildArgs = projects.DefaultBuildArgs
+var buildArgs = builder.DefaultBuildArgs
 
 var projectsToBuild string
 var targetsToBuild string
@@ -95,7 +95,7 @@ func main() {
 
 	for _, selectedProject := range buildArgs.SelectedProjects {
 		var isValidProjectName = false
-		for _, configuredProjects := range cmake.ConfiguredProjects {
+		for _, configuredProjects := range project.ConfiguredProjects {
 			if selectedProject == configuredProjects {
 				isValidProjectName = true
 			}
@@ -130,7 +130,7 @@ func main() {
 	if len(buildArgs.SelectedProjects) > 0 {
 		projectsConfiguration = converter.ArrayIntoPrintableString(buildArgs.SelectedProjects[:])
 	} else {
-		projectsConfiguration = converter.ArrayIntoPrintableString(cmake.ConfiguredProjects)
+		projectsConfiguration = converter.ArrayIntoPrintableString(project.ConfiguredProjects)
 	}
 	configuration.DisplayStringArgument(PROJECTS_LONG_FLAG, projectsConfiguration)
 
@@ -149,14 +149,14 @@ func main() {
 
 	fmt.Printf("\n")
 
-	var result = projects.Build(&buildArgs)
+	var result = builder.Build(&buildArgs)
 
 	switch result {
-	case projects.Success:
+	case builder.Success:
 		{
 			os.Exit(exit.EXIT_SUCCESS)
 		}
-	case projects.Failure:
+	case builder.Failure:
 		{
 			os.Exit(exit.EXIT_TARGET_ERROR)
 		}
@@ -175,7 +175,7 @@ func usage() {
 	flags.DisplayArgumentInput(ERRORS_TO_FILE_SHORT_FLAG, ERRORS_TO_FILE_LONG_FLAG, "Save errors to file", fmt.Sprint(buildArgs.ErrorsToFile))
 
 	flags.DisplayArgumentInput(SELECT_TARGETS_SHORT_FLAG, SELECT_TARGETS_LONG_FLAG, "Select specific target(s, comma-separated) to be built", DEFAULT_TARGETS)
-	flags.DisplayArgumentInput(PROJECTS_SHORT_FLAG, PROJECTS_LONG_FLAG, "Select specific project(s, comma-separated) to be built", converter.ArrayIntoPrintableString(cmake.ConfiguredProjects))
+	flags.DisplayArgumentInput(PROJECTS_SHORT_FLAG, PROJECTS_LONG_FLAG, "Select specific project(s, comma-separated) to be built", converter.ArrayIntoPrintableString(project.ConfiguredProjects))
 
 	flags.DisplayArgumentInput(BUILD_TESTS_SHORT_FLAG, BUILD_TESTS_LONG_FLAG, "Build for tests", fmt.Sprint(buildArgs.BuildTests))
 
@@ -196,6 +196,6 @@ func usage() {
 	flags.DisplayExamples()
 	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
 	fmt.Printf("  %s --%s=%s --%s %s,%s --%s -%s\n", filepath.Base(os.Args[0]),
-		buildmode.BUILD_MODE_LONG_FLAG, buildmode.PossibleBuildModes[1], PROJECTS_LONG_FLAG, cmake.KERNEL, cmake.UEFI, BUILD_TESTS_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
+		buildmode.BUILD_MODE_LONG_FLAG, buildmode.PossibleBuildModes[1], PROJECTS_LONG_FLAG, project.KERNEL, project.UEFI, BUILD_TESTS_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
 	fmt.Printf("\n")
 }

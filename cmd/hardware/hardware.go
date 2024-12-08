@@ -7,7 +7,7 @@ import (
 	"cmd/common/exit"
 	"cmd/common/flags/buildmode"
 	"cmd/common/uefiimage"
-	"cmd/compile/projects"
+	"cmd/compile/builder"
 	"fmt"
 	"os"
 )
@@ -15,8 +15,8 @@ import (
 func main() {
 	remove.RemoveGeneratedFiles()
 
-	var result = projects.Build(&projects.RunBuildArgs)
-	if result == projects.Failure {
+	var result = builder.Build(&builder.RunBuildArgs)
+	if result == builder.Failure {
 		fmt.Println("Failed to build project")
 		os.Exit(exit.EXIT_TARGET_ERROR)
 	}

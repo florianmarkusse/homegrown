@@ -6,7 +6,7 @@ import (
 	"cmd/common/flags"
 	"cmd/common/flags/buildmode"
 	"cmd/common/uefiimage"
-	"cmd/compile/projects"
+	"cmd/compile/builder"
 	"cmd/run-qemu/qemu"
 	"flag"
 	"fmt"
@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 )
 
-var buildArgs = projects.RunBuildArgs
+var buildArgs = builder.RunBuildArgs
 var qemuArgs = qemu.DefaultQemuArgs
 
 var isHelp = false
@@ -67,8 +67,8 @@ func main() {
 	buildmode.DisplayBuildModeConfiguration(buildArgs.BuildMode)
 	fmt.Printf("\n")
 
-	var result = projects.Build(&buildArgs)
-	if result != projects.Success {
+	var result = builder.Build(&buildArgs)
+	if result != builder.Success {
 		os.Exit(exit.EXIT_TARGET_ERROR)
 	}
 

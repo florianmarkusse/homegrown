@@ -1,4 +1,4 @@
-package projects
+package builder
 
 import (
 	"cmd/common"
@@ -6,6 +6,7 @@ import (
 	"cmd/common/cmake"
 	"cmd/common/flags/architecture"
 	"cmd/common/flags/buildmode"
+	"cmd/common/project"
 	"fmt"
 	"io"
 	"log"
@@ -14,8 +15,8 @@ import (
 	"strings"
 )
 
-func findAndRunTests(selectedTargets []string, project *cmake.ProjectStructure, buildMode string) BuildResult {
-	var buildDirectory = cmake.BuildDirectoryRoot(project, buildMode)
+func findAndRunTests(selectedTargets []string, proj *project.ProjectStructure, buildMode string) BuildResult {
+	var buildDirectory = project.BuildDirectoryRoot(proj, buildMode)
 	if len(selectedTargets) > 0 {
 		for _, target := range selectedTargets {
 			var findCommand = fmt.Sprintf("find %s -executable -type f -name \"%s\" -exec {} \\;", buildDirectory, target)
@@ -57,25 +58,25 @@ func populateErrorWriter(errorsToFile bool, codeDirectory string) []io.Writer {
 	return result
 }
 
-func buildProject(args *BuildArgs, project *cmake.ProjectStructure) {
+func buildProject(args *BuildArgs, proj *project.ProjectStructure) {
 	if args.Environment != "" {
-		project.Environment = args.Environment
+		proj.Environment = args.Environment
 	}
 
-	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, project.CodeFolder)
+	var errorWriters []io.Writer = populateErrorWriter(args.ErrorsToFile, proj.CodeFolder)
 
 	configureOptions := strings.Builder{}
 
-	var buildDirectory = cmake.BuildDirectoryRoot(project, args.BuildMode)
-	var projectTargetsFile = cmake.BuildProjectTargetsFile(project.CodeFolder)
-	cmake.AddDefaultConfigureOptions(&configureOptions, project.CodeFolder, buildDirectory, project.CCompiler, project.Linker, args.BuildMode, project.Environment, args.BuildTests, projectTargetsFile, args.Architecture)
+	var buildDirectory = project.BuildDirectoryRoot(proj, args.BuildMode)
+	var projectTargetsFile = project.BuildProjectTargetsFile(proj.CodeFolder)
+	cmake.AddDefaultConfigureOptions(&configureOptions, proj.CodeFolder, buildDirectory, proj.CCompiler, proj.Linker, args.BuildMode, proj.Environment, args.BuildTests, projectTargetsFile, args.Architecture)
 	argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, configureOptions.String()), errorWriters...)
 
 	buildOptions := strings.Builder{}
 	if cmake.AddDefaultBuildOptions(&buildOptions, buildDirectory, projectTargetsFile, args.Threads, args.SelectedTargets, args.Verbose) {
 		argument.ExecCommandWriteError(fmt.Sprintf("%s %s", cmake.EXECUTABLE, buildOptions.String()), errorWriters...)
 	}
-	copyCompileCommands(buildDirectory, project.CodeFolder)
+	copyCompileCommands(buildDirectory, proj.CodeFolder)
 }
 
 type BuildArgs struct {
@@ -104,7 +105,7 @@ var RunBuildArgs = BuildArgs{
 	ErrorsToFile:     false,
 	Threads:          runtime.NumCPU(),
 	SelectedTargets:  []string{},
-	SelectedProjects: []string{cmake.KERNEL, cmake.UEFI_IMAGE_CREATOR, cmake.UEFI},
+	SelectedProjects: []string{project.KERNEL, project.UEFI_IMAGE_CREATOR, project.UEFI},
 	BuildTests:       false,
 	RunTests:         false,
 	Architecture:     architecture.DefaultArchitecture(),
@@ -124,25 +125,10 @@ var DefaultBuildArgs = BuildArgs{
 	Verbose:          false,
 }
 
-func getAllProjects(selectedProjects []string) map[string]*cmake.ProjectStructure {
-	if len(selectedProjects) == 0 {
-		return cmake.PROJECT_STRUCTURES
-	}
-
-	result := make(map[string]*cmake.ProjectStructure)
-
-	for _, name := range selectedProjects {
-		var project = cmake.PROJECT_STRUCTURES[name]
-		result[name] = project
-	}
-
-	return result
-}
-
 func Build(args *BuildArgs) BuildResult {
 	// NOTE: Using waitgroups is currently slower than just running synchronously
 
-	var projectsToBuild = getAllProjects(args.SelectedProjects)
+	var projectsToBuild = project.GetAllProjects(args.SelectedProjects)
 	for name, project := range projectsToBuild {
 		fmt.Printf("Building %s%s%s\n", common.CYAN, name, common.RESET)
 		buildProject(args, project)
