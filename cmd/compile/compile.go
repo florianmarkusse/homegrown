@@ -21,9 +21,6 @@ import (
 const ERRORS_TO_FILE_LONG_FLAG = "errors-to-file"
 const ERRORS_TO_FILE_SHORT_FLAG = "e"
 
-const PROJECTS_LONG_FLAG = "projects"
-const PROJECTS_SHORT_FLAG = "p"
-
 const SELECT_TARGETS_LONG_FLAG = "targets"
 const SELECT_TARGETS_SHORT_FLAG = "s"
 const DEFAULT_TARGETS = "All targets starting with the project's name."
@@ -50,10 +47,8 @@ func main() {
 	buildmode.AddBuildModeAsFlag(&buildArgs.BuildMode)
 	architecture.AddArchitectureAsFlag(&buildArgs.Architecture)
 	environment.AddEnvironmentAsFlag(&buildArgs.Environment)
+	project.AddProjectAsFlag(&projectsToBuild)
 	help.AddHelpAsFlag(&isHelp)
-
-	flag.StringVar(&projectsToBuild, PROJECTS_LONG_FLAG, "", "")
-	flag.StringVar(&projectsToBuild, PROJECTS_SHORT_FLAG, "", "")
 
 	flag.StringVar(&targetsToBuild, SELECT_TARGETS_LONG_FLAG, "", "")
 	flag.StringVar(&targetsToBuild, SELECT_TARGETS_SHORT_FLAG, "", "")
@@ -89,20 +84,8 @@ func main() {
 		showHelpAndExit = true
 	}
 
-	buildArgs.SelectedProjects = strings.FieldsFunc(projectsToBuild, func(r rune) bool {
-		return r == ','
-	})
-
-	for _, selectedProject := range buildArgs.SelectedProjects {
-		var isValidProjectName = false
-		for _, configuredProjects := range project.ConfiguredProjects {
-			if selectedProject == configuredProjects {
-				isValidProjectName = true
-			}
-		}
-		if !isValidProjectName {
-			showHelpAndExit = true
-		}
+	if !project.ValidateAndConvertProjects(projectsToBuild, &buildArgs.SelectedProjects) {
+		showHelpAndExit = true
 	}
 
 	if isHelp {
@@ -125,14 +108,7 @@ func main() {
 	buildmode.DisplayBuildModeConfiguration(buildArgs.BuildMode)
 	architecture.DisplayArchitectureConfiguration(buildArgs.Architecture)
 	environment.DisplayEnvironmentConfiguration(buildArgs.Environment)
-
-	var projectsConfiguration string
-	if len(buildArgs.SelectedProjects) > 0 {
-		projectsConfiguration = converter.ArrayIntoPrintableString(buildArgs.SelectedProjects[:])
-	} else {
-		projectsConfiguration = converter.ArrayIntoPrintableString(project.ConfiguredProjects)
-	}
-	configuration.DisplayStringArgument(PROJECTS_LONG_FLAG, projectsConfiguration)
+	project.DisplayProjectConfiguration(buildArgs.SelectedProjects)
 
 	var targetsConfiguration string
 	if len(buildArgs.SelectedTargets) > 0 {
@@ -171,11 +147,11 @@ func usage() {
 	buildmode.DisplayBuildMode(buildArgs.BuildMode)
 	environment.DisplayEnvironment()
 	architecture.DisplayArchitecture(buildArgs.Architecture)
+	project.DisplayProject()
 
 	flags.DisplayArgumentInput(ERRORS_TO_FILE_SHORT_FLAG, ERRORS_TO_FILE_LONG_FLAG, "Save errors to file", fmt.Sprint(buildArgs.ErrorsToFile))
 
 	flags.DisplayArgumentInput(SELECT_TARGETS_SHORT_FLAG, SELECT_TARGETS_LONG_FLAG, "Select specific target(s, comma-separated) to be built", DEFAULT_TARGETS)
-	flags.DisplayArgumentInput(PROJECTS_SHORT_FLAG, PROJECTS_LONG_FLAG, "Select specific project(s, comma-separated) to be built", converter.ArrayIntoPrintableString(project.ConfiguredProjects))
 
 	flags.DisplayArgumentInput(BUILD_TESTS_SHORT_FLAG, BUILD_TESTS_LONG_FLAG, "Build for tests", fmt.Sprint(buildArgs.BuildTests))
 
@@ -196,6 +172,6 @@ func usage() {
 	flags.DisplayExamples()
 	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
 	fmt.Printf("  %s --%s=%s --%s %s,%s --%s -%s\n", filepath.Base(os.Args[0]),
-		buildmode.BUILD_MODE_LONG_FLAG, buildmode.PossibleBuildModes[1], PROJECTS_LONG_FLAG, project.KERNEL, project.UEFI, BUILD_TESTS_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
+		buildmode.BUILD_MODE_LONG_FLAG, buildmode.PossibleBuildModes[1], project.PROJECTS_LONG_FLAG, project.KERNEL, project.UEFI, BUILD_TESTS_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
 	fmt.Printf("\n")
 }

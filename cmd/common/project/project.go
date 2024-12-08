@@ -2,10 +2,56 @@ package project
 
 import (
 	"cmd/common"
+	"cmd/common/configuration"
+	"cmd/common/converter"
+	"cmd/common/flags"
 	"cmd/common/flags/environment"
+	"flag"
 	"fmt"
 	"strings"
 )
+
+const PROJECTS_LONG_FLAG = "projects"
+const PROJECTS_SHORT_FLAG = "p"
+
+func DisplayProject() {
+	flags.DisplayArgumentInput(PROJECTS_SHORT_FLAG, PROJECTS_LONG_FLAG, "Select specific project(s, comma-separated) to be built", converter.ArrayIntoPrintableString(ConfiguredProjects))
+}
+
+func ValidateAndConvertProjects(projectsToBuild string, selectedProjects *[]string) bool {
+	*selectedProjects = strings.FieldsFunc(projectsToBuild, func(r rune) bool {
+		return r == ','
+	})
+
+	for _, selectedProject := range *selectedProjects {
+		var isValidProjectName = false
+		for _, configuredProjects := range ConfiguredProjects {
+			if selectedProject == configuredProjects {
+				isValidProjectName = true
+			}
+		}
+		if !isValidProjectName {
+			return false
+		}
+	}
+
+	return true
+}
+
+func DisplayProjectConfiguration(selectedProjects []string) {
+	var projectsConfiguration string
+	if len(selectedProjects) > 0 {
+		projectsConfiguration = converter.ArrayIntoPrintableString(selectedProjects[:])
+	} else {
+		projectsConfiguration = converter.ArrayIntoPrintableString(ConfiguredProjects)
+	}
+	configuration.DisplayStringArgument(PROJECTS_LONG_FLAG, projectsConfiguration)
+}
+
+func AddProjectAsFlag(project *string) {
+	flag.StringVar(project, PROJECTS_LONG_FLAG, *project, "")
+	flag.StringVar(project, PROJECTS_SHORT_FLAG, *project, "")
+}
 
 type Project int64
 
