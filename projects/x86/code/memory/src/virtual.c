@@ -39,6 +39,7 @@ static U64 getZeroBasePage() {
         allocPhysicalPages((PagedMemory_a){.buf = memoryForAddresses,
                                            .len = COUNTOF(memoryForAddresses)},
                            BASE_PAGE);
+    /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
     memset((void *)memory.buf[0].pageStart, 0, PAGE_FRAME_SIZE);
     return memory.buf[0].pageStart;
 }
@@ -85,6 +86,7 @@ void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory) {
     }
     lowerHalfRegion.start = currentHighestAddress;
 
+    /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
     level4PageTable = (VirtualPageTable *)level4Address;
     programPat();
 }
@@ -132,6 +134,7 @@ void mapVirtualRegionWithFlags(U64 virtual, PagedMemory memory,
             }
 
             currentTable =
+                /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
                 (VirtualPageTable *)ALIGN_DOWN_EXP(*address, PAGE_FRAME_SHIFT);
         }
     }
@@ -159,6 +162,7 @@ MappedPage getMappedPage(U64 virtual) {
         }
 
         currentTable =
+            /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
             (VirtualPageTable *)ALIGN_DOWN_EXP(*address, PAGE_FRAME_SHIFT);
     }
 

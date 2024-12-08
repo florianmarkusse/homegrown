@@ -103,7 +103,7 @@ __attribute((nothrow, nonnull(1, 2))) void *memmove(void *dest, const void *src,
     if (d == s) {
         return d;
     }
-    if (((U64)s - (U64)d - n) <= -2 * n) {
+    if (((U64)s - (U64)d - n) <= -2ULL * n) {
         return memcpy(d, s, n);
     }
 

@@ -44,6 +44,7 @@ void *allocAndMapExplicit(PagedMemory_a request, PageSize pageSize) {
         virtualRegion += physicalAddresses.buf[i].numberOfPages * pageSize;
     }
 
+    /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
     return (void *)virtualAddress;
 }
 
@@ -58,6 +59,7 @@ void *allocContiguousAndMap(U64 numberOfPages, PageSize pageSize) {
                                    .pageStart = physicalAddress},
                      pageSize);
 
+    /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
     return (void *)virtualAddress;
 }
 

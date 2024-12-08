@@ -20,6 +20,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     initIDT();
 
     KernelParameters *kernelParameters =
+        /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
         (KernelParameters *)KERNEL_PARAMS_START;
 
     KernelMemory kernelMemory = {
@@ -47,9 +48,10 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                                  .size = kernelParameters->fb.size,
                                  .width = kernelParameters->fb.columns,
                                  .height = kernelParameters->fb.rows,
+                                 /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
                                  .screen = (U32 *)kernelParameters->fb.ptr},
                &arena);
-    freeMapped((U64)arena.curFree, arena.end - arena.curFree);
+    freeMapped((U64)arena.curFree, (U64)(arena.end - arena.curFree));
 
     FLUSH_AFTER { LOG(STRING("HELLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n")); }
 
