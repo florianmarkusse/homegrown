@@ -1,5 +1,3 @@
-- Fix header guards, make command for this like --errors-to-file for iwyu?
-
-```
-clang-tidy $(find kernel/code/ -type d \( -path kernel/code/build \) -prune -o -type f -name "*.[ch]" -print) -p ~/Desktop/homegrown/projects/kernel/code
-```
+- Fix interfaces in platform-abstraction
+- Fix iwyu
+- Fix remaining warnings
