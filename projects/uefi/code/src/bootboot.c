@@ -11,8 +11,6 @@
 #include "efi/c-efi-protocol-loaded-image.h"
 #include "efi/c-efi-protocol-simple-file-system.h"
 #include "efi/c-efi-protocol-simple-text-input.h"  // for InputKey, Sim...
-#include "efi/c-efi-protocol-simple-text-output.h" // for SimpleTextOutputP...
-#include "efi/c-efi-system.h"                      // for SystemTable
 #include "gdt.h"
 #include "globals.h"
 #include "interoperation/kernel-parameters.h"

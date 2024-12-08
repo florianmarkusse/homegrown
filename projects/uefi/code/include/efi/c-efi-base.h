@@ -1,5 +1,5 @@
-#ifndef EFI_BASE_H
-#define EFI_BASE_H
+#ifndef EFI_C_EFI_BASE_H
+#define EFI_C_EFI_BASE_H
 
 #pragma once
 

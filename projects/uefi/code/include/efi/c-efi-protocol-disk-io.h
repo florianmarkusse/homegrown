@@ -1,5 +1,5 @@
-#ifndef EFI_PROTOCOL_DISK_IO_H
-#define EFI_PROTOCOL_DISK_IO_H
+#ifndef EFI_C_EFI_PROTOCOL_DISK_IO_H
+#define EFI_C_EFI_PROTOCOL_DISK_IO_H
 
 #ifdef __cplusplus
 extern "C" {

@@ -8,7 +8,6 @@
 #include "globals.h"                               // for globals
 #include "interoperation/kernel-parameters.h"      // for KernelParameters
 #include "interoperation/memory/definitions.h" // for PAGE_FRAME_SIZE, STACK_...
-#include "interoperation/memory/descriptor.h"
 #include "memory/boot-functions.h" // for mapMemoryAt, allo...
 #include "platform-abstraction/memory/management/virtual.h"
 #include "printing.h"           // for error, printNumber

@@ -1,5 +1,5 @@
-#ifndef EFI_PROTOCOL_FILE_H
-#define EFI_PROTOCOL_FILE_H
+#ifndef EFI_C_EFI_PROTOCOL_FILE_H
+#define EFI_C_EFI_PROTOCOL_FILE_H
 
 #ifdef __cplusplus
 extern "C" {
