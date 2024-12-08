@@ -1,8 +1,3 @@
-- Turn on CPPcheck?
-- Turn on clang static analyzer
-- Turn on IKOS
-- Turn on UBsan
-- Turn on ASan
 - Fix header guards, make command for this like --errors-to-file for iwyu?
 
 ```

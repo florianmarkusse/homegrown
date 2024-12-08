@@ -1,5 +1,5 @@
-#ifndef KERNEL_PARAMETERS_H
-#define KERNEL_PARAMETERS_H
+#ifndef INTEROPERATION_KERNEL_PARAMETERS_H
+#define INTEROPERATION_KERNEL_PARAMETERS_H
 
 #include "interoperation/memory/descriptor.h"
 #include "shared/types/types.h"

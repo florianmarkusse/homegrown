@@ -1,4 +1,4 @@
-#include "shared/memory/sizes.h"
+/*#include "shared/memory/sizes.h"*/
 #include "shared/types/types.h"
 #include <sys/mman.h>
 
@@ -21,7 +21,7 @@ typedef struct {
     U16 boot_signature;
 } __attribute__((packed)) MBR;
 
-static constexpr auto MEMORY_CAP = 1 * GiB;
+/*static constexpr auto MEMORY_CAP = 1 * GiB;*/
 
 int main() {
     /*char *begin = mmap(NULL, MEMORY_CAP, PROT_READ | PROT_WRITE,*/

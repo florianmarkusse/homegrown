@@ -40,7 +40,7 @@ func usage() {
 }
 
 func analyzeProject(proj *project.ProjectStructure) {
-	var findCommand = fmt.Sprintf("clang-tidy $(find %s -type d \\( -path %s/build \\) -prune -o -type f -name \"*.[ch]\" -print) -p %s", proj.CodeFolder, proj.CodeFolder, proj.CodeFolder)
+	var findCommand = fmt.Sprintf("clang-tidy -fix -fix-errors $(find %s -type d \\( -path %s/build \\) -prune -o -type f -name \"*.[ch]\" -print) -p %s", proj.CodeFolder, proj.CodeFolder, proj.CodeFolder)
 	argument.ExecCommand(findCommand)
 }
 
