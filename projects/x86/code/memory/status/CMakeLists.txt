@@ -17,6 +17,7 @@ target_link_libraries(
 target_link_libraries(${PROJECT_NAME} PRIVATE interoperation)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
+target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory-definitions)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)

@@ -12,6 +12,7 @@ if("${BUILD_UNIT_TESTS}")
     add_subdirectory(tests)
 endif()
 
+add_subdirectory(definitions)
 add_subdirectory(status)
 
 target_include_directories(
@@ -26,6 +27,8 @@ target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE platform-abstraction-memory-manipulation
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory-definitions)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)

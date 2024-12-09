@@ -1,4 +1,5 @@
 - Fix interfaces in platform-abstraction
 - Fix iwyu
 - Fix remaining warnings
+- Do enum stuff
 - interfaces in libraries!
