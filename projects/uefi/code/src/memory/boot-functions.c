@@ -3,6 +3,7 @@
 #include "efi/c-efi-system.h"
 #include "globals.h"
 #include "interoperation/memory/definitions.h"
+#include "memory/page-size.h"
 #include "memory/standard.h"
 #include "platform-abstraction/memory/management/virtual.h"
 #include "printing.h"
@@ -106,7 +107,7 @@ MemoryInfo getMemoryInfo() {
     mmap.memoryMapSize += mmap.descriptorSize * 2;
     status = globals.st->boot_services->allocate_pages(
         ALLOCATE_ANY_PAGES, LOADER_DATA,
-        BYTES_TO_PAGE_FRAMES(mmap.memoryMapSize),
+        CEILING_DIV_VALUE(mmap.memoryMapSize, UEFI_PAGE_SIZE),
         (PhysicalAddress *)&mmap.memoryMap);
     if (ERROR(status)) {
         error(u"Could not allocate data for memory map buffer\r\n");

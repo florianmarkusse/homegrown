@@ -10,7 +10,7 @@
 #include "efi/c-efi-protocol-graphics-output.h"
 #include "efi/c-efi-protocol-loaded-image.h"
 #include "efi/c-efi-protocol-simple-file-system.h"
-#include "efi/c-efi-protocol-simple-text-input.h"  // for InputKey, Sim...
+#include "efi/c-efi-protocol-simple-text-input.h" // for InputKey, Sim...
 #include "gdt.h"
 #include "globals.h"
 #include "interoperation/kernel-parameters.h"
@@ -485,7 +485,7 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
     if (C_EFI_ERROR(status)) {
         status = globals.st->boot_services->free_pages(
             (PhysicalAddress)memoryInfo.memoryMap,
-            BYTES_TO_PAGE_FRAMES(memoryInfo.memoryMapSize));
+            CEILING_DIV_VALUE(memoryInfo.memoryMapSize, UEFI_PAGE_SIZE));
         if (C_EFI_ERROR(status)) {
             error(u"Could not free allocated memory map\r\n");
         }

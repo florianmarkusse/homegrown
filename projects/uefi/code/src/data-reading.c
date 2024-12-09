@@ -10,9 +10,11 @@
 #include "interoperation/generated/kernel-magic.h"
 #include "interoperation/memory/definitions.h" // for BYTES_TO_PAGE_FRAMES
 #include "interoperation/memory/descriptor.h"
-#include "memory/standard.h" // for memcmp
+#include "memory/page-size.h" // for memcmp
+#include "memory/standard.h"  // for memcmp
 #include "platform-abstraction/memory/management/virtual.h"
 #include "printing.h" // for error, printNumber
+#include "shared/maths/maths.h"
 
 AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
     Status status;
@@ -71,8 +73,8 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
 
         PhysicalAddress address;
         status = globals.st->boot_services->allocate_pages(
-            ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGE_FRAMES(alignedBytes),
-            &address);
+            ALLOCATE_ANY_PAGES, LOADER_DATA,
+            CEILING_DIV_VALUE(alignedBytes, UEFI_PAGE_SIZE), &address);
         if (ERROR(status)) {
             error(u"Could not allocete data for disk buffer\r\n");
         }
@@ -150,7 +152,7 @@ AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
             PhysicalAddress address;
             status = globals.st->boot_services->allocate_pages(
                 ALLOCATE_ANY_PAGES, LOADER_DATA,
-                BYTES_TO_PAGE_FRAMES(alignedBytes), &address);
+                CEILING_DIV_VALUE(alignedBytes, UEFI_PAGE_SIZE), &address);
             if (ERROR(status)) {
                 error(u"Could not allocete data for disk buffer\r\n");
             }
@@ -287,8 +289,8 @@ DataPartitionFile getKernelInfo() {
     PhysicalAddress dataFileAddress;
 
     status = globals.st->boot_services->allocate_pages(
-        ALLOCATE_ANY_PAGES, LOADER_DATA, BYTES_TO_PAGE_FRAMES(dataFile.len),
-        &dataFileAddress);
+        ALLOCATE_ANY_PAGES, LOADER_DATA,
+        CEILING_DIV_VALUE(dataFile.len, UEFI_PAGE_SIZE), &dataFileAddress);
     if (ERROR(status) || dataFile.len != file_info.fileSize) {
         error(u"Could not allocate memory for file\r\n");
     }

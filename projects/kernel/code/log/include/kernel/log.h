@@ -3,12 +3,9 @@
 
 #include "shared/log.h"
 #include "shared/macros.h"
-#include "shared/memory/allocator/arena.h"
 #include "shared/text/converter.h"
 #include "shared/text/string.h"
 #include "shared/types/types.h"
-
-void initLogger(Arena *perm);
 
 void appendToFlushBuffer(string data, U8 flags);
 bool flushStandardBuffer();
@@ -31,8 +28,15 @@ bool flushBuffer(U8_max_a *buffer);
 
 #define ERROR(data, ...) LOG(data, ##__VA_ARGS__)
 
-#define FLUSH_AFTER                                                            \
+#define FLUSH_AFTER_0                                                          \
     for (U64 MACRO_VAR(i) = 0; MACRO_VAR(i) < 1;                               \
          MACRO_VAR(i) = flushStandardBuffer())
+
+#define FLUSH_AFTER_1(bufferType) FLUSH_AFTER_0
+
+#define FLUSH_AFTER_IMPL(_0, _1, N, ...) FLUSH_AFTER_##N
+#define FLUSH_AFTER(...)                                                       \
+    FLUSH_AFTER_IMPL(__VA_ARGS__, 2, 1)                                        \
+    (__VA_ARGS__)
 
 #endif
