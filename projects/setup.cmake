@@ -37,8 +37,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Profiling")
 endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     # TODO: Add -flto on production build I guess or on flag?
-    # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -flto")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -flto")
+    # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 endif()
 
 set(VALID_ENVIRONMENTS "freestanding" "posix")
