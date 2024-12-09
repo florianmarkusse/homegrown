@@ -1,5 +1,6 @@
 #include "interoperation/kernel-parameters.h"  // for KernelParameters
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
+#include "kernel/log/init.h"
 #include "memory/management/policy.h"
 #include "peripheral/screen/screen.h"
 #include "platform-abstraction/idt.h" // for setupIDT

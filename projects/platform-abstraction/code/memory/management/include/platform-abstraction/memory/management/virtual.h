@@ -8,6 +8,8 @@
 #include "shared/types/types.h"
 #include "x86/memory/definitions/virtual.h"
 
+U64 getPhysicalAddressFrame(U64 virtualPage);
+
 void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory);
 
 U64 getVirtualMemory(U64 size, PageSize alignValue);

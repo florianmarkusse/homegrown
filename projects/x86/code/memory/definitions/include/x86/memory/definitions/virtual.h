@@ -35,6 +35,8 @@ typedef enum : U64 {
     HUGE_PAGE = HUGE_PAGE_SIZE,
 } PageSize;
 
+extern PageSize pageSizes[NUM_PAGE_SIZES];
+
 typedef struct {
     union {
         U64 value;

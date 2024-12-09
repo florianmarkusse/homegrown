@@ -6,12 +6,6 @@
 #include "shared/types/types.h"
 #include "x86/memory/definitions/virtual.h"
 
-extern PageSize pageSizes[NUM_PAGE_SIZES];
-
-static inline U64 getPhysicalAddressFrame(U64 virtualPage) {
-    return virtualPage & VirtualPageMasks.FRAME_OR_NEXT_PAGE_TABLE;
-}
-
 extern VirtualPageTable *level4PageTable;
 
 extern VirtualRegion higherHalfRegion;

@@ -1,4 +1,5 @@
 #include "kernel/log.h"
+#include "kernel/log/init.h"
 #include "peripheral/screen/screen.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/maths/maths.h"
@@ -7,16 +8,6 @@
 #include "shared/text/string.h"
 #include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "shared/types/types.h"
-
-static constexpr auto FLUSH_BUFFER_SIZE = (2 * MiB);
-
-static U8_max_a flushBuf;
-
-void initLogger(Arena *perm) {
-    flushBuf = (U8_max_a){.buf = NEW(perm, U8, FLUSH_BUFFER_SIZE),
-                          .cap = FLUSH_BUFFER_SIZE,
-                          .len = 0};
-}
 
 // We are going to flush to:
 // - The in-memory standin file buffer, this will be replaced by a file

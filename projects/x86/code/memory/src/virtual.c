@@ -69,6 +69,10 @@ static void programPat() {
     flushTLB();
 }
 
+U64 getPhysicalAddressFrame(U64 virtualPage) {
+    return virtualPage & VirtualPageMasks.FRAME_OR_NEXT_PAGE_TABLE;
+}
+
 void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory) {
     U64 currentHighestAddress = 0;
     for (U64 i = 0;

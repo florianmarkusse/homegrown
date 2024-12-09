@@ -1,13 +1,10 @@
 #ifndef X86_MEMORY_PHYSICAL_H
 #define X86_MEMORY_PHYSICAL_H
 
-// TODO: Move this to x86
-
 #include "interoperation/kernel-parameters.h"
-#include "interoperation/memory/definitions.h"
 #include "shared/memory/management/definitions.h"
 #include "shared/types/types.h"
-#include "x86/memory/virtual.h"
+#include "x86/memory/definitions/virtual.h"
 
 typedef struct {
     U8 data[PAGE_FRAME_SIZE];

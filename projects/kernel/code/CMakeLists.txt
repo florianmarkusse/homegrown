@@ -86,6 +86,7 @@ if(
 
     target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
 
+    target_link_libraries(${PROJECT_NAME} PRIVATE kernel-log-init)
     target_link_libraries(${PROJECT_NAME} PRIVATE kernel-memory-management)
     target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
 

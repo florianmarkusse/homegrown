@@ -1,5 +1,6 @@
 - Fix interfaces in platform-abstraction
 - Fix iwyu
+- Do I need duplicate function definitons now with the interfaces?
 - Fix remaining warnings
 - Do enum stuff
 - interfaces in libraries!
