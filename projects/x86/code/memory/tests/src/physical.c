@@ -2,13 +2,13 @@
 #include "interoperation/kernel-parameters.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"
-#include "platform-abstraction/idt.h"
 #include "platform-abstraction/log.h"
 #include "posix/test-framework/test.h"
 #include "shared/macros.h"
 #include "shared/maths/maths.h"
 #include "shared/text/string.h"
 #include "shared/types/types.h"
+#include "x86/cpu/mock/idt.h"
 #include "x86/cpu/status/test.h"
 #include "x86/memory/physical.h"
 #include <errno.h>
@@ -84,8 +84,8 @@ void testPhysicalMemoryManagement() {
         return;
     }
 
-    memoryStart = (PhysicalBasePage *)ALIGN_UP_EXP(
-        (U64)pages, PAGE_FRAME_SHIFT + PageTableFormat.SHIFT * 2);
+    memoryStart = (PhysicalBasePage *)ALIGN_UP_VALUE(
+        (U64)pages, PAGE_FRAME_SIZE * 2 * PageTableFormat.ENTRIES);
 
     TEST_TOPIC(STRING("Physical Memory Management")) {
         TEST_TOPIC(STRING("Initing")) {

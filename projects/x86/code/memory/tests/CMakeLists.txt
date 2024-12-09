@@ -7,12 +7,15 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
+target_link_libraries(${PROJECT_NAME} PRIVATE interoperation)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE posix-test-framework)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
+target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-fault)
+target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-mock)
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-status-core)
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-status-test)
 

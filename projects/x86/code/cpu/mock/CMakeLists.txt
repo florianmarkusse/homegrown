@@ -11,4 +11,7 @@ target_include_directories(
     ${PROJECT_NAME}
     PRIVATE $<TARGET_PROPERTY:x86-cpu-real,INTERFACE_INCLUDE_DIRECTORIES>
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-fault)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
