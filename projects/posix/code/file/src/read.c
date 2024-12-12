@@ -1,11 +1,12 @@
 #include "posix/file/read.h"
-#include "shared/types/types.h"     // for NULL_ON_FAIL
-#include "platform-abstraction/log.h" // for ERROR, LOG_CHOOSER_IMPL_2
-#include "posix/file/file-status.h"   // for FILE_CANT_ALLOCATE, FILE_CANT_OPEN
+#include "platform-abstraction/memory/manipulation.h"
+#include "posix/file/file-status.h" // for FILE_CANT_ALLOCATE, FILE_CANT_OPEN
+#include "posix/log.h"
+#include "shared/log.h"
 #include "shared/memory/allocator/arena.h" // for NEW, Arena
 #include "shared/memory/allocator/macros.h"
-#include "platform-abstraction/memory/manipulation.h"
 #include "shared/text/string.h" // for STRING, string
+#include "shared/types/types.h" // for NULL_ON_FAIL
 #include <errno.h>              // for errno
 #include <linux/fs.h>           // for BLKGETSIZE64
 #include <stddef.h>             // for U64
@@ -17,14 +18,14 @@
 FileStatus readFile(U8 *srcPath, string *buffer, Arena *perm) {
     FILE *srcFile = fopen(srcPath, "rbe");
     if (srcFile == NULL) {
-        FLUSH_AFTER(STDERR) {
-            ERROR(STRING("Failed to open file: "));
-            ERROR(srcPath, NEWLINE);
-            ERROR(STRING("Error code: "));
-            ERROR(errno, NEWLINE);
-            ERROR(STRING("Error message: "));
+        PFLUSH_AFTER(STDERR) {
+            PERROR(STRING("Failed to open file: "));
+            PERROR(srcPath, NEWLINE);
+            PERROR(STRING("Error code: "));
+            PERROR(errno, NEWLINE);
+            PERROR(STRING("Error message: "));
             U8 *errorString = strerror(errno);
-            ERROR(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
+            PERROR(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
         }
         return FILE_CANT_OPEN;
     }
@@ -35,9 +36,9 @@ FileStatus readFile(U8 *srcPath, string *buffer, Arena *perm) {
 
     (*buffer).buf = NEW(perm, U8, dataLen, NULL_ON_FAIL);
     if ((*buffer).buf == NULL) {
-        FLUSH_AFTER(STDERR) {
-            ERROR((STRING("Failed to allocate memory for file ")));
-            ERROR(srcPath, NEWLINE);
+        PFLUSH_AFTER(STDERR) {
+            PERROR((STRING("Failed to allocate memory for file ")));
+            PERROR(srcPath, NEWLINE);
         }
         fclose(srcFile);
         return FILE_CANT_ALLOCATE;
@@ -45,9 +46,9 @@ FileStatus readFile(U8 *srcPath, string *buffer, Arena *perm) {
 
     U64 result = fread((*buffer).buf, 1, dataLen, srcFile);
     if (result != dataLen) {
-        FLUSH_AFTER(STDERR) {
-            ERROR((STRING("Failed to read the file contents of ")));
-            ERROR(srcPath, NEWLINE);
+        PFLUSH_AFTER(STDERR) {
+            PERROR((STRING("Failed to read the file contents of ")));
+            PERROR(srcPath, NEWLINE);
         }
         fclose(srcFile);
         return FILE_CANT_READ;

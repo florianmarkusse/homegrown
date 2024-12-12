@@ -9,8 +9,12 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE interoperation)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
+target_link_libraries(
+    ${PROJECT_NAME}
+    PRIVATE platform-abstraction-memory-manipulation
+)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE posix-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE posix-test-framework)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
@@ -21,4 +25,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-status-core)
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-status-test)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-management)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-sizes)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-macros)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)

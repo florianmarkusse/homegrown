@@ -7,9 +7,12 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE posix-log)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-macros)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(
     ${PROJECT_NAME}

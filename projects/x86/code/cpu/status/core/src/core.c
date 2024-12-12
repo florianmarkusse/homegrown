@@ -44,8 +44,8 @@ static string faultToString[FAULT_NUMS] = {
 };
 
 void appendInterrupt(Fault fault) {
-    LOG(STRING("Fault #: "));
-    LOG(fault);
-    LOG(STRING("\tMsg: "));
-    LOG(stringWithMinSizeDefault(faultToString[fault], 30));
+    KLOG(STRING("Fault #: "));
+    KLOG(fault);
+    KLOG(STRING("\tMsg: "));
+    KLOG(stringWithMinSizeDefault(faultToString[fault], 30));
 }

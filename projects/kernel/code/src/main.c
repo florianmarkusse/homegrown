@@ -37,7 +37,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                           .end = initMemory + INIT_MEMORY};
     void *jumper[5];
     if (__builtin_setjmp(jumper)) {
-        FLUSH_AFTER() { LOG(STRING("Ran out of init memory capacity\n")); }
+        KFLUSH_AFTER { KLOG(STRING("Ran out of init memory capacity\n")); }
         while (1) {
             ;
         }
@@ -54,9 +54,9 @@ __attribute__((section("kernel-start"))) int kernelmain() {
                &arena);
     freeMapped((U64)arena.curFree, (U64)(arena.end - arena.curFree));
 
-    FLUSH_AFTER() { LOG(STRING("HELLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n")); }
+    KFLUSH_AFTER { KLOG(STRING("HELLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n")); }
 
-    FLUSH_AFTER() {
+    KFLUSH_AFTER {
         //
         appendPhysicalMemoryManagerStatus();
     }

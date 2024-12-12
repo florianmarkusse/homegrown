@@ -1,7 +1,6 @@
 #ifndef POSIX_LOG_H
 #define POSIX_LOG_H
 
-#include "shared/log.h"
 #include "shared/macros.h"
 #include "shared/text/converter.h"
 #include "shared/text/string.h"
@@ -12,7 +11,6 @@ typedef struct {
     U8_max_a array;
     int fileDescriptor;
 } WriteBuffer;
-
 typedef enum {
     COLOR_RED,
     COLOR_GREEN,
@@ -26,63 +24,51 @@ typedef enum {
 
 typedef enum { STDOUT, STDERR } BufferType;
 
-bool appendToFlushBuffer(string data, WriteBuffer *buffer, U8 flags);
-bool flushBuffer(WriteBuffer *buffer);
+void appendToFlushBuffer(string data, U8 flags);
+bool flushStandardBuffer();
+bool flushBuffer(U8_max_a *buffer);
+
+bool appendToFlushBufferWithWriter(string data, U8 flags, WriteBuffer *buffer);
+bool flushBufferWithWriter(WriteBuffer *buffer);
 
 bool appendColor(AnsiColor color, BufferType bufferType);
 bool appendColorReset(BufferType bufferType);
 
 WriteBuffer *getWriteBuffer(BufferType bufferType);
 
-#define LOG_3(data, bufferType, flags)                                         \
-    LOG_DATA_BUFFER_TYPE(data, bufferType, flags)
-#define LOG_2(data, bufferType) LOG_DATA_BUFFER_TYPE(data, bufferType, 0)
-#define LOG_1(data) LOG_DATA_BUFFER_TYPE(data, STDOUT, 0)
+#define PLOG_DATA(data, flags, buffer)                                         \
+    appendToFlushBufferWithWriter(CONVERT_TO_STRING(data), flags, buffer)
 
-#define LOG_CHOOSER_IMPL_3(arg1, arg2, arg3) LOG_3(arg1, arg2, arg3)
-#define LOG_CHOOSER_IMPL_2(arg1, arg2) LOG_2(arg1, arg2)
-#define LOG_CHOOSER_IMPL_1(arg1) LOG_1(arg1)
-#define LOG_CHOOSER_IMPL(_1, _2, _3, N, ...) LOG_CHOOSER_IMPL_##N
-#define LOG_CHOOSER(...) LOG_CHOOSER_IMPL(__VA_ARGS__, 3, 2, 1)
+#define PLOG_DATA_BUFFER_TYPE(data, flags, bufferType)                         \
+    PLOG_DATA(data, flags, getWriteBuffer(bufferType))
 
-#define LOG(...) LOG_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+#define PLOG_3(data, flags, bufferType)                                        \
+    PLOG_DATA_BUFFER_TYPE(data, flags, bufferType)
+#define PLOG_2(data, flags) PLOG_DATA_BUFFER_TYPE(data, flags, STDOUT)
+#define PLOG_1(data) PLOG_DATA_BUFFER_TYPE(data, 0, STDOUT)
+#define PLOG_CHOOSER_IMPL(_1, _2, _3, N, ...) PLOG_##N
+#define PLOG_CHOOSER(...) PLOG_CHOOSER_IMPL(__VA_ARGS__, 3, 2, 1)
 
-#define INFO(data, ...) LOG(data, STDOUT, ##__VA_ARGS__)
+#define PLOG(...) PLOG_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
-#define ERROR(data, ...) LOG(data, STDERR, ##__VA_ARGS__)
+#define PINFO_2(data, flags) PLOG(data, flags, STDOUT)
+#define PINFO_1(data) PLOG(data, 0, STDOUT)
+#define PINFO_CHOOSER_IMPL(_1, _2, N, ...) PINFO_##N
+#define PINFO_CHOOSER(...) PINFO_CHOOSER_IMPL(__VA_ARGS__, 2, 1)
 
-#define FLUSH_TO(bufferType) flushBuffer(getWriteBuffer(bufferType))
+#define PINFO(...) PINFO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
-#define LOG_DATA_3(data, buffer, flags)                                        \
-    appendToFlushBuffer(CONVERT_TO_STRING(data), buffer, flags)
-#define LOG_DATA_2(data, buffer) LOG_DATA_3(data, buffer, 0)
-#define LOG_DATA_X(a, b, c, d, ...) d
-#define LOG_DATA(...)                                                          \
-    LOG_DATA_X(__VA_ARGS__, LOG_DATA_3, LOG_DATA_2)                            \
-    (__VA_ARGS__)
+#define PERROR_2(data, flags) PLOG(data, flags, STDERR)
+#define PERROR_1(data) PLOG(data, 0, STDERR)
+#define PERROR_CHOOSER_IMPL(_1, _2, N, ...) PERROR_##N
+#define PERROR_CHOOSER(...) PERROR_CHOOSER_IMPL(__VA_ARGS__, 2, 1)
 
-#define LOG_DATA_BUFFER_TYPE(data, bufferType, flags)                          \
-    LOG_DATA_3(data, getWriteBuffer(bufferType), flags)
+#define PERROR(...) PERROR_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
-/*#define LOG_3(data, bufferType, flags) \*/
-/*    LOG_DATA_BUFFER_TYPE(data, bufferType, flags)*/
-/*#define LOG_2(data, bufferType) LOG_DATA_BUFFER_TYPE(data, bufferType, 0)*/
-/*#define LOG_1(data) LOG_DATA_BUFFER_TYPE(data, STDOUT, 0)*/
-/**/
-/*#define LOG_CHOOSER_IMPL_3(arg1, arg2, arg3) LOG_3(arg1, arg2, arg3)*/
-/*#define LOG_CHOOSER_IMPL_2(arg1, arg2) LOG_2(arg1, arg2)*/
-/*#define LOG_CHOOSER_IMPL_1(arg1) LOG_1(arg1)*/
-/*#define LOG_CHOOSER_IMPL(_1, _2, _3, N, ...) LOG_CHOOSER_IMPL_##N*/
-/*#define LOG_CHOOSER(...) LOG_CHOOSER_IMPL(__VA_ARGS__, 3, 2, 1)*/
-/**/
-/*#define LOG(...) LOG_CHOOSER(__VA_ARGS__)(__VA_ARGS__)*/
-/**/
-/*#define INFO(data, ...) LOG(data, STDOUT, ##__VA_ARGS__)*/
-/**/
-/*#define ERROR(data, ...) LOG(data, STDERR, ##__VA_ARGS__)*/
+#define PFLUSH_TO(bufferType) flushBufferWithWriter(getWriteBuffer(bufferType))
 
-#define FLUSH_AFTER(bufferType)                                                \
+#define PFLUSH_AFTER(bufferType)                                               \
     for (U64 MACRO_VAR(i) = 0; MACRO_VAR(i) < 1;                               \
-         MACRO_VAR(i) = (FLUSH_TO(bufferType), 1))
+         MACRO_VAR(i) = (PFLUSH_TO(bufferType), 1))
 
 #endif

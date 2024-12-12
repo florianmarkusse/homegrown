@@ -2,8 +2,9 @@
 #include "interoperation/kernel-parameters.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"
-#include "platform-abstraction/log.h"
+#include "posix/log.h"
 #include "posix/test-framework/test.h"
+#include "shared/log.h"
 #include "shared/macros.h"
 #include "shared/maths/maths.h"
 #include "shared/text/string.h"
@@ -74,12 +75,12 @@ void testPhysicalMemoryManagement() {
     PhysicalBasePage *pages = mmap(NULL, MEMORY, PROT_READ | PROT_WRITE,
                                    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (pages == MAP_FAILED) {
-        FLUSH_AFTER(STDERR) {
-            LOG(STRING("Failed to allocate memory!\n"));
-            LOG(STRING("Error code: "));
-            LOG(errno, NEWLINE);
-            LOG(STRING("Error message: "));
-            LOG(STRING_LEN(strerror(errno), strlen(strerror(errno))), NEWLINE);
+        PFLUSH_AFTER(STDERR) {
+            PLOG(STRING("Failed to allocate memory!\n"));
+            PLOG(STRING("Error code: "));
+            PLOG(errno, NEWLINE);
+            PLOG(STRING("Error message: "));
+            PLOG(STRING_LEN(strerror(errno), strlen(strerror(errno))), NEWLINE);
         }
         return;
     }

@@ -5,9 +5,10 @@
 extern "C" {
 #endif
 
-#include "shared/macros.h" // for MACRO_VAR
-#include "shared/types/types.h"
+#include "posix/log.h"
+#include "shared/macros.h"      // for MACRO_VAR
 #include "shared/text/string.h" // for string
+#include "shared/types/types.h"
 
 void testSuiteStart(string mainTopic);
 int testSuiteFinish();
@@ -26,7 +27,7 @@ void appendTestFailureFinish();
 #define TEST_FAILURE                                                           \
     for (U64 MACRO_VAR(i) = (testFailure(), appendTestFailureStart(), 0);      \
          MACRO_VAR(i) < 1; MACRO_VAR(i) = (appendTestFailureFinish(),          \
-                                           LOG(STRING("\n\n"), FLUSH), 1))
+                                           PLOG(STRING("\n\n"), FLUSH), 1))
 
 #define TEST(testString)                                                       \
     for (U64 MACRO_VAR(i) = (unitTestStart(testString), 0); MACRO_VAR(i) < 1;  \

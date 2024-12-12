@@ -1,10 +1,11 @@
-#include "crc32-table.h"                        // for calculateCRC32
-#include "shared/types/array.h"               // for ASSERT
-#include "shared/assert.h"        // for ASSERT
-#include "platform-abstraction/log.h"           // for ASSERT
+#include "crc32-table.h" // for calculateCRC32
+#include "posix/log.h"
+#include "shared/assert.h"                      // for ASSERT
 #include "shared/dynamic-array/dynamic-array.h" // for MAX_LENGTH_ARRAY
-#include "shared/memory/allocator/arena.h"      // for arena
-#include "shared/text/string.h"                 // for STRING
+#include "shared/log.h"
+#include "shared/memory/allocator/arena.h" // for arena
+#include "shared/text/string.h"            // for STRING
+#include "shared/types/array.h"            // for ASSERT
 #include <errno.h>
 #include <inttypes.h> // for U32, U8, U16, U64
 #include <stddef.h>   // for ptrdiff_t
@@ -30,8 +31,8 @@ void *memoryErrors[5];
 
 void checkedFwrite(void *data, U64 size, FILE *fd) {
     if (fwrite(data, 1, size, fd) != size) {
-        FLUSH_AFTER(STDERR) {
-            ERROR(STRING("Could not write to file descriptor!\n"));
+        PFLUSH_AFTER(STDERR) {
+            PERROR(STRING("Could not write to file descriptor!\n"));
         }
         ASSERT(false);
         __builtin_longjmp(fileCloser, 1);
@@ -974,36 +975,36 @@ void writeUEFIImage() {
     // Open image file
     image = fopen(options.image_name, "wb+e");
     if (!image) {
-        FLUSH_AFTER(STDERR) {
-            ERROR(STRING("Error: could not open file "));
-            ERROR(options.image_name, NEWLINE);
+        PFLUSH_AFTER(STDERR) {
+            PERROR(STRING("Error: could not open file "));
+            PERROR(options.image_name, NEWLINE);
         }
         __builtin_longjmp(fileCloser, 1);
     }
 
     // Print info on sizes and image for user
-    FLUSH_AFTER(STDOUT) {
-        INFO(STRING("IMAGE NAME: "));
-        INFO(options.image_name, NEWLINE);
+    PFLUSH_AFTER(STDOUT) {
+        PINFO(STRING("IMAGE NAME: "));
+        PINFO(options.image_name, NEWLINE);
 
-        INFO(STRING("LBA SIZE: "));
-        INFO(options.lba_size, NEWLINE);
+        PINFO(STRING("LBA SIZE: "));
+        PINFO(options.lba_size, NEWLINE);
 
-        INFO(STRING("ESP SIZE: "));
-        INFO(options.esp_size / ALIGNMENT);
-        INFO(STRING("MiB\n"));
+        PINFO(STRING("ESP SIZE: "));
+        PINFO(options.esp_size / ALIGNMENT);
+        PINFO(STRING("MiB\n"));
 
-        INFO(STRING("DATA SIZE: "));
-        INFO(options.data_size / ALIGNMENT);
-        INFO(STRING("MiB\n"));
+        PINFO(STRING("DATA SIZE: "));
+        PINFO(options.data_size / ALIGNMENT);
+        PINFO(STRING("MiB\n"));
 
-        INFO(STRING("PADDING: "));
-        INFO(padding / ALIGNMENT);
-        INFO(STRING("MiB\n"));
+        PINFO(STRING("PADDING: "));
+        PINFO(padding / ALIGNMENT);
+        PINFO(STRING("MiB\n"));
 
-        INFO(STRING("IMAGE SIZE: "));
-        INFO(image_size / ALIGNMENT);
-        INFO(STRING("MiB\n"));
+        PINFO(STRING("IMAGE SIZE: "));
+        PINFO(image_size / ALIGNMENT);
+        PINFO(STRING("MiB\n"));
     }
 
     srand((U32)time(NULL));
@@ -1019,7 +1020,7 @@ void writeUEFIImage() {
         for (U32 i = 0; i < options.num_esp_file_paths; i++) {
             if (!add_path_to_esp(options.esp_file_paths[i],
                                  options.esp_files[i], image)) {
-                fprintf(stderr, "ERROR: Could not add '%s' to ESP\n",
+                fprintf(stderr, "PERROR: Could not add '%s' to ESP\n",
                         options.esp_file_paths[i]);
             }
             fclose(options.esp_files[i]);
@@ -1031,7 +1032,7 @@ void writeUEFIImage() {
         for (U32 i = 0; i < options.num_data_files; i++) {
             if (!add_file_to_data_partition(options.data_files[i], image)) {
                 fprintf(stderr,
-                        "ERROR: Could not add file '%s' to data partition\n",
+                        "PERROR: Could not add file '%s' to data partition\n",
                         options.data_files[i]);
             }
         }
@@ -1042,12 +1043,12 @@ void writeUEFIImage() {
 
         fp = fopen(info_file, "rbe");
         if (!fp) {
-            fprintf(stderr, "ERROR: Could not open '%s'\n", info_file);
+            fprintf(stderr, "PERROR: Could not open '%s'\n", info_file);
             return;
         }
 
         if (!add_path_to_esp(info_path, fp, image)) {
-            fprintf(stderr, "ERROR: Could not add '%s' to ESP\n", info_path);
+            fprintf(stderr, "PERROR: Could not add '%s' to ESP\n", info_path);
             return;
         }
         fclose(fp);
@@ -1083,13 +1084,13 @@ int main(int argc, char *argv[]) {
     if (__builtin_setjmp(fileCloser)) {
         for (U64 i = 0; i < openedFiles.len; i++) {
             if (fclose(openedFiles.buf[i])) {
-                FLUSH_AFTER(STDERR) {
-                    ERROR(STRING("Failed to close FILE*\n"));
-                    LOG(STRING("Error code: "));
-                    LOG(errno, NEWLINE);
-                    LOG(STRING("Error message: "));
+                PFLUSH_AFTER(STDERR) {
+                    PERROR(STRING("Failed to close FILE*\n"));
+                    PLOG(STRING("Error code: "));
+                    PLOG(errno, NEWLINE);
+                    PLOG(STRING("Error message: "));
                     U8 *errorString = strerror(errno);
-                    LOG(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
+                    PLOG(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
                 }
             }
         }
@@ -1099,13 +1100,13 @@ int main(int argc, char *argv[]) {
     U8 *begin = mmap(NULL, memoryCap, PROT_READ | PROT_WRITE,
                      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (begin == MAP_FAILED) {
-        FLUSH_AFTER(STDERR) {
-            ERROR(STRING("Failed to allocate memory!\n"));
-            LOG(STRING("Error code: "));
-            LOG(errno, NEWLINE);
-            LOG(STRING("Error message: "));
+        PFLUSH_AFTER(STDERR) {
+            PERROR(STRING("Failed to allocate memory!\n"));
+            PLOG(STRING("Error code: "));
+            PLOG(errno, NEWLINE);
+            PLOG(STRING("Error message: "));
             U8 *errorString = strerror(errno);
-            LOG(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
+            PLOG(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
         }
         return 1;
     }
@@ -1115,98 +1116,98 @@ int main(int argc, char *argv[]) {
 
     if (__builtin_setjmp(memoryErrors)) {
         if (munmap(arena.beg, memoryCap) == -1) {
-            FLUSH_AFTER(STDERR) {
-                ERROR((STRING("Failed to unmap memory from"
-                              "arena !\n "
-                              "Arena Details:\n"
-                              "  beg: ")));
-                ERROR(arena.beg);
-                ERROR((STRING("\n end: ")));
-                ERROR(arena.end);
-                ERROR((STRING("\n cap: ")));
-                ERROR(memoryCap);
-                ERROR((STRING("\nZeroing Arena regardless.\n")));
+            PFLUSH_AFTER(STDERR) {
+                PERROR((STRING("Failed to unmap memory from"
+                               "arena !\n "
+                               "Arena Details:\n"
+                               "  beg: ")));
+                PERROR(arena.beg);
+                PERROR((STRING("\n end: ")));
+                PERROR(arena.end);
+                PERROR((STRING("\n cap: ")));
+                PERROR(memoryCap);
+                PERROR((STRING("\nZeroing Arena regardless.\n")));
             }
         }
         arena = (Arena){0};
-        ERROR((STRING("Early exit due to error or OOM/overflow in arena!\n")),
-              FLUSH);
+        PERROR((STRING("Early exit due to error or OOM/overflow in arena!\n")),
+               FLUSH);
         __builtin_longjmp(fileCloser, 1);
     }
     arena.jmp_buf = memoryErrors;
 
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
-            FLUSH_AFTER(STDOUT) {
-                INFO(STRING_LEN(argv[0], strlen(argv[0])));
-                INFO(STRING(" [options]\n\noptions:\n"));
+            PFLUSH_AFTER(STDOUT) {
+                PINFO(STRING_LEN(argv[0], strlen(argv[0])));
+                PINFO(STRING(" [options]\n\noptions:\n"));
 
                 // add data files
-                INFO(STRING("-ad --add-data-files\tAdd local files to the "
-                            "basic data partition, annd create a\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("<DATAFLS.INF> file in the directory "
-                            "'/EFI/BOOT/' in the ESP.\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("This INF will hold info for each file added.\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("e.g: '-ad info.txt ../folderA/kernel.bin'.\n"));
+                PINFO(STRING("-ad --add-data-files\tAdd local files to the "
+                             "basic data partition, annd create a\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("<DATAFLS.INF> file in the directory "
+                             "'/EFI/BOOT/' in the ESP.\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("This INF will hold info for each file added.\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("e.g: '-ad info.txt ../folderA/kernel.bin'.\n"));
 
                 // add esp files
-                INFO(STRING("-ae --add-esp-files\tAdd local files to "
-                            "the generated EFI System Partition.\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING(
+                PINFO(STRING("-ae --add-esp-files\tAdd local files to "
+                             "the generated EFI System Partition.\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING(
                     "File paths must start under root '/' and end with a \n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("slash '/', and all dir/file names are "
-                            "limited to FAT 8.3\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("naming. Each file is added in 2 parts; "
-                            "The 1st arg for\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING(
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("slash '/', and all dir/file names are "
+                             "limited to FAT 8.3\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("naming. Each file is added in 2 parts; "
+                             "The 1st arg for\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING(
                     "the path, and the 2nd arg for the file to add to that\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("path. ex: '-ae /EFI/BOOT/ file1.txt' "
-                            "will add the local\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("file 'file1.txt' to the ESP under the "
-                            "path '/EFI/BOOT/'.\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("path. ex: '-ae /EFI/BOOT/ file1.txt' "
+                             "will add the local\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("file 'file1.txt' to the ESP under the "
+                             "path '/EFI/BOOT/'.\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(
                     STRING("To add multiple files (up to 10), use multiple\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("<path> <file> args.\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("ex: '-ae /DIR1/ FILE1.TXT /DIR2/ FILE2.TXT'.\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("<path> <file> args.\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("ex: '-ae /DIR1/ FILE1.TXT /DIR2/ FILE2.TXT'.\n"));
 
                 // set data size
-                INFO(STRING("-ds --data-size\tSet the size of the "
-                            "Basic Data Partition in MiB; Minimum\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("size is 1 MiB\n"));
+                PINFO(STRING("-ds --data-size\tSet the size of the "
+                             "Basic Data Partition in MiB; Minimum\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("size is 1 MiB\n"));
 
                 // set esp size
-                INFO(STRING("-es --esp-size\t\tSet the size of the "
-                            "EFI System Partition in MiB\n"));
+                PINFO(STRING("-es --esp-size\t\tSet the size of the "
+                             "EFI System Partition in MiB\n"));
 
                 // set lba size
-                INFO(STRING("-l --lba-size\t\tSet the lba (sector) "
-                            "size in bytes; This is \n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("experimental, as tools are lacking for "
-                            "proper testing.\n"));
-                INFO(STRING("\t\t\t"));
-                INFO(STRING("experimental, as tools are lacking Valid "
-                            "sizes: 512/1024/2048/4096\n"));
+                PINFO(STRING("-l --lba-size\t\tSet the lba (sector) "
+                             "size in bytes; This is \n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("experimental, as tools are lacking for "
+                             "proper testing.\n"));
+                PINFO(STRING("\t\t\t"));
+                PINFO(STRING("experimental, as tools are lacking Valid "
+                             "sizes: 512/1024/2048/4096\n"));
 
                 // set image name
-                INFO(STRING("-i --image-name\t\tSet the image name. "
-                            "Default name is 'test.hdd'\n"));
+                PINFO(STRING("-i --image-name\t\tSet the image name. "
+                             "Default name is 'test.hdd'\n"));
 
                 // help
-                INFO(STRING("-h --help\t\tPrint this help text\n"));
+                PINFO(STRING("-h --help\t\tPrint this help text\n"));
             }
             return 1;
         }
@@ -1229,10 +1230,10 @@ int main(int argc, char *argv[]) {
 
             if (lba_size != 512 && lba_size != 1024 && lba_size != 2048 &&
                 lba_size != 4096) {
-                FLUSH_AFTER(STDERR) {
-                    ERROR(STRING("Error: Invalid LBA size of "));
-                    ERROR(lba_size);
-                    ERROR(STRING(", must be one of 512/1024/2048/4096\n"));
+                PFLUSH_AFTER(STDERR) {
+                    PERROR(STRING("Error: Invalid LBA size of "));
+                    PERROR(lba_size);
+                    PERROR(STRING(", must be one of 512/1024/2048/4096\n"));
                 }
 
                 return 1;
@@ -1264,9 +1265,9 @@ int main(int argc, char *argv[]) {
 
         if (!strcmp(argv[i], "-ae") || !strcmp(argv[i], "--add-esp-files")) {
             if (i + 2 >= argc) {
-                FLUSH_AFTER(STDERR) {
-                    ERROR(STRING("Error: Must include at least 1 path "
-                                 "and 1 file to add to ESP\n"));
+                PFLUSH_AFTER(STDERR) {
+                    PERROR(STRING("Error: Must include at least 1 path "
+                                  "and 1 file to add to ESP\n"));
                 }
 
                 return 1;
@@ -1285,9 +1286,10 @@ int main(int argc, char *argv[]) {
                 // Ensure path starts and ends with a slash '/'
                 if ((argv[i][0] != '/') ||
                     (argv[i][strlen(argv[i]) - 1] != '/')) {
-                    FLUSH_AFTER(STDERR) {
-                        ERROR(STRING("Error: All file paths to add to ESP must "
-                                     "start and end with slash '/'\n"));
+                    PFLUSH_AFTER(STDERR) {
+                        PERROR(
+                            STRING("Error: All file paths to add to ESP must "
+                                   "start and end with slash '/'\n"));
                     }
                     return 1;
                 }
@@ -1297,9 +1299,9 @@ int main(int argc, char *argv[]) {
                 options.esp_files[options.num_esp_file_paths] =
                     fopen(argv[i], "rbe");
                 if (!options.esp_files[options.num_esp_file_paths]) {
-                    FLUSH_AFTER(STDERR) {
-                        ERROR(STRING("Error: Could not fopen file "));
-                        ERROR(STRING_LEN(argv[i], strlen(argv[1])), NEWLINE);
+                    PFLUSH_AFTER(STDERR) {
+                        PERROR(STRING("Error: Could not fopen file "));
+                        PERROR(STRING_LEN(argv[i], strlen(argv[1])), NEWLINE);
                     }
 
                     return 1;
@@ -1319,10 +1321,10 @@ int main(int argc, char *argv[]) {
                 }
 
                 if (++options.num_esp_file_paths == MAX_FILES) {
-                    FLUSH_AFTER(STDERR) {
-                        ERROR(STRING(
+                    PFLUSH_AFTER(STDERR) {
+                        PERROR(STRING(
                             "Error: Number of ESP files to add must be <= "));
-                        ERROR(MAX_FILES, NEWLINE);
+                        PERROR(MAX_FILES, NEWLINE);
                     }
 
                     return 1;
@@ -1347,10 +1349,10 @@ int main(int argc, char *argv[]) {
                         MAX_FILE_LEN - 1);
 
                 if (++options.num_data_files == MAX_FILES) {
-                    FLUSH_AFTER(STDERR) {
-                        ERROR(STRING("Error: Number of Data Parition "
-                                     "files to add must be <= "));
-                        ERROR(MAX_FILES, NEWLINE);
+                    PFLUSH_AFTER(STDERR) {
+                        PERROR(STRING("Error: Number of Data Parition "
+                                      "files to add must be <= "));
+                        PERROR(MAX_FILES, NEWLINE);
                     }
 
                     return 1;
@@ -1368,9 +1370,9 @@ int main(int argc, char *argv[]) {
         (options.lba_size == 1024 && options.esp_size < 65) ||
         (options.lba_size == 2048 && options.esp_size < 129) ||
         (options.lba_size == 4096 && options.esp_size < 257)) {
-        FLUSH_AFTER(STDERR) {
-            ERROR(STRING("Error: ESP Must be a minimum of 33/65/129/257 MiB "
-                         "for LBA sizes 512/1024/2048/4096 respectively\n"));
+        PFLUSH_AFTER(STDERR) {
+            PERROR(STRING("Error: ESP Must be a minimum of 33/65/129/257 MiB "
+                          "for LBA sizes 512/1024/2048/4096 respectively\n"));
         }
 
         return 1;

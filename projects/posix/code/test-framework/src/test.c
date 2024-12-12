@@ -1,7 +1,7 @@
 #include "posix/test-framework/test.h"
-#include "platform-abstraction/log.h" // for ASSERT
-#include "shared/assert.h"            // for ASSERT
-#include "shared/text/string.h"       // for STRING, string
+#include "posix/log.h"
+#include "shared/assert.h"      // for ASSERT
+#include "shared/text/string.h" // for STRING, string
 
 typedef struct {
     U64 successes;
@@ -22,27 +22,27 @@ void addTopic(string topic) {
 
 void appendSpaces() {
     for (U64 i = 0; i < nextTestTopic - 1; i++) {
-        LOG((STRING("  ")));
+        PLOG((STRING("  ")));
     }
 }
 
 void printTestScore(U64 successes, U64 failures) {
-    FLUSH_AFTER(STDOUT) {
+    PFLUSH_AFTER(STDOUT) {
         appendSpaces();
 
-        LOG((STRING("[ ")));
-        LOG(successes);
-        LOG((STRING(" / ")));
-        LOG(failures + successes);
-        LOG((STRING(" ]\n")));
+        PLOG((STRING("[ ")));
+        PLOG(successes);
+        PLOG((STRING(" / ")));
+        PLOG(failures + successes);
+        PLOG((STRING(" ]\n")));
     }
 }
 
 void testSuiteStart(string mainTopic) {
-    FLUSH_AFTER(STDOUT) {
-        LOG((STRING("Starting test suite for ")));
-        LOG(mainTopic);
-        LOG((STRING(" ...\n\n")));
+    PFLUSH_AFTER(STDOUT) {
+        PLOG((STRING("Starting test suite for ")));
+        PLOG(mainTopic);
+        PLOG((STRING(" ...\n\n")));
     }
 
     addTopic(STRING("Root topic"));
@@ -54,20 +54,20 @@ int testSuiteFinish() {
 
     printTestScore(globalSuccesses, globalFailures);
     if (globalFailures > 0) {
-        FLUSH_AFTER(STDERR) {
-            LOG((STRING("\nTest suite ")));
+        PFLUSH_AFTER(STDERR) {
+            PLOG((STRING("\nTest suite ")));
             appendColor(COLOR_RED, STDERR);
-            LOG((STRING("failed")));
+            PLOG((STRING("failed")));
             appendColorReset(STDERR);
-            LOG((STRING(".\n")));
+            PLOG((STRING(".\n")));
         }
     } else {
-        FLUSH_AFTER(STDOUT) {
-            LOG((STRING("\nTest suite ")));
+        PFLUSH_AFTER(STDOUT) {
+            PLOG((STRING("\nTest suite ")));
             appendColor(COLOR_GREEN, STDOUT);
-            LOG((STRING("successful")));
+            PLOG((STRING("successful")));
             appendColorReset(STDOUT);
-            LOG((STRING(".\n")));
+            PLOG((STRING(".\n")));
         }
     }
 
@@ -77,11 +77,11 @@ int testSuiteFinish() {
 void testTopicStart(string testTopic) {
     addTopic(testTopic);
 
-    FLUSH_AFTER(STDOUT) {
+    PFLUSH_AFTER(STDOUT) {
         appendSpaces();
-        LOG((STRING("Testing ")));
-        LOG(testTopic);
-        LOG((STRING("...\n")));
+        PLOG((STRING("Testing ")));
+        PLOG(testTopic);
+        PLOG((STRING("...\n")));
     }
 }
 
@@ -93,10 +93,10 @@ void testTopicFinish() {
 }
 
 void unitTestStart(string testName) {
-    FLUSH_AFTER(STDOUT) {
+    PFLUSH_AFTER(STDOUT) {
         appendSpaces();
-        LOG((STRING("- ")));
-        LOG(stringWithMinSizeDefault(testName, 50));
+        PLOG((STRING("- ")));
+        PLOG(stringWithMinSizeDefault(testName, 50));
     }
 }
 
@@ -105,11 +105,11 @@ void testSuccess() {
         testTopics[i].successes++;
     }
 
-    FLUSH_AFTER(STDOUT) {
+    PFLUSH_AFTER(STDOUT) {
         appendColor(COLOR_GREEN, STDOUT);
-        LOG(stringWithMinSizeDefault(STRING("Success"), 20));
+        PLOG(stringWithMinSizeDefault(STRING("Success"), 20));
         appendColorReset(STDOUT);
-        LOG((STRING("\n")));
+        PLOG((STRING("\n")));
     }
 }
 
@@ -118,24 +118,24 @@ void testFailure() {
         testTopics[i].failures++;
     }
 
-    FLUSH_AFTER(STDERR) {
+    PFLUSH_AFTER(STDERR) {
         appendColor(COLOR_RED, STDERR);
-        LOG(stringWithMinSizeDefault(STRING("Failure"), 20));
+        PLOG(stringWithMinSizeDefault(STRING("Failure"), 20));
         appendColorReset(STDERR);
-        LOG((STRING("\n")));
+        PLOG((STRING("\n")));
     }
 }
 
 void appendTestFailureStart() {
-    LOG((STRING("----------------------------------------------------"
-                "----------------------------\n")));
-    LOG((STRING("|                                    REASON         "
-                "                           |\n")));
+    PLOG((STRING("----------------------------------------------------"
+                 "----------------------------\n")));
+    PLOG((STRING("|                                    REASON         "
+                 "                           |\n")));
 }
 
 void appendTestFailureFinish() {
-    LOG((STRING("|                                                   "
-                "                           |\n")));
-    LOG((STRING("----------------------------------------------------"
-                "----------------------------\n")));
+    PLOG((STRING("|                                                   "
+                 "                           |\n")));
+    PLOG((STRING("----------------------------------------------------"
+                 "----------------------------\n")));
 }

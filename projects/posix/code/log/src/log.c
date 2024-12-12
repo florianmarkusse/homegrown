@@ -1,11 +1,11 @@
 #include "posix/log.h"
-#include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
-#include "shared/memory/sizes.h"
-#include "shared/types/types.h"
+#include "platform-abstraction/memory/manipulation.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
-#include "platform-abstraction/memory/manipulation.h"
+#include "shared/memory/sizes.h"
 #include "shared/text/string.h"
+#include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
+#include "shared/types/types.h"
 #include <unistd.h>
 
 static constexpr auto FLUSH_BUFFER_SIZE = (2 * MiB);
@@ -22,7 +22,7 @@ static WriteBuffer stderrBuffer =
 
 // We are going to flush to:
 // - The in-memory standin file buffer
-bool flushBuffer(WriteBuffer *buffer) {
+bool flushBufferWithWriter(WriteBuffer *buffer) {
     for (U64 bytesWritten = 0; bytesWritten < buffer->array.len;) {
         U64 partialBytesWritten =
             write(buffer->fileDescriptor, buffer->array.buf + bytesWritten,
@@ -40,7 +40,21 @@ bool flushBuffer(WriteBuffer *buffer) {
     return true;
 }
 
-bool appendToFlushBuffer(string data, WriteBuffer *buffer, U8 flags) {
+bool flushBuffer(U8_max_a *buffer) {
+    WriteBuffer writer =
+        (WriteBuffer){.fileDescriptor = STDOUT_FILENO, .array = *buffer};
+    bool result = flushBufferWithWriter(&writer);
+    // We are copying the buffer by doing *buffer so will manually set lenght to
+    // 0
+    if (result) {
+        buffer->len = 0;
+    }
+    return result;
+}
+
+bool flushStandardBuffer() { return flushBufferWithWriter(&stdoutBuffer); }
+
+bool appendToFlushBufferWithWriter(string data, U8 flags, WriteBuffer *buffer) {
     for (U64 bytesWritten = 0; bytesWritten < data.len;) {
         // the minimum of size remaining and what is left in the buffer.
         U64 spaceInBuffer = (buffer->array.cap) - buffer->array.len;
@@ -51,7 +65,7 @@ bool appendToFlushBuffer(string data, WriteBuffer *buffer, U8 flags) {
         buffer->array.len += bytesToWrite;
         bytesWritten += bytesToWrite;
         if (bytesWritten < data.len) {
-            if (!flushBuffer(buffer)) {
+            if (!flushBufferWithWriter(buffer)) {
                 return false;
             }
         }
@@ -59,7 +73,7 @@ bool appendToFlushBuffer(string data, WriteBuffer *buffer, U8 flags) {
 
     if (flags & NEWLINE) {
         if (buffer->array.len >= buffer->array.cap) {
-            if (!flushBuffer(buffer)) {
+            if (!flushBufferWithWriter(buffer)) {
                 return false;
             }
         }
@@ -68,12 +82,16 @@ bool appendToFlushBuffer(string data, WriteBuffer *buffer, U8 flags) {
     }
 
     if (flags & FLUSH) {
-        if (!flushBuffer(buffer)) {
+        if (!flushBufferWithWriter(buffer)) {
             return false;
         }
     }
 
     return true;
+}
+
+void appendToFlushBuffer(string data, U8 flags) {
+    appendToFlushBufferWithWriter(data, flags, &stdoutBuffer);
 }
 
 static string ansiColorToCode[COLOR_NUMS] = {
@@ -84,17 +102,17 @@ static string ansiColorToCode[COLOR_NUMS] = {
 
 bool appendColor(AnsiColor color, BufferType bufferType) {
     WriteBuffer *buffer = getWriteBuffer(bufferType);
-    return appendToFlushBuffer(
+    return appendToFlushBufferWithWriter(
         isatty(buffer->fileDescriptor) ? ansiColorToCode[color] : EMPTY_STRING,
-        buffer, 0);
+        0, buffer);
 }
 
 bool appendColorReset(BufferType bufferType) {
     WriteBuffer *buffer = getWriteBuffer(bufferType);
-    return appendToFlushBuffer(isatty(buffer->fileDescriptor)
-                                   ? ansiColorToCode[COLOR_RESET]
-                                   : EMPTY_STRING,
-                               buffer, 0);
+    return appendToFlushBufferWithWriter(isatty(buffer->fileDescriptor)
+                                             ? ansiColorToCode[COLOR_RESET]
+                                             : EMPTY_STRING,
+                                         0, buffer);
 }
 
 WriteBuffer *getWriteBuffer(BufferType bufferType) {

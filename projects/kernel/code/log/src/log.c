@@ -2,6 +2,7 @@
 #include "kernel/log/init.h"
 #include "peripheral/screen/screen.h"
 #include "platform-abstraction/memory/manipulation.h"
+#include "shared/log.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/allocator/arena.h"
 #include "shared/memory/sizes.h"
