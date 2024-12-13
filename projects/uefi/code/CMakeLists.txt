@@ -43,7 +43,7 @@ add_executable(
     "src/acpi/c-acpi-rsdp.c"
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE interoperation)
+target_link_libraries(${PROJECT_NAME} PRIVATE interoperation-i)
 
 target_link_libraries(
     ${PROJECT_NAME}
@@ -51,7 +51,7 @@ target_link_libraries(
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE shared)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 
 target_include_directories(
     ${PROJECT_NAME}

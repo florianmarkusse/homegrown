@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(kernel LANGUAGES C ASM)
+set(AGGREGATED_INTERFACE "${PROJECT_NAME}-i")
+add_library(${AGGREGATED_INTERFACE} INTERFACE)
 if(
     (NOT "${BUILD_UNIT_TESTS}")
     AND (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
@@ -58,7 +60,7 @@ if(
             EXCLUDE_FROM_ALL TRUE
     )
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE interoperation)
+    target_link_libraries(${PROJECT_NAME} PRIVATE interoperation-i)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
     target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
@@ -75,7 +77,7 @@ if(
         PRIVATE platform-abstraction-memory-manipulation
     )
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE shared)
+    target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
     target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
     target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(interoperation LANGUAGES C ASM)
+project(interoperation-i LANGUAGES C ASM)
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/setup.cmake")
     include("${REPO_PROJECTS}/print-configuration.cmake")
@@ -14,7 +14,7 @@ target_include_directories(
     INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} INTERFACE shared)
+target_link_libraries(${PROJECT_NAME} INTERFACE shared-i)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()

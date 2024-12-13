@@ -7,7 +7,7 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE interoperation)
+target_link_libraries(${PROJECT_NAME} PRIVATE interoperation-i)
 
 target_link_libraries(
     ${PROJECT_NAME}
@@ -17,13 +17,13 @@ target_link_libraries(
 target_link_libraries(${PROJECT_NAME} PRIVATE posix-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE posix-test-framework)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE x86)
+target_link_libraries(${PROJECT_NAME} PRIVATE x86-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-mock)
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-status-core)
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-status-test)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE shared)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 
 target_include_directories(

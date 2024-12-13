@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(platform-abstraction LANGUAGES C)
-add_library(${PROJECT_NAME} INTERFACE)
-set(AGGREGATED_INTERFACE "${PROJECT_NAME}")
+set(AGGREGATED_INTERFACE "${PROJECT_NAME}-i")
+add_library(${AGGREGATED_INTERFACE} INTERFACE)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/setup.cmake")

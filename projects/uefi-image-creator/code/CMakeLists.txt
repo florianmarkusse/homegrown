@@ -16,9 +16,9 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE posix-log)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE shared)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
