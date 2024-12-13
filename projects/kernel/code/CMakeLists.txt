@@ -62,6 +62,7 @@ if(
 
     target_link_libraries(${PROJECT_NAME} PRIVATE interoperation-i)
 
+    target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
     target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
     target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
     target_link_libraries(
@@ -81,6 +82,7 @@ if(
     target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
     target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
 
+    target_link_libraries(${PROJECT_NAME} PRIVATE x86-i)
     target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE kernel-log-init)

@@ -12,3 +12,8 @@ if("${ARCHITECTURE}" STREQUAL "x86")
 else()
     message(FATAL_ERROR "Could not match ARCHITECTURE variable")
 endif()
+
+target_include_directories(
+    ${AGGREGATED_INTERFACE}
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)

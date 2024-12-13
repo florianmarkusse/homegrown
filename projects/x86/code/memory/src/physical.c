@@ -2,10 +2,27 @@
 #include "interoperation/kernel-parameters.h" // for KernelMemory
 #include "interoperation/memory/descriptor.h"
 #include "platform-abstraction/idt.h"
+#include "platform-abstraction/memory/management/physical.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
 #include "shared/types/types.h" // for U64, U32, U8
+
+typedef struct {
+    union {
+        U8 data[LARGE_PAGE_SIZE];
+        PhysicalBasePage basePages[PageTableFormat.ENTRIES];
+    };
+} PhysicalLargePage;
+
+typedef struct {
+    union {
+        U8 data[HUGE_PAGE_SIZE];
+        PhysicalBasePage
+            basePages[PageTableFormat.ENTRIES * PageTableFormat.ENTRIES];
+        PhysicalLargePage largePages[PageTableFormat.ENTRIES];
+    };
+} PhysicalHugePage;
 
 PhysicalMemoryManager basePMM;
 PhysicalMemoryManager largePMM;

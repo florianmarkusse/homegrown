@@ -1,5 +1,6 @@
 #include "x86/cpu/mock/idt.h"
 #include "shared/types/types.h"
+#include "x86/cpu/fault.h"
 
 static bool triggeredFaults[FAULT_NUMS];
 

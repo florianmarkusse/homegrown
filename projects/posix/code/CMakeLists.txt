@@ -18,7 +18,6 @@ endif()
 add_subdirectory(log)
 add_subdirectory(file)
 add_subdirectory(test-framework)
-add_subdirectory(memory)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()

@@ -47,6 +47,7 @@ add_executable(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE interoperation-i)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
 target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE platform-abstraction-memory-management

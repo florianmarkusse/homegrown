@@ -10,7 +10,6 @@ target_include_directories(
 if("${ENVIRONMENT}" STREQUAL "freestanding")
     include_and_link_object_library(kernel-memory-manipulation)
 elseif("${ENVIRONMENT}" STREQUAL "posix")
-    include_interface_library(posix-memory-manipulation)
 else()
     message(FATAL_ERROR "Could not match ENVIRONMENT variable")
 endif()

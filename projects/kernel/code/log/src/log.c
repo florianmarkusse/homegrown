@@ -1,4 +1,4 @@
-#include "kernel/log.h"
+#include "platform-abstraction/log.h"
 #include "kernel/log/init.h"
 #include "peripheral/screen/screen.h"
 #include "platform-abstraction/memory/manipulation.h"

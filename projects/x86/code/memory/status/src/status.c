@@ -1,4 +1,4 @@
-#include "x86/memory/status.h"
+#include "platform-abstraction/memory/management/status.h"
 #include "platform-abstraction/cpu.h"
 #include "platform-abstraction/log.h"
 #include "shared/log.h"

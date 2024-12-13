@@ -9,11 +9,17 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE interoperation-i)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
 target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE platform-abstraction-memory-manipulation
 )
+target_link_libraries(
+    ${PROJECT_NAME}
+    PRIVATE platform-abstraction-memory-management-status
+)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE posix-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE posix-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE posix-test-framework)
 

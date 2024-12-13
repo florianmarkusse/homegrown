@@ -11,22 +11,6 @@ typedef struct {
 } PhysicalBasePage;
 
 typedef struct {
-    union {
-        U8 data[LARGE_PAGE_SIZE];
-        PhysicalBasePage basePages[PageTableFormat.ENTRIES];
-    };
-} PhysicalLargePage;
-
-typedef struct {
-    union {
-        U8 data[HUGE_PAGE_SIZE];
-        PhysicalBasePage
-            basePages[PageTableFormat.ENTRIES * PageTableFormat.ENTRIES];
-        PhysicalLargePage largePages[PageTableFormat.ENTRIES];
-    };
-} PhysicalHugePage;
-
-typedef struct {
     PagedMemory_max_a memory;
     U32 usedBasePages;
     PageSize pageSize;
@@ -35,13 +19,5 @@ typedef struct {
 extern PhysicalMemoryManager basePMM;
 extern PhysicalMemoryManager largePMM;
 extern PhysicalMemoryManager hugePMM;
-
-void initPhysicalMemoryManager(KernelMemory kernelMemory);
-
-U64 allocContiguousPhysicalPages(U64 numberOfPages, PageSize pageSize);
-PagedMemory_a allocPhysicalPages(PagedMemory_a pages, PageSize pageSize);
-
-void freePhysicalPage(PagedMemory page, PageSize pageSize);
-void freePhysicalPages(PagedMemory_a pages, PageSize pageSize);
 
 #endif

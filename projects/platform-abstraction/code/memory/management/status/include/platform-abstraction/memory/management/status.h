@@ -2,7 +2,9 @@
 #define PLATFORM_ABSTRACTION_MEMORY_MANAGEMENT_STATUS_H
 
 #ifdef X86_ARCHITECTURE
-#include "x86/memory/status.h"
+
+void appendPhysicalMemoryManagerStatus();
+void appendVirtualMemoryManagerStatus();
 #else
 #error "Could not match ARCHITECTURE"
 #endif
