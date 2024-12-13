@@ -20,3 +20,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-macros)
+
+target_include_directories(
+    ${AGGREGATED_INTERFACE}
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)

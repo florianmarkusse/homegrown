@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(posix LANGUAGES C ASM)
+add_library(${PROJECT_NAME} INTERFACE)
+set(AGGREGATED_INTERFACE "${PROJECT_NAME}")
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/setup.cmake")
