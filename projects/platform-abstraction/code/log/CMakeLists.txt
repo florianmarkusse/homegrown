@@ -8,17 +8,9 @@ target_include_directories(
 )
 
 if("${ENVIRONMENT}" STREQUAL "freestanding")
-    target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:kernel-log>)
-    target_include_directories(
-        ${PROJECT_NAME}
-        INTERFACE $<TARGET_PROPERTY:kernel-log,INCLUDE_DIRECTORIES>
-    )
+    include_and_link_object_library(kernel-log)
 elseif("${ENVIRONMENT}" STREQUAL "posix")
-    target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:posix-log>)
-    target_include_directories(
-        ${PROJECT_NAME}
-        INTERFACE $<TARGET_PROPERTY:posix-log,INCLUDE_DIRECTORIES>
-    )
+    include_and_link_object_library(posix-log)
 else()
     message(FATAL_ERROR "Could not match ENVIRONMENT variable")
 endif()

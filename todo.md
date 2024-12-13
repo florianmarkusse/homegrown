@@ -1,4 +1,3 @@
-- Use functions in platform-abstraction project
 - Remove duplicate function definitions and use platform-abstraction definition instead
 - Fix remaining warnings
 - Do enum stuff

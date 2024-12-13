@@ -8,21 +8,9 @@ target_include_directories(
 )
 
 if("${ENVIRONMENT}" STREQUAL "freestanding")
-    target_sources(
-        ${PROJECT_NAME}
-        INTERFACE $<TARGET_OBJECTS:kernel-memory-manipulation>
-    )
-    target_include_directories(
-        ${PROJECT_NAME}
-        INTERFACE
-            $<TARGET_PROPERTY:kernel-memory-manipulation,INCLUDE_DIRECTORIES>
-    )
+    include_and_link_object_library(kernel-memory-manipulation)
 elseif("${ENVIRONMENT}" STREQUAL "posix")
-    target_include_directories(
-        ${PROJECT_NAME}
-        INTERFACE
-            $<TARGET_PROPERTY:posix-memory-manipulation,INTERFACE_INCLUDE_DIRECTORIES>
-    )
+    include_interface_library(posix-memory-manipulation)
 else()
     message(FATAL_ERROR "Could not match ENVIRONMENT variable")
 endif()

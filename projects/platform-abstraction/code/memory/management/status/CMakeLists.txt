@@ -8,14 +8,7 @@ target_include_directories(
 )
 
 if("${ARCHITECTURE}" STREQUAL "x86")
-    target_sources(
-        ${PROJECT_NAME}
-        INTERFACE $<TARGET_OBJECTS:x86-memory-status>
-    )
-    target_include_directories(
-        ${PROJECT_NAME}
-        INTERFACE $<TARGET_PROPERTY:x86-memory-status,INCLUDE_DIRECTORIES>
-    )
+    include_and_link_object_library(x86-memory-status)
 else()
     message(FATAL_ERROR "Could not match ARCHITECTURE variable")
 endif()
