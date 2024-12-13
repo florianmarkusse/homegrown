@@ -12,7 +12,9 @@ target_link_libraries(
     PRIVATE platform-abstraction-memory-manipulation
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared)
+
+target_include_directories(
+    ${AGGREGATED_INTERFACE}
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)

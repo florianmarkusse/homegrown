@@ -16,5 +16,9 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared)
+
+target_include_directories(
+    ${AGGREGATED_INTERFACE}
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)

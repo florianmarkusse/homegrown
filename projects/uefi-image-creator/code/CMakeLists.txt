@@ -18,12 +18,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE posix-log)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-macros)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-dynamic-array)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)

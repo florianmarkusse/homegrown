@@ -30,8 +30,4 @@ target_link_libraries(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory-definitions)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-macros)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-management)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared)

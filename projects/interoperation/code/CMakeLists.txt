@@ -14,7 +14,7 @@ target_include_directories(
     INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} INTERFACE shared-types)
+target_link_libraries(${PROJECT_NAME} INTERFACE shared)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()

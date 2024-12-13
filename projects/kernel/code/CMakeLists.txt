@@ -58,11 +58,6 @@ if(
             EXCLUDE_FROM_ALL TRUE
     )
 
-    target_include_directories(
-        ${PROJECT_NAME}
-        PUBLIC "${REPO_PROJECTS}/shared/code/assert/include"
-    )
-
     target_link_libraries(${PROJECT_NAME} PRIVATE interoperation)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
@@ -75,13 +70,13 @@ if(
         ${PROJECT_NAME}
         PRIVATE platform-abstraction-memory-management-status
     )
-
-    target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
-    target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
     target_link_libraries(
         ${PROJECT_NAME}
         PRIVATE platform-abstraction-memory-manipulation
     )
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE shared)
+    target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
     target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)

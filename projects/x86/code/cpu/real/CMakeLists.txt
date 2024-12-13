@@ -10,4 +10,4 @@ target_include_directories(
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-fault)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared)

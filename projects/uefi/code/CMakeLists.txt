@@ -51,9 +51,7 @@ target_link_libraries(
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-management)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared)
 
 target_include_directories(
     ${PROJECT_NAME}
