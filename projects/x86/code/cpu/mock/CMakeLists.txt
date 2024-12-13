@@ -7,13 +7,11 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_include_directories(
-    ${PROJECT_NAME}
-    PRIVATE $<TARGET_PROPERTY:x86-cpu-real,INTERFACE_INCLUDE_DIRECTORIES>
-)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-fault)
-
+target_link_libraries(${PROJECT_NAME} PRIVATE x86)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared)
+
+target_include_directories(
+    ${AGGREGATED_INTERFACE}
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)

@@ -9,10 +9,7 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared)
 
-target_link_libraries(
-    ${PROJECT_NAME}
-    PRIVATE platform-abstraction-memory-manipulation
-)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
 
 target_include_directories(
     ${AGGREGATED_INTERFACE}

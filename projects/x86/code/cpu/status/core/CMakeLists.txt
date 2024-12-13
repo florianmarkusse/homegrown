@@ -7,7 +7,11 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
-
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared)
+target_link_libraries(${PROJECT_NAME} PRIVATE x86)
+
+target_include_directories(
+    ${AGGREGATED_INTERFACE}
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)

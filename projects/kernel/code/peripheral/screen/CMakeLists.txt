@@ -12,16 +12,7 @@ target_include_directories(
     PUBLIC "${REPO_PROJECTS}/kernel/resources"
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
-target_link_libraries(
-    ${PROJECT_NAME}
-    PRIVATE platform-abstraction-memory-manipulation
-)
-target_link_libraries(
-    ${PROJECT_NAME}
-    PRIVATE platform-abstraction-memory-management
-)
-
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
+target_link_libraries(${PROJECT_NAME} PRIVATE interoperation)
+target_link_libraries(${PROJECT_NAME} PRIVATE x86)

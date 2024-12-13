@@ -8,6 +8,11 @@ target_include_directories(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
-target_link_libraries(${PROJECT_NAME} PRIVATE x86-cpu-fault)
+target_link_libraries(${PROJECT_NAME} PRIVATE x86)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared)
+
+target_include_directories(
+    ${AGGREGATED_INTERFACE}
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
