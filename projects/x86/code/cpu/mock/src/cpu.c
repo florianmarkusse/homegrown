@@ -1,4 +1,4 @@
-#include "x86/cpu/mock/cpu.h"
+#include "platform-abstraction/cpu.h"
 #include "shared/types/types.h"
 
 // TODO: Actually write tests thet fail because these values are not set

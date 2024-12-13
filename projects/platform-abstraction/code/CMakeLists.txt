@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 project(platform-abstraction LANGUAGES C)
+add_library(${PROJECT_NAME} INTERFACE)
+set(AGGREGATED_INTERFACE "${PROJECT_NAME}")
+
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/setup.cmake")
     include("${REPO_PROJECTS}/print-configuration.cmake")
@@ -7,11 +10,18 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 endif()
 
 # TODO: Change calls with this
-function(include_and_link_project project)
+function(include_and_link_object_library project)
     target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:${project}>)
     target_include_directories(
         ${PROJECT_NAME}
         INTERFACE $<TARGET_PROPERTY:${project},INCLUDE_DIRECTORIES>
+    )
+endfunction()
+
+function(include_interface_library project)
+    target_include_directories(
+        ${PROJECT_NAME}
+        INTERFACE $<TARGET_PROPERTY:${project},INTERFACE_INCLUDE_DIRECTORIES>
     )
 endfunction()
 

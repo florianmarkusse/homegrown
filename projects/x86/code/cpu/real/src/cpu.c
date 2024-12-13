@@ -1,4 +1,4 @@
-#include "x86/cpu/real/cpu.h"
+#include "platform-abstraction/cpu.h"
 #include "shared/types/types.h"
 
 U64 rdmsr(U32 msr) {

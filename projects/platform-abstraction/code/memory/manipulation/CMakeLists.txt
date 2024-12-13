@@ -26,3 +26,8 @@ elseif("${ENVIRONMENT}" STREQUAL "posix")
 else()
     message(FATAL_ERROR "Could not match ENVIRONMENT variable")
 endif()
+
+target_include_directories(
+    ${AGGREGATED_INTERFACE}
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)

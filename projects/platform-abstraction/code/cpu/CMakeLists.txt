@@ -9,20 +9,17 @@ target_include_directories(
 
 if("${ARCHITECTURE}" STREQUAL "x86")
     if("${ENVIRONMENT}" STREQUAL "freestanding")
-        target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:x86-cpu-real>)
-        target_include_directories(
-            ${PROJECT_NAME}
-            INTERFACE $<TARGET_PROPERTY:x86-cpu-real,INCLUDE_DIRECTORIES>
-        )
+        include_and_link_object_library(x86-cpu-real)
     elseif("${ENVIRONMENT}" STREQUAL "posix")
-        target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:x86-cpu-mock>)
-        target_include_directories(
-            ${PROJECT_NAME}
-            INTERFACE $<TARGET_PROPERTY:x86-cpu-mock,INCLUDE_DIRECTORIES>
-        )
+        include_and_link_object_library(x86-cpu-mock)
     else()
         message(FATAL_ERROR "Could not match ENVIRONMENT variable")
     endif()
 else()
     message(FATAL_ERROR "Could not match ARCHITECTURE variable")
 endif()
+
+target_include_directories(
+    ${AGGREGATED_INTERFACE}
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)

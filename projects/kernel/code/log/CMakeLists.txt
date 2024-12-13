@@ -9,6 +9,11 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_link_libraries(
+    ${PROJECT_NAME}
+    PRIVATE platform-abstraction-memory-manipulation
+)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-log-init)
 
@@ -16,10 +21,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-maths)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
-target_link_libraries(
-    ${PROJECT_NAME}
-    PRIVATE platform-abstraction-memory-manipulation
-)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-sizes)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)

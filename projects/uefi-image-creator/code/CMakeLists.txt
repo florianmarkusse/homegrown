@@ -16,12 +16,10 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE posix-log)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-assert)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
-target_link_libraries(
-    ${PROJECT_NAME}
-    PRIVATE platform-abstraction-memory-manipulation
-)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-macros)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-types)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)
