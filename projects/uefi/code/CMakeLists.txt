@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(uefi LANGUAGES C ASM)
+set(AGGREGATED_INTERFACE "${PROJECT_NAME}-i")
+add_library(${AGGREGATED_INTERFACE} INTERFACE)
 include("${REPO_PROJECTS}/setup.cmake")
 
 # For some reason, clang-19 does not accept the full file path in --ld-path, so

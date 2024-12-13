@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(uefi-image-creator LANGUAGES C ASM)
+set(AGGREGATED_INTERFACE "${PROJECT_NAME}-i")
+add_library(${AGGREGATED_INTERFACE} INTERFACE)
 include(${REPO_PROJECTS}/setup.cmake)
 include(${REPO_PROJECTS}/print-configuration.cmake)
 add_link_options(--ld-path=${CMAKE_LINKER})
