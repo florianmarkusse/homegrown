@@ -5,11 +5,6 @@
 extern "C" {
 #endif
 
-#define SUPPRESS_WARNING(expr, warning)                                        \
-    _Pragma("clang diagnostic push")                                           \
-        _Pragma("clang diagnostic ignored \"" warning "\"")(expr);             \
-    _Pragma("clang diagnostic pop")
-
 #define MACRO_VAR(name) _##name##_##MACRO_VAR##__LINE__
 
 #define STR_HELPER(x) #x
