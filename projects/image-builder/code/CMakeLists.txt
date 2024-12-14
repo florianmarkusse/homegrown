@@ -15,7 +15,6 @@ target_include_directories(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()
