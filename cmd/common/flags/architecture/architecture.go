@@ -37,11 +37,11 @@ func DefaultArchitecture() string {
 	return string(X86)
 }
 
-func DisplayArchitecture(defaultArchitecture string) {
+func DisplayArchitecture() {
 	// Not sure why go doesnt understand string lengths of this one, but whatever
 	var architectureDescription = fmt.Sprintf("Set the architecture (%s%s%s)                             ", common.WHITE,
 		converter.ArrayIntoPrintableString(PossibleArchitectures[:]), common.RESET)
-	flags.DisplayArgumentInput(ARCHITECTURE_SHORT_FLAG, ARCHITECTURE_LONG_FLAG, architectureDescription, string(defaultArchitecture))
+	flags.DisplayArgumentInput(ARCHITECTURE_SHORT_FLAG, ARCHITECTURE_LONG_FLAG, architectureDescription, DefaultArchitecture())
 }
 
 func AddArchitectureAsFlag(architecture *string) {

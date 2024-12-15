@@ -37,11 +37,11 @@ func DefaultBuildMode() string {
 	return string(Release)
 }
 
-func DisplayBuildMode(defaultBuildMode string) {
+func DisplayBuildMode() {
 	// Not sure why go doesnt understand string lengths of this one, but whatever
 	var buildModeDescription = fmt.Sprintf("Set the build mode (%s%s%s)                          ", common.WHITE,
 		converter.ArrayIntoPrintableString(PossibleBuildModes[:]), common.RESET)
-	flags.DisplayArgumentInput(BUILD_MODE_SHORT_FLAG, BUILD_MODE_LONG_FLAG, buildModeDescription, string(defaultBuildMode))
+	flags.DisplayArgumentInput(BUILD_MODE_SHORT_FLAG, BUILD_MODE_LONG_FLAG, buildModeDescription, DefaultBuildMode())
 }
 
 func AddBuildModeAsFlag(buildMode *string) {

@@ -24,7 +24,7 @@ func usage() {
 	fmt.Printf("\n")
 	flags.DisplayOptionalFlags()
 
-	buildmode.DisplayBuildMode(buildArgs.BuildMode)
+	buildmode.DisplayBuildMode()
 
 	fmt.Printf("\n")
 	exit.DisplayExitCodes()

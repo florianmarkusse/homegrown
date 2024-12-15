@@ -5,32 +5,20 @@
 extern "C" {
 #endif
 
+#include "shared/enum.h"
 #include "shared/text/string.h"
 
-typedef enum {
-    FILE_SUCCESS,
-    FILE_CANT_OPEN,
-    FILE_CANT_ALLOCATE,
-    FILE_CANT_READ,
-    FILE_NUM_STATUS
-} FileStatus;
+#define FILE_STATUS_ENUM(VARIANT)                                              \
+    VARIANT(FILE_SUCCESS)                                                      \
+    VARIANT(FILE_CANT_OPEN)                                                    \
+    VARIANT(FILE_CANT_ALLOCATE)                                                \
+    VARIANT(FILE_CANT_READ)
 
-static string fileStatusStrings[FILE_NUM_STATUS] = {
-    STRING("Success"),
-    STRING("Cannot open file"),
-    STRING("Cannot allocate memory"),
-    STRING("Cannot read file"),
-};
+typedef enum { FILE_STATUS_ENUM(ENUM_STANDARD_VARIANT) } FileStatus;
+static constexpr auto FILE_STATUS_COUNT = FILE_STATUS_ENUM(PLUS_ONE);
 
-// Not always used, but very handy for those that actually do want readable
-// error codes.
-__attribute__((unused)) static string
-flo_fileStatusToString(FileStatus status) {
-    if (status >= 0 && status < FILE_NUM_STATUS) {
-        return fileStatusStrings[status];
-    }
-    return STRING("Unknown file status code!");
-}
+static string fileStatusStrings[FILE_STATUS_COUNT] = {
+    FILE_STATUS_ENUM(ENUM_TO_STRING)};
 
 #ifdef __cplusplus
 }

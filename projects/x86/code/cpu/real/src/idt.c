@@ -1,4 +1,5 @@
 #include "platform-abstraction/idt.h"
+#include "shared/enum.h"
 
 typedef struct {
     U16 limit;
@@ -277,9 +278,14 @@ extern void asm_lidt(void *);
 idt_ptr idtp;
 static InterruptDescriptor idt[256];
 
-typedef enum { INTERRUPT_GATE, TRAP_GATE, GATE_NUM } GateType;
+#define GATE_TYPE_ENUM(VARIANT)                                                \
+    VARIANT(INTERRUPT_GATE)                                                    \
+    VARIANT(TRAP_GATE)
 
-U8 gateFlags[GATE_NUM] = {0x8E, 0x8F};
+typedef enum { GATE_TYPE_ENUM(ENUM_STANDARD_VARIANT) } GateType;
+static constexpr auto GATE_TYPE_COUNT = (0 GATE_TYPE_ENUM(PLUS_ONE));
+
+U8 gateFlags[GATE_TYPE_COUNT] = {0x8E, 0x8F};
 
 static void idt_set_gate(U8 num, U64 base, GateType gateType) {
     idt[num].offset_1 = (base & 0xFFFF);
@@ -714,15 +720,5 @@ typedef struct {
 } regs __attribute__((aligned(8)));
 
 void fault_handler([[maybe_unused]] regs *regs) {
-    /*FLUSH_AFTER {*/
-    /*    LOG(STRING("ISR fault handler triggered!\n"));*/
-    /*    LOG(STRING("Interrupt #: "));*/
-    /*    LOG(regs->int_no);*/
-    /*    LOG(STRING(", Interrupt Message: "));*/
-    /*    LOG(faultToString[regs->int_no], NEWLINE);*/
-    /*    LOG(STRING("Error code: "));*/
-    /*    LOG(regs->err_code, NEWLINE);*/
-    /*    LOG(STRING("Halting...\n"));*/
-    /*}*/
     __asm__ __volatile__("cli;hlt;");
 }

@@ -5,16 +5,21 @@
 extern "C" {
 #endif
 
+#include "shared/enum.h"
 #include "shared/text/string.h"
 
-typedef enum {
-    HASH_COMPARISON_SUCCESS,
-    HASH_COMPARISON_DIFFERENT_SIZES,
-    HASH_COMPARISON_DIFFERENT_CONTENT,
-    HASH_COMPARISON_NUM_STATUS
-} HashComparisonStatus;
+#define HASH_COMPARISON_STATUS_ENUM(VARIANT)                                   \
+    VARIANT(HASH_COMPARISON_SUCCESS)                                           \
+    VARIANT(HASH_COMPARISON_DIFFERENT_SIZES)                                   \
+    VARIANT(HASH_COMPARISON_DIFFERENT_CONTENT)
 
-string hashComparisonStatusToString(HashComparisonStatus status);
+typedef enum {
+    HASH_COMPARISON_STATUS_ENUM(ENUM_STANDARD_VARIANT)
+} HashComparisonStatus;
+static constexpr auto HASH_COMPARISON_STATUS_COUNT =
+    (0 HASH_COMPARISON_STATUS_ENUM(PLUS_ONE));
+
+extern string hashComparisonStatusToString[HASH_COMPARISON_STATUS_COUNT];
 
 #ifdef __cplusplus
 }

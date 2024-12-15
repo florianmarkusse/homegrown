@@ -11,8 +11,7 @@
 #include "interoperation/memory/definitions.h" // for BYTES_TO_PAGE_FRAMES
 #include "interoperation/memory/descriptor.h"
 #include "memory/page-size.h" // for memcmp
-#include "memory/standard.h"  // for memcmp
-#include "platform-abstraction/memory/management/virtual.h"
+#include "platform-abstraction/memory/manipulation.h"
 #include "printing.h" // for error, printNumber
 #include "shared/maths/maths.h"
 

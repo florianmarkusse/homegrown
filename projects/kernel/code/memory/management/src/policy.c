@@ -12,17 +12,17 @@ void *allocAndMap(U64 bytes) {
     U64 inPages;
     PagedMemory_a request;
     // Note that we do the final possible pageSize outside the loop.
-    for (U64 i = 0; i < NUM_PAGE_SIZES - 1; i++) {
+    for (U64 i = 0; i < MEMORY_PAGE_SIZES_COUNT - 1; i++) {
         pageSize = pageSizes[i];
         inPages = CEILING_DIV_VALUE(bytes, pageSize);
 
-        if (i < NUM_PAGE_SIZES - 1 && inPages <= PageTableFormat.ENTRIES / 2) {
+        if (i < MEMORY_PAGE_SIZES_COUNT - 1 && inPages <= PageTableFormat.ENTRIES / 2) {
             request = (PagedMemory_a){.buf = pagedMemory, .len = inPages};
             return allocAndMapExplicit(request, pageSize);
         }
     }
 
-    pageSize = pageSizes[NUM_PAGE_SIZES - 1];
+    pageSize = pageSizes[MEMORY_PAGE_SIZES_COUNT - 1];
     inPages = CEILING_DIV_VALUE(bytes, pageSize);
 
     if (inPages > PageTableFormat.ENTRIES) {

@@ -2,7 +2,7 @@
 #include "shared/types/types.h"
 #include "x86/cpu/fault.h"
 
-static bool triggeredFaults[FAULT_NUMS];
+static bool triggeredFaults[CPU_FAULT_COUNT];
 
 static void **interruptJumper;
 
@@ -17,7 +17,7 @@ void initIDTTest(void *long_jmp[5]) { interruptJumper = long_jmp; }
 
 bool *getTriggeredFaults() { return triggeredFaults; }
 void resetTriggeredFaults() {
-    for (U64 i = 0; i < FAULT_NUMS; i++) {
+    for (U64 i = 0; i < CPU_FAULT_COUNT; i++) {
         triggeredFaults[i] = false;
     }
 }
@@ -25,7 +25,7 @@ void resetTriggeredFaults() {
 bool compareInterrupts(bool *expectedFaults) {
     bool *actualFaults = getTriggeredFaults();
 
-    for (U64 i = 0; i < FAULT_NUMS; i++) {
+    for (U64 i = 0; i < CPU_FAULT_COUNT; i++) {
         if (expectedFaults[i] != actualFaults[i]) {
             return false;
         }

@@ -41,7 +41,6 @@ add_executable(
     "src/data-reading.c"
     "src/memory/boot-functions.c"
     "src/memory/boot-functions.c"
-    "src/memory/standard.c"
     "src/acpi/c-acpi-rsdp.c"
 )
 
@@ -50,7 +49,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE interoperation-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
 target_link_libraries(
     ${PROJECT_NAME}
-    PRIVATE platform-abstraction-memory-management
+    PRIVATE platform-abstraction-memory-manipulation
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 

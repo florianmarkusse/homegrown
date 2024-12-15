@@ -1,20 +1,21 @@
 #ifndef X86_MEMORY_PAT_H
 #define X86_MEMORY_PAT_H
 
+#include "shared/enum.h"
 #include "shared/types/types.h"
 #include "x86/memory/virtual.h"
 
-typedef enum {
-    PAT_UNCACHABLE_UC = 0x0,
-    PAT_WRITE_COMBINGING_WC = 0x1,
-    PAT_RESERVED_2 = 0x2,
-    PAT_RESERVED_3 = 0x3,
-    PAT_WRITE_THROUGH_WT = 0x4,
-    PAT_WRITE_PROTECTED_WP = 0x5,
-    PAT_WRITE_BACK_WB = 0x6,
-    PAT_UNCACHED_UC_ = 0x7,
-    PAT_NUMS
-} PATEncoding;
+#define PAT_ENCODING_ENUM(VARIANT)                                             \
+    VARIANT(PAT_UNCACHABLE_UC, 0x0)                                            \
+    VARIANT(PAT_WRITE_COMBINGING_WC, 0x1)                                      \
+    VARIANT(PAT_RESERVED_2, 0x2)                                               \
+    VARIANT(PAT_RESERVED_3, 0x3)                                               \
+    VARIANT(PAT_WRITE_THROUGH_WT, 0x4)                                         \
+    VARIANT(PAT_WRITE_PROTECTED_WP, 0x5)                                       \
+    VARIANT(PAT_WRITE_BACK_WB, 0x6) VARIANT(PAT_UNCACHED_UC_, 0x7)
+
+typedef enum { PAT_ENCODING_ENUM(ENUM_VALUES_VARIANT) } PATEncoding;
+static constexpr auto PAT_ENCODING_COUNT = (0 PAT_ENCODING_ENUM(PLUS_ONE));
 
 static constexpr auto PAT_LOCATION = 0x277;
 

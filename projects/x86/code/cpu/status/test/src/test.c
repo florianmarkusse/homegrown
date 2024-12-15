@@ -11,7 +11,7 @@ void appendExpectedInterrupt(Fault fault) {
 
 void appendInterrupts(bool *expectedFaults, bool *actualFaults) {
     KLOG(STRING("Interrupts Table\n"));
-    for (U64 i = 0; i < FAULT_NUMS; i++) {
+    for (U64 i = 0; i < CPU_FAULT_COUNT; i++) {
         appendInterrupt(i);
         KLOG(STRING("\tExpected: "));
         KLOG(stringWithMinSizeDefault(

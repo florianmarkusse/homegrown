@@ -1,6 +1,7 @@
 #ifndef X86_MEMORY_DEFINITIONS_VIRTUAL_H
 #define X86_MEMORY_DEFINITIONS_VIRTUAL_H
 
+#include "shared/enum.h"
 #include "shared/types/types.h"
 
 static constexpr struct {
@@ -28,14 +29,16 @@ static constexpr auto LEVEL_3_SHIFT = 30U;
 static constexpr auto LEVEL_2_SHIFT = 21U;
 static constexpr auto LEVEL_1_SHIFT = 12U;
 
-static constexpr auto NUM_PAGE_SIZES = 3;
-typedef enum : U64 {
-    BASE_PAGE = PAGE_FRAME_SIZE,
-    LARGE_PAGE = LARGE_PAGE_SIZE,
-    HUGE_PAGE = HUGE_PAGE_SIZE,
-} PageSize;
+#define MEMORY_PAGE_SIZES_ENUM(VARIANT)                                        \
+    VARIANT(BASE_PAGE, PAGE_FRAME_SIZE)                                        \
+    VARIANT(LARGE_PAGE, LARGE_PAGE_SIZE)                                       \
+    VARIANT(HUGE_PAGE, HUGE_PAGE_SIZE)
 
-extern PageSize pageSizes[NUM_PAGE_SIZES];
+typedef enum : U64 { MEMORY_PAGE_SIZES_ENUM(ENUM_VALUES_VARIANT) } PageSize;
+static constexpr auto MEMORY_PAGE_SIZES_COUNT =
+    (0 MEMORY_PAGE_SIZES_ENUM(PLUS_ONE));
+
+extern PageSize pageSizes[MEMORY_PAGE_SIZES_COUNT];
 
 typedef struct {
     union {

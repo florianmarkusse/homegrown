@@ -51,7 +51,7 @@ void appendPhysicalMemoryManagerStatus() {
     KLOG(STRING("================\n"));
 }
 
-static string patEncodingToString[PAT_NUMS] = {
+static string patEncodingToString[PAT_ENCODING_COUNT] = {
     STRING("Uncachable (UC)"),        STRING("Write Combining (WC)"),
     STRING("Reserved 1, don't use!"), STRING("Reserved 2, don't use!"),
     STRING("Write Through (WT)"),     STRING("Write Protected (WP)"),

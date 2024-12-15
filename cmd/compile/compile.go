@@ -144,9 +144,9 @@ func usage() {
 	fmt.Printf("\n")
 	flags.DisplayOptionalFlags()
 
-	buildmode.DisplayBuildMode(buildArgs.BuildMode)
+	buildmode.DisplayBuildMode()
 	environment.DisplayEnvironment()
-	architecture.DisplayArchitecture(buildArgs.Architecture)
+	architecture.DisplayArchitecture()
 	project.DisplayProject()
 
 	flags.DisplayArgumentInput(ERRORS_TO_FILE_SHORT_FLAG, ERRORS_TO_FILE_LONG_FLAG, "Save errors to file", fmt.Sprint(buildArgs.ErrorsToFile))

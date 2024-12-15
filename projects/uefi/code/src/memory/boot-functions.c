@@ -4,8 +4,8 @@
 #include "globals.h"
 #include "interoperation/memory/definitions.h"
 #include "memory/page-size.h"
-#include "memory/standard.h"
 #include "platform-abstraction/memory/management/virtual.h"
+#include "platform-abstraction/memory/manipulation.h"
 #include "printing.h"
 #include "shared/maths/maths.h"
 
