@@ -1,5 +1,7 @@
 #include "posix/file/read.h"
-#include "platform-abstraction/memory/manipulation.h"
+
+#include <errno.h>              // for errno
+
 #include "posix/file/file-status.h" // for FILE_CANT_ALLOCATE, FILE_CANT_OPEN
 #include "posix/log.h"
 #include "shared/log.h"
@@ -7,7 +9,6 @@
 #include "shared/memory/allocator/macros.h"
 #include "shared/text/string.h" // for STRING, string
 #include "shared/types/types.h" // for NULL_ON_FAIL
-#include <errno.h>              // for errno
 #include <linux/fs.h>           // for BLKGETSIZE64
 #include <stddef.h>             // for U64
 #include <stdio.h>              // for fclose, perror, NULL, fopen, fread

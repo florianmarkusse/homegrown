@@ -6,9 +6,8 @@ extern "C" {
 #endif
 
 #include "shared/macros.h" // for MACRO_VAR
-#include "shared/types/types.h"
 #include "shared/memory/allocator/arena.h"
-#include "shared/memory/allocator/macros.h"
+#include "shared/types/types.h"
 
 /**
  * Common definitions for MSI string hash.

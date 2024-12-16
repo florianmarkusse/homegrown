@@ -1,11 +1,10 @@
 #include "platform-abstraction/log.h"
+
 #include "kernel/log/init.h"
 #include "peripheral/screen/screen.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
-#include "shared/memory/allocator/arena.h"
-#include "shared/memory/sizes.h"
 #include "shared/text/string.h"
 #include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "shared/types/types.h"

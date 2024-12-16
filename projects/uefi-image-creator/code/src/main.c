@@ -1,11 +1,3 @@
-#include "crc32-table.h" // for calculateCRC32
-#include "posix/log.h"
-#include "shared/assert.h"                      // for ASSERT
-#include "shared/dynamic-array/dynamic-array.h" // for MAX_LENGTH_ARRAY
-#include "shared/log.h"
-#include "shared/memory/allocator/arena.h" // for arena
-#include "shared/text/string.h"            // for STRING
-#include "shared/types/array.h"            // for ASSERT
 #include <errno.h>
 #include <inttypes.h> // for U32, U8, U16, U64
 #include <stddef.h>   // for ptrdiff_t
@@ -14,6 +6,16 @@
 #include <string.h>   // for strcmp, memcpy, strlen, strcpy, strncat
 #include <sys/mman.h> // for mmap, munmap, MAP_ANONYMOUS, MAP_FAILED
 #include <time.h>     // for tm, time, localtime, time_t
+
+#include "crc32-table.h"                              // for calculateCRC32
+#include "platform-abstraction/memory/manipulation.h" // for memcpy, memcmp
+#include "posix/log.h"
+#include "shared/assert.h" // for ASSERT
+#include "shared/log.h"
+#include "shared/memory/allocator/arena.h" // for arena
+#include "shared/text/string.h"            // for STRING
+#include "shared/types/array.h"            // for ASSERT
+#include "shared/types/types.h"
 
 U64 memoryCap = (U64)1 << 21;
 // Note: we open files in this program which need to be closed when a program

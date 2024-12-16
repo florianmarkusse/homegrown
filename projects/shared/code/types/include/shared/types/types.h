@@ -5,7 +5,9 @@
 extern "C" {
 #endif
 
-static constexpr void *NULL = ((void *)0);
+// Posix issues when you use a constexpr her
+/* NOLINTNEXTLINE */
+#define NULL ((void *)0)
 
 #if !defined(__INT8_TYPE__) || !defined(__UINT8_TYPE__) ||                     \
     !defined(__INT16_TYPE__) || !defined(__UINT16_TYPE__) ||                   \

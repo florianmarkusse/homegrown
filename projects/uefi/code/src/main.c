@@ -15,6 +15,7 @@
 #include "shared/types/types.h" // for U64, U32, NULL
 #include "string.h"             // for AsciString
 #include "x86/memory/definitions/virtual.h"
+#include "interoperation/memory/descriptor.h"
 
 // static U8 in_exc = 0;
 

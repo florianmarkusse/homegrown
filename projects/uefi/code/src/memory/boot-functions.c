@@ -1,8 +1,8 @@
 #include "memory/boot-functions.h"
+
 #include "efi/c-efi-protocol-simple-text-output.h"
 #include "efi/c-efi-system.h"
 #include "globals.h"
-#include "interoperation/memory/definitions.h"
 #include "memory/page-size.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "printing.h"

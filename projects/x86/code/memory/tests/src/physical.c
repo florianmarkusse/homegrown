@@ -1,6 +1,10 @@
 #include "test/physical.h"
+
+#include <errno.h>
+#include <string.h>
+#include <sys/mman.h>
+
 #include "interoperation/kernel-parameters.h"
-#include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"
 #include "posix/log.h"
 #include "posix/test-framework/test.h"
@@ -12,9 +16,9 @@
 #include "x86/cpu/mock/idt.h"
 #include "x86/cpu/status/test.h"
 #include "x86/memory/physical.h"
-#include <errno.h>
-#include <string.h>
-#include <sys/mman.h>
+#include "shared/memory/management/definitions.h"
+#include "x86/cpu/fault.h"
+#include "x86/memory/definitions/virtual.h"
 
 static constexpr auto TOTAL_BASE_PAGES = (U64)(512 * 512 * 5);
 static constexpr auto MEMORY = (PAGE_FRAME_SIZE * TOTAL_BASE_PAGES);

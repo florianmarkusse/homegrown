@@ -1,5 +1,7 @@
 #include "platform-abstraction/idt.h"
+
 #include "shared/enum.h"
+#include "shared/types/types.h"
 
 typedef struct {
     U16 limit;

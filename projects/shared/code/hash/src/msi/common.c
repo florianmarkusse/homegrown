@@ -1,7 +1,9 @@
 #include "shared/hash/msi/common.h"
+
 #include "shared/types/types.h"
 #include "shared/assert.h" // for ASSERT
 #include "platform-abstraction/memory/manipulation.h"
+#include "shared/memory/allocator/macros.h"
 
 /**
  * Written assuming that arena bumps up! Otherwise the middle case statement

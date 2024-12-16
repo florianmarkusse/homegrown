@@ -6,6 +6,7 @@
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
 #include "shared/types/types.h" // for U64, U32, U8
+#include "x86/cpu/fault.h"
 
 typedef struct {
     union {

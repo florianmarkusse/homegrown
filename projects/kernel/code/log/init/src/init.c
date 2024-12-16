@@ -1,7 +1,9 @@
 #include "kernel/log/init.h"
+
 #include "shared/memory/allocator/arena.h"
 #include "shared/memory/sizes.h"
 #include "shared/types/array-types.h"
+#include "shared/types/types.h"
 
 static constexpr auto FLUSH_BUFFER_SIZE = (2 * MiB);
 

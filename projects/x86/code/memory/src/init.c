@@ -1,9 +1,12 @@
 #include "platform-abstraction/memory/management/init.h"
+
 #include "platform-abstraction/cpu.h"
 #include "shared/maths/maths.h"
 #include "x86/memory/pat.h"
 #include "x86/memory/physical.h"
 #include "x86/memory/virtual.h"
+#include "shared/memory/management/definitions.h"
+#include "x86/memory/definitions/virtual.h"
 
 void initMemoryManager(KernelMemory kernelMemory, U64 rootMemoryMappingTable) {
     initPhysicalMemoryManager(kernelMemory);

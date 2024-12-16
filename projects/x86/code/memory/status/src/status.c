@@ -1,4 +1,5 @@
 #include "platform-abstraction/memory/management/status.h"
+
 #include "platform-abstraction/cpu.h"
 #include "platform-abstraction/log.h"
 #include "shared/log.h"
@@ -7,6 +8,7 @@
 #include "x86/memory/pat.h"
 #include "x86/memory/physical.h"
 #include "x86/memory/virtual.h"
+#include "x86/memory/definitions/virtual.h"
 
 static string pageSizeToString(PageSize pageSize) {
     switch (pageSize) {

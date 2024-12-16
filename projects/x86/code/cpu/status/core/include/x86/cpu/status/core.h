@@ -1,7 +1,7 @@
 #ifndef X86_CPU_STATUS_CORE_H
 #define X86_CPU_STATUS_CORE_H
 
-#include "platform-abstraction/idt.h"
+#include "x86/cpu/fault.h"
 
 void appendInterrupt(Fault fault);
 

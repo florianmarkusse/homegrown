@@ -1,6 +1,9 @@
 #ifndef X86_MEMORY_VIRTUAL_H
 #define X86_MEMORY_VIRTUAL_H
 
+#include "interoperation/kernel-parameters.h"
+#include "shared/memory/management/definitions.h"
+#include "shared/types/types.h"
 #include "x86/memory/definitions/virtual.h"
 
 extern VirtualPageTable *level4PageTable;
@@ -10,11 +13,6 @@ extern VirtualRegion lowerHalfRegion; // Start is set in the init function.
 
 #define BYTES_TO_PAGE_FRAMES(a)                                                \
     (((a) >> PAGE_FRAME_SHIFT) + ((a) & PAGE_MASK ? 1 : 0))
-
-#include "interoperation/kernel-parameters.h"
-#include "shared/memory/management/definitions.h"
-#include "shared/types/types.h"
-#include "x86/memory/definitions/virtual.h"
 
 void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory);
 

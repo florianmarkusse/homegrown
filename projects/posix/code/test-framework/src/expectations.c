@@ -1,6 +1,8 @@
 #include "posix/test-framework/expectations.h"
+
 #include "posix/log.h"
 #include "shared/log.h"
+#include "shared/text/converter.h"
 
 void appendExpectCodeWithString(U64 expected, string expectedString, U64 actual,
                                 string actualString) {

@@ -1,4 +1,5 @@
 #include "data-reading.h"
+
 #include "efi/c-efi-base.h"                        // for ERROR, Handle
 #include "efi/c-efi-protocol-block-io.h"           // for BLOCK_IO_PROTOCOL...
 #include "efi/c-efi-protocol-file.h"               // for FileProtocol, FIL...
@@ -8,7 +9,6 @@
 #include "efi/c-efi-system.h" // for OPEN_PROTOCOL_BY_...
 #include "globals.h"          // for globals
 #include "interoperation/generated/kernel-magic.h"
-#include "interoperation/memory/definitions.h" // for BYTES_TO_PAGE_FRAMES
 #include "interoperation/memory/descriptor.h"
 #include "memory/page-size.h" // for memcmp
 #include "platform-abstraction/memory/manipulation.h"

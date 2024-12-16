@@ -1,4 +1,5 @@
 #include "platform-abstraction/memory/management/policy.h"
+
 #include "platform-abstraction/idt.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/management/definitions.h"
@@ -6,6 +7,8 @@
 #include "x86/memory/definitions/virtual.h"
 #include "x86/memory/physical.h"
 #include "x86/memory/virtual.h"
+#include "shared/assert.h"
+#include "x86/cpu/fault.h"
 
 static constexpr U64 USED_PAGE_SIZES_MASK =
     (PAGE_FRAME_SIZE | LARGE_PAGE_SIZE | HUGE_PAGE_SIZE);

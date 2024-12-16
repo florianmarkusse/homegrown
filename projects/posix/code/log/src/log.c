@@ -1,4 +1,7 @@
 #include "posix/log.h"
+
+#include <unistd.h>
+
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
@@ -6,7 +9,7 @@
 #include "shared/text/string.h"
 #include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "shared/types/types.h"
-#include <unistd.h>
+#include "shared/assert.h"
 
 static constexpr auto FLUSH_BUFFER_SIZE = (2 * MiB);
 static WriteBuffer stdoutBuffer =

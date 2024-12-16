@@ -1,7 +1,6 @@
 #include "posix/test-framework/test.h"
-#include "shared/memory/allocator/arena.h"
-#include "shared/memory/sizes.h"
 #include "test/physical.h"
+#include "shared/text/string.h"
 
 int main() {
     testSuiteStart(STRING("Memory Management"));

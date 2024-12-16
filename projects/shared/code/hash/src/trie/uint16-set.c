@@ -3,6 +3,8 @@
 #include "shared/hash/trie/common-iterator.h" // for TRIE_ITERATOR_SOURCE...
 #include "shared/hash/trie/u16-set.h"
 #include "shared/memory/allocator/macros.h"
+#include "shared/memory/allocator/arena.h"
+#include "shared/types/types.h"
 
 bool trie_insertU16Set(U16 key, trie_U16Set **set, Arena *perm) {
     ASSERT(key != 0);
