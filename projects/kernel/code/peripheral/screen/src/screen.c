@@ -2,7 +2,7 @@
 
 #include "interoperation/memory/definitions.h"
 #include "platform-abstraction/cpu.h"
-#include "platform-abstraction/memory/management/virtual.h"
+#include "platform-abstraction/memory/management/init.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/assert.h" // for ASSERT
 #include "shared/macros.h"
@@ -545,12 +545,7 @@ void initScreen(ScreenDimension dimension, Arena *perm) {
                             .height = dimension.height,
                             .scanline = dimension.scanline};
 
-    PagedMemory pagedMemory = {.pageStart = (U64)dim.screen,
-                               .numberOfPages =
-                                   CEILING_DIV_EXP(dim.size, PAGE_FRAME_SHIFT)};
-    mapVirtualRegionWithFlags((U64)dim.screen, pagedMemory, BASE_PAGE,
-                              PATMapping.MAP_3);
-    flushCPUCaches();
+    initScreenMemory((U64)dim.screen, dim.size);
 
     glyphsPerLine =
         (U16)(dim.width - HORIZONTAL_PIXEL_MARGIN * 2) / (font->width);

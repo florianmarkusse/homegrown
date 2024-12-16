@@ -2,7 +2,6 @@
 #include "interoperation/kernel-parameters.h" // for KernelMemory
 #include "interoperation/memory/descriptor.h"
 #include "platform-abstraction/idt.h"
-#include "platform-abstraction/memory/management/physical.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
@@ -197,8 +196,9 @@ static void freePhysicalPagesWithManager(PagedMemory_a pages,
     for (U64 i = 0; i < pages.len; i++) {
         if (manager->memory.len >= manager->memory.cap) {
             PagedMemory *newBuf =
+                /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
                 (PagedMemory *)allocContiguousPhysicalPagesWithManager(
-                    toLargerPageSize(manager->usedBasePages), &basePMM);
+                    manager->usedBasePages + 1, &basePMM);
             memcpy(newBuf, manager->memory.buf,
                    manager->memory.len * sizeof(*manager->memory.buf));
             // The page that just got freed should be added now.
@@ -207,10 +207,9 @@ static void freePhysicalPagesWithManager(PagedMemory_a pages,
                               .numberOfPages = manager->usedBasePages};
             manager->memory.len++;
             manager->memory.buf = newBuf;
-            manager->memory.cap = MEMORY_ENTRIES_IN_BASE_PAGES(
-                toLargerPageSize(manager->usedBasePages));
-
             (manager->usedBasePages)++;
+            manager->memory.cap =
+                MEMORY_ENTRIES_IN_BASE_PAGES(manager->usedBasePages);
         }
         manager->memory.buf[manager->memory.len] = pages.buf[i];
         manager->memory.len++;
@@ -235,6 +234,7 @@ static void initPMM(PageSize pageType) {
            initingManager->memory.len == 0);
 
     initingManager->memory.buf =
+        /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
         (PagedMemory *)allocContiguousPhysicalPagesWithManager(
             initingManager->usedBasePages, &basePMM);
     initingManager->memory.cap =
@@ -321,6 +321,7 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory) {
         triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
     }
 
+    /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
     basePMM.memory.buf = (PagedMemory *)descriptor->physicalStart;
     basePMM.memory.cap = MEMORY_ENTRIES_IN_BASE_PAGES(1);
     basePMM.memory.len = 0;
@@ -335,8 +336,10 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory) {
     }
 
     U64 maxCapacity = MEMORY_ENTRIES_IN_BASE_PAGES(descriptor->numberOfPages);
-    PagedMemory_a freeMemoryArray = (PagedMemory_a){
-        .buf = (PagedMemory *)descriptor->physicalStart, .len = 0};
+    PagedMemory_a freeMemoryArray =
+        (PagedMemory_a){/* NOLINTNEXTLINE(performance-no-int-to-ptr) */
+                        .buf = (PagedMemory *)descriptor->physicalStart,
+                        .len = 0};
     // The memory used to store the free memory is also "free" memory
     // after the PMM is correctly initialized.
     PagedMemory freeMemoryHolder =

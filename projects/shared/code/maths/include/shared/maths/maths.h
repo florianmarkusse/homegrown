@@ -45,6 +45,8 @@ static inline U64 next_pow2(U64 x) {
     return x == 1 ? 1 : 1 << (64 - __builtin_clzll(x - 1));
 }
 
+static inline U64 what_pow2(U64 x) { return 63 - __builtin_clzll(x); }
+
 #define NEXT_POWER_OF_2(x)                                                     \
     ({                                                                         \
         typeof(x) _x = (x);                                                    \

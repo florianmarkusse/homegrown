@@ -6,6 +6,8 @@ add_library(
     "src/page.c"
     "src/physical.c"
     "src/virtual.c"
+    "src/policy.c"
+    "src/init.c"
 )
 
 if("${BUILD_UNIT_TESTS}")

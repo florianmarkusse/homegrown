@@ -19,7 +19,7 @@ add_link_options(
 )
 
 set(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS} -target x86_64-unknown-windows -mgeneral-regs-only -ffreestanding -nostdlib -nostdinc -fshort-wchar -mno-red-zone"
+    "${CMAKE_C_FLAGS} -target x86_64-unknown-windows -mgeneral-regs-only -ffreestanding -nostdlib -nostdinc -mno-stack-arg-probe"
 )
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 
@@ -45,6 +45,10 @@ add_executable(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE interoperation-i)
+
+# TODO: Need to change this once multi-platform UEFI support?
+target_link_libraries(${PROJECT_NAME} PRIVATE x86-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
 target_link_libraries(

@@ -10,11 +10,11 @@
 #include "interoperation/memory/definitions.h" // for PAGE_FRAME_SIZE, STACK_...
 #include "memory/boot-functions.h"             // for mapMemoryAt, allo...
 #include "memory/page-size.h"
-#include "platform-abstraction/memory/management/virtual.h"
 #include "printing.h" // for error, printNumber
 #include "shared/maths/maths.h"
 #include "shared/types/types.h" // for U64, U32, NULL
 #include "string.h"             // for AsciString
+#include "x86/memory/definitions/virtual.h"
 
 // static U8 in_exc = 0;
 

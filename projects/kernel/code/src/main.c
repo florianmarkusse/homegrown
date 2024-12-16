@@ -1,13 +1,12 @@
 #include "interoperation/kernel-parameters.h"  // for KernelParameters
 #include "interoperation/memory/definitions.h" // for KERNEL_PARAMS_START
 #include "kernel/log/init.h"
-#include "memory/management/policy.h"
 #include "peripheral/screen/screen.h"
 #include "platform-abstraction/idt.h" // for setupIDT
 #include "platform-abstraction/log.h" // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
-#include "platform-abstraction/memory/management/physical.h"
+#include "platform-abstraction/memory/management/init.h"
+#include "platform-abstraction/memory/management/policy.h"
 #include "platform-abstraction/memory/management/status.h"
-#include "platform-abstraction/memory/management/virtual.h"
 #include "shared/memory/allocator/arena.h"
 #include "shared/memory/sizes.h"
 #include "shared/text/string.h" // for STRING
@@ -28,8 +27,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         .totalDescriptorSize = kernelParameters->memory.totalDescriptorSize,
         .descriptors = kernelParameters->memory.descriptors,
         .descriptorSize = kernelParameters->memory.descriptorSize};
-    initPhysicalMemoryManager(kernelMemory);
-    initVirtualMemoryManager(kernelParameters->level4PageTable, kernelMemory);
+    initMemoryManager(kernelMemory, kernelParameters->level4PageTable);
 
     void *initMemory = allocAndMap(INIT_MEMORY);
     Arena arena = (Arena){.curFree = initMemory,

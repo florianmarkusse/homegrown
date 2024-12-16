@@ -11,7 +11,7 @@ if("${ENVIRONMENT}" STREQUAL "freestanding")
     include_and_link_object_library(kernel-memory-manipulation)
 elseif("${ENVIRONMENT}" STREQUAL "posix")
 else()
-    message(FATAL_ERROR "Could not match ENVIRONMENT variable")
+    # Posix should link with a stdlib that contains the right implementations
 endif()
 
 target_include_directories(

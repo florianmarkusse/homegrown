@@ -2,7 +2,6 @@
 #include "interoperation/kernel-parameters.h"
 #include "interoperation/memory/definitions.h"
 #include "interoperation/memory/descriptor.h"
-#include "platform-abstraction/memory/management/physical.h"
 #include "posix/log.h"
 #include "posix/test-framework/test.h"
 #include "shared/log.h"
