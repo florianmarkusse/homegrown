@@ -12,7 +12,7 @@
 #include "memory/page-size.h"
 #include "printing.h" // for error, printNumber
 #include "shared/maths/maths.h"
-#include "shared/types/types.h" // for U64, U32, NULL
+#include "shared/types/types.h" // for U64, U32, nullptr
 #include "string.h"             // for AsciString
 #include "x86/memory/definitions/virtual.h"
 #include "interoperation/memory/descriptor.h"
@@ -345,9 +345,9 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.st->con_out->output_string(
         globals.st->con_out,
         u"Going to collect necessary info, then exit bootservices...\r\n");
-    GraphicsOutputProtocol *gop = NULL;
+    GraphicsOutputProtocol *gop = nullptr;
     Status status = globals.st->boot_services->locate_protocol(
-        &GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, (void **)&gop);
+        &GRAPHICS_OUTPUT_PROTOCOL_GUID, nullptr, (void **)&gop);
     if (ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
     }

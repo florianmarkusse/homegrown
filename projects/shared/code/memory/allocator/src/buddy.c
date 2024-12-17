@@ -6,7 +6,7 @@
 BuddyBlock *splitBuddy(BuddyBlock *block, U64 size) {
     ASSERT(size > 0);
 
-    if (block != NULL) {
+    if (block != nullptr) {
         while (size * 2 < block->size) {
             U64 halfSize = block->size >> 1;
             block->size = halfSize;
@@ -20,13 +20,13 @@ BuddyBlock *splitBuddy(BuddyBlock *block, U64 size) {
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, U64 size) {
     ASSERT(size > 0);
 
-    BuddyBlock *bestBlock = NULL;
+    BuddyBlock *bestBlock = nullptr;
     BuddyBlock *block = head;             // Left Buddy
     BuddyBlock *buddy = nextBuddy(block); // Right Buddy
 
@@ -45,7 +45,7 @@ BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, U64 size) {
         if (block->isFree && buddy->isFree && block->size == buddy->size) {
             block->size <<= 1;
             if (size <= block->size &&
-                (bestBlock == NULL || block->size <= bestBlock->size)) {
+                (bestBlock == nullptr || block->size <= bestBlock->size)) {
                 bestBlock = block;
             }
 
@@ -58,12 +58,12 @@ BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, U64 size) {
         }
 
         if (block->isFree && size <= block->size &&
-            (bestBlock == NULL || block->size < bestBlock->size)) {
+            (bestBlock == nullptr || block->size < bestBlock->size)) {
             bestBlock = block;
         }
 
         if (buddy->isFree && size <= buddy->size &&
-            (bestBlock == NULL || buddy->size < bestBlock->size)) {
+            (bestBlock == nullptr || buddy->size < bestBlock->size)) {
             // If each buddy are the same size, then it makes more sense
             // to pick the buddy as it "bounces around" less
             bestBlock = buddy;
@@ -82,13 +82,13 @@ BuddyBlock *findBestBuddy(BuddyBlock *head, BuddyBlock *tail, U64 size) {
         }
     }
 
-    if (bestBlock != NULL) {
+    if (bestBlock != nullptr) {
         // This will handle the case if the 'best_block' is also the perfect fit
         return splitBuddy(bestBlock, size);
     }
 
     // Maybe out of memory
-    return NULL;
+    return nullptr;
 }
 
 BuddyAllocator createBuddyAllocator(I8 *data, U64 size) {
@@ -165,14 +165,14 @@ __attribute((malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator, I64 size,
 
     BuddyBlock *found =
         findBestBuddy(buddyAllocator->head, buddyAllocator->tail, totalSize);
-    if (found == NULL) {
+    if (found == nullptr) {
         // Try to coalesce all the free buddy blocks and then search again
         coalesceBuddies(buddyAllocator->head, buddyAllocator->tail);
         found = findBestBuddy(buddyAllocator->head, buddyAllocator->tail,
                               totalSize);
     }
 
-    if (found != NULL) {
+    if (found != nullptr) {
         found->isFree = false;
         void *result = (void *)((I8 *)found + sizeof(BuddyBlock));
         if (ZERO_MEMORY & flags) {
@@ -182,8 +182,8 @@ __attribute((malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator, I64 size,
     }
 
     ASSERT(false);
-    if (flags & NULL_ON_FAIL) {
-        return NULL;
+    if (flags & nullptr_ON_FAIL) {
+        return nullptr;
     }
     __builtin_longjmp(buddyAllocator->jmp_buf, 1);
 }

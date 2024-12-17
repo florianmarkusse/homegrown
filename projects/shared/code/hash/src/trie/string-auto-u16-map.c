@@ -8,7 +8,7 @@ NewStringInsert trie_insertStringAutoU16Map(string key,
                                             trie_stringAutoU16Map *set,
                                             Arena *perm) {
     trie_stringAutoU16Node **currentNode = &set->node;
-    for (U64 hash = hashStringSkeeto(key); *currentNode != NULL; hash <<= 2) {
+    for (U64 hash = hashStringSkeeto(key); *currentNode != nullptr; hash <<= 2) {
         if (stringEquals(key, (*currentNode)->data.key)) {
             return (NewStringInsert){.entryIndex = (*currentNode)->data.value,
                                      .wasInserted = false};
@@ -29,7 +29,7 @@ NewStringInsert trie_insertStringAutoU16Map(string key,
 
 U16 trie_containsStringAutoU16Map(string key, trie_stringAutoU16Map *set) {
     trie_stringAutoU16Node **currentNode = &set->node;
-    for (U64 hash = hashStringSkeeto(key); *currentNode != NULL; hash <<= 2) {
+    for (U64 hash = hashStringSkeeto(key); *currentNode != nullptr; hash <<= 2) {
         if (stringEquals(key, (*currentNode)->data.key)) {
             return (*currentNode)->data.value;
         }

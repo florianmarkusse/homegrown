@@ -8,7 +8,7 @@
 
 bool trie_insertU16Set(U16 key, trie_U16Set **set, Arena *perm) {
     ASSERT(key != 0);
-    for (U16 hash = hashU16(key); *set != NULL; (hash = (U16)(hash << 2))) {
+    for (U16 hash = hashU16(key); *set != nullptr; (hash = (U16)(hash << 2))) {
         if (key == (*set)->data) {
             return false;
         }

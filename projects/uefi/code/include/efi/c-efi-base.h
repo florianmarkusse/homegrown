@@ -19,7 +19,7 @@
  * I8acteristics.
  *
  * This header provides the base types and macros used throughout the project.
- * It provides basic fixed-size integers, a NULL-equivalent, booleans, standard
+ * It provides basic fixed-size integers, a nullptr-equivalent, booleans, standard
  * UEFI types, and more. All symbols are prefixed with `*` or `*`.
  *
  * You are highly recommended to conduct the UEFI Specification for details on
@@ -57,7 +57,7 @@
  *       virtual address mapping was set, you must provide virtual-memory
  *       locations instead.
  *     - Pointers must be correctly aligned.
- *     - NULL is disallowed, unless explicitly mentioned otherwise.
+ *     - nullptr is disallowed, unless explicitly mentioned otherwise.
  *     - Data referenced by pointers is undefined on error-return from a
  *       function.
  *     - You must not pass data larger than native-size (sizeof(USize)) on

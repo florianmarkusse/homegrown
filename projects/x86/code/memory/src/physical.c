@@ -300,7 +300,7 @@ static MemoryDescriptor *nextValidDescriptor(U64 *i,
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 // Coming into this, All the memory is identity mapped.

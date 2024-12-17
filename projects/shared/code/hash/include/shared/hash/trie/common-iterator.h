@@ -47,7 +47,7 @@ extern "C" {
                                stringSetType *set, Arena *perm) {              \
         /* NOLINTNEXTLINE */                                                   \
         iteratorType *it = NEW(perm, iteratorType, 1, ZERO_MEMORY);            \
-        if (set != NULL) {                                                     \
+        if (set != nullptr) {                                                     \
             it->head = NEW(perm, iterNodeType, 1, ZERO_MEMORY);                \
             it->head->set = set;                                               \
         }                                                                      \
@@ -71,7 +71,7 @@ extern "C" {
             } else if (it->head->set->child[index - 1]) {                      \
                 /* NOLINTNEXTLINE */                                           \
                 iterNodeType *nextIter = it->free;                             \
-                if (nextIter != NULL) {                                        \
+                if (nextIter != nullptr) {                                        \
                     it->free = it->free->next;                                 \
                     nextIter->index = 0;                                       \
                 } else {                                                       \

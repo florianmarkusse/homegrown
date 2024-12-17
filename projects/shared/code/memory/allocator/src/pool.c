@@ -35,7 +35,7 @@ PoolAllocator createPoolAllocator(I8 *buffer, I64 cap, I64 chunkSize) {
     result.cap = cap;
     result.chunkSize = chunkSize;
 
-    result.head = NULL;
+    result.head = nullptr;
 
     freePool(&result);
 
@@ -45,10 +45,10 @@ PoolAllocator createPoolAllocator(I8 *buffer, I64 cap, I64 chunkSize) {
 __attribute((malloc)) void *poolAlloc(PoolAllocator *pool, U8 flags) {
     PoolHead *node = pool->head;
 
-    if (node == NULL) {
+    if (node == nullptr) {
         ASSERT(false);
-        if (flags & NULL_ON_FAIL) {
-            return NULL;
+        if (flags & nullptr_ON_FAIL) {
+            return nullptr;
         }
         __builtin_longjmp(pool->jmp_buf, 1);
     }

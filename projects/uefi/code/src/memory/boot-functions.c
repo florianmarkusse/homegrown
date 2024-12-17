@@ -29,7 +29,7 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
     }
 
     U64 end = virt + size;
-    U64 *pageEntry = NULL;
+    U64 *pageEntry = nullptr;
     /* walk the page tables and add the missing pieces */
     for (virt &= ~(PAGE_MASK), phys &= ~(PAGE_MASK); virt < end;
          virt += PAGE_FRAME_SIZE, phys += PAGE_FRAME_SIZE) {

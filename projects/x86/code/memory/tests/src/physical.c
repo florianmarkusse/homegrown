@@ -60,7 +60,7 @@ static constexpr auto MEMORY = (PAGE_FRAME_SIZE * TOTAL_BASE_PAGES);
         }                                                                      \
     }
 
-static PhysicalBasePage *memoryStart = NULL;
+static PhysicalBasePage *memoryStart = nullptr;
 MemoryDescriptor createDescriptor(MemoryType type, U64 numberOfPages,
                                   U64 *index) {
     U64 indexToUse = *index;
@@ -92,7 +92,7 @@ void testPhysicalMemoryManagement() {
 
     initIDTTest(jmp_buf);
 
-    PhysicalBasePage *pages = mmap(NULL, MEMORY, PROT_READ | PROT_WRITE,
+    PhysicalBasePage *pages = mmap(nullptr, MEMORY, PROT_READ | PROT_WRITE,
                                    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (pages == MAP_FAILED) {
         PFLUSH_AFTER(STDERR) {

@@ -2,7 +2,7 @@
 #include "acpi/configuration-table.h" // for ConfigurationTable
 #include "acpi/guid.h" // for Guid, ACPI_TABLE_GUID, EFI_ACPI_20_...
 #include "platform-abstraction/memory/manipulation.h" // for memcmp
-#include "shared/types/types.h" // for USize, U8, NULL, U16, U64
+#include "shared/types/types.h" // for USize, U8, nullptr, U16, U64
 
 bool acpi_checksum(void *ptr, U64 size) {
     U8 sum = 0, *_ptr = ptr;
@@ -33,7 +33,7 @@ static RSDPStruct possibleRsdps[2] = {
 static constexpr auto POSSIBLE_RSDP_NUM = COUNTOF(possibleRsdps);
 
 RSDPResult getRSDP(USize tableEntries, ConfigurationTable *tables) {
-    RSDPResult rsdp = {.rsdp = NULL};
+    RSDPResult rsdp = {.rsdp = nullptr};
     for (USize i = 0; i < tableEntries; i++) {
         ConfigurationTable *cur_table = &tables[i];
 

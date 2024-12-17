@@ -43,9 +43,9 @@ static constexpr U8 DEVICE_PATH_TYPE_END = 0x7f;
  * thus must be accessed with unaligned helpers, or in individual pieces.
  *
  * Also note that any function taking an object of this type usually never
- * accepts NULL. That is, the empty device-path is represented by
- * DEVICE_PATH_NULL (which is just a TYPE_END+SUBTYPE_END_ALL). Though,
- * the UEFI Specification contradicts itself there and uses NULL in several
+ * accepts nullptr. That is, the empty device-path is represented by
+ * DEVICE_PATH_nullptr (which is just a TYPE_END+SUBTYPE_END_ALL). Though,
+ * the UEFI Specification contradicts itself there and uses nullptr in several
  * cases. Make sure to check each of these use-cases carefully.
  */
 typedef struct DevicePathProtocol {
@@ -64,7 +64,7 @@ static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_VENDOR = 0x04;
 static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_CONTROLLER = 0x05;
 static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_BMC = 0x06;
 
-static constexpr auto DEVICE_PATH_NULL = (DevicePathProtocol){
+static constexpr auto DEVICE_PATH_nullptr = (DevicePathProtocol){
     .type = DEVICE_PATH_TYPE_END,
     .subtype = DEVICE_PATH_SUBTYPE_END_ALL,
     .length = {4, 0},

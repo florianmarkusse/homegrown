@@ -24,7 +24,7 @@ typedef struct {
 /*static constexpr auto MEMORY_CAP = 1 * GiB;*/
 
 int main() {
-    /*char *begin = mmap(NULL, MEMORY_CAP, PROT_READ | PROT_WRITE,*/
+    /*char *begin = mmap(nullptr, MEMORY_CAP, PROT_READ | PROT_WRITE,*/
     /*                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);*/
     /*if (begin == MAP_FAILED) {*/
     /*    FLO_FLUSH_AFTER(FLO_STDERR) {*/
@@ -52,10 +52,10 @@ int main() {
     /*            FLO_ERROR((FLO_STRING("\nZeroing Arena regardless.\n")));*/
     /*        }*/
     /*    }*/
-    /*    arena.beg = NULL;*/
-    /*    arena.end = NULL;*/
+    /*    arena.beg = nullptr;*/
+    /*    arena.end = nullptr;*/
     /*    arena.cap = 0;*/
-    /*    arena.jmp_buf = NULL;*/
+    /*    arena.jmp_buf = nullptr;*/
     /*    FLO_ERROR(*/
     /*        (FLO_STRING("Early exit due to error or OOM/overflow in
      * arena!\n")),*/

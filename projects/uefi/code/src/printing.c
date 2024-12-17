@@ -13,7 +13,7 @@ void error(U16 *string) {
         ;
     }
     globals.st->runtime_services->reset_system(RESET_SHUTDOWN, SUCCESS, 0,
-                                               NULL);
+                                               nullptr);
 }
 
 static const U16 *digits = u"0123456789ABCDEF";
@@ -62,7 +62,7 @@ void printNumber(USize number, U8 base) {
         break;
     }
 
-    // NULL terminate string
+    // nullptr terminate string
     buffer[i--] = u'\0';
 
     // Reverse buffer before printing

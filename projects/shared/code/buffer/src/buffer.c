@@ -6,7 +6,7 @@
 void appendToSimpleBuffer(string data, U8_d_a *array, Arena *perm) {
     if (array->len + data.len > array->cap) {
         U64 newCap = (array->len + data.len) * 2;
-        if (array->buf == NULL) {
+        if (array->buf == nullptr) {
             array->cap = data.len;
             array->buf = alloc(perm, sizeof(U8), alignof(U8), newCap, 0);
         } else if (perm->end == (U8 *)(array->buf - array->cap)) {

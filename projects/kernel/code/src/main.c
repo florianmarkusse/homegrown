@@ -71,7 +71,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 // };
 //
 // void appendDescriptionHeaders(RSDPResult rsdp) {
-//     CAcpiSDT *sdt = NULL;
+//     CAcpiSDT *sdt = nullptr;
 //     USize entrySize = 0;
 //
 //     switch (rsdp.revision) {
@@ -90,7 +90,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 //     I8 **descriptionHeaders = (I8 **)&sdt->descriptionHeaders;
 //     for (U64 i = 0; i < sdt->header.length - sizeof(CAcpiSDT);
 //          i += entrySize) {
-//         CAcpiDescriptionTableHeader *header = NULL;
+//         CAcpiDescriptionTableHeader *header = nullptr;
 //         memcpy(&header, descriptionHeaders, entrySize);
 //
 //         LOG(STRING_LEN(header->signature,

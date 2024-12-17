@@ -20,7 +20,7 @@ void msi_newSet(void *setSlice, U64 size, U64 align, Arena *a) {
 
     U64 cap = 1 << replica->exp;
 
-    if (replica->buf == NULL) {
+    if (replica->buf == nullptr) {
         replica->buf = alloc(a, size, align, cap, ZERO_MEMORY);
     } else if (a->beg == replica->buf + size * cap) {
         memset(replica->buf, 0, size * cap);

@@ -9,7 +9,7 @@ U16 trie_insertStringU16Map(string key, U16 value, trie_stringU16Map **set,
                             Arena *perm) {
     ASSERT(key.len > 0);
     ASSERT(value != 0);
-    for (U64 hash = hashStringSkeeto(key); *set != NULL; hash <<= 2) {
+    for (U64 hash = hashStringSkeeto(key); *set != nullptr; hash <<= 2) {
         if (stringEquals(key, (*set)->data.key)) {
             return (*set)->data.value;
         }

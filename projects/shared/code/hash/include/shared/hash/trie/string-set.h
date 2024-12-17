@@ -54,7 +54,7 @@ TRIE_ITERATOR_HEADER_FILE(trie_stringSet, trie_stringIterNode,
 //*set,
 //                                                        arena *perm) {
 //    trie_Iter *it = NEW(perm, trie_Iter, 1, ZERO_MEMORY);
-//    if (set != NULL) {
+//    if (set != nullptr) {
 //        it->head = NEW(perm, trie_IterNode, 1, ZERO_MEMORY);
 //        it->head->set = set;
 //    }
@@ -80,7 +80,7 @@ TRIE_ITERATOR_HEADER_FILE(trie_stringSet, trie_stringIterNode,
 //            it->free = dead;
 //        } else if (it->head->set->child[index - 1]) {
 //            trie_IterNode *nextIter = it->free;
-//            if (nextIter != NULL) {
+//            if (nextIter != nullptr) {
 //                it->free = it->free->next;
 //                nextIter->index = 0;
 //            } else {

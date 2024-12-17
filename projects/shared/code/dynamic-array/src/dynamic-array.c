@@ -12,7 +12,7 @@ typedef struct {
 void grow(void *slice, U64 size, U64 align, Arena *a, U8 flags) {
     DASlice *replica = (DASlice *)slice;
 
-    if (replica->buf == NULL) {
+    if (replica->buf == nullptr) {
         replica->cap = 1;
         replica->buf = alloc(a, 2 * size, align, replica->cap, flags);
     } else if (a->beg == replica->buf + size * replica->cap) {

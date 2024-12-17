@@ -7,7 +7,7 @@
 
 bool trie_insertStringSet(string key, trie_stringSet **set, Arena *perm) {
     ASSERT(key.len > 0);
-    for (U64 hash = hashStringSkeeto(key); *set != NULL; hash <<= 2) {
+    for (U64 hash = hashStringSkeeto(key); *set != nullptr; hash <<= 2) {
         if (stringEquals(key, (*set)->data)) {
             return false;
         }

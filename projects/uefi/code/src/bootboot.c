@@ -188,29 +188,29 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
 
     globals.level4PageTable = allocAndZero(1);
 
-    //    EFI_LOADED_IMAGE *loaded_image = NULL;
+    //    EFI_LOADED_IMAGE *loaded_image = nullptr;
     //    EFI_GUID lipGuid = LOADED_IMAGE_PROTOCOL;
     //    EFI_GUID RomTableGuid = EFI_PCI_OPTION_ROM_TABLE_GUID;
     //    EFI_PCI_OPTION_ROM_TABLE *RomTable;
     //    EFI_GUID bioGuid = BLOCK_IO_PROTOCOL;
     //    EFI_BLOCK_IO *bio;
-    //    EFI_HANDLE *handles = NULL;
+    //    EFI_HANDLE *handles = nullptr;
     //    Status status = EFI_SUCCESS;
-    //    EFI_MEMORY_DESCRIPTOR *memory_map = NULL, *mement;
+    //    EFI_MEMORY_DESCRIPTOR *memory_map = nullptr, *mement;
     //    EFI_PARTITION_TABLE_HEADER *gptHdr;
     //    EFI_PARTITION_ENTRY *gptEnt;
     //    EFI_INPUT_KEY key;
     //    U64 ncycles = 0, currtime, endtime;
     //    USize bad_madt = 0;
     //    EFI_GUID SerIoGuid = EFI_SERIAL_IO_PROTOCOL_GUID;
-    //    EFI_SERIAL_IO_PROTOCOL *ser = NULL;
+    //    EFI_SERIAL_IO_PROTOCOL *ser = nullptr;
     //    USize bsp_num = 0, i, j = 0, x, y, handle_size = 0,
     //    memory_map_size = 0,
     //              map_key = 0, desc_size = 0;
     //    U32 desc_version = 0, a, b;
     //    U64 lba_s = 0, lba_e = 0, sysptr;
-    //    MMapEnt *mmapent, *last = NULL, *sort;
-    //    file_t ret = {NULL, 0};
+    //    MMapEnt *mmapent, *last = nullptr, *sort;
+    //    file_t ret = {nullptr, 0};
 
     // unlike BIOS+MultiBoot bootboot, no need to check if we have
     // PAE + MSR + LME, as we're already in long mode.
@@ -317,9 +317,9 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
 
     globals.st->con_out->output_string(
         globals.st->con_out, u"Retrieving Graphics output buffer...\r\n");
-    GraphicsOutputProtocol *gop = NULL;
+    GraphicsOutputProtocol *gop = nullptr;
     Status status = globals.st->boot_services->locate_protocol(
-        &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, NULL, (void **)&gop);
+        &C_EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, nullptr, (void **)&gop);
     if (C_EFI_ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
     }
@@ -460,7 +460,7 @@ Status efi_main(Handle handle, SystemTable *systemtable) {
             (MemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
                                  (i * memoryInfo.descriptorSize));
 
-        if (mement == NULL ||
+        if (mement == nullptr ||
             (mement->physical_start == 0 && mement->number_of_pages == 0)) {
             break;
         }

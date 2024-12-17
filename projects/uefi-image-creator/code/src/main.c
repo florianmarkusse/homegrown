@@ -1,6 +1,5 @@
 #include <errno.h>
 #include <inttypes.h> // for U32, U8, U16, U64
-#include <stddef.h>   // for ptrdiff_t
 #include <stdio.h>    // for fseek, fprintf, FILE, SEEK_SET, fclose
 #include <stdlib.h>   // for calloc, strtol, rand, srand
 #include <string.h>   // for strcmp, memcpy, strlen, strcpy, strncat
@@ -293,7 +292,7 @@ Guid new_guid(void) {
 // =====================================
 void get_fat_dir_entry_time_date(U16 *in_time, U16 *in_date) {
     time_t curr_time;
-    curr_time = time(NULL);
+    curr_time = time(nullptr);
     struct tm tm = *localtime(&curr_time);
 
     // FAT32 needs # of years since 1980, localtime returns tm_year as # years
@@ -910,7 +909,7 @@ bool add_file_to_data_partition(U8 *filepath, FILE *image) {
     fclose(fp);
 
     // Print info to user
-    U8 *name = NULL;
+    U8 *name = nullptr;
     U8 *slash = strrchr(filepath, '/');
     if (!slash) {
         name = filepath;
@@ -954,7 +953,7 @@ bool add_file_to_data_partition(U8 *filepath, FILE *image) {
 }
 
 void writeUEFIImage() {
-    FILE *image = NULL, *fp = NULL;
+    FILE *image = nullptr, *fp = nullptr;
 
     // Set sizes & LBA values
     gpt_table_lbas = GPT_TABLE_SIZE / options.lba_size;
@@ -1009,7 +1008,7 @@ void writeUEFIImage() {
         PINFO(STRING("MiB\n"));
     }
 
-    srand((U32)time(NULL));
+    srand((U32)time(nullptr));
 
     write_mbr(image);
 
@@ -1099,7 +1098,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    U8 *begin = mmap(NULL, memoryCap, PROT_READ | PROT_WRITE,
+    U8 *begin = mmap(nullptr, memoryCap, PROT_READ | PROT_WRITE,
                      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (begin == MAP_FAILED) {
         PFLUSH_AFTER(STDERR) {
@@ -1228,7 +1227,7 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
 
-            U16 lba_size = (U16)strtol(argv[i], NULL, 10);
+            U16 lba_size = (U16)strtol(argv[i], nullptr, 10);
 
             if (lba_size != 512 && lba_size != 1024 && lba_size != 2048 &&
                 lba_size != 4096) {
@@ -1251,7 +1250,7 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
 
-            options.esp_size = ALIGNMENT * (U32)strtol(argv[i], NULL, 10);
+            options.esp_size = ALIGNMENT * (U32)strtol(argv[i], nullptr, 10);
 
             continue;
         }
@@ -1261,7 +1260,7 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
 
-            options.data_size = ALIGNMENT * (U32)strtol(argv[i], NULL, 10);
+            options.data_size = ALIGNMENT * (U32)strtol(argv[i], nullptr, 10);
             continue;
         }
 

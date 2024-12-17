@@ -11,8 +11,8 @@ __attribute((malloc, alloc_align(3))) void *alloc(Arena *a, I64 size, U64 align,
     U64 avail = a->end - a->curFree;
     U64 padding = -(U64)a->curFree & (align - 1);
     if (count > (avail - padding) / size) {
-        if (flags & NULL_ON_FAIL) {
-            return NULL;
+        if (flags & nullptr_ON_FAIL) {
+            return nullptr;
         }
         __builtin_longjmp(a->jmp_buf, 1);
     }
