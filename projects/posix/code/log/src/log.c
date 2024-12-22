@@ -1,15 +1,16 @@
 #include "posix/log.h"
+#include "platform-abstraction/log.h"
 
 #include <unistd.h>
 
 #include "platform-abstraction/memory/manipulation.h"
+#include "shared/assert.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/sizes.h"
 #include "shared/text/string.h"
 #include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "shared/types/types.h"
-#include "shared/assert.h"
 
 static constexpr auto FLUSH_BUFFER_SIZE = (2 * MiB);
 static WriteBuffer stdoutBuffer =
@@ -57,23 +58,7 @@ bool flushBuffer(U8_max_a *buffer) {
 
 bool flushStandardBuffer() { return flushBufferWithWriter(&stdoutBuffer); }
 
-bool appendToFlushBufferWithWriter(string data, U8 flags, WriteBuffer *buffer) {
-    for (U64 bytesWritten = 0; bytesWritten < data.len;) {
-        // the minimum of size remaining and what is left in the buffer.
-        U64 spaceInBuffer = (buffer->array.cap) - buffer->array.len;
-        U64 dataToWrite = data.len - bytesWritten;
-        U64 bytesToWrite = MIN(spaceInBuffer, dataToWrite);
-        memcpy(buffer->array.buf + buffer->array.len, data.buf + bytesWritten,
-               bytesToWrite);
-        buffer->array.len += bytesToWrite;
-        bytesWritten += bytesToWrite;
-        if (bytesWritten < data.len) {
-            if (!flushBufferWithWriter(buffer)) {
-                return false;
-            }
-        }
-    }
-
+bool handleFlags(U8 flags, WriteBuffer *buffer) {
     if (flags & NEWLINE) {
         if (buffer->array.len >= buffer->array.cap) {
             if (!flushBufferWithWriter(buffer)) {
@@ -91,6 +76,52 @@ bool appendToFlushBufferWithWriter(string data, U8 flags, WriteBuffer *buffer) {
     }
 
     return true;
+}
+
+// NOTE: Ready for code generation
+bool appendZeroToFlushBufferWithWriter(U64 bytes, U8 flags,
+                                       WriteBuffer *buffer) {
+    for (U64 bytesWritten = 0; bytesWritten < bytes;) {
+        // the minimum of size remaining and what is left in the buffer.
+        U64 spaceInBuffer = (buffer->array.cap) - buffer->array.len;
+        U64 dataToWrite = bytes - bytesWritten;
+        U64 bytesToWrite = MIN(spaceInBuffer, dataToWrite);
+        memset(buffer->array.buf + buffer->array.len, 0, bytesToWrite);
+        buffer->array.len += bytesToWrite;
+        bytesWritten += bytesToWrite;
+        if (buffer->array.cap == buffer->array.len) {
+            if (!flushBufferWithWriter(buffer)) {
+                return false;
+            }
+        }
+    }
+
+    return handleFlags(flags, buffer);
+}
+
+void appendZeroToFlushBuffer(U64 bytes, U8 flags) {
+    appendZeroToFlushBufferWithWriter(bytes, flags, &stdoutBuffer);
+}
+
+// NOTE: Ready for code generation
+bool appendToFlushBufferWithWriter(string data, U8 flags, WriteBuffer *buffer) {
+    for (U64 bytesWritten = 0; bytesWritten < data.len;) {
+        // the minimum of size remaining and what is left in the buffer.
+        U64 spaceInBuffer = (buffer->array.cap) - buffer->array.len;
+        U64 dataToWrite = data.len - bytesWritten;
+        U64 bytesToWrite = MIN(spaceInBuffer, dataToWrite);
+        memcpy(buffer->array.buf + buffer->array.len, data.buf + bytesWritten,
+               bytesToWrite);
+        buffer->array.len += bytesToWrite;
+        bytesWritten += bytesToWrite;
+        if (buffer->array.cap == buffer->array.len) {
+            if (!flushBufferWithWriter(buffer)) {
+                return false;
+            }
+        }
+    }
+
+    return handleFlags(flags, buffer);
 }
 
 void appendToFlushBuffer(string data, U8 flags) {

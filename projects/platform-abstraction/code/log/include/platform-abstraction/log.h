@@ -8,6 +8,7 @@
 #include "shared/types/types.h"
 
 void appendToFlushBuffer(string data, U8 flags);
+void appendZeroToFlushBuffer(U64 bytes, U8 flags);
 bool flushStandardBuffer();
 bool flushBuffer(U8_max_a *buffer);
 

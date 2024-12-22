@@ -24,11 +24,9 @@ typedef enum {
 
 typedef enum { STDOUT, STDERR } BufferType;
 
-void appendToFlushBuffer(string data, U8 flags);
-bool flushStandardBuffer();
-bool flushBuffer(U8_max_a *buffer);
-
 bool appendToFlushBufferWithWriter(string data, U8 flags, WriteBuffer *buffer);
+bool appendZeroToFlushBufferWithWriter(U64 bytes, U8 flags,
+                                       WriteBuffer *buffer);
 bool flushBufferWithWriter(WriteBuffer *buffer);
 
 bool appendColor(AnsiColor color, BufferType bufferType);

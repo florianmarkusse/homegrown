@@ -8,6 +8,8 @@ extern "C" {
 #include "shared/enum.h"
 #include "shared/text/string.h"
 
+static constexpr auto READ_WRITE_OWNER_READ_OTHERS = 0644;
+
 #define FILE_STATUS_ENUM(VARIANT)                                              \
     VARIANT(FILE_SUCCESS)                                                      \
     VARIANT(FILE_CANT_OPEN)                                                    \

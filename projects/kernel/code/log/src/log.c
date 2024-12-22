@@ -24,6 +24,20 @@ bool flushBuffer(U8_max_a *buffer) {
 
 bool flushStandardBuffer() { return flushBuffer(&flushBuf); }
 
+void handleFlags(U8 flags) {
+    if (flags & NEWLINE) {
+        if (flushBuf.len >= flushBuf.cap) {
+            flushBuffer(&flushBuf);
+        }
+        flushBuf.buf[flushBuf.len] = '\n';
+        flushBuf.len++;
+    }
+
+    if (flags & FLUSH) {
+        flushBuffer(&flushBuf);
+    }
+}
+
 // TODO: buffer should be a variable to this function once we have actual
 // memory management set up instead of it being hardcoded.
 void appendToFlushBuffer(string data, U8 flags) {
@@ -36,20 +50,27 @@ void appendToFlushBuffer(string data, U8 flags) {
                bytesToWrite);
         flushBuf.len += bytesToWrite;
         bytesWritten += bytesToWrite;
-        if (bytesWritten < data.len) {
+        if (flushBuf.cap == flushBuf.len) {
             flushBuffer(&flushBuf);
         }
     }
 
-    if (flags & NEWLINE) {
-        if (flushBuf.len >= flushBuf.cap) {
+    handleFlags(flags);
+}
+
+void appendZeroToFlushBuffer(U64 bytes, U8 flags) {
+    for (U64 bytesWritten = 0; bytesWritten < bytes;) {
+        // the minimum of size remaining and what is left in the buffer.
+        U64 spaceInBuffer = (flushBuf.cap) - flushBuf.len;
+        U64 dataToWrite = bytes - bytesWritten;
+        U64 bytesToWrite = MIN(spaceInBuffer, dataToWrite);
+        memset(flushBuf.buf + flushBuf.len, 0, bytesToWrite);
+        flushBuf.len += bytesToWrite;
+        bytesWritten += bytesToWrite;
+        if (flushBuf.cap == flushBuf.len) {
             flushBuffer(&flushBuf);
         }
-        flushBuf.buf[flushBuf.len] = '\n';
-        flushBuf.len++;
     }
 
-    if (flags & FLUSH) {
-        flushBuffer(&flushBuf);
-    }
+    return handleFlags(flags);
 }

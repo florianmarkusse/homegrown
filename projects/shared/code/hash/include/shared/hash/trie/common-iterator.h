@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+// NOTE: Ready for code generation
 /**
  * Ugly code ahead. Rewriting this iterator each time is a massive pain so I
  * decided to write this grotesque set of macros to automatically build it for
@@ -47,7 +48,7 @@ extern "C" {
                                stringSetType *set, Arena *perm) {              \
         /* NOLINTNEXTLINE */                                                   \
         iteratorType *it = NEW(perm, iteratorType, 1, ZERO_MEMORY);            \
-        if (set != nullptr) {                                                     \
+        if (set != nullptr) {                                                  \
             it->head = NEW(perm, iterNodeType, 1, ZERO_MEMORY);                \
             it->head->set = set;                                               \
         }                                                                      \
@@ -71,7 +72,7 @@ extern "C" {
             } else if (it->head->set->child[index - 1]) {                      \
                 /* NOLINTNEXTLINE */                                           \
                 iterNodeType *nextIter = it->free;                             \
-                if (nextIter != nullptr) {                                        \
+                if (nextIter != nullptr) {                                     \
                     it->free = it->free->next;                                 \
                     nextIter->index = 0;                                       \
                 } else {                                                       \
