@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#include "efi/acpi/guid.h"
+#include "uefi/guid.h"
 #include "efi/efi/c-efi-base.h"
 #include "efi/efi/c-efi-protocol-device-path.h"
 

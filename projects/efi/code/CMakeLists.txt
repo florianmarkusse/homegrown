@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
-project(uefi LANGUAGES C ASM)
+project(efi LANGUAGES C ASM)
 set(AGGREGATED_INTERFACE "${PROJECT_NAME}-i")
 add_library(${AGGREGATED_INTERFACE} INTERFACE)
 include("${REPO_PROJECTS}/setup.cmake")
@@ -27,6 +27,7 @@ include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_subproject("shared")
 add_subproject("interoperation")
+add_subproject("uefi")
 add_platform_abstraction_and_correct_implementations()
 
 add_executable(
@@ -58,6 +59,8 @@ target_link_libraries(
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE uefi-i)
 
 target_include_directories(
     ${PROJECT_NAME}

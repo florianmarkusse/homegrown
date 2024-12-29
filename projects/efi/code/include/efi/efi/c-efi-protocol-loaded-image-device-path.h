@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#include "efi/acpi/guid.h"
+#include "uefi/guid.h"
 
 static constexpr auto LOADED_IMAGE_DEVICE_PATH_PROTOCOL_GUID =
     (Guid){.ms1 = 0xbc62157e,

@@ -88,6 +88,7 @@ const SHARED = "shared"
 const POSIX = "posix"
 const PLATFORM_ABSTRACTION = "platform-abstraction"
 const X86 = "x86"
+const UEFI = "uefi"
 
 // and here
 var kernelFolder = common.REPO_PROJECTS + "/" + KERNEL + "/"
@@ -99,6 +100,7 @@ var sharedFolder = common.REPO_PROJECTS + "/" + SHARED + "/"
 var posixFolder = common.REPO_PROJECTS + "/" + POSIX + "/"
 var platformAbstractionFolder = common.REPO_PROJECTS + "/" + PLATFORM_ABSTRACTION + "/"
 var x86Folder = common.REPO_PROJECTS + "/" + X86 + "/"
+var uefiFolder = common.REPO_PROJECTS + "/" + UEFI + "/"
 
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
@@ -110,8 +112,7 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Environment: string(environment.Freestanding),
 	},
 	INTEROPERATION: {
-		CCompiler: ELF.CCompiler,
-		// Is object file so adding standard for build output path
+		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
 		Folder:      interoperationFolder,
 		CodeFolder:  interoperationFolder + "code",
@@ -139,35 +140,38 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Environment: string(environment.Posix),
 	},
 	SHARED: {
-		CCompiler: ELF.CCompiler,
-		// Is object file so adding standard for build output path
+		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
 		Folder:      sharedFolder,
 		CodeFolder:  sharedFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 	POSIX: {
-		CCompiler: ELF.CCompiler,
-		// Is object file so adding standard for build output path
+		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
 		Folder:      posixFolder,
 		CodeFolder:  posixFolder + "code",
 		Environment: string(environment.Posix),
 	},
 	PLATFORM_ABSTRACTION: {
-		CCompiler: ELF.CCompiler,
-		// Is object file so adding standard for build output path
+		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
 		Folder:      platformAbstractionFolder,
 		CodeFolder:  platformAbstractionFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 	X86: {
-		CCompiler: ELF.CCompiler,
-		// Is object file so adding standard for build output path
+		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
 		Folder:      x86Folder,
 		CodeFolder:  x86Folder + "code",
+		Environment: string(environment.Freestanding),
+	},
+	UEFI: {
+		CCompiler:   ELF.CCompiler,
+		Linker:      ELF.Linker,
+		Folder:      uefiFolder,
+		CodeFolder:  uefiFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 }

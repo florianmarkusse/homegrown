@@ -1,8 +1,9 @@
 #include "efi/acpi/c-acpi-rdsp.h" // for RSDP_REVISION_2, CAcpiRSDPV1, CAcpi...
 #include "efi/acpi/configuration-table.h" // for ConfigurationTable
-#include "efi/acpi/guid.h" // for Guid, ACPI_TABLE_GUID, EFI_ACPI_20_...
+#include "efi/acpi/guid.h"
 #include "platform-abstraction/memory/manipulation.h" // for memcmp
 #include "shared/types/types.h" // for USize, U8, nullptr, U16, U64
+#include "uefi/guid.h"          // for Guid, ACPI_TABLE_GUID, EFI_ACPI_20_...
 
 bool acpi_checksum(void *ptr, U64 size) {
     U8 sum = 0, *_ptr = ptr;
