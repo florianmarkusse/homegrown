@@ -7,6 +7,7 @@ include("${REPO_PROJECTS}/print-configuration.cmake")
 add_link_options("--ld-path=${CMAKE_LINKER}")
 
 add_subproject("shared")
+add_subproject("uefi")
 add_platform_abstraction_and_correct_implementations()
 
 add_executable(${PROJECT_NAME} "src/main.c" "src/mbr.c")
@@ -23,7 +24,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE posix-log)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-uuid)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE uefi-i)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()

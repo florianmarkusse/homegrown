@@ -1,3 +1,4 @@
+#include "image-builder/configuration.h"
 #include "image-builder/mbr.h"
 #include "posix/file/file-status.h"
 #include "posix/log.h"
@@ -13,15 +14,6 @@
 #include <string.h>
 #include <sys/mman.h>
 
-static constexpr struct {
-    U16 PROTECTIVE_MBR;
-} SectionsInLBASize = {
-    .PROTECTIVE_MBR = 1,
-};
-
-// TODO: Move default LBA size to 4096 , seems better for performone on disks in
-// this day and age
-
 static void *resourceCleanup[5];
 
 typedef MAX_LENGTH_ARRAY(FILE *) FILEPtr_max_a;
@@ -30,16 +22,6 @@ static constexpr auto MAX_OPEN_FILES = 64;
 FILE *openFilesBuf[MAX_OPEN_FILES];
 FILEPtr_max_a openedFiles = {
     .buf = openFilesBuf, .cap = MAX_OPEN_FILES, .len = 0};
-
-typedef struct {
-    U8 *imageName;
-    U16 lbaSize;
-} Options;
-
-static U64 physicalBlockBoundary = 512;
-static U64 optimalTransferLengthGranularity = 512;
-
-static Options options = {.imageName = "new-image.hdd", .lbaSize = 1024};
 
 static constexpr auto MEMORY_CAP = 1 * GiB;
 static constexpr auto FILE_CAP = 500 * MiB;
@@ -96,9 +78,17 @@ int main(int argc, char **argv) {
 
     arena.jmp_buf = resourceCleanup;
 
+    // NOTE: SET CONFIGURATION VARIABLES HERE
+
+    configuration.totalImageSizeLBA = SectionsInLBASize.PROTECTIVE_MBR;
+    configuration.GPTPartitionTableSize =
+        GPT_PARTITION_TABLE_SIZE / configuration.LBASize;
+
+    // ----------------------------------
+
     U8 *filePointer = NEW(&arena, U8, FILE_CAP);
     int fileDescriptor =
-        open(options.imageName, O_CLOEXEC | O_TRUNC | O_CREAT | O_RDWR,
+        open(configuration.imageName, O_CLOEXEC | O_TRUNC | O_CREAT | O_RDWR,
              READ_WRITE_OWNER_READ_OTHERS);
     if (fileDescriptor == -1) {
         PFLUSH_AFTER(STDERR) {
@@ -114,7 +104,6 @@ int main(int argc, char **argv) {
     WriteBuffer fileWriter = (WriteBuffer){
         .array = (U8_max_a){.buf = filePointer, .len = 0, .cap = FILE_CAP},
         .fileDescriptor = fileDescriptor};
-    U64 totalImageSize = SectionsInLBASize.PROTECTIVE_MBR;
 
-    writeMBR(&fileWriter, options.lbaSize, totalImageSize);
+    writeMBR(&fileWriter);
 }

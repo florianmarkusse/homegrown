@@ -1,9 +1,9 @@
-#ifndef EFI_ACPI_CONFIGURATION_TABLE_H
-#define EFI_ACPI_CONFIGURATION_TABLE_H
+#ifndef CONFIGURATION_TABLE_H
+#define CONFIGURATION_TABLE_H
 
-#include "uefi/guid.h"
+#include "shared/uuid.h"
 typedef struct {
-    Guid vendor_guid;
+    UUID vendor_guid;
     void *vendor_table;
 } ConfigurationTable;
 

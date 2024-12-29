@@ -1,5 +1,5 @@
-#ifndef EFI_EFI_C_EFI_PROTOCOL_DEVICE_PATH_UTILITY_H
-#define EFI_EFI_C_EFI_PROTOCOL_DEVICE_PATH_UTILITY_H
+#ifndef EFI_C_EFI_PROTOCOL_DEVICE_PATH_UTILITY_H
+#define EFI_C_EFI_PROTOCOL_DEVICE_PATH_UTILITY_H
 
 #pragma once
 
@@ -17,7 +17,7 @@ extern "C" {
 #include "efi/efi/c-efi-protocol-device-path.h"
 
 static constexpr auto DEVICE_PATH_UTILITIES_PROTOCOL_GUID =
-    (Guid){.ms1 = 0x379be4e,
+    (GUID){.ms1 = 0x379be4e,
            .ms2 = 0xd706,
            .ms3 = 0x437d,
            .ms4 = {0xb0, 0x37, 0xed, 0xb8, 0x2f, 0xb7, 0x72, 0xa4}};

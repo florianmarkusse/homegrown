@@ -1,15 +1,15 @@
-#ifndef EFI_EFI_C_EFI_PROTOCOL_DISK_IO_H
-#define EFI_EFI_C_EFI_PROTOCOL_DISK_IO_H
+#ifndef EFI_C_EFI_PROTOCOL_DISK_IO_H
+#define EFI_C_EFI_PROTOCOL_DISK_IO_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "uefi/guid.h"
+#include "efi/acpi/guid.h"
 #include "efi/efi/c-efi-base.h"
 
 static constexpr auto DISK_IO_PROTOCOL_GUID =
-    (Guid){.ms1 = 0xCE345171,
+    (GUID){.ms1 = 0xCE345171,
            .ms2 = 0xBA0B,
            .ms3 = 0x11d2,
            .ms4 = {0x8e, 0x4F, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b}};

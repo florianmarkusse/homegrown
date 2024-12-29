@@ -17,8 +17,8 @@
 #include "efi/memory/standard.h"
 #include "efi/printing.h"
 #include "efi/string.h"
-#include "efi-to-kernel/kernel-parameters.h"
-#include "efi-to-kernel/memory/definitions.h"
+#include "interoperation/kernel-parameters.h"
+#include "interoperation/memory/definitions.h"
 
 extern void ap_trampoline();
 U16 lapic_ids[1024];
@@ -161,13 +161,13 @@ CEFICALL void wait(U64 microseconds) {
     } while (currTime < endtime);
 }
 
-Status getSystemConfigTable(Guid *tableGuid, void **table) {
+Status getSystemConfigTable(UUID *tableGuid, void **table) {
     USize Index;
 
     for (Index = 0; Index < globals.st->number_of_table_entries; Index++) {
         if (memcmp(tableGuid,
                    &(globals.st->configuration_table[Index].vendor_guid),
-                   sizeof(Guid)) == 0) {
+                   sizeof(UUID)) == 0) {
             *table = globals.st->configuration_table[Index].vendor_table;
             return C_EFI_SUCCESS;
         }

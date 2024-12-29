@@ -1,15 +1,15 @@
-#ifndef EFI_EFI_C_EFI_PROTOCOL_ACPI_H
-#define EFI_EFI_C_EFI_PROTOCOL_ACPI_H
+#ifndef EFI_C_EFI_PROTOCOL_ACPI_H
+#define EFI_C_EFI_PROTOCOL_ACPI_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "uefi/guid.h"
+#include "efi/acpi/guid.h"
 #include "efi/efi/c-efi-base.h"
 
 static constexpr auto ACPI_TABLE_PROTOCOL_GUID =
-    (Guid){.ms1 = 0xffe06bdd,
+    (GUID){.ms1 = 0xffe06bdd,
            .ms2 = 0x6107,
            .ms3 = 0x46a6,
            .ms4 = {0x7b, 0xb2, 0x5a, 0x9c, 0x7e, 0xc5, 0x27, 0x5c}};

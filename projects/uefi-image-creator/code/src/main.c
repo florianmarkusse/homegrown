@@ -76,21 +76,21 @@ typedef struct {
 typedef struct {
     U8 signature[8];
     U32 revision;
-    U32 header_size;
-    U32 header_crc32;
-    U32 reserved_1;
-    U64 my_lba;
-    U64 alternate_lba;
-    U64 first_usable_lba;
-    U64 last_usable_lba;
-    Guid disk_guid;
-    U64 partition_table_lba;
-    U32 number_of_entries;
-    U32 size_of_entry;
-    U32 partition_table_crc32;
+    U32 headerSize;
+    U32 headerCRC32;
+    U32 reserved1;
+    U64 myLBA;
+    U64 alternateLBA;
+    U64 firstUsableLBA;
+    U64 lastUsableLBA;
+    Guid diskGUID;
+    U64 partitionTableLBA;
+    U32 numberOfEntries;
+    U32 sizeOfEntry;
+    U32 partitionTableCRC32;
 
-    U8 reserved_2[512 - 92];
-} __attribute__((packed)) Gpt_Header;
+    U8 reserved2[512 - 92];
+} __attribute__((packed)) GPTHeader;
 
 // GPT Partition Entry
 typedef struct {
@@ -342,24 +342,24 @@ void write_mbr(FILE *image) {
 // =====================================
 void write_gpts(FILE *image) {
     // Fill out primary GPT header
-    Gpt_Header primary_gpt = {
+    GPTHeader primary_gpt = {
         .signature = {"EFI PART"},
         .revision = 0x00010000, // Version 1.0
-        .header_size = 92,
-        .header_crc32 = 0, // Will calculate later
-        .reserved_1 = 0,
-        .my_lba = 1, // LBA 1 is right after MBR
-        .alternate_lba = image_size_lbas - 1,
-        .first_usable_lba =
+        .headerSize = 92,
+        .headerCRC32 = 0, // Will calculate later
+        .reserved1 = 0,
+        .myLBA = 1, // LBA 1 is right after MBR
+        .alternateLBA = image_size_lbas - 1,
+        .firstUsableLBA =
             1 + 1 + gpt_table_lbas, // MBR + GPT header + primary gpt table
-        .last_usable_lba =
+        .lastUsableLBA =
             image_size_lbas - 1 - gpt_table_lbas - 1, // 2nd GPT header + table
-        .disk_guid = new_guid(),
-        .partition_table_lba = 2, // After MBR + GPT header
-        .number_of_entries = 128,
-        .size_of_entry = 128,
-        .partition_table_crc32 = 0, // Will calculate later
-        .reserved_2 = {0},
+        .diskGUID = new_guid(),
+        .partitionTableLBA = 2, // After MBR + GPT header
+        .numberOfEntries = 128,
+        .sizeOfEntry = 128,
+        .partitionTableCRC32 = 0, // Will calculate later
+        .reserved2 = {0},
     };
 
     // Fill out primary table partition entries
@@ -385,31 +385,30 @@ void write_gpts(FILE *image) {
         },
     };
 
-    primary_gpt.partition_table_crc32 =
+    primary_gpt.partitionTableCRC32 =
         calculateCRC32(gpt_table, sizeof gpt_table);
-    primary_gpt.header_crc32 =
-        calculateCRC32(&primary_gpt, primary_gpt.header_size);
+    primary_gpt.headerCRC32 =
+        calculateCRC32(&primary_gpt, primary_gpt.headerSize);
 
     checkedFwrite(&primary_gpt, sizeof primary_gpt, image);
     write_full_options(image);
 
     checkedFwrite(&gpt_table, sizeof gpt_table, image);
 
-    Gpt_Header secondary_gpt = primary_gpt;
+    GPTHeader secondary_gpt = primary_gpt;
 
-    secondary_gpt.header_crc32 = 0;
-    secondary_gpt.partition_table_crc32 = 0;
-    secondary_gpt.my_lba = primary_gpt.alternate_lba;
-    secondary_gpt.alternate_lba = primary_gpt.my_lba;
-    secondary_gpt.partition_table_lba = image_size_lbas - 1 - gpt_table_lbas;
+    secondary_gpt.headerCRC32 = 0;
+    secondary_gpt.partitionTableCRC32 = 0;
+    secondary_gpt.myLBA = primary_gpt.alternateLBA;
+    secondary_gpt.alternateLBA = primary_gpt.myLBA;
+    secondary_gpt.partitionTableLBA = image_size_lbas - 1 - gpt_table_lbas;
 
-    secondary_gpt.partition_table_crc32 =
+    secondary_gpt.partitionTableCRC32 =
         calculateCRC32(gpt_table, sizeof gpt_table);
-    secondary_gpt.header_crc32 =
-        calculateCRC32(&secondary_gpt, secondary_gpt.header_size);
+    secondary_gpt.headerCRC32 =
+        calculateCRC32(&secondary_gpt, secondary_gpt.headerSize);
 
-    fseek(image, secondary_gpt.partition_table_lba * options.lba_size,
-          SEEK_SET);
+    fseek(image, secondary_gpt.partitionTableLBA * options.lba_size, SEEK_SET);
 
     checkedFwrite(&gpt_table, sizeof gpt_table, image);
 

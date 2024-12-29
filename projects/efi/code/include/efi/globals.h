@@ -16,8 +16,8 @@ typedef struct {
     U32 ecxFeatureInfo;
     U32 edxFeatureInfo;
     U64 frameBufferAddress;
-} Globals;
+} Configuration;
 
-extern Globals globals;
+extern Configuration globals;
 
 #endif

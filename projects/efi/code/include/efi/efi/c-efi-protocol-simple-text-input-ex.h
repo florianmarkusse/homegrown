@@ -1,5 +1,5 @@
-#ifndef EFI_EFI_C_EFI_PROTOCOL_SIMPLE_TEXT_INPUT_EX_H
-#define EFI_EFI_C_EFI_PROTOCOL_SIMPLE_TEXT_INPUT_EX_H
+#ifndef EFI_C_EFI_PROTOCOL_SIMPLE_TEXT_INPUT_EX_H
+#define EFI_C_EFI_PROTOCOL_SIMPLE_TEXT_INPUT_EX_H
 
 #pragma once
 
@@ -13,14 +13,14 @@
 extern "C" {
 #endif
 
-#include "uefi/guid.h"
+#include "efi/acpi/guid.h"
 #include "efi/efi/c-efi-base.h"
 #include "efi/efi/c-efi-protocol-simple-text-input.h"
 
 typedef struct SimpleTextInputExProtocol SimpleTextInputExProtocol;
 
 static constexpr auto SIMPLE_TEXT_INPUT_EX_PROTOCOL_GUID =
-    (Guid){.ms1 = 0xdd9e7534,
+    (GUID){.ms1 = 0xdd9e7534,
            .ms2 = 0x7762,
            .ms3 = 0x4698,
            .ms4 = {0x8c, 0x14, 0xf5, 0x85, 0x17, 0xa6, 0x25, 0xaa}};

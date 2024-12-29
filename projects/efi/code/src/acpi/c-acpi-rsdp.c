@@ -3,7 +3,7 @@
 #include "efi/acpi/guid.h"
 #include "platform-abstraction/memory/manipulation.h" // for memcmp
 #include "shared/types/types.h" // for USize, U8, nullptr, U16, U64
-#include "uefi/guid.h"          // for Guid, ACPI_TABLE_GUID, EFI_ACPI_20_...
+#include "shared/uuid.h"          // for Guid, ACPI_TABLE_GUID, EFI_ACPI_20_...
 
 bool acpi_checksum(void *ptr, U64 size) {
     U8 sum = 0, *_ptr = ptr;
@@ -14,7 +14,7 @@ bool acpi_checksum(void *ptr, U64 size) {
 }
 
 typedef struct {
-    Guid guid;
+    UUID guid;
     USize size;
     RSDPRevision revision;
     U16 *string;
@@ -40,7 +40,7 @@ RSDPResult getRSDP(USize tableEntries, ConfigurationTable *tables) {
 
         for (USize i = 0; i < POSSIBLE_RSDP_NUM; i++) {
             if (memcmp(&cur_table->vendor_guid, &possibleRsdps[i].guid,
-                       sizeof(Guid)) != 0) {
+                       sizeof(UUID)) != 0) {
                 continue;
             }
             if (!acpi_checksum(cur_table->vendor_table,

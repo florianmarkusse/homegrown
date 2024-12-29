@@ -1,3 +1,3 @@
 #include "efi/globals.h"
 
-Globals globals;
+Configuration globals;

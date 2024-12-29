@@ -1,4 +1,5 @@
 #include "image-builder/mbr.h"
+#include "image-builder/configuration.h"
 #include "posix/log.h"
 #include "shared/text/string.h"
 #include "shared/types/types.h"
@@ -41,12 +42,14 @@ static MBR protectiveMBR = {
     .signature = 0xAA55,
 };
 
-void writeMBR(WriteBuffer *file, U32 LBASize, U64 totalImageSize) {
-    if (totalImageSize > U32_MAX) {
-        totalImageSize = U32_MAX + 1;
+void writeMBR(WriteBuffer *file) {
+    U64 totalImageSizeLBA = configuration.totalImageSizeLBA;
+    if (totalImageSizeLBA > U32_MAX) {
+        totalImageSizeLBA = U32_MAX + 1;
     }
-    protectiveMBR.partitions[0].sizeLBA = (U32)(totalImageSize - 1);
+    protectiveMBR.partitions[0].sizeLBA = (U32)(totalImageSizeLBA - 1);
 
     PLOG_DATA(STRING_LEN((U8 *)&protectiveMBR, sizeof(MBR)), 0, file);
-    appendZeroToFlushBufferWithWriter(LBASize - sizeof(MBR), 0, file);
+    appendZeroToFlushBufferWithWriter(configuration.LBASize - sizeof(MBR), 0,
+                                      file);
 }

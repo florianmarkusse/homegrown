@@ -1,15 +1,15 @@
-#ifndef EFI_EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
-#define EFI_EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
+#ifndef EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
+#define EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "uefi/guid.h"
 #include "efi/efi/c-efi-base.h"
+#include "shared/uuid.h"
 
 static constexpr auto GRAPHICS_OUTPUT_PROTOCOL_GUID =
-    (Guid){.ms1 = 0x9042a9de,
+    (UUID){.ms1 = 0x9042a9de,
            .ms2 = 0x23dc,
            .ms3 = 0x4a38,
            .ms4 = {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}};

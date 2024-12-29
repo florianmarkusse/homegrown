@@ -1,5 +1,5 @@
-#ifndef EFI_EFI_C_EFI_SYSTEM_H
-#define EFI_EFI_C_EFI_SYSTEM_H
+#ifndef EFI_C_EFI_SYSTEM_H
+#define EFI_C_EFI_SYSTEM_H
 
 #pragma once
 
@@ -20,9 +20,10 @@
 extern "C" {
 #endif
 
+#include "efi-to-kernel/memory/descriptor.h"
 #include "efi/acpi/configuration-table.h"
 #include "efi/efi/c-efi-base.h"
-#include "efi-to-kernel/memory/descriptor.h"
+#include "shared/uuid.h"
 
 /*
  * Time Management
@@ -109,7 +110,7 @@ typedef struct VariableAuthentication3Nonce {
 } VariableAuthentication3Nonce;
 
 static constexpr auto HARDWARE_ERROR_VARIABLE_GUID =
-    (Guid){.ms1 = 0x414E6BDD,
+    (UUID){.ms1 = 0x414E6BDD,
            .ms2 = 0xE47B,
            .ms3 = 0x47cc,
            .ms4 = {0xB2, 0x44, 0xBB, 0x61, 0x02, 0x0C, 0xF5, 0x16}};
@@ -161,7 +162,7 @@ static constexpr U32 CAPSULE_FLAGS_POPULATE_SYSTEM_TABLE = 0x00020000;
 static constexpr U32 CAPSULE_FLAGS_INITIATE_RESET = 0x00040000;
 
 typedef struct CapsuleHeader {
-    Guid capsule_guid;
+    UUID capsule_guid;
     U32 header_size;
     U32 flags;
     U32 capsule_image_size;
@@ -179,7 +180,7 @@ static constexpr U64 OS_INDICATIONS_START_PLATFORM_RECOVERY =
     0x0000000000000040;
 
 static constexpr auto CAPSULE_REPORT_GUID =
-    (Guid){.ms1 = 0x39b68c46,
+    (UUID){.ms1 = 0x39b68c46,
            .ms2 = 0xf7fb,
            .ms3 = 0x441b,
            .ms4 = {0xb6, 0xec, 0x16, 0xb0, 0xf6, 0x98, 0x21, 0xf3}};
@@ -187,7 +188,7 @@ static constexpr auto CAPSULE_REPORT_GUID =
 typedef struct CapsuleResultVariableHeader {
     U32 variable_total_size;
     U32 reserved;
-    Guid capsule_guid;
+    UUID capsule_guid;
     Time capsule_processed;
     Status capsule_status;
 } CapsuleResultVariableHeader;
@@ -196,7 +197,7 @@ typedef struct CapsuleResultVariableFMP {
     U16 version;
     U8 payload_index;
     U8 update_image_index;
-    Guid update_image_type_id;
+    UUID update_image_type_id;
     U16 capsule_file_name_and_target[];
 } CapsuleResultVariableFMP;
 
@@ -225,27 +226,27 @@ static constexpr U32 EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE = 0x60000202;
 typedef void(EFICALL *EventNotify)(Event event, void *context);
 
 static constexpr auto EVENT_GROUP_EXIT_BOOT_SERVICES =
-    (Guid){.ms1 = 0x27abf055,
+    (UUID){.ms1 = 0x27abf055,
            .ms2 = 0xb1b8,
            .ms3 = 0x4c26,
            .ms4 = {0x80, 0x48, 0x74, 0x8f, 0x37, 0xba, 0xa2, 0xdf}};
 static constexpr auto EVENT_GROUP_VIRTUAL_ADDRESS_CHANGE =
-    (Guid){.ms1 = 0x13fa7698,
+    (UUID){.ms1 = 0x13fa7698,
            .ms2 = 0xc831,
            .ms3 = 0x49c7,
            .ms4 = {0x87, 0xea, 0x8f, 0x43, 0xfc, 0xc2, 0x51, 0x96}};
 static constexpr auto EVENT_GROUP_MEMORY_MAP_CHANGE =
-    (Guid){.ms1 = 0x78bee926,
+    (UUID){.ms1 = 0x78bee926,
            .ms2 = 0x692f,
            .ms3 = 0x48fd,
            .ms4 = {0x9e, 0xdb, 0x1, 0x42, 0x2e, 0xf0, 0xd7, 0xab}};
 static constexpr auto EVENT_GROUP_READY_TO_BOOT =
-    (Guid){.ms1 = 0x7ce88fb3,
+    (UUID){.ms1 = 0x7ce88fb3,
            .ms2 = 0x4bd7,
            .ms3 = 0x4679,
            .ms4 = {0x87, 0xa8, 0xa8, 0xd8, 0xde, 0xe5, 0x0d, 0x2b}};
 static constexpr auto EVENT_GROUP_RESET_SYSTEM =
-    (Guid){.ms1 = 0x62da6a56,
+    (UUID){.ms1 = 0x62da6a56,
            .ms2 = 0x13fb,
            .ms3 = 0x485a,
            .ms4 = {0xa8, 0xda, 0xa3, 0xdd, 0x79, 0x12, 0xcb, 0x6b}};
@@ -320,27 +321,27 @@ typedef struct OpenProtocolInformationEntry {
  */
 
 static constexpr auto SAL_SYSTEM_TABLE_GUID =
-    (Guid){.ms1 = 0xeb9d2d32,
+    (UUID){.ms1 = 0xeb9d2d32,
            .ms2 = 0x2d88,
            .ms3 = 0x11d3,
            .ms4 = {0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f, 0xc1, 0x4d}};
 static constexpr auto SMBIOS_TABLE_GUID =
-    (Guid){.ms1 = 0xeb9d2d31,
+    (UUID){.ms1 = 0xeb9d2d31,
            .ms2 = 0x2d88,
            .ms3 = 0x11d3,
            .ms4 = {0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f, 0xc1, 0x4d}};
 static constexpr auto SMBIOS3_TABLE_GUID =
-    (Guid){.ms1 = 0xf2fd1544,
+    (UUID){.ms1 = 0xf2fd1544,
            .ms2 = 0x9794,
            .ms3 = 0x4a2c,
            .ms4 = {0x99, 0x2e, 0xe5, 0xbb, 0xcf, 0x20, 0xe3, 0x94}};
 static constexpr auto MPS_TABLE_GUID =
-    (Guid){.ms1 = 0xeb9d2d2f,
+    (UUID){.ms1 = 0xeb9d2d2f,
            .ms2 = 0x2d88,
            .ms3 = 0x11d3,
            .ms4 = {0x9a, 0x16, 0x00, 0x90, 0x27, 0x3f, 0xc1, 0x4d}};
 static constexpr auto PROPERTIES_TABLE_GUID =
-    (Guid){.ms1 = 0x880aaca3,
+    (UUID){.ms1 = 0x880aaca3,
            .ms2 = 0x4adc,
            .ms3 = 0x4a04,
            .ms4 = {0x90, 0x79, 0xb7, 0x47, 0x34, 0x8, 0x25, 0xe5}};
@@ -357,7 +358,7 @@ typedef struct PropertiesTable {
 } PropertiesTable;
 
 static constexpr auto MEMORY_ATTRIBUTES_TABLE_GUID =
-    (Guid){.ms1 = 0xdcfa911d,
+    (UUID){.ms1 = 0xdcfa911d,
            .ms2 = 0x26eb,
            .ms3 = 0x469f,
            .ms4 = {0xa2, 0x20, 0x38, 0xb7, 0xdc, 0x46, 0x12, 0x20}};
@@ -425,13 +426,13 @@ typedef struct RuntimeServices {
                                              MemoryDescriptor *virtual_map);
     Status(EFICALL *convert_pointer)(USize debug_disposition, void **address);
 
-    Status(EFICALL *get_variable)(U16 *variable_name, Guid *vendor_guid,
+    Status(EFICALL *get_variable)(U16 *variable_name, UUID *vendor_guid,
                                   U32 *attributes, USize *data_size,
                                   void *data);
     Status(EFICALL *get_next_variable_name)(USize *variable_name_size,
                                             U16 *variable_name,
-                                            Guid *vendor_guid);
-    Status(EFICALL *set_variable)(U16 *variable_name, Guid *vendor_guid,
+                                            UUID *vendor_guid);
+    Status(EFICALL *set_variable)(U16 *variable_name, UUID *vendor_guid,
                                   U32 attributes, USize data_size, void *data);
 
     Status(EFICALL *get_next_high_mono_count)(U32 *high_count);
@@ -481,27 +482,27 @@ typedef struct BootServices {
     Status(EFICALL *close_event)(Event event);
     Status(EFICALL *check_event)(Event event);
 
-    Status(EFICALL *install_protocol_interface)(Handle *handle, Guid *protocol,
+    Status(EFICALL *install_protocol_interface)(Handle *handle, UUID *protocol,
                                                 InterfaceType interface_type,
                                                 void *interface);
-    Status(EFICALL *reinstall_protocol_interface)(Handle handle, Guid *protocol,
+    Status(EFICALL *reinstall_protocol_interface)(Handle handle, UUID *protocol,
                                                   void *old_interface,
                                                   void *new_interface);
-    Status(EFICALL *uninstall_protocol_interface)(Handle handle, Guid *protocol,
+    Status(EFICALL *uninstall_protocol_interface)(Handle handle, UUID *protocol,
                                                   void *interface);
-    Status(EFICALL *handle_protocol)(Handle handle, Guid *protocol,
+    Status(EFICALL *handle_protocol)(Handle handle, UUID *protocol,
                                      void **interface);
     void *reserved;
-    Status(EFICALL *register_protocol_notify)(Guid *protocol, Event event,
+    Status(EFICALL *register_protocol_notify)(UUID *protocol, Event event,
                                               void **registration);
-    Status(EFICALL *locate_handle)(LocateSearchType search_type, Guid *protocol,
+    Status(EFICALL *locate_handle)(LocateSearchType search_type, UUID *protocol,
                                    void *search_key, USize *buffer_size,
                                    Handle *buffer);
-    Status(EFICALL *locate_device_path)(Guid *protocol,
+    Status(EFICALL *locate_device_path)(UUID *protocol,
                                         DevicePathProtocol **device_path,
                                         Handle *device);
 
-    Status(EFICALL *install_configuration_table)(Guid *guid, void *table);
+    Status(EFICALL *install_configuration_table)(UUID *guid, void *table);
 
     Status(EFICALL *load_image)(bool boot_policy, Handle parent_image_handle,
                                 DevicePathProtocol *device_path,
@@ -528,23 +529,23 @@ typedef struct BootServices {
                                            Handle driver_image_handle,
                                            Handle child_handle);
 
-    Status(EFICALL *open_protocol)(Handle handle, Guid *protocol,
+    Status(EFICALL *open_protocol)(Handle handle, UUID *protocol,
                                    void **interface, Handle agent_handle,
                                    Handle controller_handle, U32 attributes);
-    Status(EFICALL *close_protocol)(Handle handle, Guid *protocol,
+    Status(EFICALL *close_protocol)(Handle handle, UUID *protocol,
                                     Handle agent_handle,
                                     Handle controller_handle);
     Status(EFICALL *open_protocol_information)(
-        Handle handle, Guid *protocol,
+        Handle handle, UUID *protocol,
         OpenProtocolInformationEntry **entry_buffer, USize *entry_count);
 
     Status(EFICALL *protocols_per_handle)(Handle handle,
-                                          Guid ***protocol_buffer,
+                                          UUID ***protocol_buffer,
                                           USize *protocol_buffer_count);
     Status(EFICALL *locate_handle_buffer)(LocateSearchType search_type,
-                                          Guid *protocol, void *search_key,
+                                          UUID *protocol, void *search_key,
                                           USize *no_handles, Handle **buffer);
-    Status(EFICALL *locate_protocol)(Guid *protocol, void *registration,
+    Status(EFICALL *locate_protocol)(UUID *protocol, void *registration,
                                      void **interface);
     Status(EFICALL *install_multiple_protocol_interfaces)(Handle *handle, ...);
     Status(EFICALL *uninstall_multiple_protocol_interfaces)(Handle handle, ...);
@@ -558,7 +559,7 @@ typedef struct BootServices {
 
     Status(EFICALL *create_event_ex)(U32 type, Tpl notify_tpl,
                                      EventNotify notify_function,
-                                     void *notify_context, Guid *event_group,
+                                     void *notify_context, UUID *event_group,
                                      Event *event);
 } BootServices;
 
