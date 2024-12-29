@@ -73,7 +73,7 @@ var ELF = CommonConfig{
 	Linker:    "ld.lld-19",
 }
 
-var EFI = CommonConfig{
+var EFI_SYSTEM = CommonConfig{
 	CCompiler: "clang-19",
 	Linker:    "lld-link-19",
 }
@@ -82,7 +82,7 @@ var EFI = CommonConfig{
 const KERNEL = "kernel"
 const INTEROPERATION = "interoperation"
 const UEFI_IMAGE_CREATOR = "uefi-image-creator"
-const UEFI = "uefi"
+const EFI = "efi"
 const IMAGE_BUILDER = "image-builder"
 const SHARED = "shared"
 const POSIX = "posix"
@@ -93,7 +93,7 @@ const X86 = "x86"
 var kernelFolder = common.REPO_PROJECTS + "/" + KERNEL + "/"
 var interoperationFolder = common.REPO_PROJECTS + "/" + INTEROPERATION + "/"
 var uefiImageCreatorFolder = common.REPO_PROJECTS + "/" + UEFI_IMAGE_CREATOR + "/"
-var uefiFolder = common.REPO_PROJECTS + "/" + UEFI + "/"
+var efiFolder = common.REPO_PROJECTS + "/" + EFI + "/"
 var imageBuilderFolder = common.REPO_PROJECTS + "/" + IMAGE_BUILDER + "/"
 var sharedFolder = common.REPO_PROJECTS + "/" + SHARED + "/"
 var posixFolder = common.REPO_PROJECTS + "/" + POSIX + "/"
@@ -102,14 +102,14 @@ var x86Folder = common.REPO_PROJECTS + "/" + X86 + "/"
 
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
-	KERNEL: &ProjectStructure{
+	KERNEL: {
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
 		Folder:      kernelFolder,
 		CodeFolder:  kernelFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
-	INTEROPERATION: &ProjectStructure{
+	INTEROPERATION: {
 		CCompiler: ELF.CCompiler,
 		// Is object file so adding standard for build output path
 		Linker:      ELF.Linker,
@@ -117,28 +117,28 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		CodeFolder:  interoperationFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
-	UEFI_IMAGE_CREATOR: &ProjectStructure{
+	UEFI_IMAGE_CREATOR: {
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
 		Folder:      uefiImageCreatorFolder,
 		CodeFolder:  uefiImageCreatorFolder + "code",
 		Environment: string(environment.Posix),
 	},
-	UEFI: &ProjectStructure{
-		CCompiler:   EFI.CCompiler,
-		Linker:      EFI.Linker,
-		Folder:      uefiFolder,
-		CodeFolder:  uefiFolder + "code",
+	EFI: {
+		CCompiler:   EFI_SYSTEM.CCompiler,
+		Linker:      EFI_SYSTEM.Linker,
+		Folder:      efiFolder,
+		CodeFolder:  efiFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
-	IMAGE_BUILDER: &ProjectStructure{
+	IMAGE_BUILDER: {
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
 		Folder:      imageBuilderFolder,
 		CodeFolder:  imageBuilderFolder + "code",
 		Environment: string(environment.Posix),
 	},
-	SHARED: &ProjectStructure{
+	SHARED: {
 		CCompiler: ELF.CCompiler,
 		// Is object file so adding standard for build output path
 		Linker:      ELF.Linker,
@@ -146,7 +146,7 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		CodeFolder:  sharedFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
-	POSIX: &ProjectStructure{
+	POSIX: {
 		CCompiler: ELF.CCompiler,
 		// Is object file so adding standard for build output path
 		Linker:      ELF.Linker,
@@ -154,7 +154,7 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		CodeFolder:  posixFolder + "code",
 		Environment: string(environment.Posix),
 	},
-	PLATFORM_ABSTRACTION: &ProjectStructure{
+	PLATFORM_ABSTRACTION: {
 		CCompiler: ELF.CCompiler,
 		// Is object file so adding standard for build output path
 		Linker:      ELF.Linker,
@@ -162,7 +162,7 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		CodeFolder:  platformAbstractionFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
-	X86: &ProjectStructure{
+	X86: {
 		CCompiler: ELF.CCompiler,
 		// Is object file so adding standard for build output path
 		Linker:      ELF.Linker,
@@ -175,7 +175,7 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 func getConfiguredProjects() []string {
 	var result = make([]string, 0)
 
-	for name, _ := range PROJECT_STRUCTURES {
+	for name := range PROJECT_STRUCTURES {
 		result = append(result, name)
 	}
 
@@ -191,7 +191,7 @@ func BuildOutputPath(cCompiler string, linker string, environment string, buildM
 	configurationPath.WriteString(fmt.Sprintf("%s/", cCompiler))
 	configurationPath.WriteString(fmt.Sprintf("%s/", linker))
 	configurationPath.WriteString(fmt.Sprintf("%s/", environment))
-	configurationPath.WriteString(fmt.Sprintf("%s", buildMode))
+	configurationPath.WriteString(buildMode)
 
 	return configurationPath.String()
 }

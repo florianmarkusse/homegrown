@@ -116,5 +116,5 @@ int main(int argc, char **argv) {
         .fileDescriptor = fileDescriptor};
     U64 totalImageSize = SectionsInLBASize.PROTECTIVE_MBR;
 
-    writeMbr(&fileWriter, options.lbaSize, totalImageSize);
+    writeMBR(&fileWriter, options.lbaSize, totalImageSize);
 }

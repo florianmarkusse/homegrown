@@ -71,9 +71,6 @@ static PhysicalMemoryManager *getMemoryManager(PageSize pageSize) {
         return &hugePMM;
         break;
     }
-    default: {
-        __builtin_unreachable();
-    }
     }
 }
 

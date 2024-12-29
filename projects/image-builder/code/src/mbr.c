@@ -41,7 +41,7 @@ static MBR protectiveMBR = {
     .signature = 0xAA55,
 };
 
-void writeMbr(WriteBuffer *file, U32 LBASize, U64 totalImageSize) {
+void writeMBR(WriteBuffer *file, U32 LBASize, U64 totalImageSize) {
     if (totalImageSize > U32_MAX) {
         totalImageSize = U32_MAX + 1;
     }

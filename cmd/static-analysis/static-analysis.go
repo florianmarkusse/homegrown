@@ -35,7 +35,7 @@ func usage() {
 	fmt.Printf("\n")
 	flags.DisplayExamples()
 	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
-	fmt.Printf("  %s --%s %s,%s \n", filepath.Base(os.Args[0]), project.PROJECTS_LONG_FLAG, project.KERNEL, project.UEFI)
+	fmt.Printf("  %s --%s %s,%s \n", filepath.Base(os.Args[0]), project.PROJECTS_LONG_FLAG, project.KERNEL, project.EFI)
 	fmt.Printf("\n")
 }
 

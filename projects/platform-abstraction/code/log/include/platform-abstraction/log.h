@@ -7,6 +7,10 @@
 #include "shared/types/array-types.h"
 #include "shared/types/types.h"
 
+// NOTE: This is the basic logging implementation that all environments should
+// implement if they want to do any sort of logging. Additionally, each
+// environment is free to enhance their logging in any way they see fit.
+
 void appendToFlushBuffer(string data, U8 flags);
 void appendZeroToFlushBuffer(U64 bytes, U8 flags);
 bool flushStandardBuffer();

@@ -105,7 +105,7 @@ var RunBuildArgs = BuildArgs{
 	ErrorsToFile:     false,
 	Threads:          runtime.NumCPU(),
 	SelectedTargets:  []string{},
-	SelectedProjects: []string{project.KERNEL, project.UEFI_IMAGE_CREATOR, project.UEFI},
+	SelectedProjects: []string{project.KERNEL, project.UEFI_IMAGE_CREATOR, project.EFI},
 	BuildTests:       false,
 	RunTests:         false,
 	Architecture:     architecture.DefaultArchitecture(),
