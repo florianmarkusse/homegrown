@@ -4,8 +4,8 @@
 #include <string.h>
 #include <sys/mman.h>
 
-#include "interoperation/kernel-parameters.h"
-#include "interoperation/memory/descriptor.h"
+#include "efi-to-kernel/kernel-parameters.h"
+#include "efi-to-kernel/memory/descriptor.h"
 #include "posix/log.h"
 #include "posix/test-framework/test.h"
 #include "shared/log.h"

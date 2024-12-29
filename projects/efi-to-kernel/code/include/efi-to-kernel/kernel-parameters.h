@@ -1,7 +1,7 @@
-#ifndef INTEROPERATION_KERNEL_PARAMETERS_H
-#define INTEROPERATION_KERNEL_PARAMETERS_H
+#ifndef EFI_TO_KERNEL_KERNEL_PARAMETERS_H
+#define EFI_TO_KERNEL_KERNEL_PARAMETERS_H
 
-#include "interoperation/memory/descriptor.h"
+#include "efi-to-kernel/memory/descriptor.h"
 #include "shared/types/types.h"
 typedef struct {
     U64 ptr;

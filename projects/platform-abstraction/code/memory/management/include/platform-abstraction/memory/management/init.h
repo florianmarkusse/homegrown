@@ -1,7 +1,7 @@
 #ifndef PLATFORM_ABSTRACTION_MEMORY_MANAGEMENT_INIT_H
 #define PLATFORM_ABSTRACTION_MEMORY_MANAGEMENT_INIT_H
 
-#include "interoperation/kernel-parameters.h"
+#include "efi-to-kernel/kernel-parameters.h"
 #include "shared/types/types.h"
 
 void initMemoryManager(KernelMemory kernelMemory, U64 rootMemoryMappingTable);

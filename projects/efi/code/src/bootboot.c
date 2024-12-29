@@ -17,8 +17,8 @@
 #include "efi/memory/standard.h"
 #include "efi/printing.h"
 #include "efi/string.h"
-#include "interoperation/kernel-parameters.h"
-#include "interoperation/memory/definitions.h"
+#include "efi-to-kernel/kernel-parameters.h"
+#include "efi-to-kernel/memory/definitions.h"
 
 extern void ap_trampoline();
 U16 lapic_ids[1024];

@@ -10,8 +10,8 @@
 #include "efi/globals.h"          // for globals
 #include "efi/memory/page-size.h" // for memcmp
 #include "efi/printing.h"         // for error, printNumber
-#include "interoperation/generated/kernel-magic.h"
-#include "interoperation/memory/descriptor.h"
+#include "efi-to-kernel/generated/kernel-magic.h"
+#include "efi-to-kernel/memory/descriptor.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/maths/maths.h"
 

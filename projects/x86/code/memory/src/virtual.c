@@ -1,6 +1,6 @@
 #include "x86/memory/virtual.h"
-#include "interoperation/memory/definitions.h"
-#include "interoperation/memory/descriptor.h"
+#include "efi-to-kernel/memory/definitions.h"
+#include "efi-to-kernel/memory/descriptor.h"
 #include "platform-abstraction/cpu.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/assert.h"

@@ -9,7 +9,7 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE interoperation-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-i)
 

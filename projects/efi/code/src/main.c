@@ -10,9 +10,9 @@
 #include "efi/memory/page-size.h"                      // for UEFI_PAGE_SIZE
 #include "efi/printing.h"                              // for error, printN...
 #include "efi/string.h"                                // for AsciString
-#include "interoperation/kernel-parameters.h"          // for KernelParameters
-#include "interoperation/memory/definitions.h"         // for STACK_SIZE
-#include "interoperation/memory/descriptor.h"          // for MemoryDescriptor
+#include "efi-to-kernel/kernel-parameters.h"          // for KernelParameters
+#include "efi-to-kernel/memory/definitions.h"         // for STACK_SIZE
+#include "efi-to-kernel/memory/descriptor.h"          // for MemoryDescriptor
 #include "shared/maths/maths.h"                        // for CEILING_DIV_V...
 #include "shared/types/types.h"                        // for U64, U32, USize
 #include "x86/memory/definitions/virtual.h"            // for PAGE_FRAME_SIZE

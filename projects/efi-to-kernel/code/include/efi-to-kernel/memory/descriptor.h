@@ -1,5 +1,5 @@
-#ifndef INTEROPERATION_MEMORY_DESCRIPTOR_H
-#define INTEROPERATION_MEMORY_DESCRIPTOR_H
+#ifndef EFI_TO_KERNEL_MEMORY_DESCRIPTOR_H
+#define EFI_TO_KERNEL_MEMORY_DESCRIPTOR_H
 
 // TODO: This is a temporary home for the memory types. I prefer to strip off
 // all the UEFI stuff in the uefi part after which only the necessary data is

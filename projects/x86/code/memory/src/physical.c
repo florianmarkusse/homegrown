@@ -1,6 +1,6 @@
 #include "x86/memory/physical.h"
-#include "interoperation/kernel-parameters.h" // for KernelMemory
-#include "interoperation/memory/descriptor.h"
+#include "efi-to-kernel/kernel-parameters.h" // for KernelMemory
+#include "efi-to-kernel/memory/descriptor.h"
 #include "platform-abstraction/idt.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/assert.h"

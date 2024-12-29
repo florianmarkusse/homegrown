@@ -26,7 +26,7 @@ set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_subproject("shared")
-add_subproject("interoperation")
+add_subproject("efi-to-kernel")
 add_subproject("uefi")
 add_platform_abstraction_and_correct_implementations()
 
@@ -45,7 +45,7 @@ add_executable(
     "src/acpi/c-acpi-rsdp.c"
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE interoperation-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 
 # TODO: Need to change this once multi-platform UEFI support?
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-i)

@@ -28,7 +28,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_link_options("--ld-path=${CMAKE_LINKER}")
 
     add_subproject("shared")
-    add_subproject("interoperation")
+    add_subproject("efi-to-kernel")
     add_subproject("platform-abstraction")
     if("${ENVIRONMENT}" STREQUAL "posix")
         add_subproject("posix")
@@ -60,7 +60,7 @@ if(
             EXCLUDE_FROM_ALL TRUE
     )
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE interoperation-i)
+    target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
     target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
@@ -92,7 +92,7 @@ if(
     set(BINARIZER "${PROJECT_NAME}.bin")
     set(PROJECT_NAME_BIN "${PROJECT_NAME}.bin")
     set(KERNEL_MAGIC_FOLDER
-        "${REPO_PROJECTS}/interoperation/code/include/interoperation/generated"
+        "${REPO_PROJECTS}/efi-to-kernel/code/include/efi-to-kernel/generated"
     )
     set(KERNEL_MAGIC_OUTPUT "${KERNEL_MAGIC_FOLDER}/kernel-magic.h")
     add_custom_target(
@@ -103,7 +103,7 @@ if(
             ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_BIN}
         COMMAND
             mkdir -p ${KERNEL_MAGIC_FOLDER} && python3
-            "${REPO_PROJECTS}/interoperation/code/create_magic.py"
+            "${REPO_PROJECTS}/efi-to-kernel/code/create_magic.py"
             "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_BIN}"
             ${KERNEL_MAGIC_OUTPUT}
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}

@@ -1,7 +1,7 @@
 #ifndef X86_MEMORY_PHYSICAL_H
 #define X86_MEMORY_PHYSICAL_H
 
-#include "interoperation/kernel-parameters.h"
+#include "efi-to-kernel/kernel-parameters.h"
 #include "shared/memory/management/definitions.h"
 #include "shared/types/types.h"
 #include "x86/memory/definitions/virtual.h"

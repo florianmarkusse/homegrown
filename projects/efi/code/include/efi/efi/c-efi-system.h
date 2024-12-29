@@ -22,7 +22,7 @@ extern "C" {
 
 #include "efi/acpi/configuration-table.h"
 #include "efi/efi/c-efi-base.h"
-#include "interoperation/memory/descriptor.h"
+#include "efi-to-kernel/memory/descriptor.h"
 
 /*
  * Time Management

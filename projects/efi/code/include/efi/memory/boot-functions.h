@@ -2,7 +2,7 @@
 #define EFI_MEMORY_BOOT_FUNCTIONS_H
 
 #include "efi/efi/c-efi-base.h" // for PhysicalAddress
-#include "interoperation/memory/descriptor.h"
+#include "efi-to-kernel/memory/descriptor.h"
 #include "shared/types/types.h" // for USize, U64, U32
 
 PhysicalAddress allocAndZero(USize numPages);
