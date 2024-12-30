@@ -22,6 +22,16 @@ typedef struct {
     // blockSize - sizeof(GPTHeader)
 } __attribute__((packed)) GPTHeader;
 
+typedef struct {
+    UUID partitionTypeGUID;
+    UUID uniquePartitionGUID;
+    U64 startingLBA;
+    U64 endingLBA;
+    U64 attributes;
+    U16 partitionName[36]; // UCS-2 (UTF-16 limited to code points 0x0000 -
+                           // 0xFFFF)
+} __attribute__((packed)) GPTPartitionEntry;
+
 static UUID randomVersion4Variant2UUID() {
     UUID result;
     for (U8 i = 0; i < sizeof(UUID); i++) {
@@ -49,6 +59,25 @@ static GPTHeader gptHeader = {
     .numberOfEntries = GPT_PARTITION_TABLE_ENTRIES,
     .sizeOfEntry = GPT_PARTITION_TABLE_ENTRY_SIZE,
     .partitionTableCRC32 = 0, // NOTE: Will calculate later
+};
+
+GPTPartitionEntry partitionEntries[GPT_PARTITION_TABLE_ENTRIES] = {
+    {
+        .partition_type_guid = ESP_GUID,
+        .unique_guid = {0}, // NOTE Will calculate later
+        .starting_lba = 0,  // NOTE Will calculate later
+        .ending_lba = 0,    // NOTE Will calculate later
+        .attributes = 0,
+        .name = u"EFI SYSTEM",
+    },
+    {
+        .partition_type_guid = BASIC_DATA_GUID,
+        .unique_guid = {0}, // NOTE Will calculate later
+        .starting_lba = 0,  // NOTE Will calculate later
+        .ending_lba = 0,    // NOTE Will calculate later
+        .attributes = 0,
+        .name = u"BASIC DATA",
+    },
 };
 
 void writeGPT(WriteBuffer *file) {
