@@ -78,13 +78,7 @@ int main(int argc, char **argv) {
 
     arena.jmp_buf = resourceCleanup;
 
-    // NOTE: SET CONFIGURATION VARIABLES HERE
-
-    configuration.totalImageSizeLBA = SectionsInLBASize.PROTECTIVE_MBR;
-    configuration.GPTPartitionTableSize =
-        GPT_PARTITION_TABLE_SIZE / configuration.LBASize;
-
-    // ----------------------------------
+    setConfiguration();
 
     U8 *filePointer = NEW(&arena, U8, FILE_CAP);
     int fileDescriptor =

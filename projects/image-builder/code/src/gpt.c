@@ -1,6 +1,9 @@
 #include "image-builder/gpt.h"
 #include "image-builder/configuration.h"
+#include "shared/maths/maths.h"
 #include "shared/uuid.h"
+#include "uefi/guid.h"
+
 #include <stdlib.h>
 
 typedef struct {
@@ -63,31 +66,48 @@ static GPTHeader gptHeader = {
 
 GPTPartitionEntry partitionEntries[GPT_PARTITION_TABLE_ENTRIES] = {
     {
-        .partition_type_guid = ESP_GUID,
-        .unique_guid = {0}, // NOTE Will calculate later
-        .starting_lba = 0,  // NOTE Will calculate later
-        .ending_lba = 0,    // NOTE Will calculate later
+        .partitionTypeGUID = EFI_SYSTEM_PARTITION_GUID,
+        .uniquePartitionGUID = {0}, // NOTE Will calculate later
+        .startingLBA = 0,           // NOTE Will calculate later
+        .endingLBA = 0,             // NOTE Will calculate later
         .attributes = 0,
-        .name = u"EFI SYSTEM",
+        .partitionName = u"EFI SYSTEM",
     },
     {
-        .partition_type_guid = BASIC_DATA_GUID,
-        .unique_guid = {0}, // NOTE Will calculate later
-        .starting_lba = 0,  // NOTE Will calculate later
-        .ending_lba = 0,    // NOTE Will calculate later
+        .partitionTypeGUID = FLOS_BASIC_DATA_GUID,
+        .uniquePartitionGUID = {0}, // NOTE Will calculate later
+        .startingLBA = 0,           // NOTE Will calculate later
+        .endingLBA = 0,             // NOTE Will calculate later
         .attributes = 0,
-        .name = u"BASIC DATA",
+        .partitionName = u"BASIC DATA",
     },
 };
+
+void fillPartitionEntry(U32 index, U64 unalignedStartLBA, U64 sizeLBA) {
+    partitionEntries[index].uniquePartitionGUID = randomVersion4Variant2UUID();
+    partitionEntries[index].startingLBA =
+        ALIGN_UP_VALUE(unalignedStartLBA, configuration.alignmentLBA);
+    // NOTE: if bug, maybe do not do -1 here even thought this is stated on page
+    // 118 of UEFI spec 2.10
+    partitionEntries[index].endingLBA =
+        partitionEntries[index].startingLBA + sizeLBA - 1;
+}
 
 void writeGPT(WriteBuffer *file) {
     gptHeader.alternateLBA =
         configuration.totalImageSizeLBA - SectionsInLBASize.GPT_HEADER;
     gptHeader.firstUsableLBA = SectionsInLBASize.PROTECTIVE_MBR +
                                SectionsInLBASize.GPT_HEADER +
-                               configuration.GPTPartitionTableSize;
+                               configuration.GPTPartitionTableSizeLBA;
     gptHeader.lastUsableLBA = configuration.totalImageSizeLBA -
                               SectionsInLBASize.GPT_HEADER -
-                              configuration.GPTPartitionTableSize - 1;
+                              configuration.GPTPartitionTableSizeLBA - 1;
     gptHeader.diskGUID = randomVersion4Variant2UUID();
+
+    fillPartitionEntry(
+        0, gptHeader.partitionTableLBA + configuration.GPTPartitionTableSizeLBA,
+        configuration.EFISystemPartitionSizeLBA);
+
+    fillPartitionEntry(1, partitionEntries[0].endingLBA + 1,
+                       configuration.DataPartitionSizeLBA);
 }

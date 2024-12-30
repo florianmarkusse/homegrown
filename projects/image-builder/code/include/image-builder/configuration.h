@@ -25,10 +25,15 @@ static constexpr struct {
 typedef struct {
     U8 *imageName;
     U16 LBASize;
+    U32 alignmentLBA;
     U64 totalImageSizeLBA;
-    U64 GPTPartitionTableSize;
+    U64 GPTPartitionTableSizeLBA;
+    U64 EFISystemPartitionSizeLBA;
+    U64 DataPartitionSizeLBA;
 } Configuration;
 
 extern Configuration configuration;
+
+void setConfiguration();
 
 #endif
