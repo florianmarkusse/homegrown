@@ -36,11 +36,10 @@ typedef struct UUID {
 } UUID;
 
 typedef enum {
-    UUID_VARIANT_0 =
-        0b011, // 0b0 is the only bit that matters but we are &ding it
-    UUID_VARIANT_1 = 0b101, // 0b10
-    UUID_VARIANT_2 = 0b110, // 0b110
-    UUID_VARIANT_3 = 0b111  // 0b111
+    UUID_VARIANT_0,
+    UUID_VARIANT_1,
+    UUID_VARIANT_2,
+    UUID_VARIANT_3,
 } UUIDVariant;
 
 static constexpr UUID NIL_UUID = {0};
