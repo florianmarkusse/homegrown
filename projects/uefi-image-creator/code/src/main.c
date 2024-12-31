@@ -209,7 +209,7 @@ static Options options = {.image_name = "test.hdd",
 // -------------------------------------
 // EFI System Partition GUID
 Guid ESP_GUID = {0xC12A7328, 0xF81F, 0x11D2,
-                 0x4B,       0xBA,   {0x00, 0xA0, 0xC9, 0x3E, 0xC9, 0x3B}};
+                 0xBA,       0x4B,   {0x00, 0xA0, 0xC9, 0x3E, 0xC9, 0x3B}};
 
 // (Microsoft) Basic Data GUID
 Guid BASIC_DATA_GUID = {0xEBD0A0A2, 0xB9E5,
