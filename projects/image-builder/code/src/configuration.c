@@ -17,8 +17,14 @@ void setConfiguration() {
     // NOTE: this is just scaffolding, it should calculate the actual values
     // instead of just using hardcoded values.
 
-    configuration.totalImageSizeLBA = SectionsInLBASize.PROTECTIVE_MBR;
+    // Should be bigger than all other values, duh?
+    configuration.totalImageSizeLBA = 200;
     configuration.GPTPartitionTableSizeLBA =
         GPT_PARTITION_TABLE_SIZE / configuration.LBASize;
+    // NOTE: this should just be based on the lba and other stuff and not
+    // standard be this calculation
     configuration.alignmentLBA = (1 * MiB) / configuration.LBASize;
+
+    configuration.EFISystemPartitionSizeLBA = 8;
+    configuration.DataPartitionSizeLBA = 16;
 }
