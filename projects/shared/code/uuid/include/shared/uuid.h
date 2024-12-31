@@ -25,24 +25,12 @@ typedef struct UUID {
             U8 ms4[8];
         };
         struct {
-            U32 first32;
-            U16 from32To47;
-            union {
-                struct {
-                    U8 versionAnd52To55; // Highest 4 bits are version #
-                    U8 from56To63;
-                };
-                U16 from48To63;
-            };
-            union {
-                struct {
-                    U8 variantAnd67To71; // Highest 1, 2, or 3 bits are variant
-                                         // #
-                    U8 from72To79;
-                };
-                U16 from64To79;
-            };
-            U8 from80to127[6];
+            U32 timeLo;
+            U16 timeMid;
+            U16 timeHiAndVer;    // Highest 4 bits are version #
+            U8 clockSeqHiAndRes; // Highest bits are variant #
+            U8 clockSeqLo;
+            U8 node[6];
         };
     };
 } UUID;
