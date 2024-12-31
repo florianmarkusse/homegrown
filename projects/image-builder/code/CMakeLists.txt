@@ -10,7 +10,15 @@ add_subproject("shared")
 add_subproject("uefi")
 add_platform_abstraction_and_correct_implementations()
 
-add_executable(${PROJECT_NAME} "src/main.c" "src/mbr.c")
+add_executable(
+    ${PROJECT_NAME}
+    "src/main.c"
+    "src/mbr.c"
+    "src/configuration.c"
+    "src/crc32.c"
+    "src/gpt.c"
+    "src/util.c"
+)
 
 target_include_directories(
     ${PROJECT_NAME}

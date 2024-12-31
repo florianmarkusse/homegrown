@@ -1,5 +1,7 @@
 #include "image-builder/gpt.h"
 #include "image-builder/configuration.h"
+#include "image-builder/crc32.h"
+#include "image-builder/util.h"
 #include "shared/maths/maths.h"
 #include "shared/uuid.h"
 #include "uefi/guid.h"
@@ -87,11 +89,15 @@ void fillPartitionEntry(U32 index, U64 unalignedStartLBA, U64 sizeLBA) {
     partitionEntries[index].uniquePartitionGUID = randomVersion4Variant2UUID();
     partitionEntries[index].startingLBA =
         ALIGN_UP_VALUE(unalignedStartLBA, configuration.alignmentLBA);
-    // NOTE: if bug, maybe do not do -1 here even thought this is stated on page
-    // 118 of UEFI spec 2.10
     partitionEntries[index].endingLBA =
         partitionEntries[index].startingLBA + sizeLBA - 1;
 }
+
+#define ZERO_REMAINING_BYTES_IN_LBA(lbaSize, dataSize, file)                   \
+    if (configuration.LBASize > sizeof(GPTHeader)) {                           \
+        appendZeroToFlushBufferWithWriter(                                     \
+            configuration.LBASize - sizeof(GPTHeader), 0, file);               \
+    }
 
 void writeGPT(WriteBuffer *file) {
     gptHeader.alternateLBA =
@@ -107,7 +113,16 @@ void writeGPT(WriteBuffer *file) {
     fillPartitionEntry(
         0, gptHeader.partitionTableLBA + configuration.GPTPartitionTableSizeLBA,
         configuration.EFISystemPartitionSizeLBA);
-
     fillPartitionEntry(1, partitionEntries[0].endingLBA + 1,
                        configuration.DataPartitionSizeLBA);
+
+    gptHeader.partitionTableCRC32 =
+        calculateCRC32(partitionEntries, sizeof(partitionEntries));
+    gptHeader.headerCRC32 = calculateCRC32(&gptHeader, sizeof(GPTHeader));
+
+    PLOG_DATA(STRING_LEN((U8 *)&gptHeader, sizeof(GPTHeader)), 0, file);
+    zeroRemainingBytesInLBA(sizeof(GPTHeader), file);
+
+    PLOG_DATA(STRING_LEN(partitionEntries, sizeof(partitionEntries)), 0, file);
+    zeroRemainingBytesInLBA(sizeof(partitionEntries), file);
 }

@@ -1,5 +1,7 @@
 #include "image-builder/configuration.h"
+#include "image-builder/gpt.h"
 #include "image-builder/mbr.h"
+#include "platform-abstraction/log.h"
 #include "posix/file/file-status.h"
 #include "posix/log.h"
 #include "shared/log.h"
@@ -100,4 +102,7 @@ int main(int argc, char **argv) {
         .fileDescriptor = fileDescriptor};
 
     writeMBR(&fileWriter);
+    writeGPT(&fileWriter);
+
+    flushBufferWithWriter(&fileWriter);
 }

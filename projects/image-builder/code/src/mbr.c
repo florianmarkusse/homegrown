@@ -1,5 +1,6 @@
 #include "image-builder/mbr.h"
 #include "image-builder/configuration.h"
+#include "image-builder/util.h"
 #include "posix/log.h"
 #include "shared/text/string.h"
 #include "shared/types/types.h"
@@ -50,6 +51,5 @@ void writeMBR(WriteBuffer *file) {
     protectiveMBR.partitions[0].sizeLBA = (U32)(totalImageSizeLBA - 1);
 
     PLOG_DATA(STRING_LEN((U8 *)&protectiveMBR, sizeof(MBR)), 0, file);
-    appendZeroToFlushBufferWithWriter(configuration.LBASize - sizeof(MBR), 0,
-                                      file);
+    zeroRemainingBytesInLBA(sizeof(MBR), file);
 }
