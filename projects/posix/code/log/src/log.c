@@ -24,13 +24,10 @@ static WriteBuffer stderrBuffer =
                             .len = 0},
                   .fileDescriptor = STDERR_FILENO};
 
-// We are going to flush to:
-// - The in-memory standin file buffer
-bool flushBufferWithWriter(WriteBuffer *buffer) {
-    for (U64 bytesWritten = 0; bytesWritten < buffer->array.len;) {
+bool flushBufferWithFileDescriptor(int fileDescriptor, U8 *buffer, U64 size) {
+    for (U64 bytesWritten = 0; bytesWritten < size;) {
         U64 partialBytesWritten =
-            write(buffer->fileDescriptor, buffer->array.buf + bytesWritten,
-                  buffer->array.len - bytesWritten);
+            write(fileDescriptor, buffer + bytesWritten, size - bytesWritten);
         if (partialBytesWritten < 0) {
             ASSERT(false);
             return false;
@@ -39,16 +36,24 @@ bool flushBufferWithWriter(WriteBuffer *buffer) {
         }
     }
 
-    buffer->array.len = 0;
-
     return true;
+}
+
+// We are going to flush to:
+// - The in-memory standin file buffer
+bool flushBufferWithWriter(WriteBuffer *buffer) {
+    bool result = flushBufferWithFileDescriptor(
+        buffer->fileDescriptor, buffer->array.buf, buffer->array.len);
+    buffer->array.len = 0;
+    return result;
 }
 
 bool flushBuffer(U8_max_a *buffer) {
     WriteBuffer writer =
         (WriteBuffer){.fileDescriptor = STDOUT_FILENO, .array = *buffer};
     bool result = flushBufferWithWriter(&writer);
-    // We are copying the buffer by doing *buffer so will manually set lenght to
+    // We are copying the buffer by doing *buffer so wil l manually set lenght
+    // to
     // 0
     if (result) {
         buffer->len = 0;

@@ -47,7 +47,7 @@ __attribute((malloc)) void *poolAlloc(PoolAllocator *pool, U8 flags) {
 
     if (node == nullptr) {
         ASSERT(false);
-        if (flags & nullptr_ON_FAIL) {
+        if (flags & NULLPTR_ON_FAIL) {
             return nullptr;
         }
         __builtin_longjmp(pool->jmp_buf, 1);

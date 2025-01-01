@@ -1,7 +1,7 @@
 #include "image-builder/gpt.h"
 #include "image-builder/configuration.h"
 #include "image-builder/crc32.h"
-#include "image-builder/util.h"
+#include "platform-abstraction/memory/manipulation.h"
 #include "shared/maths/maths.h"
 #include "shared/uuid.h"
 #include "uefi/guid.h"
@@ -99,7 +99,7 @@ void fillPartitionEntry(U32 index, U64 unalignedStartLBA, U64 sizeLBA) {
             configuration.LBASize - sizeof(GPTHeader), 0, file);               \
     }
 
-void writeGPT(WriteBuffer *file) {
+void writeGPT(U8 *fileBuffer) {
     gptHeader.alternateLBA =
         configuration.totalImageSizeLBA - SectionsInLBASize.GPT_HEADER;
     gptHeader.firstUsableLBA = SectionsInLBASize.PROTECTIVE_MBR +
@@ -120,9 +120,9 @@ void writeGPT(WriteBuffer *file) {
         calculateCRC32(partitionEntries, sizeof(partitionEntries));
     gptHeader.headerCRC32 = calculateCRC32(&gptHeader, sizeof(GPTHeader));
 
-    PLOG_DATA(STRING_LEN((U8 *)&gptHeader, sizeof(GPTHeader)), 0, file);
-    zeroRemainingBytesInLBA(sizeof(GPTHeader), file);
+    fileBuffer += SectionsInLBASize.PROTECTIVE_MBR * configuration.LBASize;
+    memcpy(fileBuffer, &gptHeader, sizeof(GPTHeader));
 
-    PLOG_DATA(STRING_LEN(partitionEntries, sizeof(partitionEntries)), 0, file);
-    zeroRemainingBytesInLBA(sizeof(partitionEntries), file);
+    fileBuffer += SectionsInLBASize.GPT_HEADER * configuration.LBASize;
+    memcpy(fileBuffer, partitionEntries, sizeof(partitionEntries));
 }

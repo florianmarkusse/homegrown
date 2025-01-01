@@ -6,6 +6,7 @@
 #include "posix/log.h"
 #include "shared/log.h"
 #include "shared/memory/allocator/arena.h"
+#include "shared/memory/allocator/macros.h"
 #include "shared/memory/sizes.h"
 #include "shared/text/string.h"
 #include "shared/types/types.h"
@@ -26,7 +27,6 @@ FILEPtr_max_a openedFiles = {
     .buf = openFilesBuf, .cap = MAX_OPEN_FILES, .len = 0};
 
 static constexpr auto MEMORY_CAP = 1 * GiB;
-static constexpr auto FILE_CAP = 500 * MiB;
 
 int main(int argc, char **argv) {
     char *begin = mmap(nullptr, MEMORY_CAP, PROT_READ | PROT_WRITE,
@@ -82,7 +82,12 @@ int main(int argc, char **argv) {
 
     setConfiguration();
 
-    U8 *filePointer = NEW(&arena, U8, FILE_CAP);
+    U64 fileSizeBytes = configuration.totalImageSizeLBA * configuration.LBASize;
+    U8 *dataBuffer = NEW(&arena, U8, fileSizeBytes, ZERO_MEMORY);
+
+    writeMBR(dataBuffer);
+    writeGPT(dataBuffer);
+
     int fileDescriptor =
         open(configuration.imageName, O_CLOEXEC | O_TRUNC | O_CREAT | O_RDWR,
              READ_WRITE_OWNER_READ_OTHERS);
@@ -97,12 +102,5 @@ int main(int argc, char **argv) {
         }
     }
 
-    WriteBuffer fileWriter = (WriteBuffer){
-        .array = (U8_max_a){.buf = filePointer, .len = 0, .cap = FILE_CAP},
-        .fileDescriptor = fileDescriptor};
-
-    writeMBR(&fileWriter);
-    writeGPT(&fileWriter);
-
-    flushBufferWithWriter(&fileWriter);
+    flushBufferWithFileDescriptor(fileDescriptor, dataBuffer, fileSizeBytes);
 }

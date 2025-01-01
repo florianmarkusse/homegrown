@@ -8,7 +8,7 @@
 #include "shared/memory/allocator/arena.h" // for NEW, Arena
 #include "shared/memory/allocator/macros.h"
 #include "shared/text/string.h" // for STRING, string
-#include "shared/types/types.h" // for nullptr_ON_FAIL
+#include "shared/types/types.h" // for NULLPTR_ON_FAIL
 #include <linux/fs.h>           // for BLKGETSIZE64
 #include <stddef.h>             // for U64
 #include <stdio.h>              // for fclose, perror, nullptr, fopen, fread
@@ -35,7 +35,7 @@ FileStatus readFile(U8 *srcPath, string *buffer, Arena *perm) {
     U64 dataLen = ftell(srcFile);
     rewind(srcFile);
 
-    (*buffer).buf = NEW(perm, U8, dataLen, nullptr_ON_FAIL);
+    (*buffer).buf = NEW(perm, U8, dataLen, NULLPTR_ON_FAIL);
     if ((*buffer).buf == nullptr) {
         PFLUSH_AFTER(STDERR) {
             PERROR((STRING("Failed to allocate memory for file ")));

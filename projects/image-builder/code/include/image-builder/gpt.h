@@ -1,8 +1,8 @@
 #ifndef IMAGE_BUILDER_GPT_H
 #define IMAGE_BUILDER_GPT_H
 
-#include "posix/log.h"
+#include "shared/types/types.h"
 
-void writeGPT(WriteBuffer *file);
+void writeGPT(U8 *fileBuffer);
 
 #endif

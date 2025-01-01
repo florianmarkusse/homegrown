@@ -1,8 +1,6 @@
 #include "image-builder/mbr.h"
 #include "image-builder/configuration.h"
-#include "image-builder/util.h"
-#include "posix/log.h"
-#include "shared/text/string.h"
+#include "platform-abstraction/memory/manipulation.h"
 #include "shared/types/types.h"
 
 typedef struct {
@@ -43,13 +41,12 @@ static MBR protectiveMBR = {
     .signature = 0xAA55,
 };
 
-void writeMBR(WriteBuffer *file) {
+void writeMBR(U8 *fileBuffer) {
     U64 totalImageSizeLBA = configuration.totalImageSizeLBA;
     if (totalImageSizeLBA > U32_MAX) {
         totalImageSizeLBA = U32_MAX + 1;
     }
     protectiveMBR.partitions[0].sizeLBA = (U32)(totalImageSizeLBA - 1);
 
-    PLOG_DATA(STRING_LEN((U8 *)&protectiveMBR, sizeof(MBR)), 0, file);
-    zeroRemainingBytesInLBA(sizeof(MBR), file);
+    memcpy(fileBuffer, &protectiveMBR, sizeof(MBR));
 }

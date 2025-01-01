@@ -17,7 +17,6 @@ add_executable(
     "src/configuration.c"
     "src/crc32.c"
     "src/gpt.c"
-    "src/util.c"
 )
 
 target_include_directories(

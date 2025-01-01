@@ -28,6 +28,7 @@ bool appendToFlushBufferWithWriter(string data, U8 flags, WriteBuffer *buffer);
 bool appendZeroToFlushBufferWithWriter(U64 bytes, U8 flags,
                                        WriteBuffer *buffer);
 bool flushBufferWithWriter(WriteBuffer *buffer);
+bool flushBufferWithFileDescriptor(int fileDescriptor, U8 *buffer, U64 size);
 
 bool appendColor(AnsiColor color, BufferType bufferType);
 bool appendColorReset(BufferType bufferType);
