@@ -19,6 +19,8 @@ void setConfiguration() {
 
     // Should be bigger than all other values, duh?
     configuration.totalImageSizeLBA = 200;
+    configuration.totalImageSizeBytes =
+        configuration.totalImageSizeLBA * configuration.LBASize;
     configuration.GPTPartitionTableSizeLBA =
         GPT_PARTITION_TABLE_SIZE / configuration.LBASize;
     // NOTE: this should just be based on the lba and other stuff and not

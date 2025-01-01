@@ -93,13 +93,7 @@ void fillPartitionEntry(U32 index, U64 unalignedStartLBA, U64 sizeLBA) {
         partitionEntries[index].startingLBA + sizeLBA - 1;
 }
 
-#define ZERO_REMAINING_BYTES_IN_LBA(lbaSize, dataSize, file)                   \
-    if (configuration.LBASize > sizeof(GPTHeader)) {                           \
-        appendZeroToFlushBufferWithWriter(                                     \
-            configuration.LBASize - sizeof(GPTHeader), 0, file);               \
-    }
-
-void writeGPT(U8 *fileBuffer) {
+void writeGPTs(U8 *fileBuffer) {
     gptHeader.alternateLBA =
         configuration.totalImageSizeLBA - SectionsInLBASize.GPT_HEADER;
     gptHeader.firstUsableLBA = SectionsInLBASize.PROTECTIVE_MBR +
@@ -120,9 +114,30 @@ void writeGPT(U8 *fileBuffer) {
         calculateCRC32(partitionEntries, sizeof(partitionEntries));
     gptHeader.headerCRC32 = calculateCRC32(&gptHeader, sizeof(GPTHeader));
 
-    fileBuffer += SectionsInLBASize.PROTECTIVE_MBR * configuration.LBASize;
+    U8 *primaryBuffer = fileBuffer;
+    primaryBuffer += SectionsInLBASize.PROTECTIVE_MBR * configuration.LBASize;
+    memcpy(primaryBuffer, &gptHeader, sizeof(GPTHeader));
+
+    primaryBuffer += SectionsInLBASize.GPT_HEADER * configuration.LBASize;
+    memcpy(primaryBuffer, partitionEntries, sizeof(partitionEntries));
+
+    gptHeader.headerCRC32 = 0;
+
+    U64 primaryMyLBA = gptHeader.myLBA;
+    gptHeader.myLBA = gptHeader.alternateLBA;
+    gptHeader.alternateLBA = primaryMyLBA;
+
+    gptHeader.partitionTableLBA = configuration.totalImageSizeLBA -
+                                  SectionsInLBASize.GPT_HEADER -
+                                  configuration.GPTPartitionTableSizeLBA - 1;
+
+    gptHeader.headerCRC32 = calculateCRC32(&gptHeader, sizeof(GPTHeader));
+
+    fileBuffer += configuration.totalImageSizeBytes;
+    fileBuffer -= SectionsInLBASize.GPT_HEADER * configuration.LBASize;
     memcpy(fileBuffer, &gptHeader, sizeof(GPTHeader));
 
-    fileBuffer += SectionsInLBASize.GPT_HEADER * configuration.LBASize;
+    fileBuffer -=
+        configuration.GPTPartitionTableSizeLBA * configuration.LBASize;
     memcpy(fileBuffer, partitionEntries, sizeof(partitionEntries));
 }

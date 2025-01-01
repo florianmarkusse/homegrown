@@ -3,6 +3,6 @@
 
 #include "shared/types/types.h"
 
-void writeGPT(U8 *fileBuffer);
+void writeGPTs(U8 *fileBuffer);
 
 #endif

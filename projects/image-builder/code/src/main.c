@@ -82,11 +82,11 @@ int main(int argc, char **argv) {
 
     setConfiguration();
 
-    U64 fileSizeBytes = configuration.totalImageSizeLBA * configuration.LBASize;
-    U8 *dataBuffer = NEW(&arena, U8, fileSizeBytes, ZERO_MEMORY);
+    U8 *dataBuffer =
+        NEW(&arena, U8, configuration.totalImageSizeBytes, ZERO_MEMORY);
 
     writeMBR(dataBuffer);
-    writeGPT(dataBuffer);
+    writeGPTs(dataBuffer);
 
     int fileDescriptor =
         open(configuration.imageName, O_CLOEXEC | O_TRUNC | O_CREAT | O_RDWR,
@@ -102,5 +102,6 @@ int main(int argc, char **argv) {
         }
     }
 
-    flushBufferWithFileDescriptor(fileDescriptor, dataBuffer, fileSizeBytes);
+    flushBufferWithFileDescriptor(fileDescriptor, dataBuffer,
+                                  configuration.totalImageSizeBytes);
 }

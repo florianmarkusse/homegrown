@@ -84,7 +84,7 @@ typedef struct {
     U64 firstUsableLBA;
     U64 lastUsableLBA;
     Guid diskGUID;
-    U64 partitionTableLBA;
+    U64 partitionEntryLBA;
     U32 numberOfEntries;
     U32 sizeOfEntry;
     U32 partitionTableCRC32;
@@ -355,7 +355,7 @@ void write_gpts(FILE *image) {
         .lastUsableLBA =
             image_size_lbas - 1 - gpt_table_lbas - 1, // 2nd GPT header + table
         .diskGUID = new_guid(),
-        .partitionTableLBA = 2, // After MBR + GPT header
+        .partitionEntryLBA = 2, // After MBR + GPT header
         .numberOfEntries = 128,
         .sizeOfEntry = 128,
         .partitionTableCRC32 = 0, // Will calculate later
@@ -401,14 +401,14 @@ void write_gpts(FILE *image) {
     secondary_gpt.partitionTableCRC32 = 0;
     secondary_gpt.myLBA = primary_gpt.alternateLBA;
     secondary_gpt.alternateLBA = primary_gpt.myLBA;
-    secondary_gpt.partitionTableLBA = image_size_lbas - 1 - gpt_table_lbas;
+    secondary_gpt.partitionEntryLBA = image_size_lbas - 1 - gpt_table_lbas - 1;
 
     secondary_gpt.partitionTableCRC32 =
         calculateCRC32(gpt_table, sizeof gpt_table);
     secondary_gpt.headerCRC32 =
         calculateCRC32(&secondary_gpt, secondary_gpt.headerSize);
 
-    fseek(image, secondary_gpt.partitionTableLBA * options.lba_size, SEEK_SET);
+    fseek(image, secondary_gpt.partitionEntryLBA * options.lba_size, SEEK_SET);
 
     checkedFwrite(&gpt_table, sizeof gpt_table, image);
 

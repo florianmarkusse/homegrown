@@ -27,6 +27,7 @@ typedef struct {
     U16 LBASize;
     U32 alignmentLBA;
     U64 totalImageSizeLBA;
+    U64 totalImageSizeBytes;
     U64 GPTPartitionTableSizeLBA;
     U64 EFISystemPartitionSizeLBA;
     U64 DataPartitionSizeLBA;
