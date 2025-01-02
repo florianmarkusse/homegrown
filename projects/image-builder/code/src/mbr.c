@@ -2,6 +2,7 @@
 #include "image-builder/configuration.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/types/types.h"
+#include "uefi/constants.h"
 
 typedef struct {
     U8 bootIndicator;
@@ -38,7 +39,7 @@ static MBR protectiveMBR = {
             {0},
             {0},
         },
-    .signature = 0xAA55,
+    .signature = BOOT_SIGNATURE,
 };
 
 void writeMBR(U8 *fileBuffer) {
