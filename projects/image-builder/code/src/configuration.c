@@ -25,7 +25,7 @@ void setConfiguration() {
         GPT_PARTITION_TABLE_SIZE / configuration.LBASize;
     // NOTE: this should just be based on the lba and other stuff and not
     // standard be this calculation
-    configuration.alignmentLBA = (1 * MiB) / configuration.LBASize;
+    configuration.alignmentLBA = (U16)((1 * MiB) / configuration.LBASize);
 
     configuration.EFISystemPartitionSizeLBA = 8;
     configuration.DataPartitionSizeLBA = 16;
