@@ -1,6 +1,7 @@
 #include "image-builder/configuration.h"
 #include "image-builder/gpt.h"
 #include "image-builder/mbr.h"
+#include "image-builder/partitions/efi.h"
 #include "platform-abstraction/log.h"
 #include "posix/file/file-status.h"
 #include "posix/log.h"
@@ -87,6 +88,7 @@ int main(int argc, char **argv) {
 
     writeMBR(dataBuffer);
     writeGPTs(dataBuffer);
+    writeEFISystemPartition(dataBuffer, "test-name.efi");
 
     int fileDescriptor =
         open(configuration.imageName, O_CLOEXEC | O_TRUNC | O_CREAT | O_RDWR,

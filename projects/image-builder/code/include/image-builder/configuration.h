@@ -22,15 +22,18 @@ static constexpr struct {
     .GPT_HEADER = 1,
 };
 
+// TODO: calculate start LBAs for partitions !!!!
 typedef struct {
     U8 *imageName;
     U16 LBASize;
-    U16 alignmentLBA;
+    U32 alignmentLBA;
     U32 totalImageSizeLBA;
     U64 totalImageSizeBytes;
-    U16 GPTPartitionTableSizeLBA;
-    U16 EFISystemPartitionSizeLBA;
-    U16 DataPartitionSizeLBA;
+    U32 GPTPartitionTableSizeLBA;
+    U32 EFISystemPartitionStartLBA;
+    U32 EFISystemPartitionSizeLBA;
+    U32 DataPartitionStartLBA;
+    U32 DataPartitionSizeLBA;
 } Configuration;
 
 extern Configuration configuration;
