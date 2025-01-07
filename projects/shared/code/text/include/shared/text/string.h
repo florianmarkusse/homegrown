@@ -85,6 +85,18 @@ static inline string splitString(string s, U8 token, U64 from) {
     return (string){.buf = getCharPtr(s, from), .len = s.len - from};
 }
 
+typedef struct {
+    string string;
+    U64 pos;
+} StringIter;
+
+#define TOKENIZE_STRING(_string, stringIter, token, startingPosition)          \
+    for ((stringIter) = (StringIter){.pos = (startingPosition)};               \
+         ((stringIter).pos < (_string).len) &&                                 \
+         ((stringIter).string = splitString(_string, token, (stringIter).pos), \
+         1);                                                                   \
+         (stringIter).pos += (stringIter).string.len + 1)
+
 static inline I64 firstOccurenceOfFrom(string s, U8 ch, U64 from) {
     ASSERT(from >= 0 && from < s.len);
 

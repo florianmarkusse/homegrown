@@ -37,13 +37,11 @@ static inline AsciString AsciSplitString(AsciString s, U8 token, U64 from) {
 }
 
 #define TOKENIZE_ASCI_STRING(_string, stringIter, token, startingPosition)     \
-    for ((stringIter) =                                                        \
-             (AsciStringIter){                                                 \
-                 .string = AsciSplitString(_string, token, startingPosition),  \
-                 .pos = (startingPosition)};                                   \
-         (stringIter).pos < (_string).len;                                     \
-         (stringIter).pos += (stringIter).string.len + 1,                      \
-        (stringIter).string =                                                  \
-             AsciSplitString(_string, token, (stringIter).pos))
+    for ((stringIter) = (AsciStringIter){.pos = (startingPosition)};           \
+         ((stringIter).pos < (_string).len) &&                                 \
+         ((stringIter).string =                                                \
+              AsciSplitString(_string, token, (stringIter).pos),               \
+         1);                                                                   \
+         (stringIter).pos += (stringIter).string.len + 1)
 
 #endif

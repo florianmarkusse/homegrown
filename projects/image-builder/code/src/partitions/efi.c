@@ -48,7 +48,8 @@ static constexpr U32 FILE_SYSTEM_INFO_UNKNOWN = 0xFFFFFFFF;
 
 // For end of file data or directory cluster
 static constexpr U32 END_OF_CHAIN_MARKER = 0xFFFFFFFF;
-static constexpr U16 ROOT_CLUSTER_AS_PARENT = 0;
+static constexpr auto RESERVED_CLUSTER_INDICES = 2;
+static constexpr U32 ROOT_CLUSTER_FAT_INDEX = 2;
 
 // The rest of the logical sectors is zeroed out as well in these data structure
 // blocks. The size of the sector is decided by BIOSParameter.bytesPerSector
@@ -155,6 +156,10 @@ static constexpr FileSystemInformation FSInfo = {
     .reserved1 = {0},
     .trailSignature = 0xAA550000};
 
+static U8 *DATA_CLUSTERS;
+static U32 *PRIMARY_FAT;
+static U32 CURRENT_FREE_CLUSTER = 0;
+
 U32 calculateEFIPartitionSize(U32 EFIApplicationSizeLBA) {
     // No need for conversions here because values are set to equal each other
     // 1 cluster == 1 sector == 1 LBA
@@ -184,12 +189,53 @@ U32 calculateEFIPartitionSize(U32 EFIApplicationSizeLBA) {
     return parameterBlock.totalSectors32Bit;
 }
 
-void setName(DirEntryShortName *dir, U8 name[11]) {
+static void setName(DirEntryShortName *dir, U8 name[11]) {
     memcpy(dir->name, name, sizeof(((DirEntryShortName *)nullptr)->name));
 }
 
-U8 *writeFileEntryAndAdvance(U8 *clusterBuffer, U16 cluster, U8 name[11],
-                             U32 size) {
+static U8 *getDataCluster(U32 clusterIndex) {
+    return DATA_CLUSTERS + parameterBlock.bytesPerSector *
+                               (clusterIndex - RESERVED_CLUSTER_INDICES);
+}
+
+static U32 lastWrittenCluster(U32 startingClusterIndex) {
+    U32 index = startingClusterIndex;
+    while (PRIMARY_FAT[index] != END_OF_CHAIN_MARKER) {
+        index = PRIMARY_FAT[index];
+    }
+    return index;
+}
+
+static U8 *allocateNewDataCluster(U32 currentLastClusterIndex) {
+    PRIMARY_FAT[currentLastClusterIndex] = CURRENT_FREE_CLUSTER;
+    PRIMARY_FAT[CURRENT_FREE_CLUSTER] = END_OF_CHAIN_MARKER;
+
+    U8 *result = getDataCluster(CURRENT_FREE_CLUSTER);
+    CURRENT_FREE_CLUSTER++;
+
+    return result;
+}
+
+static U8 *getNextWriteLocation(U16 startingClusterIndex) {
+    U32 lastWrittenIndex = lastWrittenCluster(startingClusterIndex);
+
+    U8 *possibleWriteLocation = getDataCluster(lastWrittenIndex);
+    U8 *dataClusterEnd = possibleWriteLocation + parameterBlock.bytesPerSector;
+
+    while (!(((DirEntryShortName *)possibleWriteLocation)->name[0]) &&
+           possibleWriteLocation < dataClusterEnd) {
+        possibleWriteLocation += sizeof(DirEntryShortName);
+    }
+
+    if (possibleWriteLocation >= dataClusterEnd) {
+        possibleWriteLocation = allocateNewDataCluster(lastWrittenIndex);
+    }
+
+    return possibleWriteLocation;
+}
+
+static U8 *writeFileEntryAndAdvance(U8 *clusterBuffer, U16 cluster, U8 name[11],
+                                    U32 size) {
     static DirEntryShortName file = {0};
     file.lowClusterNumber = cluster;
     setName(&file, name);
@@ -200,12 +246,13 @@ U8 *writeFileEntryAndAdvance(U8 *clusterBuffer, U16 cluster, U8 name[11],
     return clusterBuffer + sizeof(DirEntryShortName);
 }
 
-U8 *writeDirectoryEntryAndAdvance(U8 *clusterBuffer, U16 cluster, U8 name[11]) {
+static U8 *writeDirectoryEntryAndAdvance(U8 *clusterBuffer, U16 startingCluster,
+                                         U8 name[11]) {
     static DirEntryShortName dir = (DirEntryShortName){
         .attributes = ATTR_DIRECTORY,
     };
 
-    dir.lowClusterNumber = cluster;
+    dir.lowClusterNumber = startingCluster;
     setName(&dir, name);
 
     memcpy(clusterBuffer, &dir, sizeof(DirEntryShortName));
@@ -213,8 +260,8 @@ U8 *writeDirectoryEntryAndAdvance(U8 *clusterBuffer, U16 cluster, U8 name[11]) {
     return clusterBuffer + sizeof(DirEntryShortName);
 }
 
-U8 *writeDOTEntriesAndAdvance(U8 *clusterBuffer, U16 currentCluster,
-                              U16 parentCluster) {
+static U8 *writeDOTEntriesAndAdvance(U8 *clusterBuffer, U16 currentCluster,
+                                     U16 parentCluster) {
     clusterBuffer = writeDirectoryEntryAndAdvance(clusterBuffer, currentCluster,
                                                   StandardDirectory.DOT);
     clusterBuffer = writeDirectoryEntryAndAdvance(clusterBuffer, parentCluster,
@@ -223,17 +270,27 @@ U8 *writeDOTEntriesAndAdvance(U8 *clusterBuffer, U16 currentCluster,
     return clusterBuffer;
 }
 
+static U8 addDirectory(string FAT32FilePath, string directoryFAT32) {
+    U8 *rootDataCluster = getDataCluster(ROOT_CLUSTER_FAT_INDEX);
+
+    // TODO: work on traversing the directories here!
+    StringIter parentDirectories;
+    TOKENIZE_STRING(FAT32FilePath, parentDirectories, '/', 0) {
+        string tokenized = parentDirectories.string;
+        tokenized.len++;
+    }
+    return 0;
+}
+
+static U8 addFile(string FAT32FilePath, string fileFAT32) { return 0; }
+
 void writeEFISystemPartition(U8 *fileBuffer, U8 *efiApplicationPath) {
-    U32 unalignedESPStartLBA = SectionsInLBASize.PROTECTIVE_MBR +
-                               SectionsInLBASize.GPT_HEADER +
-                               configuration.GPTPartitionTableSizeLBA;
-    U32 alignedESPStartLBA =
-        ALIGN_UP_VALUE(unalignedESPStartLBA, configuration.alignmentLBA);
-    parameterBlock.hiddenSectors = alignedESPStartLBA;
+    parameterBlock.hiddenSectors = configuration.EFISystemPartitionStartLBA;
 
     // Reserved Sectors
     // Sector 0
-    fileBuffer += alignedESPStartLBA * configuration.LBASize;
+    fileBuffer +=
+        configuration.EFISystemPartitionStartLBA * configuration.LBASize;
     memcpy(fileBuffer, &parameterBlock, sizeof(BIOSParameterBlock));
 
     // Sector 1
@@ -250,6 +307,7 @@ void writeEFISystemPartition(U8 *fileBuffer, U8 *efiApplicationPath) {
     // FAT
     fileBuffer +=
         parameterBlock.bytesPerSector * (parameterBlock.reservedSectors - 7);
+    PRIMARY_FAT = (U32 *)fileBuffer;
 
     // We are assuming the following here:
     // - All the directories' entries fit into a single cluster
@@ -257,93 +315,115 @@ void writeEFISystemPartition(U8 *fileBuffer, U8 *efiApplicationPath) {
     // So, we can just fill the clusters sequentially until the boot file
     // which can contain more than a single cluster
     static constexpr U32 ROOT_DIRECTORY_CLUSTER = 2;
-    static constexpr U32 EFI_DIRECTORY_CLUSTER = 3;
-    static constexpr U32 EFI_BOOT_DIRECTORY_CLUSTER = 4;
-    static constexpr U32 EFI_FLOS_DIRECTORY_CLUSTER = 5;
-    static constexpr U32 EFI_FLOS_KERNEL_INF_CLUSTER = 6;
-    static constexpr U32 EFI_FLOS_DISKDATA_INF_CLUSTER = 7;
-    static constexpr U32 EFI_BOOT_BOOTX64_EFI_CLUSTER = 8;
+    /*static constexpr U32 EFI_DIRECTORY_CLUSTER = 3;*/
+    /*static constexpr U32 EFI_BOOT_DIRECTORY_CLUSTER = 4;*/
+    /*static constexpr U32 EFI_FLOS_DIRECTORY_CLUSTER = 5;*/
+    /*static constexpr U32 EFI_FLOS_KERNEL_INF_CLUSTER = 6;*/
+    /*static constexpr U32 EFI_FLOS_DISKDATA_INF_CLUSTER = 7;*/
+    /*static constexpr U32 EFI_BOOT_BOOTX64_EFI_CLUSTER = 8;*/
 
-    U32 *FAT = (U32 *)fileBuffer;
-    FAT[0] = 0xFFFFFF00 | parameterBlock.media;
-    FAT[1] = END_OF_CHAIN_MARKER;
-    FAT[ROOT_DIRECTORY_CLUSTER] = END_OF_CHAIN_MARKER;
-    FAT[EFI_DIRECTORY_CLUSTER] = END_OF_CHAIN_MARKER;
-    FAT[EFI_BOOT_DIRECTORY_CLUSTER] = END_OF_CHAIN_MARKER;
-    FAT[EFI_FLOS_DIRECTORY_CLUSTER] = END_OF_CHAIN_MARKER;
-    FAT[EFI_FLOS_KERNEL_INF_CLUSTER] = END_OF_CHAIN_MARKER;
-    FAT[EFI_FLOS_DISKDATA_INF_CLUSTER] = END_OF_CHAIN_MARKER;
+    // Reserved entries
+    PRIMARY_FAT[CURRENT_FREE_CLUSTER++] = 0xFFFFFF00 | parameterBlock.media;
+    PRIMARY_FAT[CURRENT_FREE_CLUSTER++] = END_OF_CHAIN_MARKER;
+    // Root directory
+    PRIMARY_FAT[CURRENT_FREE_CLUSTER++] = END_OF_CHAIN_MARKER;
 
-    U32 EFIApplicationSizeBytes = configuration.LBASize * 1024;
-    U32 EFIApplicationRequiredClusters = CEILING_DIV_VALUE(
-        EFIApplicationSizeBytes + (U32)sizeof(DirEntryShortName),
-        (U32)parameterBlock.bytesPerSector);
-    for (U32 i = 0; i < EFIApplicationRequiredClusters; i++) {
-        if (i == EFIApplicationRequiredClusters - 1) {
-            FAT[EFI_BOOT_BOOTX64_EFI_CLUSTER + i] = END_OF_CHAIN_MARKER;
-        } else {
-            FAT[EFI_BOOT_BOOTX64_EFI_CLUSTER + i] =
-                EFI_BOOT_BOOTX64_EFI_CLUSTER + i + 1;
-        }
-    }
+    DATA_CLUSTERS =
+        fileBuffer + (parameterBlock.FATSize32Sectors *
+                      parameterBlock.bytesPerSector * parameterBlock.FATs);
 
-    fileBuffer +=
-        parameterBlock.FATSize32Sectors * parameterBlock.bytesPerSector;
+    addDirectory(EMPTY_STRING, STRING("EFI        "));
+    addDirectory(STRING("/EFI        /BOOT       /NUTTYDICKXX"),
+                 STRING("EFI        "));
 
-    // Takes care of the mirroring
+    addFile(STRING("/EFI        /BOOT       "), STRING("BOOTX64 EFI"));
+
     for (U8 i = 0; i < parameterBlock.FATs - 1; i++) {
-        memcpy(fileBuffer, FAT,
+        memcpy(fileBuffer, PRIMARY_FAT,
                parameterBlock.FATSize32Sectors * parameterBlock.bytesPerSector);
         fileBuffer +=
             parameterBlock.FATSize32Sectors * parameterBlock.bytesPerSector;
     }
 
-    // Data Sectors
-    //  -Root Directory entries:
-    //      - /EFI
-    writeDirectoryEntryAndAdvance(fileBuffer, EFI_DIRECTORY_CLUSTER,
-                                  "EFI        ");
-
-    // /EFI entries:
-    //  - .
-    //  - ..
-    //  - /BOOT
-    //  - /FLOS
-    fileBuffer += parameterBlock.bytesPerSector;
-    U8 *clusterBuffer = writeDOTEntriesAndAdvance(
-        fileBuffer, EFI_DIRECTORY_CLUSTER, ROOT_CLUSTER_AS_PARENT);
-    clusterBuffer = writeDirectoryEntryAndAdvance(
-        clusterBuffer, EFI_BOOT_DIRECTORY_CLUSTER, "BOOT       ");
-    clusterBuffer = writeDirectoryEntryAndAdvance(
-        clusterBuffer, EFI_FLOS_DIRECTORY_CLUSTER, "FLOS       ");
-
-    // /EFI/BOOT entries:
-    //  - .
-    //  - ..
-    //  - /BOOTX64.EFI
-    fileBuffer += parameterBlock.bytesPerSector;
-
-    // /EFI/FLOS entries:
-    //  - .
-    //  - ..
-    //  - /KERNEL.INF
-    //  - /DISKDATA.INF
-    fileBuffer += parameterBlock.bytesPerSector;
-    clusterBuffer = writeDOTEntriesAndAdvance(
-        fileBuffer, EFI_FLOS_DIRECTORY_CLUSTER, EFI_DIRECTORY_CLUSTER);
-    // TODO: We should probably flip this, write the data first and then the
-    // entry I think for these ad-hoc created files where we don't know the size
-    // in bytes beforehand.
-    U32 KERNELINFSizeBytes = 256;
-    clusterBuffer =
-        writeFileEntryAndAdvance(clusterBuffer, EFI_FLOS_KERNEL_INF_CLUSTER,
-                                 "KERNEL  INF", KERNELINFSizeBytes);
-    clusterBuffer += KLOG_APPEND(clusterBuffer, 16384);
-    clusterBuffer += KLOG_APPEND(clusterBuffer, STRING("\n"));
-    clusterBuffer += KLOG_APPEND(clusterBuffer, 10000);
-
-    U32 DISKDATASizeBytes = 128;
-    clusterBuffer =
-        writeFileEntryAndAdvance(clusterBuffer, EFI_FLOS_DISKDATA_INF_CLUSTER,
-                                 "DISKDATAINF", DISKDATASizeBytes);
+    /*FAT[EFI_DIRECTORY_CLUSTER] = END_OF_CHAIN_MARKER;*/
+    /*FAT[EFI_BOOT_DIRECTORY_CLUSTER] = END_OF_CHAIN_MARKER;*/
+    /*FAT[EFI_FLOS_DIRECTORY_CLUSTER] = END_OF_CHAIN_MARKER;*/
+    /*FAT[EFI_FLOS_KERNEL_INF_CLUSTER] = END_OF_CHAIN_MARKER;*/
+    /*FAT[EFI_FLOS_DISKDATA_INF_CLUSTER] = END_OF_CHAIN_MARKER;*/
+    /**/
+    /*U32 EFIApplicationSizeBytes = configuration.LBASize * 1024;*/
+    /*U32 EFIApplicationRequiredClusters = CEILING_DIV_VALUE(*/
+    /*    EFIApplicationSizeBytes + (U32)sizeof(DirEntryShortName),*/
+    /*    (U32)parameterBlock.bytesPerSector);*/
+    /*for (U32 i = 0; i < EFIApplicationRequiredClusters; i++) {*/
+    /*    if (i == EFIApplicationRequiredClusters - 1) {*/
+    /*        FAT[EFI_BOOT_BOOTX64_EFI_CLUSTER + i] = END_OF_CHAIN_MARKER;*/
+    /*    } else {*/
+    /*        FAT[EFI_BOOT_BOOTX64_EFI_CLUSTER + i] =*/
+    /*            EFI_BOOT_BOOTX64_EFI_CLUSTER + i + 1;*/
+    /*    }*/
+    /*}*/
+    /**/
+    /*fileBuffer +=*/
+    /*    parameterBlock.FATSize32Sectors * parameterBlock.bytesPerSector;*/
+    /**/
+    /*// Takes care of the mirroring*/
+    /*for (U8 i = 0; i < parameterBlock.FATs - 1; i++) {*/
+    /*    memcpy(fileBuffer, FAT,*/
+    /*           parameterBlock.FATSize32Sectors *
+     * parameterBlock.bytesPerSector);*/
+    /*    fileBuffer +=*/
+    /*        parameterBlock.FATSize32Sectors * parameterBlock.bytesPerSector;*/
+    /*}*/
+    /**/
+    /*// Data Sectors*/
+    /*//  -Root Directory entries:*/
+    /*//      - /EFI*/
+    /*writeDirectoryEntryAndAdvance(fileBuffer, EFI_DIRECTORY_CLUSTER,*/
+    /*                              "EFI        ");*/
+    /**/
+    /*// /EFI entries:*/
+    /*//  - .*/
+    /*//  - ..*/
+    /*//  - /BOOT*/
+    /*//  - /FLOS*/
+    /*fileBuffer += parameterBlock.bytesPerSector;*/
+    /*U8 *clusterBuffer = writeDOTEntriesAndAdvance(*/
+    /*    fileBuffer, EFI_DIRECTORY_CLUSTER, ROOT_CLUSTER_AS_PARENT);*/
+    /*clusterBuffer = writeDirectoryEntryAndAdvance(*/
+    /*    clusterBuffer, EFI_BOOT_DIRECTORY_CLUSTER, "BOOT       ");*/
+    /*clusterBuffer = writeDirectoryEntryAndAdvance(*/
+    /*    clusterBuffer, EFI_FLOS_DIRECTORY_CLUSTER, "FLOS       ");*/
+    /**/
+    /*// /EFI/BOOT entries:*/
+    /*//  - .*/
+    /*//  - ..*/
+    /*//  - /BOOTX64.EFI*/
+    /*fileBuffer += parameterBlock.bytesPerSector;*/
+    /**/
+    /*// /EFI/FLOS entries:*/
+    /*//  - .*/
+    /*//  - ..*/
+    /*//  - /KERNEL.INF*/
+    /*//  - /DISKDATA.INF*/
+    /*fileBuffer += parameterBlock.bytesPerSector;*/
+    /*clusterBuffer = writeDOTEntriesAndAdvance(*/
+    /*    fileBuffer, EFI_FLOS_DIRECTORY_CLUSTER, EFI_DIRECTORY_CLUSTER);*/
+    /*// TODO: We should probably flip this, write the data first and then the*/
+    /*// entry I think for these ad-hoc created files where we don't know the
+     * size*/
+    /*// in bytes beforehand.*/
+    /*U32 KERNELINFSizeBytes = 256;*/
+    /*clusterBuffer =*/
+    /*    writeFileEntryAndAdvance(clusterBuffer, EFI_FLOS_KERNEL_INF_CLUSTER,*/
+    /*                             "KERNEL  INF", KERNELINFSizeBytes);*/
+    /*clusterBuffer += KLOG_APPEND(clusterBuffer, 16384);*/
+    /*clusterBuffer += KLOG_APPEND(clusterBuffer, STRING("\n"));*/
+    /*clusterBuffer += KLOG_APPEND(clusterBuffer, 10000);*/
+    /**/
+    /*U32 DISKDATASizeBytes = 128;*/
+    /*clusterBuffer =*/
+    /*    writeFileEntryAndAdvance(clusterBuffer,
+     * EFI_FLOS_DISKDATA_INF_CLUSTER,*/
+    /*                             "DISKDATAINF", DISKDATASizeBytes);*/
 }
