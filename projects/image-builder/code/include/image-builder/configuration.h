@@ -22,7 +22,6 @@ static constexpr struct {
     .GPT_HEADER = 1,
 };
 
-// TODO: calculate start LBAs for partitions !!!!
 typedef struct {
     U8 *imageName;
     U16 LBASize;

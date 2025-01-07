@@ -401,7 +401,7 @@ void write_gpts(FILE *image) {
     secondary_gpt.partitionTableCRC32 = 0;
     secondary_gpt.myLBA = primary_gpt.alternateLBA;
     secondary_gpt.alternateLBA = primary_gpt.myLBA;
-    secondary_gpt.partitionEntryLBA = image_size_lbas - 1 - gpt_table_lbas - 1;
+    secondary_gpt.partitionEntryLBA = image_size_lbas - 1 - gpt_table_lbas;
 
     secondary_gpt.partitionTableCRC32 =
         calculateCRC32(gpt_table, sizeof gpt_table);

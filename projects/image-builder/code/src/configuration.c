@@ -1,5 +1,6 @@
 #include "image-builder/configuration.h"
 #include "image-builder/partitions/efi.h"
+#include "shared/maths/maths.h"
 #include "shared/memory/sizes.h"
 #include <stdlib.h>
 #include <time.h>
@@ -17,20 +18,31 @@ void setConfiguration() {
     srand((U32)time(nullptr));
 
     configuration.alignmentLBA = (U16)((1 * MiB) / configuration.LBASize);
+    U32 currentLBA = 0;
 
-    // NOTE: this is just scaffolding, it should calculate the actual values
-    // instead of just using hardcoded values.
-
+    // MBR + primary GPT
     configuration.GPTPartitionTableSizeLBA =
         GPT_PARTITION_TABLE_SIZE / configuration.LBASize;
-    // NOTE: this should just be based on the lba and other stuff and not
-    // standard be this calculation
+    currentLBA += SectionsInLBASize.PROTECTIVE_MBR +
+                  SectionsInLBASize.GPT_HEADER +
+                  configuration.GPTPartitionTableSizeLBA;
+    currentLBA = ALIGN_UP_VALUE(currentLBA, configuration.alignmentLBA);
 
+    // EFI Partition
+    configuration.EFISystemPartitionStartLBA = currentLBA;
     configuration.EFISystemPartitionSizeLBA = calculateEFIPartitionSize(8);
-    configuration.DataPartitionSizeLBA = 16;
+    currentLBA += configuration.EFISystemPartitionSizeLBA;
+    currentLBA = ALIGN_UP_VALUE(currentLBA, configuration.alignmentLBA);
 
-    // Should be bigger than all other values, duh?
-    configuration.totalImageSizeLBA = 200;
+    // Data Partition
+    configuration.DataPartitionStartLBA = currentLBA;
+    configuration.DataPartitionSizeLBA = 16;
+    currentLBA += configuration.DataPartitionSizeLBA;
+
+    // Backup GPT
+    currentLBA +=
+        configuration.GPTPartitionTableSizeLBA + SectionsInLBASize.GPT_HEADER;
+    configuration.totalImageSizeLBA = currentLBA;
     configuration.totalImageSizeBytes =
         configuration.totalImageSizeLBA * configuration.LBASize;
 }
