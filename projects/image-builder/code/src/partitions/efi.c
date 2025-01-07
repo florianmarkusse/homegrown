@@ -273,6 +273,8 @@ static U8 *writeDOTEntriesAndAdvance(U8 *clusterBuffer, U16 currentCluster,
 static U8 addDirectory(string FAT32FilePath, string directoryFAT32) {
     U8 *rootDataCluster = getDataCluster(ROOT_CLUSTER_FAT_INDEX);
 
+    // TODO: add file/dir name check when finding new cluster, so need to
+    // actually traverse all clusters of a directory to check for that :)
     // TODO: work on traversing the directories here!
     StringIter parentDirectories;
     TOKENIZE_STRING(FAT32FilePath, parentDirectories, '/', 0) {
