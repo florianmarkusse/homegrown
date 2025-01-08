@@ -4,7 +4,7 @@
 #include "shared/memory/allocator/macros.h"
 #include "shared/types/types.h"
 
-__attribute((malloc, alloc_align(3))) void *alloc(Arena *a, I64 size, U64 align,
+__attribute((malloc, alloc_align(3))) void *alloc(Arena *a, U64 size, U64 align,
                                                   U64 count, U8 flags) {
     ASSERT((align & (align - 1)) == 0);
 
