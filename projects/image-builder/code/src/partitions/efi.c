@@ -2,6 +2,8 @@
 #include "image-builder/configuration.h"
 #include "platform-abstraction/log.h"
 #include "platform-abstraction/memory/manipulation.h"
+#include "posix/log.h"
+#include "shared/log.h"
 #include "shared/maths/maths.h"
 #include "shared/text/converter.h"
 #include "shared/text/string.h"
@@ -53,6 +55,10 @@ typedef enum : U8 {
     ATTR_DIRECTORY = 0x10,
     ATTR_ARCHIVE = 0x20,
 } DirectoryAttributes;
+
+static constexpr DirectoryAttributes FAT32_FILE_ATTRIBUTES = 0;
+static constexpr DirectoryAttributes FAT32_DIRECTORY_ATTRIBUTES =
+    ATTR_DIRECTORY;
 
 static constexpr struct {
     U8 DOT[FAT32_SHORT_NAME_LEN];
@@ -223,9 +229,7 @@ static U32 nextWrittenCluster(U32 previousClusterIndex) {
     return index;
 }
 
-// TODO: change to actually be the function that just writes the data into the
-// new data clusters too
-static U8 *allocateNewDataCluster(U32 currentLastClusterIndex, U32 size) {
+static U8 *allocateNewDataCluster(Cluster currentLastClusterIndex, U32 size) {
     ASSERT(size > 0);
 
     U32 requiredNewClusters =
@@ -234,7 +238,8 @@ static U8 *allocateNewDataCluster(U32 currentLastClusterIndex, U32 size) {
         (DATA_CLUSTERS_COUNT - CURRENT_FREE_DATA_CLUSTER_INDEX.full)) {
         return nullptr;
     }
-    PRIMARY_FAT[currentLastClusterIndex] = CURRENT_FREE_DATA_CLUSTER_INDEX.full;
+    PRIMARY_FAT[currentLastClusterIndex.full] =
+        CURRENT_FREE_DATA_CLUSTER_INDEX.full;
     U8 *result = getDataCluster(CURRENT_FREE_DATA_CLUSTER_INDEX);
     requiredNewClusters--;
 
@@ -262,27 +267,35 @@ typedef struct {
     ClusterCheckResult result;
 } ClusterCheck;
 
-#define TRAVERSE_DATA_CLUSTERS(clusterStartPointer, clusterIndex)              \
-    for ((clusterStartPointer) = getDataCluster(clusterIndex);;                \
-         (clusterIndex).full = PRIMARY_FAT[(clusterIndex).full])
+typedef struct {
+    U8 *location;
+    Cluster cluster;
+} DataClusterIter;
 
-#define TRAVERSE_CLUSTER_ENTRIES(entryPointer, clusterEndPointer)              \
-    for ((clusterEndPointer) = (entryPointer) + parameterBlock.bytesPerSector; \
-         (entryPointer) < (clusterEndPointer);                                 \
-         (entryPointer) += sizeof(DirEntryShortName))
+DataClusterIter nextDataClusterIter(DataClusterIter iter) {
+    iter.cluster = (Cluster){.full = PRIMARY_FAT[iter.cluster.full]};
+    iter.location = getDataCluster(iter.cluster);
+    return iter;
+}
+
+DataClusterIter createDataClusterIter(Cluster cluster) {
+    return (DataClusterIter){.cluster = cluster,
+                             .location = getDataCluster(cluster)};
+}
 
 static ClusterCheck checkAllocatedClusters(Cluster currentClusterIndex,
                                            U8 name[FAT32_SHORT_NAME_LEN]) {
-    U8 *entryLocation;
-    TRAVERSE_DATA_CLUSTERS(entryLocation, currentClusterIndex) {
-        U8 *dataClusterEnd;
-        TRAVERSE_CLUSTER_ENTRIES(entryLocation, dataClusterEnd) {
-            U8 *nameAtLocation = ((DirEntryShortName *)entryLocation)->name;
+    for (DataClusterIter iter = createDataClusterIter(currentClusterIndex);;
+         iter = nextDataClusterIter(iter)) {
+        U8 *dataClusterEnd = iter.location + parameterBlock.bytesPerSector;
+        for (DirEntryShortName *entry = (DirEntryShortName *)iter.location;
+             (U8 *)entry < dataClusterEnd; entry++) {
+            U8 *nameAtLocation = entry->name;
             if (compareFAT32ShortName(nameAtLocation, ZERO_NAME)) {
                 return (ClusterCheck){
                     .remainingSpace =
-                        (U8_a){.buf = entryLocation,
-                               .len = dataClusterEnd - entryLocation},
+                        (U8_a){.buf = (U8 *)entry,
+                               .len = dataClusterEnd - (U8 *)entry},
                     .result = CLUSTER_CHECK_SUCCESS};
             }
             if (compareFAT32ShortName(nameAtLocation, name)) {
@@ -290,55 +303,30 @@ static ClusterCheck checkAllocatedClusters(Cluster currentClusterIndex,
             }
         }
 
-        if (PRIMARY_FAT[currentClusterIndex.full] == END_OF_CHAIN_MARKER) {
+        if (PRIMARY_FAT[iter.cluster.full] == END_OF_CHAIN_MARKER) {
             return (ClusterCheck){.result = CLUSTER_CHECK_SUCCESS};
         }
     }
-    /*for (U8 *possibleWriteLocation = getDataCluster(currentClusterIndex);;*/
-    /*     currentClusterIndex = PRIMARY_FAT[currentClusterIndex]) {*/
-    /*    for (U8 *dataClusterEnd =*/
-    /*             possibleWriteLocation + parameterBlock.bytesPerSector;*/
-    /*         possibleWriteLocation < dataClusterEnd;*/
-    /*         possibleWriteLocation += sizeof(DirEntryShortName)) {*/
-    /*        U8 *nameAtLocation =*/
-    /*            ((DirEntryShortName *)possibleWriteLocation)->name;*/
-    /*        if (compareFAT32ShortName(nameAtLocation, ZERO_NAME)) {*/
-    /*            return (ClusterCheck){*/
-    /*                .remainingSpace =*/
-    /*                    (U8_a){.buf = possibleWriteLocation,*/
-    /*                           .len = dataClusterEnd -
-     * possibleWriteLocation},*/
-    /*                .result = CLUSTER_CHECK_SUCCESS};*/
-    /*        }*/
-    /*        if (compareFAT32ShortName(nameAtLocation, name)) {*/
-    /*            return (ClusterCheck){.result =
-     * CLUSTER_CHECK_DUPLICATE_NAME};*/
-    /*        }*/
-    /*    }*/
-    /**/
-    /*    if (PRIMARY_FAT[currentClusterIndex] == END_OF_CHAIN_MARKER) {*/
-    /*        return (ClusterCheck){.result = CLUSTER_CHECK_SUCCESS};*/
-    /*    }*/
-    /*}*/
 }
 
-static U8 *writeFileEntryAndAdvance(U8 *clusterBuffer, Cluster cluster,
-                                    U8 name[FAT32_SHORT_NAME_LEN], U32 size) {
-    static DirEntryShortName file = {0};
+static void writeFileEntry(DirEntryShortName *clusterBuffer, Cluster cluster,
+                           U8 name[FAT32_SHORT_NAME_LEN], U32 size) {
+    static DirEntryShortName file = (DirEntryShortName){
+        .attributes = FAT32_FILE_ATTRIBUTES,
+    };
     file.highClusterNumber = cluster.high;
     file.lowClusterNumber = cluster.low;
     setName(&file, name);
     file.fileSize = size;
 
     memcpy(clusterBuffer, &file, sizeof(DirEntryShortName));
-
-    return clusterBuffer + sizeof(DirEntryShortName);
 }
 
-static U8 *writeDirectoryEntryAndAdvance(U8 *clusterBuffer, Cluster cluster,
-                                         U8 name[FAT32_SHORT_NAME_LEN]) {
+static void writeDirectoryEntry(DirEntryShortName *clusterBuffer,
+                                Cluster cluster,
+                                U8 name[FAT32_SHORT_NAME_LEN]) {
     static DirEntryShortName dir = (DirEntryShortName){
-        .attributes = ATTR_DIRECTORY,
+        .attributes = FAT32_DIRECTORY_ATTRIBUTES,
     };
 
     dir.highClusterNumber = cluster.high;
@@ -346,27 +334,22 @@ static U8 *writeDirectoryEntryAndAdvance(U8 *clusterBuffer, Cluster cluster,
     setName(&dir, name);
 
     memcpy(clusterBuffer, &dir, sizeof(DirEntryShortName));
-
-    return clusterBuffer + sizeof(DirEntryShortName);
 }
 
-static U8 *writeDOTEntriesAndAdvance(U8 *clusterBuffer, Cluster currentCluster,
-                                     Cluster parentCluster) {
-    clusterBuffer = writeDirectoryEntryAndAdvance(clusterBuffer, currentCluster,
-                                                  StandardDirectory.DOT);
-    clusterBuffer = writeDirectoryEntryAndAdvance(clusterBuffer, parentCluster,
-                                                  StandardDirectory.DOTDOT);
-
-    return clusterBuffer;
+static void writeDOTEntries(DirEntryShortName *clusterBuffer,
+                            Cluster currentCluster, Cluster parentCluster) {
+    writeDirectoryEntry(clusterBuffer, currentCluster, StandardDirectory.DOT);
+    writeDirectoryEntry(clusterBuffer + 1, parentCluster,
+                        StandardDirectory.DOTDOT);
 }
 
 static Cluster findClusterIndexStart(U8 name[FAT32_SHORT_NAME_LEN],
                                      Cluster currentClusterIndex) {
-    U8 *entryLocation;
-    TRAVERSE_DATA_CLUSTERS(entryLocation, currentClusterIndex) {
-        U8 *dataClusterEnd;
-        TRAVERSE_CLUSTER_ENTRIES(entryLocation, dataClusterEnd) {
-            DirEntryShortName *entry = ((DirEntryShortName *)entryLocation);
+    for (DataClusterIter iter = createDataClusterIter(currentClusterIndex);;
+         iter = nextDataClusterIter(iter)) {
+        U8 *dataClusterEnd = iter.location + parameterBlock.bytesPerSector;
+        for (DirEntryShortName *entry = (DirEntryShortName *)iter.location;
+             (U8 *)entry < dataClusterEnd; entry++) {
             if (compareFAT32ShortName(entry->name, name)) {
                 return (Cluster){.low = entry->lowClusterNumber,
                                  .high = entry->highClusterNumber};
@@ -377,33 +360,165 @@ static Cluster findClusterIndexStart(U8 name[FAT32_SHORT_NAME_LEN],
     return (Cluster){0};
 }
 
-static U8 addDirectory(string FAT32FilePath, string directoryFAT32) {
-    Cluster currentCluster = ROOT_CLUSTER_FAT_INDEX;
+static Cluster createDirectory(DirEntryShortName *parentLocation,
+                               Cluster parentCluster,
+                               U8 name[FAT32_SHORT_NAME_LEN]) {
+    Cluster createdCluster = CURRENT_FREE_DATA_CLUSTER_INDEX;
+    PRIMARY_FAT[CURRENT_FREE_DATA_CLUSTER_INDEX.full] = END_OF_CHAIN_MARKER;
+    CURRENT_FREE_DATA_CLUSTER_INDEX.full++;
+    writeDirectoryEntry(parentLocation, createdCluster, name);
 
-    // TODO: add file/dir name check when finding new cluster, so need to
-    // actually traverse all clusters of a directory to check for that :)
-    // TODO: work on traversing the directories here!
-    StringIter parentDirectories;
-    TOKENIZE_STRING(FAT32FilePath, parentDirectories, '/', 0) {
-        Cluster newCluster =
-            findClusterIndexStart(parentDirectories.string.buf, currentCluster);
-        if (!newCluster.full) {
-            // create thi
-        }
+    writeDOTEntries((DirEntryShortName *)getDataCluster(createdCluster),
+                    createdCluster, parentCluster);
 
-        currentCluster = newCluster;
-    }
-    return 0;
+    return createdCluster;
 }
 
-static void addFile(string FAT32FilePath, string fileFAT32) {
-    U8 *rootDataCluster = getDataCluster(ROOT_CLUSTER_FAT_INDEX);
+static Cluster createCluster(DirEntryShortName *parentLocation,
+                             Cluster parentCluster,
+                             U8 name[FAT32_SHORT_NAME_LEN], U8 *fileDataPath) {
+    Cluster createdCluster = CURRENT_FREE_DATA_CLUSTER_INDEX;
+    PRIMARY_FAT[CURRENT_FREE_DATA_CLUSTER_INDEX.full] = END_OF_CHAIN_MARKER;
+    CURRENT_FREE_DATA_CLUSTER_INDEX.full++;
 
-    StringIter parentDirectories;
-    TOKENIZE_STRING(FAT32FilePath, parentDirectories, '/', 0) {
-        if (parentDirectories.string.len) {
+    if (fileDataPath) {
+        // TODO: replace with actual length;
+        writeFileEntry(parentLocation, createdCluster, name, 10);
+
+    } else {
+        writeDirectoryEntry(parentLocation, createdCluster, name);
+
+        writeDOTEntries((DirEntryShortName *)getDataCluster(createdCluster),
+                        createdCluster, parentCluster);
+    }
+
+    return createdCluster;
+}
+
+typedef enum { CLUSTER_SUCCESS, CLUSTER_INCORRECT_ATTRIBUTES } FAT32Type;
+
+typedef struct {
+    U8 expectedAttributes;
+    U8 actualAttributes;
+} ClusterGetOrCreateFailure;
+
+typedef struct {
+    FAT32Type type;
+    union {
+        Cluster cluster;
+        ClusterGetOrCreateFailure failure;
+    };
+} ClusterGetOrCreateResult;
+
+typedef struct {
+    ClusterGetOrCreateFailure getOrCreate;
+    string FAT32FilePath;
+    string name;
+} ClusterFailure;
+
+typedef struct {
+    FAT32Type type;
+    ClusterFailure failure;
+} FAT32Result;
+
+static ClusterGetOrCreateResult
+createOrGetCluster(U8 name[FAT32_SHORT_NAME_LEN], Cluster parentCluster,
+                   U8 *fileDataPath) {
+    for (DataClusterIter iter = createDataClusterIter(parentCluster);;
+         iter = nextDataClusterIter(iter)) {
+        U8 *dataClusterEnd = iter.location + parameterBlock.bytesPerSector;
+        for (DirEntryShortName *entry = (DirEntryShortName *)iter.location;
+             (U8 *)entry > dataClusterEnd; entry++) {
+            if (compareFAT32ShortName(entry->name, name)) {
+                if (fileDataPath &&
+                    entry->attributes != FAT32_FILE_ATTRIBUTES) {
+                    return (ClusterGetOrCreateResult){
+                        .type = CLUSTER_INCORRECT_ATTRIBUTES,
+                        .failure.expectedAttributes = FAT32_FILE_ATTRIBUTES,
+                        .failure.actualAttributes = entry->attributes};
+                }
+
+                if (!fileDataPath &&
+                    entry->attributes != FAT32_DIRECTORY_ATTRIBUTES) {
+                    return (ClusterGetOrCreateResult){
+                        .type = CLUSTER_INCORRECT_ATTRIBUTES,
+                        .failure.expectedAttributes =
+                            FAT32_DIRECTORY_ATTRIBUTES,
+                        .failure.actualAttributes = entry->attributes};
+                }
+
+                return (ClusterGetOrCreateResult){
+                    .type = CLUSTER_SUCCESS,
+                    .cluster = (Cluster){.low = entry->lowClusterNumber,
+                                         .high = entry->highClusterNumber}};
+            }
+            if (compareFAT32ShortName(entry->name, ZERO_NAME)) {
+                return (ClusterGetOrCreateResult){
+                    .type = CLUSTER_SUCCESS,
+                    .cluster = createCluster(entry, parentCluster, name,
+                                             fileDataPath)};
+            }
+        }
+
+        if (PRIMARY_FAT[iter.cluster.full] == END_OF_CHAIN_MARKER) {
+            DirEntryShortName *newEntry =
+                (DirEntryShortName *)allocateNewDataCluster(
+                    iter.cluster, sizeof(DirEntryShortName));
+            return (ClusterGetOrCreateResult){
+                .type = CLUSTER_SUCCESS,
+                .cluster =
+                    createCluster(newEntry, parentCluster, name, fileDataPath)};
         }
     }
+}
+
+static void clusterFailure(FAT32Result *FAT32Result, void **errorHandler) {
+    PFLUSH_AFTER(STDERR) {
+        PERROR((STRING("Failed to create cluster!\nCluster existed with "
+                       "different attributes:\n")));
+        PERROR(STRING("Expected attributes:\n"));
+        PERROR(FAT32Result->failure.getOrCreate.expectedAttributes, NEWLINE);
+        PERROR(STRING("Actual attributes:\n"));
+        PERROR(FAT32Result->failure.getOrCreate.actualAttributes, NEWLINE);
+        PERROR(STRING("During traversion of path:\n"));
+        PERROR(FAT32Result->failure.FAT32FilePath, NEWLINE);
+        PERROR(STRING("And creation of cluster with name:\n"));
+        PERROR(FAT32Result->failure.name, NEWLINE);
+    }
+
+    __builtin_longjmp(errorHandler, 1);
+}
+
+static void addToFileSystem(string FAT32FilePath, U8 *fileDataPath,
+                            FAT32Result *FAT32Result) {
+    ClusterGetOrCreateResult createOrGetResult = {.cluster =
+                                                      ROOT_CLUSTER_FAT_INDEX};
+    StringIter parentDirectories;
+    TOKENIZE_STRING(FAT32FilePath, parentDirectories, '/', 0) {
+        U8 *path = nullptr;
+        if (parentDirectories.pos + parentDirectories.string.len ==
+            FAT32FilePath.len) {
+            path = fileDataPath;
+        }
+        createOrGetResult = createOrGetCluster(parentDirectories.string.buf,
+                                               createOrGetResult.cluster, path);
+        if (createOrGetResult.type != CLUSTER_SUCCESS) {
+            FAT32Result->type = createOrGetResult.type;
+            FAT32Result->failure.getOrCreate = createOrGetResult.failure;
+            FAT32Result->failure.FAT32FilePath = FAT32FilePath;
+            FAT32Result->failure.name = parentDirectories.string;
+            return;
+        }
+    }
+}
+
+static void addDirectory(string FAT32DirectoryPath, FAT32Result *FAT32Result) {
+    addToFileSystem(FAT32DirectoryPath, nullptr, FAT32Result);
+}
+
+static void addFile(string FAT32FilePath, U8 *fileDataPath,
+                    FAT32Result *FAT32Result) {
+    addToFileSystem(FAT32FilePath, fileDataPath, FAT32Result);
 }
 
 void writeEFISystemPartition(U8 *fileBuffer, U8 *efiApplicationPath) {
@@ -458,9 +573,17 @@ void writeEFISystemPartition(U8 *fileBuffer, U8 *efiApplicationPath) {
         fileBuffer + (parameterBlock.FATSize32Sectors *
                       parameterBlock.bytesPerSector * parameterBlock.FATs);
 
-    addDirectory(EMPTY_STRING, STRING("EFI        "));
-    addDirectory(STRING("/EFI        /BOOT       /NUTTYDICKXX"),
-                 STRING("EFI        "));
+    /*FAT32Result result;*/
+    /*addDirectory(xx, xx, &result);*/
+    /*addFile(y, y, &result);*/
+    /*addFile(z, z, &result);*/
+    /**/
+    /*if (!result) {*/
+    /*    ....*/
+    /*}*/
+
+    addDirectory(EMPTY_STRING, "EFI        ");
+    addDirectory(STRING("/EFI        /BOOT       /NUTTYDICKXX"), "EFI        ");
 
     addFile(STRING("/EFI        /BOOT       "), STRING("BOOTX64 EFI"));
 
