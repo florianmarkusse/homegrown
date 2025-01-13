@@ -14,7 +14,7 @@
 Configuration configuration = {.imageName = "image-builder-image.hdd",
                                .LBASize = 512};
 
-void setConfiguration() {
+void setConfiguration(U64 efiApplicationSizeBytes) {
     srand((U32)time(nullptr));
 
     configuration.alignmentLBA = (U16)((1 * MiB) / configuration.LBASize);
@@ -30,7 +30,9 @@ void setConfiguration() {
 
     // EFI Partition
     configuration.EFISystemPartitionStartLBA = currentLBA;
-    configuration.EFISystemPartitionSizeLBA = calculateEFIPartitionSize(8);
+    configuration.EFISystemPartitionSizeLBA =
+        calculateEFIPartitionSize((U32)CEILING_DIV_VALUE(
+            efiApplicationSizeBytes, (U32)configuration.LBASize));
     currentLBA += configuration.EFISystemPartitionSizeLBA;
     currentLBA = ALIGN_UP_VALUE(currentLBA, configuration.alignmentLBA);
 

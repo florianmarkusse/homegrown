@@ -26,7 +26,7 @@ static WriteBuffer stderrBuffer =
 
 bool flushBufferWithFileDescriptor(int fileDescriptor, U8 *buffer, U64 size) {
     for (U64 bytesWritten = 0; bytesWritten < size;) {
-        U64 partialBytesWritten =
+        I64 partialBytesWritten =
             write(fileDescriptor, buffer + bytesWritten, size - bytesWritten);
         if (partialBytesWritten < 0) {
             ASSERT(false);

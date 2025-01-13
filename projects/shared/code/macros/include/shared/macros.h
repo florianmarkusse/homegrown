@@ -5,7 +5,10 @@
 extern "C" {
 #endif
 
-#define MACRO_VAR(name) _##name##_##MACRO_VAR##__LINE__
+#define PASTE(x, y) x##y
+#define PASTE2(x, y) PASTE(x, y)
+
+#define MACRO_VAR(name) PASTE2(name, __LINE__)
 
 #define STR_HELPER(x) #x
 #define STRINGIFY(x) STR_HELPER(x)

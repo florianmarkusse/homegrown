@@ -32,6 +32,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE posix-log)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-uuid)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
 

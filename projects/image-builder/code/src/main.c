@@ -17,17 +17,61 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 static void *resourceCleanup[5];
 
-typedef MAX_LENGTH_ARRAY(FILE *) FILEPtr_max_a;
+typedef struct {
+    int fileDescriptor;
+    U64 size;
+} File;
+typedef MAX_LENGTH_ARRAY(File) File_max_a;
 
 static constexpr auto MAX_OPEN_FILES = 64;
-FILE *openFilesBuf[MAX_OPEN_FILES];
-FILEPtr_max_a openedFiles = {
-    .buf = openFilesBuf, .cap = MAX_OPEN_FILES, .len = 0};
+File openFilesBuf[MAX_OPEN_FILES];
+File_max_a openedFiles = {.buf = openFilesBuf, .cap = MAX_OPEN_FILES, .len = 0};
+
+static U8 *efiFile = "BOOTX64.EFI";
+static U8 *kernelFile = "kernel.bin";
 
 static constexpr auto MEMORY_CAP = 1 * GiB;
+
+U64 openFile(U8 *name) {
+    openedFiles.buf[openedFiles.len].fileDescriptor =
+        open(name, O_RDONLY | O_CLOEXEC);
+    if (!openedFiles.buf[openedFiles.len].fileDescriptor) {
+        PFLUSH_AFTER(STDERR) {
+            PERROR(STRING("Could not fopen file "));
+            PERROR(STRING_LEN(name, strlen(name)), NEWLINE);
+            PLOG(STRING("Error code: "));
+            PLOG(errno, NEWLINE);
+            PLOG(STRING("Error message: "));
+            PLOG(STRING_LEN(strerror(errno), strlen(strerror(errno))), NEWLINE);
+        }
+
+        __builtin_longjmp(resourceCleanup, 1);
+    }
+
+    struct stat buf;
+    if (fstat(openedFiles.buf[openedFiles.len].fileDescriptor, &buf)) {
+        PFLUSH_AFTER(STDERR) {
+            PERROR(STRING("Could not fstat file "));
+            PERROR(STRING_LEN(name, strlen(name)), NEWLINE);
+            PLOG(STRING("Error code: "));
+            PLOG(errno, NEWLINE);
+            PLOG(STRING("Error message: "));
+            PLOG(STRING_LEN(strerror(errno), strlen(strerror(errno))), NEWLINE);
+        }
+
+        __builtin_longjmp(resourceCleanup, 1);
+    }
+    openedFiles.buf[openedFiles.len].size = buf.st_size;
+
+    U64 result = openedFiles.len;
+    openedFiles.len++;
+    return result;
+}
 
 int main(int argc, char **argv) {
     char *begin = mmap(nullptr, MEMORY_CAP, PROT_READ | PROT_WRITE,
@@ -47,9 +91,9 @@ int main(int argc, char **argv) {
 
     if (__builtin_setjmp(resourceCleanup)) {
         for (U64 i = 0; i < openedFiles.len; i++) {
-            if (fclose(openedFiles.buf[i])) {
+            if (close(openedFiles.buf[i].fileDescriptor)) {
                 PFLUSH_AFTER(STDERR) {
-                    PERROR(STRING("Failed to close FILE*\n"));
+                    PERROR(STRING("Failed to close file descriptor\n"));
                     PERROR(STRING("Error code: "));
                     PERROR(errno, NEWLINE);
                     PERROR(STRING("Error message: "));
@@ -81,14 +125,21 @@ int main(int argc, char **argv) {
 
     arena.jmp_buf = resourceCleanup;
 
-    setConfiguration();
+    U64 efiFileIndex = openFile(efiFile);
+    U64 kernelFileIndex = openFile(kernelFile);
+
+    setConfiguration(openedFiles.buf[efiFileIndex].size);
 
     U8 *dataBuffer =
         NEW(&arena, U8, configuration.totalImageSizeBytes, ZERO_MEMORY);
 
     writeMBR(dataBuffer);
     writeGPTs(dataBuffer);
-    writeEFISystemPartition(dataBuffer, "test-name.efi");
+    if (!writeEFISystemPartition(dataBuffer,
+                                 openedFiles.buf[efiFileIndex].fileDescriptor,
+                                 openedFiles.buf[efiFileIndex].size)) {
+        __builtin_longjmp(resourceCleanup, 1);
+    }
 
     int fileDescriptor =
         open(configuration.imageName, O_CLOEXEC | O_TRUNC | O_CREAT | O_RDWR,
