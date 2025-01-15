@@ -9,7 +9,8 @@
 #include <unistd.h>
 
 bool writeDataPartition(U8 *fileBuffer, int kernelfd, U64 kernelSizeBytes) {
-    fileBuffer += configuration.DataPartitionStartLBA * configuration.LBASize;
+    fileBuffer +=
+        configuration.DataPartitionStartLBA * configuration.LBASizeBytes;
 
     for (U8 *exclusiveEnd = fileBuffer + kernelSizeBytes;
          fileBuffer < exclusiveEnd;) {

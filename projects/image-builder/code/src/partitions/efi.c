@@ -190,7 +190,7 @@ static FileSystemInformation FSInfo = {
 U32 calculateEFIPartitionSize(U32 EFIApplicationSizeLBA) {
     // No need for conversions here because values are set to equal each other
     // 1 cluster == 1 sector == 1 LBA
-    parameterBlock.bytesPerSector = configuration.LBASize;
+    parameterBlock.bytesPerSector = configuration.LBASizeBytes;
 
     U32 requiredDataClusters =
         MAX(MIN_CLUSTERS_OF_FAT32,
@@ -201,7 +201,7 @@ U32 calculateEFIPartitionSize(U32 EFIApplicationSizeLBA) {
         ALIGN_UP_VALUE(requiredDataClusters, configuration.alignmentLBA);
 
     U32 requiredFATSizeSectors = CEILING_DIV_VALUE(
-        DATA_CLUSTERS_COUNT, (configuration.LBASize / (U32)sizeof(U32)));
+        DATA_CLUSTERS_COUNT, (configuration.LBASizeBytes / (U32)sizeof(U32)));
     U32 reservedAndFATSizeSectors =
         ALIGN_UP_VALUE(parameterBlock.reservedSectors +
                            (requiredFATSizeSectors * parameterBlock.FATs),
@@ -374,7 +374,7 @@ bool writeEFISystemPartition(U8 *fileBuffer, int efifd, U64 efiSizeBytes) {
     // info sector correctly and only need to do it once.
 
     fileBuffer +=
-        configuration.EFISystemPartitionStartLBA * configuration.LBASize;
+        configuration.EFISystemPartitionStartLBA * configuration.LBASizeBytes;
     U8 *reservedSectors = fileBuffer;
 
     fileBuffer +=
@@ -429,16 +429,33 @@ bool writeEFISystemPartition(U8 *fileBuffer, int efifd, U64 efiSizeBytes) {
 
     CREATE_FAT32_FILE("KERNEL  INF", efiFLOSCluster, FAT32FileBuffer,
                       dataStartLocation) {
-        FAT32FileBuffer += KLOG_APPEND(FAT32FileBuffer, 16384);
+        FAT32FileBuffer +=
+            KLOG_APPEND(FAT32FileBuffer, STRING("KERNEL_SIZE_BYTES="));
+        FAT32FileBuffer +=
+            KLOG_APPEND(FAT32FileBuffer, configuration.DataPartitionSizeLBA *
+                                             configuration.LBASizeBytes);
         FAT32FileBuffer += KLOG_APPEND(FAT32FileBuffer, STRING("\n"));
-        FAT32FileBuffer += KLOG_APPEND(FAT32FileBuffer, 10000);
+
+        FAT32FileBuffer +=
+            KLOG_APPEND(FAT32FileBuffer, STRING("KERNEL_START_LBA="));
+        FAT32FileBuffer +=
+            KLOG_APPEND(FAT32FileBuffer, configuration.DataPartitionStartLBA);
+        FAT32FileBuffer += KLOG_APPEND(FAT32FileBuffer, STRING("\n"));
     }
 
     CREATE_FAT32_FILE("DISKDATAINF", efiFLOSCluster, FAT32FileBuffer,
                       dataStartLocation) {
-        FAT32FileBuffer += KLOG_APPEND(FAT32FileBuffer, 16384);
+        FAT32FileBuffer +=
+            KLOG_APPEND(FAT32FileBuffer, STRING("DISK_SIZE_BYTES="));
+        FAT32FileBuffer +=
+            KLOG_APPEND(FAT32FileBuffer, configuration.totalImageSizeBytes);
         FAT32FileBuffer += KLOG_APPEND(FAT32FileBuffer, STRING("\n"));
-        FAT32FileBuffer += KLOG_APPEND(FAT32FileBuffer, 10000);
+
+        FAT32FileBuffer +=
+            KLOG_APPEND(FAT32FileBuffer, STRING("DISK_SIZE_LBA="));
+        FAT32FileBuffer +=
+            KLOG_APPEND(FAT32FileBuffer, configuration.totalImageSizeLBA);
+        FAT32FileBuffer += KLOG_APPEND(FAT32FileBuffer, STRING("\n"));
     }
 
     U32 *mirrorLocation = PRIMARY_FAT + FAT_SIZE_BYTES;

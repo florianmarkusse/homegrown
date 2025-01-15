@@ -24,7 +24,7 @@ static constexpr struct {
 
 typedef struct {
     U8 *imageName;
-    U16 LBASize;
+    U16 LBASizeBytes;
     U32 alignmentLBA;
     U32 totalImageSizeLBA;
     U64 totalImageSizeBytes;

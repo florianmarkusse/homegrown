@@ -1,6 +1,7 @@
 #include "image-builder/configuration.h"
 #include "image-builder/gpt.h"
 #include "image-builder/mbr.h"
+#include "image-builder/partitions/data.h"
 #include "image-builder/partitions/efi.h"
 #include "platform-abstraction/log.h"
 #include "posix/file/file-status.h"
@@ -20,9 +21,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static U8 *efiFilePath = "BOOTX64.EFI";
-static U8 *kernelFilePath = "kernel.bin";
-
 typedef struct {
     int fileDescriptor;
     U64 size;
@@ -30,6 +28,8 @@ typedef struct {
 
 static File efiFileInfo;
 static File kernelFileInfo;
+
+void cleanup() { unlink(configuration.imageName); }
 
 File openFile(U8 *name) {
     File result;
@@ -114,6 +114,7 @@ int main(int argc, char **argv) {
             U8 *errorString = strerror(errno);
             PERROR(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
         }
+        cleanup();
         return 1;
     }
 
@@ -129,6 +130,7 @@ int main(int argc, char **argv) {
             U8 *errorString = strerror(errno);
             PERROR(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
         }
+        cleanup();
         return 1;
     }
 
@@ -136,6 +138,12 @@ int main(int argc, char **argv) {
     writeGPTs(dataBuffer);
     if (!writeEFISystemPartition(dataBuffer, efiFileInfo.fileDescriptor,
                                  efiFileInfo.size)) {
+        cleanup();
+        return 1;
+    }
+    if (!writeDataPartition(dataBuffer, kernelFileInfo.fileDescriptor,
+                            kernelFileInfo.size)) {
+        cleanup();
         return 1;
     }
 

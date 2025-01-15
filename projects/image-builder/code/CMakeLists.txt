@@ -18,6 +18,7 @@ add_executable(
     "src/crc32.c"
     "src/gpt.c"
     "src/partitions/efi.c"
+    "src/partitions/data.c"
 )
 
 target_include_directories(

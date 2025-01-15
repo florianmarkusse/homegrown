@@ -115,10 +115,11 @@ void writeGPTs(U8 *fileBuffer) {
     gptHeader.headerCRC32 = calculateCRC32(&gptHeader, sizeof(GPTHeader));
 
     U8 *primaryBuffer = fileBuffer;
-    primaryBuffer += SectionsInLBASize.PROTECTIVE_MBR * configuration.LBASize;
+    primaryBuffer +=
+        SectionsInLBASize.PROTECTIVE_MBR * configuration.LBASizeBytes;
     memcpy(primaryBuffer, &gptHeader, sizeof(GPTHeader));
 
-    primaryBuffer += SectionsInLBASize.GPT_HEADER * configuration.LBASize;
+    primaryBuffer += SectionsInLBASize.GPT_HEADER * configuration.LBASizeBytes;
     memcpy(primaryBuffer, partitionEntries, sizeof(partitionEntries));
 
     U64 primaryMyLBA = gptHeader.myLBA;
@@ -133,10 +134,10 @@ void writeGPTs(U8 *fileBuffer) {
     gptHeader.headerCRC32 = calculateCRC32(&gptHeader, sizeof(GPTHeader));
 
     fileBuffer += configuration.totalImageSizeBytes;
-    fileBuffer -= SectionsInLBASize.GPT_HEADER * configuration.LBASize;
+    fileBuffer -= SectionsInLBASize.GPT_HEADER * configuration.LBASizeBytes;
     memcpy(fileBuffer, &gptHeader, sizeof(GPTHeader));
 
     fileBuffer -=
-        configuration.GPTPartitionTableSizeLBA * configuration.LBASize;
+        configuration.GPTPartitionTableSizeLBA * configuration.LBASizeBytes;
     memcpy(fileBuffer, partitionEntries, sizeof(partitionEntries));
 }
