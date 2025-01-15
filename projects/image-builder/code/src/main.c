@@ -90,23 +90,6 @@ int main(int argc, char **argv) {
 
     setConfiguration(efiFileInfo.size, kernelFileInfo.size);
 
-    char *dataBuffer =
-        mmap(nullptr, configuration.totalImageSizeBytes, PROT_READ | PROT_WRITE,
-             MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (dataBuffer == MAP_FAILED) {
-        PFLUSH_AFTER(STDERR) {
-            PERROR(STRING("Failed to allocate memory for EFI image!\n"));
-        }
-        return 1;
-    }
-
-    writeMBR(dataBuffer);
-    writeGPTs(dataBuffer);
-    if (!writeEFISystemPartition(dataBuffer, efiFileInfo.fileDescriptor,
-                                 efiFileInfo.size)) {
-        return 1;
-    }
-
     int fileDescriptor =
         open(configuration.imageName, O_CLOEXEC | O_TRUNC | O_CREAT | O_RDWR,
              READ_WRITE_OWNER_READ_OTHERS);
@@ -122,6 +105,39 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    flushBufferWithFileDescriptor(fileDescriptor, dataBuffer,
-                                  configuration.totalImageSizeBytes);
+    if (ftruncate(fileDescriptor, configuration.totalImageSizeBytes) == -1) {
+        PFLUSH_AFTER(STDERR) {
+            PERROR((STRING("Failed to truncate file!\n")));
+            PERROR(STRING("Error code: "));
+            PERROR(errno, NEWLINE);
+            PERROR(STRING("Error message: "));
+            U8 *errorString = strerror(errno);
+            PERROR(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
+        }
+        return 1;
+    }
+
+    U8 *dataBuffer =
+        mmap(NULL, configuration.totalImageSizeBytes, PROT_READ | PROT_WRITE,
+             MAP_SHARED, fileDescriptor, 0);
+    if (dataBuffer == MAP_FAILED) {
+        PFLUSH_AFTER(STDERR) {
+            PERROR((STRING("Failed to mmap file!\n")));
+            PERROR(STRING("Error code: "));
+            PERROR(errno, NEWLINE);
+            PERROR(STRING("Error message: "));
+            U8 *errorString = strerror(errno);
+            PERROR(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
+        }
+        return 1;
+    }
+
+    writeMBR(dataBuffer);
+    writeGPTs(dataBuffer);
+    if (!writeEFISystemPartition(dataBuffer, efiFileInfo.fileDescriptor,
+                                 efiFileInfo.size)) {
+        return 1;
+    }
+
+    return 0;
 }
