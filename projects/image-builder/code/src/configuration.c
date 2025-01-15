@@ -11,10 +11,9 @@
 // static U64 physicalBlockBoundary = 512;
 // static U64 optimalTransferLengthGranularity = 512;
 // NOTE: minimum LBA size is 512! upwards with powers of 2
-Configuration configuration = {.imageName = "image-builder-image.hdd",
-                               .LBASize = 512};
+Configuration configuration = {.imageName = "flos.hdd", .LBASize = 512};
 
-void setConfiguration(U64 efiApplicationSizeBytes) {
+void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
     srand((U32)time(nullptr));
 
     configuration.alignmentLBA = (U16)((1 * MiB) / configuration.LBASize);
@@ -38,7 +37,8 @@ void setConfiguration(U64 efiApplicationSizeBytes) {
 
     // Data Partition
     configuration.DataPartitionStartLBA = currentLBA;
-    configuration.DataPartitionSizeLBA = 16;
+    configuration.DataPartitionSizeLBA =
+        (U32)CEILING_DIV_VALUE(kernelSizeBytes, (U32)configuration.LBASize);
     currentLBA += configuration.DataPartitionSizeLBA;
 
     // Backup GPT

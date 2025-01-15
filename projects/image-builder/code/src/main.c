@@ -20,27 +20,21 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static void *resourceCleanup[5];
+static U8 *efiFilePath = "BOOTX64.EFI";
+static U8 *kernelFilePath = "kernel.bin";
 
 typedef struct {
     int fileDescriptor;
     U64 size;
 } File;
-typedef MAX_LENGTH_ARRAY(File) File_max_a;
 
-static constexpr auto MAX_OPEN_FILES = 64;
-File openFilesBuf[MAX_OPEN_FILES];
-File_max_a openedFiles = {.buf = openFilesBuf, .cap = MAX_OPEN_FILES, .len = 0};
+static File efiFileInfo;
+static File kernelFileInfo;
 
-static U8 *efiFile = "BOOTX64.EFI";
-static U8 *kernelFile = "kernel.bin";
-
-static constexpr auto MEMORY_CAP = 1 * GiB;
-
-U64 openFile(U8 *name) {
-    openedFiles.buf[openedFiles.len].fileDescriptor =
-        open(name, O_RDONLY | O_CLOEXEC);
-    if (!openedFiles.buf[openedFiles.len].fileDescriptor) {
+File openFile(U8 *name) {
+    File result;
+    result.fileDescriptor = open(name, O_RDONLY | O_CLOEXEC);
+    if (!result.fileDescriptor) {
         PFLUSH_AFTER(STDERR) {
             PERROR(STRING("Could not fopen file "));
             PERROR(STRING_LEN(name, strlen(name)), NEWLINE);
@@ -50,11 +44,11 @@ U64 openFile(U8 *name) {
             PLOG(STRING_LEN(strerror(errno), strlen(strerror(errno))), NEWLINE);
         }
 
-        __builtin_longjmp(resourceCleanup, 1);
+        return (File){0};
     }
 
     struct stat buf;
-    if (fstat(openedFiles.buf[openedFiles.len].fileDescriptor, &buf)) {
+    if (fstat(result.fileDescriptor, &buf)) {
         PFLUSH_AFTER(STDERR) {
             PERROR(STRING("Could not fstat file "));
             PERROR(STRING_LEN(name, strlen(name)), NEWLINE);
@@ -64,81 +58,53 @@ U64 openFile(U8 *name) {
             PLOG(STRING_LEN(strerror(errno), strlen(strerror(errno))), NEWLINE);
         }
 
-        __builtin_longjmp(resourceCleanup, 1);
+        return (File){0};
     }
-    openedFiles.buf[openedFiles.len].size = buf.st_size;
+    result.size = buf.st_size;
 
-    U64 result = openedFiles.len;
-    openedFiles.len++;
     return result;
 }
 
+static constexpr auto ARGS_SIZE = 3;
+
 int main(int argc, char **argv) {
-    char *begin = mmap(nullptr, MEMORY_CAP, PROT_READ | PROT_WRITE,
-                       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (begin == MAP_FAILED) {
+    if (argc != ARGS_SIZE) {
         PFLUSH_AFTER(STDERR) {
-            PERROR(STRING("Failed to allocate memory for arena!\n"));
+            PERROR(STRING("Program should be called with "));
+            PERROR(ARGS_SIZE);
+            PERROR(STRING(" arguments:\n"));
+            PERROR(STRING_LEN(argv[0], strlen(argv[0])));
+            PERROR(STRING(" [efi-file-location] [kernel-file-location]"));
         }
+    }
+
+    efiFileInfo = openFile(argv[1]);
+    if (efiFileInfo.size == 0) {
         return 1;
     }
 
-    Arena arena = (Arena){
-        .beg = begin,
-        .curFree = begin,
-        .end = begin + MEMORY_CAP,
-    };
-
-    if (__builtin_setjmp(resourceCleanup)) {
-        for (U64 i = 0; i < openedFiles.len; i++) {
-            if (close(openedFiles.buf[i].fileDescriptor)) {
-                PFLUSH_AFTER(STDERR) {
-                    PERROR(STRING("Failed to close file descriptor\n"));
-                    PERROR(STRING("Error code: "));
-                    PERROR(errno, NEWLINE);
-                    PERROR(STRING("Error message: "));
-                    U8 *errorString = strerror(errno);
-                    PERROR(STRING_LEN(errorString, strlen(errorString)),
-                           NEWLINE);
-                }
-            }
-        }
-
-        if (munmap(arena.beg, MEMORY_CAP) == -1) {
-            PFLUSH_AFTER(STDERR) {
-                PERROR((STRING("Failed to unmap memory from"
-                               "arena !\n "
-                               "Arena Details:\n"
-                               "  beg: ")));
-                PERROR(arena.beg);
-                PERROR((STRING("\n end: ")));
-                PERROR(arena.end);
-                PERROR((STRING("\n memory capacity: ")));
-                PERROR(MEMORY_CAP);
-            }
-        }
-        PFLUSH_AFTER(STDERR) { PERROR((STRING("\nZeroing Arena\n"))); }
-        arena = (Arena){0};
-
+    kernelFileInfo = openFile(argv[2]);
+    if (kernelFileInfo.size == 0) {
         return 1;
     }
 
-    arena.jmp_buf = resourceCleanup;
+    setConfiguration(efiFileInfo.size, kernelFileInfo.size);
 
-    U64 efiFileIndex = openFile(efiFile);
-    U64 kernelFileIndex = openFile(kernelFile);
-
-    setConfiguration(openedFiles.buf[efiFileIndex].size);
-
-    U8 *dataBuffer =
-        NEW(&arena, U8, configuration.totalImageSizeBytes, ZERO_MEMORY);
+    char *dataBuffer =
+        mmap(nullptr, configuration.totalImageSizeBytes, PROT_READ | PROT_WRITE,
+             MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (dataBuffer == MAP_FAILED) {
+        PFLUSH_AFTER(STDERR) {
+            PERROR(STRING("Failed to allocate memory for EFI image!\n"));
+        }
+        return 1;
+    }
 
     writeMBR(dataBuffer);
     writeGPTs(dataBuffer);
-    if (!writeEFISystemPartition(dataBuffer,
-                                 openedFiles.buf[efiFileIndex].fileDescriptor,
-                                 openedFiles.buf[efiFileIndex].size)) {
-        __builtin_longjmp(resourceCleanup, 1);
+    if (!writeEFISystemPartition(dataBuffer, efiFileInfo.fileDescriptor,
+                                 efiFileInfo.size)) {
+        return 1;
     }
 
     int fileDescriptor =
@@ -153,6 +119,7 @@ int main(int argc, char **argv) {
             U8 *errorString = strerror(errno);
             PERROR(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
         }
+        return 1;
     }
 
     flushBufferWithFileDescriptor(fileDescriptor, dataBuffer,
