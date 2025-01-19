@@ -1,18 +1,19 @@
 package uefiimage
 
 import (
+	"cmd/common"
 	"cmd/common/argument"
 	"cmd/common/project"
 	"fmt"
 )
 
 func CreateUefiImage(buildMode string) {
-	copyEfiCommand := fmt.Sprintf("find %s -executable -type f -name \"%s\" -exec cp {} BOOTX64.EFI \\;", project.BuildDirectoryRoot(project.PROJECT_STRUCTURES[project.EFI], buildMode), project.EFI)
+	copyEfiCommand := fmt.Sprintf("find %s -executable -type f -name \"%s\" -exec cp {} %s \\;", project.BuildDirectoryRoot(project.PROJECT_STRUCTURES[project.EFI], buildMode), project.EFI, common.FLOS_EFI_FILE)
 	argument.ExecCommand(copyEfiCommand)
 
-	copyKernelCommand := fmt.Sprintf("find %s -executable -type f -name \"kernel.bin\" -exec cp {} kernel.bin \\;", project.BuildDirectoryRoot(project.PROJECT_STRUCTURES[project.KERNEL], buildMode))
+	copyKernelCommand := fmt.Sprintf("find %s -executable -type f -name \"kernel.bin\" -exec cp {} %s \\;", project.BuildDirectoryRoot(project.PROJECT_STRUCTURES[project.KERNEL], buildMode), common.FLOS_KERNEL_FILE)
 	argument.ExecCommand(copyKernelCommand)
 
-	createTestImageCommand := fmt.Sprintf("find %s -type f -name \"uefi-image-creator\" -exec {} --data-size 32 -ae /EFI/BOOT/ BOOTX64.EFI -ad kernel.bin \\;", project.BuildDirectoryRoot(project.PROJECT_STRUCTURES[project.UEFI_IMAGE_CREATOR], buildMode))
+	createTestImageCommand := fmt.Sprintf("find %s -type f -name \"%s\" -exec {} %s %s \\;", project.BuildDirectoryRoot(project.PROJECT_STRUCTURES[project.IMAGE_BUILDER], buildMode), project.IMAGE_BUILDER, common.FLOS_EFI_FILE, common.FLOS_KERNEL_FILE)
 	argument.ExecCommand(createTestImageCommand)
 }

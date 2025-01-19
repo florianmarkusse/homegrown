@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmd/common"
 	"cmd/common/configuration"
 	"cmd/common/exit"
 	"cmd/common/flags"
@@ -45,8 +46,8 @@ func usage() {
 	exit.DisplayExitCode(exit.EXIT_CLI_PARSING_ERROR)
 	fmt.Printf("\n")
 	flags.DisplayExamples()
-	fmt.Printf("  %s --%s test.hdd --%s bios.bin\n", filepath.Base(os.Args[0]), OS_LOCATION_LONG_FLAG, EFI_LOCATION_LONG_FLAG)
-	fmt.Printf("  %s -%s=test.hdd -%s bios.bin -%s --%s\n", filepath.Base(os.Args[0]), OS_LOCATION_LONG_FLAG, EFI_LOCATION_SHORT_FLAG, VERBOSE_SHORT_FLAG, DEBUG_LONG_FLAG)
+	fmt.Printf("  %s --%s %s --%s %s\n", filepath.Base(os.Args[0]), OS_LOCATION_LONG_FLAG, common.FLOS_UEFI_IMAGE_FILE, EFI_LOCATION_LONG_FLAG, common.BIOS_FILE)
+	fmt.Printf("  %s -%s=%s -%s %s -%s --%s\n", filepath.Base(os.Args[0]), OS_LOCATION_LONG_FLAG, common.FLOS_UEFI_IMAGE_FILE, EFI_LOCATION_SHORT_FLAG, common.BIOS_FILE, VERBOSE_SHORT_FLAG, DEBUG_LONG_FLAG)
 	fmt.Printf("\n")
 }
 

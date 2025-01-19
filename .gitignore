@@ -46,5 +46,6 @@ brestore.*
 *.bin
 *.elf
 *.EFI
+*.efi
 *.INF
 *.hdd

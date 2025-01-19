@@ -11,7 +11,8 @@
 // static U64 physicalBlockBoundary = 512;
 // static U64 optimalTransferLengthGranularity = 512;
 // NOTE: minimum LBA size is 512! upwards with powers of 2
-Configuration configuration = {.imageName = "flos.hdd", .LBASizeBytes = 512};
+Configuration configuration = {.imageName = "FLOS_UEFI_IMAGE.hdd",
+                               .LBASizeBytes = 512};
 
 void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
     // Necessary to create a random UUID V4 in the GPTs.

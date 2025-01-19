@@ -81,7 +81,6 @@ var EFI_SYSTEM = CommonConfig{
 // If you add a project add it here
 const KERNEL = "kernel"
 const EFI_TO_KERNEL = "efi-to-kernel"
-const UEFI_IMAGE_CREATOR = "uefi-image-creator"
 const EFI = "efi"
 const IMAGE_BUILDER = "image-builder"
 const SHARED = "shared"
@@ -93,7 +92,6 @@ const UEFI = "uefi"
 // and here
 var kernelFolder = common.REPO_PROJECTS + "/" + KERNEL + "/"
 var efiToKernelFolder = common.REPO_PROJECTS + "/" + EFI_TO_KERNEL + "/"
-var uefiImageCreatorFolder = common.REPO_PROJECTS + "/" + UEFI_IMAGE_CREATOR + "/"
 var efiFolder = common.REPO_PROJECTS + "/" + EFI + "/"
 var imageBuilderFolder = common.REPO_PROJECTS + "/" + IMAGE_BUILDER + "/"
 var sharedFolder = common.REPO_PROJECTS + "/" + SHARED + "/"
@@ -117,13 +115,6 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Folder:      efiToKernelFolder,
 		CodeFolder:  efiToKernelFolder + "code",
 		Environment: string(environment.Freestanding),
-	},
-	UEFI_IMAGE_CREATOR: {
-		CCompiler:   ELF.CCompiler,
-		Linker:      ELF.Linker,
-		Folder:      uefiImageCreatorFolder,
-		CodeFolder:  uefiImageCreatorFolder + "code",
-		Environment: string(environment.Posix),
 	},
 	EFI: {
 		CCompiler:   EFI_SYSTEM.CCompiler,

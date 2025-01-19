@@ -7,13 +7,10 @@ import (
 )
 
 func RemoveGeneratedFiles() {
-
 	filesToRemove := []string{
-		fmt.Sprintf("%stest.hdd", common.REPO_ROOT),
-		fmt.Sprintf("%sDATAFLS.INF", common.REPO_ROOT),
-		fmt.Sprintf("%sDSKIMG.INF", common.REPO_ROOT),
-		fmt.Sprintf("%sBOOTX64.EFI", common.REPO_ROOT),
-		fmt.Sprintf("%skernel.bin", common.REPO_ROOT),
+		fmt.Sprintf("%s/%s", common.REPO_ROOT, common.FLOS_EFI_FILE),
+		fmt.Sprintf("%s/%s", common.REPO_ROOT, common.FLOS_KERNEL_FILE),
+		fmt.Sprintf("%s/%s", common.REPO_ROOT, common.FLOS_UEFI_IMAGE_FILE),
 	}
 
 	exec.Command("rm", append([]string{"-f"}, filesToRemove...)...).Run()

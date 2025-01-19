@@ -37,6 +37,11 @@ func getRepoRoot() string {
 	}
 }
 
+var FLOS_EFI_FILE = "FLOS_EFI.efi"
+var FLOS_KERNEL_FILE = "FLOS_KERNEL.bin"
+var FLOS_UEFI_IMAGE_FILE = "FLOS_UEFI_IMAGE.hdd"
+var BIOS_FILE = "bios.bin"
+
 var REPO_ROOT = getRepoRoot()
 var REPO_DEPENDENCIES = REPO_ROOT + "/dependencies"
 var REPO_PROJECTS = REPO_ROOT + "/projects"
