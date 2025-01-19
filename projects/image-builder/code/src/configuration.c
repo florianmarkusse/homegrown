@@ -14,6 +14,7 @@
 Configuration configuration = {.imageName = "flos.hdd", .LBASizeBytes = 512};
 
 void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
+    // Necessary to create a random UUID V4 in the GPTs.
     srand((U32)time(nullptr));
 
     configuration.alignmentLBA = (U16)((1 * MiB) / configuration.LBASizeBytes);

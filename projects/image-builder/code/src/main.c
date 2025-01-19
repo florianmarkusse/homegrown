@@ -19,7 +19,10 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
+
+void *errorHandler[5];
 
 typedef struct {
     int fileDescriptor;
@@ -28,8 +31,6 @@ typedef struct {
 
 static File efiFileInfo;
 static File kernelFileInfo;
-
-void cleanup() { unlink(configuration.imageName); }
 
 File openFile(U8 *name) {
     File result;
@@ -43,8 +44,7 @@ File openFile(U8 *name) {
             PLOG(STRING("Error message: "));
             PLOG(STRING_LEN(strerror(errno), strlen(strerror(errno))), NEWLINE);
         }
-
-        return (File){0};
+        __builtin_longjmp(errorHandler, 1);
     }
 
     struct stat buf;
@@ -57,8 +57,7 @@ File openFile(U8 *name) {
             PLOG(STRING("Error message: "));
             PLOG(STRING_LEN(strerror(errno), strlen(strerror(errno))), NEWLINE);
         }
-
-        return (File){0};
+        __builtin_longjmp(errorHandler, 1);
     }
     result.size = buf.st_size;
 
@@ -68,6 +67,39 @@ File openFile(U8 *name) {
 static constexpr auto ARGS_SIZE = 3;
 
 int main(int argc, char **argv) {
+    time_t programStartTime = time(NULL);
+    if (__builtin_setjmp(errorHandler)) {
+        struct stat fileStat;
+        if (stat(configuration.imageName, &fileStat) == -1) {
+            PFLUSH_AFTER(STDERR) {
+                PERROR(STRING("Could not stat file: "));
+                PERROR(configuration.imageName, NEWLINE);
+                PERROR(STRING("Aborting error handler!\n"));
+                PERROR(STRING("Perform manual checks to decide what to do with "
+                              "the file."));
+            }
+            return 1;
+        }
+        time_t imageModifiedTime = fileStat.st_mtime;
+        if (programStartTime > imageModifiedTime) {
+            PFLUSH_AFTER(STDERR) {
+                PERROR(STRING("File: "));
+                PERROR(configuration.imageName);
+                PERROR(STRING(
+                    " was not modified by the program, no cleanup done."));
+            }
+        } else {
+            PFLUSH_AFTER(STDERR) {
+                PERROR(STRING("File: "));
+                PERROR(configuration.imageName);
+                PERROR(STRING(" was modified by the program removing..."));
+            }
+            unlink(configuration.imageName);
+        }
+
+        return 1;
+    }
+
     if (argc != ARGS_SIZE) {
         PFLUSH_AFTER(STDERR) {
             PERROR(STRING("Program should be called with "));
@@ -76,17 +108,11 @@ int main(int argc, char **argv) {
             PERROR(STRING_LEN(argv[0], strlen(argv[0])));
             PERROR(STRING(" [efi-file-location] [kernel-file-location]"));
         }
+        __builtin_longjmp(errorHandler, 1);
     }
 
     efiFileInfo = openFile(argv[1]);
-    if (efiFileInfo.size == 0) {
-        return 1;
-    }
-
     kernelFileInfo = openFile(argv[2]);
-    if (kernelFileInfo.size == 0) {
-        return 1;
-    }
 
     setConfiguration(efiFileInfo.size, kernelFileInfo.size);
 
@@ -102,7 +128,7 @@ int main(int argc, char **argv) {
             U8 *errorString = strerror(errno);
             PERROR(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
         }
-        return 1;
+        __builtin_longjmp(errorHandler, 1);
     }
 
     if (ftruncate(fileDescriptor, configuration.totalImageSizeBytes) == -1) {
@@ -114,7 +140,7 @@ int main(int argc, char **argv) {
             U8 *errorString = strerror(errno);
             PERROR(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
         }
-        cleanup();
+        __builtin_longjmp(errorHandler, 1);
         return 1;
     }
 
@@ -130,7 +156,7 @@ int main(int argc, char **argv) {
             U8 *errorString = strerror(errno);
             PERROR(STRING_LEN(errorString, strlen(errorString)), NEWLINE);
         }
-        cleanup();
+        __builtin_longjmp(errorHandler, 1);
         return 1;
     }
 
@@ -138,12 +164,12 @@ int main(int argc, char **argv) {
     writeGPTs(dataBuffer);
     if (!writeEFISystemPartition(dataBuffer, efiFileInfo.fileDescriptor,
                                  efiFileInfo.size)) {
-        cleanup();
+        __builtin_longjmp(errorHandler, 1);
         return 1;
     }
     if (!writeDataPartition(dataBuffer, kernelFileInfo.fileDescriptor,
                             kernelFileInfo.size)) {
-        cleanup();
+        __builtin_longjmp(errorHandler, 1);
         return 1;
     }
 
