@@ -1,5 +1,7 @@
 #include "efi/data-reading.h"
 
+#include "efi-to-kernel/generated/kernel-magic.h"
+#include "efi-to-kernel/memory/descriptor.h"
 #include "efi/efi/c-efi-base.h"                  // for ERROR, Handle
 #include "efi/efi/c-efi-protocol-block-io.h"     // for BLOCK_IO_PROTOCOL...
 #include "efi/efi/c-efi-protocol-file.h"         // for FileProtocol, FIL...
@@ -10,8 +12,6 @@
 #include "efi/globals.h"          // for globals
 #include "efi/memory/page-size.h" // for memcmp
 #include "efi/printing.h"         // for error, printNumber
-#include "efi-to-kernel/generated/kernel-magic.h"
-#include "efi-to-kernel/memory/descriptor.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/maths/maths.h"
 
@@ -245,7 +245,7 @@ U32 getDiskImageMediaID() {
     return mediaID;
 }
 
-typedef enum { NAME = 0, BYTE_SIZE = 1, LBA_START = 2 } DataPartitionLayout;
+typedef enum { BYTE_SIZE = 0, LBA_START = 1 } DataPartitionLayout;
 
 DataPartitionFile getKernelInfo() {
     // Get loaded image protocol first to grab device handle to use
@@ -276,7 +276,7 @@ DataPartitionFile getKernelInfo() {
 
     FileProtocol *file = nullptr;
     status =
-        root->open(root, &file, u"\\EFI\\BOOT\\DATAFLS.INF", FILE_MODE_READ, 0);
+        root->open(root, &file, u"\\EFI\\FLOS\\KERNEL.INF", FILE_MODE_READ, 0);
     if (ERROR(status)) {
         error(u"Could not Open File\r\n");
     }
@@ -319,52 +319,39 @@ DataPartitionFile getKernelInfo() {
         globals.h, &LOADED_IMAGE_PROTOCOL_GUID, globals.h, nullptr);
 
     // Assumes the below file structure:
-    // FILE_NAME=kernel.bin
-    // FILE_SIZE=2
-    // DISK_LBA=34607104
+    // KERNEL_SIZE_BYTES=132456
+    // KERNEL_START_LBA=123
     AsciStringIter lines;
     DataPartitionFile kernelFile;
+    DataPartitionLayout layout = BYTE_SIZE;
     TOKENIZE_ASCI_STRING(dataFile, lines, '\n', 0) {
-        DataPartitionLayout layout = NAME;
-        AsciStringIter pairs;
-        TOKENIZE_ASCI_STRING(lines.string, pairs, '\t', 0) {
-            AsciStringIter tokens;
-            bool second = false;
-            TOKENIZE_ASCI_STRING(pairs.string, tokens, '=', 0) {
-                if (second) {
-                    switch (layout) {
-                    case NAME: {
-                        if (!asciStringEquals(tokens.string,
-                                              ASCI_STRING("kernel.bin"))) {
-                            error(u"read file name does not equal "
-                                  u"'kernel.bin'!\r\n");
-                        }
-                        kernelFile.name = tokens.string;
-                        break;
+        AsciStringIter tokens;
+        bool second = false;
+        TOKENIZE_ASCI_STRING(lines.string, tokens, '=', 0) {
+            if (second) {
+                switch (layout) {
+                case BYTE_SIZE: {
+                    U64 bytes = 0;
+                    for (U64 i = 0; i < tokens.string.len; i++) {
+                        bytes = bytes * 10 + (tokens.string.buf[i] - '0');
                     }
-                    case BYTE_SIZE: {
-                        U64 bytes = 0;
-                        for (U64 i = 0; i < tokens.string.len; i++) {
-                            bytes = bytes * 10 + (tokens.string.buf[i] - '0');
-                        }
-                        kernelFile.bytes = bytes;
-                        break;
-                    }
-                    case LBA_START: {
-                        U64 lbaStart = 0;
-                        for (U64 i = 0; i < tokens.string.len; i++) {
-                            lbaStart =
-                                lbaStart * 10 + (tokens.string.buf[i] - '0');
-                        }
-                        kernelFile.lbaStart = lbaStart;
-                        break;
-                    }
-                    }
+
+                    kernelFile.bytes = bytes;
+                    break;
                 }
-                second = true;
+                case LBA_START: {
+                    U64 lbaStart = 0;
+                    for (U64 i = 0; i < tokens.string.len; i++) {
+                        lbaStart = lbaStart * 10 + (tokens.string.buf[i] - '0');
+                    }
+                    kernelFile.lbaStart = lbaStart;
+                    break;
+                }
+                }
             }
-            layout++;
+            second = true;
         }
+        layout++;
     }
 
     return kernelFile;

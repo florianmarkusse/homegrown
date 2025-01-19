@@ -366,7 +366,8 @@ static Cluster createPath(string FAT32FilePath, Cluster startCluster) {
                                               (U32)((bufferVariable) -         \
                                                     (bufferStartVariable))))
 
-bool writeEFISystemPartition(U8 *fileBuffer, int efifd, U64 efiSizeBytes) {
+bool writeEFISystemPartition(U8 *fileBuffer, int efifd, U64 efiSizeBytes,
+                             U64 kernelSizeBytes) {
     parameterBlock.hiddenSectors = configuration.EFISystemPartitionStartLBA;
 
     // We write the file data first and later fill the reserved sectors. The
@@ -431,9 +432,7 @@ bool writeEFISystemPartition(U8 *fileBuffer, int efifd, U64 efiSizeBytes) {
                       dataStartLocation) {
         FAT32FileBuffer +=
             KLOG_APPEND(FAT32FileBuffer, STRING("KERNEL_SIZE_BYTES="));
-        FAT32FileBuffer +=
-            KLOG_APPEND(FAT32FileBuffer, configuration.DataPartitionSizeLBA *
-                                             configuration.LBASizeBytes);
+        FAT32FileBuffer += KLOG_APPEND(FAT32FileBuffer, kernelSizeBytes);
         FAT32FileBuffer += KLOG_APPEND(FAT32FileBuffer, STRING("\n"));
 
         FAT32FileBuffer +=

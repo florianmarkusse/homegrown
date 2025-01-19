@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
     writeMBR(dataBuffer);
     writeGPTs(dataBuffer);
     if (!writeEFISystemPartition(dataBuffer, efiFileInfo.fileDescriptor,
-                                 efiFileInfo.size)) {
+                                 efiFileInfo.size, kernelFileInfo.size)) {
         __builtin_longjmp(errorHandler, 1);
         return 1;
     }

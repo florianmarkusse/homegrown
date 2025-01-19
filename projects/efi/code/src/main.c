@@ -1,3 +1,6 @@
+#include "efi-to-kernel/kernel-parameters.h"           // for KernelParameters
+#include "efi-to-kernel/memory/definitions.h"          // for STACK_SIZE
+#include "efi-to-kernel/memory/descriptor.h"           // for MemoryDescriptor
 #include "efi/acpi/c-acpi-rdsp.h"                      // for getRSDP, RSDP...
 #include "efi/data-reading.h"                          // for getKernelInfo
 #include "efi/efi/c-efi-base.h"                        // for PhysicalAddress
@@ -10,9 +13,6 @@
 #include "efi/memory/page-size.h"                      // for UEFI_PAGE_SIZE
 #include "efi/printing.h"                              // for error, printN...
 #include "efi/string.h"                                // for AsciString
-#include "efi-to-kernel/kernel-parameters.h"          // for KernelParameters
-#include "efi-to-kernel/memory/definitions.h"         // for STACK_SIZE
-#include "efi-to-kernel/memory/descriptor.h"          // for MemoryDescriptor
 #include "shared/maths/maths.h"                        // for CEILING_DIV_V...
 #include "shared/types/types.h"                        // for U64, U32, USize
 #include "x86/memory/definitions/virtual.h"            // for PAGE_FRAME_SIZE
@@ -321,6 +321,14 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Going to load kernel\r\n");
+
+    globals.st->con_out->output_string(globals.st->con_out, u"kernel bytes: ");
+    printNumber(kernelFile.bytes, 10);
+    globals.st->con_out->output_string(globals.st->con_out,
+                                       u"\r\nkernel lba start: ");
+    printNumber(kernelFile.lbaStart, 10);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
     AsciString kernelContent = readDiskLbasFromCurrentGlobalImage(
         kernelFile.lbaStart, kernelFile.bytes);
 

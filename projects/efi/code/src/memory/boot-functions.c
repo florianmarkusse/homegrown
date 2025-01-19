@@ -41,9 +41,6 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
             PhysicalAddress addr = allocAndZero(1);
             *pageEntry = (addr | (VirtualPageMasks.PAGE_PRESENT |
                                   VirtualPageMasks.PAGE_WRITABLE));
-
-            globals.st->con_out->output_string(globals.st->con_out,
-                                               u"INSIDE level 3 is at:");
             printNumber((USize)*pageEntry, 16);
             globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
         }
@@ -55,9 +52,6 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (VirtualPageMasks.PAGE_PRESENT |
                                              VirtualPageMasks.PAGE_WRITABLE));
-
-            globals.st->con_out->output_string(globals.st->con_out,
-                                               u"INSIDE level 2 is at:");
             printNumber((USize)*pageEntry, 16);
             globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
         }
