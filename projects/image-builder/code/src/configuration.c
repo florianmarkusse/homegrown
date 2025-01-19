@@ -31,17 +31,19 @@ void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
 
     // EFI Partition
     configuration.EFISystemPartitionStartLBA = currentLBA;
+    U32 unalignedLBA = calculateEFIPartitionSize((U32)CEILING_DIV_VALUE(
+        efiApplicationSizeBytes, (U32)configuration.LBASizeBytes));
     configuration.EFISystemPartitionSizeLBA =
-        calculateEFIPartitionSize((U32)CEILING_DIV_VALUE(
-            efiApplicationSizeBytes, (U32)configuration.LBASizeBytes));
+        ALIGN_UP_VALUE(unalignedLBA, configuration.alignmentLBA);
     currentLBA += configuration.EFISystemPartitionSizeLBA;
-    currentLBA = ALIGN_UP_VALUE(currentLBA, configuration.alignmentLBA);
 
     // Data Partition
-    configuration.DataPartitionStartLBA = currentLBA;
-    configuration.DataPartitionSizeLBA = (U32)CEILING_DIV_VALUE(
-        kernelSizeBytes, (U32)configuration.LBASizeBytes);
-    currentLBA += configuration.DataPartitionSizeLBA;
+    configuration.dataPartitionStartLBA = currentLBA;
+    unalignedLBA = (U32)CEILING_DIV_VALUE(kernelSizeBytes,
+                                          (U32)configuration.LBASizeBytes);
+    configuration.dataPartitionSizeLBA =
+        ALIGN_UP_VALUE(unalignedLBA, configuration.alignmentLBA);
+    currentLBA += configuration.dataPartitionSizeLBA;
 
     // Backup GPT
     currentLBA +=

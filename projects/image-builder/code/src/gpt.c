@@ -85,10 +85,9 @@ GPTPartitionEntry partitionEntries[GPT_PARTITION_TABLE_ENTRIES] = {
     },
 };
 
-void fillPartitionEntry(U32 index, U64 unalignedStartLBA, U64 sizeLBA) {
+void fillPartitionEntry(U32 index, U64 startLBA, U64 sizeLBA) {
     partitionEntries[index].uniquePartitionGUID = randomVersion4Variant2UUID();
-    partitionEntries[index].startingLBA =
-        ALIGN_UP_VALUE(unalignedStartLBA, configuration.alignmentLBA);
+    partitionEntries[index].startingLBA = startLBA;
     partitionEntries[index].endingLBA =
         partitionEntries[index].startingLBA + sizeLBA - 1;
 }
@@ -104,11 +103,10 @@ void writeGPTs(U8 *fileBuffer) {
                               configuration.GPTPartitionTableSizeLBA - 1;
     gptHeader.diskGUID = randomVersion4Variant2UUID();
 
-    fillPartitionEntry(
-        0, gptHeader.partitionTableLBA + configuration.GPTPartitionTableSizeLBA,
-        configuration.EFISystemPartitionSizeLBA);
-    fillPartitionEntry(1, partitionEntries[0].endingLBA + 1,
-                       configuration.DataPartitionSizeLBA);
+    fillPartitionEntry(0, configuration.EFISystemPartitionStartLBA,
+                       configuration.EFISystemPartitionSizeLBA);
+    fillPartitionEntry(1, configuration.dataPartitionStartLBA,
+                       configuration.dataPartitionSizeLBA);
 
     gptHeader.partitionTableCRC32 =
         calculateCRC32(partitionEntries, sizeof(partitionEntries));

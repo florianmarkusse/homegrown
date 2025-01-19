@@ -10,7 +10,7 @@
 
 bool writeDataPartition(U8 *fileBuffer, int kernelfd, U64 kernelSizeBytes) {
     fileBuffer +=
-        configuration.DataPartitionStartLBA * configuration.LBASizeBytes;
+        configuration.dataPartitionStartLBA * configuration.LBASizeBytes;
 
     for (U8 *exclusiveEnd = fileBuffer + kernelSizeBytes;
          fileBuffer < exclusiveEnd;) {

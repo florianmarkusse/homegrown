@@ -31,8 +31,8 @@ typedef struct {
     U32 GPTPartitionTableSizeLBA;
     U32 EFISystemPartitionStartLBA;
     U32 EFISystemPartitionSizeLBA;
-    U32 DataPartitionStartLBA;
-    U32 DataPartitionSizeLBA;
+    U32 dataPartitionStartLBA;
+    U32 dataPartitionSizeLBA;
 } Configuration;
 
 extern Configuration configuration;

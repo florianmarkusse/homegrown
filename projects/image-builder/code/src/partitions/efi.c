@@ -438,7 +438,7 @@ bool writeEFISystemPartition(U8 *fileBuffer, int efifd, U64 efiSizeBytes,
         FAT32FileBuffer +=
             KLOG_APPEND(FAT32FileBuffer, STRING("KERNEL_START_LBA="));
         FAT32FileBuffer +=
-            KLOG_APPEND(FAT32FileBuffer, configuration.DataPartitionStartLBA);
+            KLOG_APPEND(FAT32FileBuffer, configuration.dataPartitionStartLBA);
         FAT32FileBuffer += KLOG_APPEND(FAT32FileBuffer, STRING("\n"));
     }
 
