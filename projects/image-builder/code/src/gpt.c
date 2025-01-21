@@ -37,16 +37,37 @@ typedef struct {
                            // 0xFFFF)
 } __attribute__((packed)) GPTPartitionEntry;
 
-static UUID randomVersion4Variant2UUID() {
-    UUID result;
-    for (U8 i = 0; i < sizeof(UUID); i++) {
-        result.u8[i] = rand() & 0xFF;
-    }
+/*static UUID randomVersion4Variant2UUID() {*/
+/*    UUID result;*/
+/*    for (U8 i = 0; i < sizeof(UUID); i++) {*/
+/*        result.u8[i] = rand() & 0xFF;*/
+/*    }*/
+/**/
+/*    setUUIDType(&result, 4, UUID_VARIANT_2);*/
+/**/
+/*    return result;*/
+/*}*/
 
-    setUUIDType(&result, 4, UUID_VARIANT_2);
+// NOTE: Change this back maybe to actual randomness?
+UUID RANDOM_GUID_1 = (UUID){.timeLo = 0x12345678,
+                            .timeMid = 0xB9E5,
+                            .timeHiAndVer = 0x4433,
+                            .clockSeqHiAndRes = 0x87,
+                            .clockSeqLo = 0xC0,
+                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
 
-    return result;
-}
+UUID RANDOM_GUID_2 = (UUID){.timeLo = 0x87654321,
+                            .timeMid = 0xB9E5,
+                            .timeHiAndVer = 0x4433,
+                            .clockSeqHiAndRes = 0x87,
+                            .clockSeqLo = 0xC0,
+                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
+UUID RANDOM_GUID_3 = (UUID){.timeLo = 0x45612378,
+                            .timeMid = 0xB9E5,
+                            .timeHiAndVer = 0x4433,
+                            .clockSeqHiAndRes = 0x87,
+                            .clockSeqLo = 0xC0,
+                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
 
 static GPTHeader gptHeader = {
     .signature = {"EFI PART"},
@@ -86,7 +107,11 @@ GPTPartitionEntry partitionEntries[GPT_PARTITION_TABLE_ENTRIES] = {
 };
 
 void fillPartitionEntry(U32 index, U64 startLBA, U64 sizeLBA) {
-    partitionEntries[index].uniquePartitionGUID = randomVersion4Variant2UUID();
+    if (index == 0) {
+        partitionEntries[index].uniquePartitionGUID = RANDOM_GUID_2;
+    } else {
+        partitionEntries[index].uniquePartitionGUID = RANDOM_GUID_3;
+    }
     partitionEntries[index].startingLBA = startLBA;
     partitionEntries[index].endingLBA =
         partitionEntries[index].startingLBA + sizeLBA - 1;
@@ -101,7 +126,7 @@ void writeGPTs(U8 *fileBuffer) {
     gptHeader.lastUsableLBA = configuration.totalImageSizeLBA -
                               SectionsInLBASize.GPT_HEADER -
                               configuration.GPTPartitionTableSizeLBA - 1;
-    gptHeader.diskGUID = randomVersion4Variant2UUID();
+    gptHeader.diskGUID = RANDOM_GUID_1;
 
     fillPartitionEntry(0, configuration.EFISystemPartitionStartLBA,
                        configuration.EFISystemPartitionSizeLBA);

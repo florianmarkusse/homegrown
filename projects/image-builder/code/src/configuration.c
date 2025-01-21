@@ -1,8 +1,12 @@
 #include "image-builder/configuration.h"
 #include "image-builder/partitions/efi.h"
+#include "platform-abstraction/log.h"
+#include "posix/log.h"
+#include "shared/log.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/sizes.h"
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 // TODO: Move default LBA size to 4096 , seems better for performone on disks in
@@ -39,8 +43,11 @@ void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
 
     // Data Partition
     configuration.dataPartitionStartLBA = currentLBA;
-    unalignedLBA = (U32)CEILING_DIV_VALUE(kernelSizeBytes,
-                                          (U32)configuration.LBASizeBytes);
+    unalignedLBA =
+        (U32)CEILING_DIV_VALUE(32 * MiB, (U32)configuration.LBASizeBytes);
+    // NOTE: hardcoding this to be in line with the old uefi-image-creatoq
+    /*unalignedLBA = (U32)CEILING_DIV_VALUE(kernelSizeBytes,*/
+    /*                                      (U32)configuration.LBASizeBytes);*/
     configuration.dataPartitionSizeLBA =
         ALIGN_UP_VALUE(unalignedLBA, configuration.alignmentLBA);
     currentLBA += configuration.dataPartitionSizeLBA;
@@ -51,4 +58,40 @@ void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
     configuration.totalImageSizeLBA = currentLBA;
     configuration.totalImageSizeBytes =
         configuration.totalImageSizeLBA * configuration.LBASizeBytes;
+
+    PFLUSH_AFTER(STDOUT) {
+        INFO(STRING("Configuration\n"));
+
+        INFO(STRING("Image name: "));
+        INFO(STRING_LEN(configuration.imageName,
+                        strlen(configuration.imageName)),
+             NEWLINE);
+
+        INFO(STRING("LBA size bytes: "));
+        INFO(configuration.alignmentLBA, NEWLINE);
+
+        INFO(STRING("Alignment in LBA: "));
+        INFO(configuration.LBASizeBytes, NEWLINE);
+
+        INFO(STRING("total image size LBA: "));
+        INFO(configuration.totalImageSizeLBA, NEWLINE);
+
+        INFO(STRING("total image size bytes: "));
+        INFO(configuration.totalImageSizeBytes, NEWLINE);
+
+        INFO(STRING("GPT partition table size LBA: "));
+        INFO(configuration.GPTPartitionTableSizeLBA, NEWLINE);
+
+        INFO(STRING("EFI partition start LBA: "));
+        INFO(configuration.EFISystemPartitionStartLBA, NEWLINE);
+
+        INFO(STRING("EFI partition size LBA: "));
+        INFO(configuration.EFISystemPartitionSizeLBA, NEWLINE);
+
+        INFO(STRING("Data partition start LBA: "));
+        INFO(configuration.dataPartitionStartLBA, NEWLINE);
+
+        INFO(STRING("Data partition size LBA: "));
+        INFO(configuration.dataPartitionSizeLBA, NEWLINE);
+    }
 }
