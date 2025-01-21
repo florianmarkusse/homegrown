@@ -47,7 +47,8 @@ void writeMBR(U8 *fileBuffer) {
     if (totalImageSizeLBA > U32_MAX) {
         protectiveMBR.partitions[0].sizeLBA = U32_MAX;
     } else {
-        totalImageSizeLBA = (U32)(totalImageSizeLBA - 1);
+        protectiveMBR.partitions[0].sizeLBA = totalImageSizeLBA =
+            (U32)(totalImageSizeLBA - 1);
     }
 
     memcpy(fileBuffer, &protectiveMBR, sizeof(MBR));
