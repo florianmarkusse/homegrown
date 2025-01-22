@@ -29,7 +29,7 @@ if(VALID_BUILD_TYPE_INDEX EQUAL -1)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Fuzzing" OR CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g3 -fsanitize=undefined")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g3")
     add_compile_definitions("DEBUG")
 endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Profiling")
