@@ -4,7 +4,6 @@
 #include <stdlib.h>   // for calloc, strtol, rand, srand
 #include <string.h>   // for strcmp, memcpy, strlen, strcpy, strncat
 #include <sys/mman.h> // for mmap, munmap, MAP_ANONYMOUS, MAP_FAILED
-#include <time.h>     // for tm, time, localtime, time_t
 
 #include "crc32-table.h"                              // for calculateCRC32
 #include "platform-abstraction/memory/manipulation.h" // for memcpy, memcmp
@@ -52,6 +51,27 @@ typedef struct {
     U8 clock_seq_lo;
     U8 node[6];
 } __attribute__((packed)) Guid;
+
+// NOTE: Change this back maybe to actual randomness?
+Guid RANDOM_GUID_1 = (Guid){.time_lo = 0x12345678,
+                            .time_mid = 0xB9E5,
+                            .time_hi_and_ver = 0x4433,
+                            .clock_seq_hi_and_res = 0x87,
+                            .clock_seq_lo = 0xC0,
+                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
+
+Guid RANDOM_GUID_2 = (Guid){.time_lo = 0x87654321,
+                            .time_mid = 0xB9E5,
+                            .time_hi_and_ver = 0x4433,
+                            .clock_seq_hi_and_res = 0x87,
+                            .clock_seq_lo = 0xC0,
+                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
+Guid RANDOM_GUID_3 = (Guid){.time_lo = 0x45612378,
+                            .time_mid = 0xB9E5,
+                            .time_hi_and_ver = 0x4433,
+                            .clock_seq_hi_and_res = 0x87,
+                            .clock_seq_lo = 0xC0,
+                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
 
 // MBR Partition
 typedef struct {
@@ -253,62 +273,6 @@ U64 next_aligned_lba(const U64 lba) {
 }
 
 // =====================================
-// Create a new Version 4 Variant 2 GUID
-// =====================================
-Guid new_guid(void) {
-    U8 rand_arr[16] = {0};
-
-    for (U8 i = 0; i < sizeof rand_arr; i++) {
-        rand_arr[i] = rand() & 0xFF; // Equivalent to modulo 256
-    }
-
-    // Fill out GUID
-    Guid result = {
-        .time_lo = *(U32 *)&rand_arr[0],
-        .time_mid = *(U16 *)&rand_arr[4],
-        .time_hi_and_ver = *(U16 *)&rand_arr[6],
-        .clock_seq_hi_and_res = rand_arr[8],
-        .clock_seq_lo = rand_arr[9],
-        .node = {rand_arr[10], rand_arr[11], rand_arr[12], rand_arr[13],
-                 rand_arr[14], rand_arr[15]},
-    };
-
-    // Fill out version bits - version 4
-    result.time_hi_and_ver &= ~(1 << 15); // 0b_0_111 1111
-    result.time_hi_and_ver |= (1 << 14);  // 0b0_1_00 0000
-    result.time_hi_and_ver &= ~(1 << 13); // 0b11_0_1 1111
-    result.time_hi_and_ver &= ~(1 << 12); // 0b111_0_ 1111
-
-    // Fill out variant bits
-    result.clock_seq_hi_and_res |= (1 << 7);  // 0b_1_000 0000
-    result.clock_seq_hi_and_res |= (1 << 6);  // 0b0_1_00 0000
-    result.clock_seq_hi_and_res &= ~(1 << 5); // 0b11_0_1 1111
-
-    return result;
-}
-
-// =====================================
-// Get new date/time values for FAT32 directory entries
-// =====================================
-void get_fat_dir_entry_time_date(U16 *in_time, U16 *in_date) {
-    time_t curr_time;
-    curr_time = time(nullptr);
-    struct tm tm = *localtime(&curr_time);
-
-    // FAT32 needs # of years since 1980, localtime returns tm_year as # years
-    // since 1900,
-    //   subtract 80 years for correct year value. Also convert month of year
-    //   from 0-11 to 1-12 by adding 1
-    *in_date =
-        (U16)(((tm.tm_year - 80) << 9) | ((tm.tm_mon + 1) << 5) | tm.tm_mday);
-
-    // Seconds is # 2-second count, 0-29
-    if (tm.tm_sec == 60)
-        tm.tm_sec = 59;
-    *in_time = (U16)(tm.tm_hour << 11 | tm.tm_min << 5 | (tm.tm_sec / 2));
-}
-
-// =====================================
 // Write protective MBR
 // =====================================
 void write_mbr(FILE *image) {
@@ -354,7 +318,7 @@ void write_gpts(FILE *image) {
             1 + 1 + gpt_table_lbas, // MBR + GPT header + primary gpt table
         .lastUsableLBA =
             image_size_lbas - 1 - gpt_table_lbas - 1, // 2nd GPT header + table
-        .diskGUID = new_guid(),
+        .diskGUID = RANDOM_GUID_1,
         .partitionEntryLBA = 2, // After MBR + GPT header
         .numberOfEntries = 128,
         .sizeOfEntry = 128,
@@ -367,7 +331,7 @@ void write_gpts(FILE *image) {
         // EFI System Paritition
         {
             .partition_type_guid = ESP_GUID,
-            .unique_guid = new_guid(),
+            .unique_guid = RANDOM_GUID_2,
             .starting_lba = esp_lba,
             .ending_lba = esp_lba + esp_size_lbas - 1,
             .attributes = 0,
@@ -377,7 +341,7 @@ void write_gpts(FILE *image) {
         // Basic Data Paritition
         {
             .partition_type_guid = BASIC_DATA_GUID,
-            .unique_guid = new_guid(),
+            .unique_guid = RANDOM_GUID_3,
             .starting_lba = data_lba,
             .ending_lba = data_lba + data_size_lbas - 1,
             .attributes = 0,
@@ -557,14 +521,6 @@ void write_esp(FILE *image) {
         .DIR_FileSize = 0, // Directories have 0 file size
     };
 
-    U16 create_time = 0, create_date = 0;
-    get_fat_dir_entry_time_date(&create_time, &create_date);
-
-    dir_ent.DIR_CrtTime = create_time;
-    dir_ent.DIR_CrtDate = create_date;
-    dir_ent.DIR_WrtTime = create_time;
-    dir_ent.DIR_WrtDate = create_date;
-
     checkedFwrite(&dir_ent, sizeof dir_ent, image);
 
     // /EFI Directory entries
@@ -717,13 +673,6 @@ bool add_file_to_esp(U8 *file_name, FILE *file, FILE *image, File_Type type,
     if (type == TYPE_DIR) {
         dir_entry.DIR_Attr = ATTR_DIRECTORY;
     }
-
-    U16 fat_time, fat_date;
-    get_fat_dir_entry_time_date(&fat_time, &fat_date);
-    dir_entry.DIR_CrtTime = fat_time;
-    dir_entry.DIR_CrtDate = fat_date;
-    dir_entry.DIR_WrtTime = fat_time;
-    dir_entry.DIR_WrtDate = fat_date;
 
     dir_entry.DIR_FstClusHI = (starting_cluster >> 16) & 0xFFFF;
     dir_entry.DIR_FstClusLO = starting_cluster & 0xFFFF;
@@ -1006,8 +955,6 @@ void writeUEFIImage() {
         PINFO(image_size / ALIGNMENT);
         PINFO(STRING("MiB\n"));
     }
-
-    srand((U32)time(nullptr));
 
     write_mbr(image);
 
