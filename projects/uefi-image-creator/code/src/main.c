@@ -52,6 +52,27 @@ typedef struct {
     U8 node[6];
 } __attribute__((packed)) Guid;
 
+// NOTE: Change this back maybe to actual randomness?
+Guid RANDOM_GUID_1 = (Guid){.time_lo = 0x12345678,
+                            .time_mid = 0xB9E5,
+                            .time_hi_and_ver = 0x4433,
+                            .clock_seq_hi_and_res = 0x87,
+                            .clock_seq_lo = 0xC0,
+                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
+
+Guid RANDOM_GUID_2 = (Guid){.time_lo = 0x87654321,
+                            .time_mid = 0xB9E5,
+                            .time_hi_and_ver = 0x4433,
+                            .clock_seq_hi_and_res = 0x87,
+                            .clock_seq_lo = 0xC0,
+                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
+Guid RANDOM_GUID_3 = (Guid){.time_lo = 0x45612378,
+                            .time_mid = 0xB9E5,
+                            .time_hi_and_ver = 0x4433,
+                            .clock_seq_hi_and_res = 0x87,
+                            .clock_seq_lo = 0xC0,
+                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
+
 // MBR Partition
 typedef struct {
     U8 bootIndicator;
