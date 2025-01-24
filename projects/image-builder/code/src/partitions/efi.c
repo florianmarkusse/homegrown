@@ -117,7 +117,7 @@ typedef struct {
     U8 volumeSerialNumber[4];
     U8 volumeLabel[11];
     U8 fileSystemType[8];
-    U8 reserved2[90];
+    U8 reserved2[420];
     U16 signature;
 } __attribute__((packed)) BIOSParameterBlock;
 
