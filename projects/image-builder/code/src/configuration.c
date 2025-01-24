@@ -55,7 +55,6 @@ void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
     // Backup GPT
     currentLBA +=
         configuration.GPTPartitionTableSizeLBA + SectionsInLBASize.GPT_HEADER;
-    // NOTE: make this back to normal....
     configuration.totalImageSizeLBA = currentLBA;
     configuration.totalImageSizeBytes =
         configuration.totalImageSizeLBA * configuration.LBASizeBytes;
