@@ -451,9 +451,6 @@ void write_esp(FILE *image) {
     // Go to backup boot sector location
     fseek(image, (esp_lba + vbr.BPB_BkBootSec) * options.lba_size, SEEK_SET);
 
-    // Write VBR and FSInfo at backup location
-    fseek(image, esp_lba * options.lba_size, SEEK_SET);
-
     checkedFwrite(&vbr, sizeof vbr, image);
     write_full_options(image);
 
