@@ -41,6 +41,9 @@ void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
         ALIGN_UP_VALUE(unalignedLBA, configuration.alignmentLBA);
     currentLBA += configuration.EFISystemPartitionSizeLBA;
 
+    // NOTE: Not sure why we add an empty MiB but okay for now.
+    currentLBA += configuration.alignmentLBA;
+
     // Data Partition
     configuration.dataPartitionStartLBA = currentLBA;
     unalignedLBA =

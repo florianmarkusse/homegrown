@@ -55,8 +55,7 @@ U32 calculateCRC32(void *data, U64 size) {
     U32 crc = 0xFFFFFFFF;
 
     for (U64 i = 0; i < size; i++) {
-        crc = (crc32Table[((crc) ^ (((uint8_t *)data)[i])) & 0xff] ^
-               ((crc) >> 8));
+        crc = (crc32Table[((crc) ^ (((U8 *)data)[i])) & 0xff] ^ ((crc) >> 8));
     }
 
     return ~crc;

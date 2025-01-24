@@ -97,7 +97,7 @@ GPTPartitionEntry partitionEntries[GPT_PARTITION_TABLE_ENTRIES] = {
         .partitionName = u"EFI SYSTEM",
     },
     {
-        .partitionTypeGUID = FLOS_BASIC_DATA_GUID,
+        .partitionTypeGUID = BASIC_DATA_GUID,
         .uniquePartitionGUID = {0}, // NOTE Will calculate later
         .startingLBA = 0,           // NOTE Will calculate later
         .endingLBA = 0,             // NOTE Will calculate later
@@ -135,7 +135,7 @@ void writeGPTs(U8 *fileBuffer) {
 
     gptHeader.partitionTableCRC32 =
         calculateCRC32(partitionEntries, sizeof(partitionEntries));
-    gptHeader.headerCRC32 = calculateCRC32(&gptHeader, sizeof(GPTHeader));
+    gptHeader.headerCRC32 = calculateCRC32(&gptHeader, gptHeader.headerSize);
 
     U8 *primaryBuffer = fileBuffer;
     primaryBuffer +=
@@ -156,11 +156,10 @@ void writeGPTs(U8 *fileBuffer) {
     gptHeader.headerCRC32 = 0;
     gptHeader.headerCRC32 = calculateCRC32(&gptHeader, sizeof(GPTHeader));
 
-    fileBuffer += configuration.totalImageSizeBytes;
-    fileBuffer -= SectionsInLBASize.GPT_HEADER * configuration.LBASizeBytes;
-    memcpy(fileBuffer, &gptHeader, sizeof(GPTHeader));
-
-    fileBuffer -=
-        configuration.GPTPartitionTableSizeLBA * configuration.LBASizeBytes;
+    fileBuffer += gptHeader.partitionTableLBA * configuration.LBASizeBytes;
     memcpy(fileBuffer, partitionEntries, sizeof(partitionEntries));
+
+    fileBuffer += (gptHeader.myLBA - gptHeader.partitionTableLBA) *
+                  configuration.LBASizeBytes;
+    memcpy(fileBuffer, &gptHeader, sizeof(GPTHeader));
 }
