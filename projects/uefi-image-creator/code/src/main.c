@@ -911,15 +911,14 @@ void writeUEFIImage() {
     //   2 GPT tables
     //   MBR
     //   GPT headers
-    U32 padding =
-        (ALIGNMENT * 2 + (options.lba_size * ((gpt_table_lbas * 2) + 1 + 2)));
-    image_size = options.esp_size + options.data_size + padding;
+    image_size = (1024 * 1024) + options.esp_size + options.data_size + 512 +
+                 GPT_TABLE_SIZE;
     image_size_lbas = (U32)bytes_to_lbas(image_size);
     align_lba = ALIGNMENT / options.lba_size;
     esp_lba = align_lba;
     esp_size_lbas = (U32)bytes_to_lbas(options.esp_size);
     data_size_lbas = (U32)bytes_to_lbas(options.data_size);
-    data_lba = (U32)next_aligned_lba(esp_lba + esp_size_lbas);
+    data_lba = esp_lba + esp_size_lbas;
 
     // Open image file
     image = fopen(options.image_name, "wb+e");
@@ -958,10 +957,6 @@ void writeUEFIImage() {
 
         PINFO(STRING("DATA SIZE: "));
         PINFO(options.data_size / ALIGNMENT);
-        PINFO(STRING("MiB\n"));
-
-        PINFO(STRING("PADDING: "));
-        PINFO(padding / ALIGNMENT);
         PINFO(STRING("MiB\n"));
 
         PINFO(STRING("IMAGE SIZE: "));
