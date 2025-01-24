@@ -401,7 +401,7 @@ void write_esp(FILE *image) {
         .BPB_FATSz16 = 0,
         .BPB_SecPerTrk = 0,
         .BPB_NumHeads = 0,
-        .BPB_HiddSec = esp_lba - 1, // # of sectors before this partition/volume
+        .BPB_HiddSec = esp_lba, // # of sectors before this partition/volume
         .BPB_TotSec32 = esp_size_lbas, // Size of this partition
         .BPB_FATSz32 = (align_lba - reserved_sectors) /
                        2,  // Align data region on alignment value
