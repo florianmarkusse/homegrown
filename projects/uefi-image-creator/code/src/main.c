@@ -1017,17 +1017,17 @@ void writeUEFIImage() {
     // Pad file to next 4KiB aligned size
     fseek(image, 0, SEEK_END);
     U64 current_size = ftell(image);
-    U64 new_size = current_size - (current_size % 4096) + 4096;
-    U8 byte = 0;
-
-    // No vhd footer
-    fseek(image, new_size - 1, SEEK_SET);
-    checkedFwrite(&byte, 1, image);
+    /*U64 new_size = current_size - (current_size % 4096) + 4096;*/
+    /*U8 byte = 0;*/
+    /**/
+    /*// No vhd footer*/
+    /*fseek(image, new_size - 1, SEEK_SET);*/
+    /*checkedFwrite(&byte, 1, image);*/
 
     // Add disk image info file to hold at minimum the size of this disk image;
     //   this could be used in an EFI application later as part of an installer,
     //   for example
-    image_size = (U32)new_size; // Image size is used to write info file
+    image_size = (U32)current_size; // Image size is used to write info file
     if (!add_disk_image_info_file(image)) {
         fprintf(stderr, "Error: Could not add disk image info file to '%s'\n",
                 options.image_name);
