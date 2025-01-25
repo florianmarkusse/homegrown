@@ -28,3 +28,10 @@ Will currently (probably) break intermittently because of interrupts clobbering 
 ### MP system
 
 - Need to take care of MMTR setting? If I end up doing that.
+
+## Using iwyu
+
+```
+# First compile with -e flag to create stderr.txt file for a project.
+dependencies/include-what-you-use/fix_includes.py --nocomments < projects/image-builder/code/stderr.txt
+```
