@@ -7,14 +7,14 @@
 #include "image-builder/configuration.h"
 #include "platform-abstraction/log.h"
 #include "posix/log.h"
+#include "shared/assert.h"
 #include "shared/log.h"
+#include "shared/macros.h"
 #include "shared/maths/maths.h"
 #include "shared/text/string.h"
+#include "shared/types/array-types.h"
 #include "shared/types/types.h"
 #include "uefi/constants.h"
-#include "shared/assert.h"
-#include "shared/macros.h"
-#include "shared/types/array-types.h"
 
 // NOTE: This is a minimal FAT32 implementation. The following assumptions are
 // made:
@@ -56,7 +56,6 @@ static U32 DATA_CLUSTERS_COUNT;
 static U32 FAT_SIZE_BYTES;
 static Cluster CURRENT_FREE_DATA_CLUSTER_INDEX = (Cluster){.full = 0};
 
-// NOTE: I don't think anyone cares about these values?
 typedef enum : U8 {
     REMOVABLE_MEDIA = 0xF0,
     FIXED_MEDIA = 0xF8,
