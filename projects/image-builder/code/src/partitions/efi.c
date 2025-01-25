@@ -15,6 +15,7 @@
 #include "shared/types/array-types.h"
 #include "shared/types/types.h"
 #include "uefi/constants.h"
+#include "platform-abstraction/memory/manipulation.h"
 
 // NOTE: This is a minimal FAT32 implementation. The following assumptions are
 // made:
