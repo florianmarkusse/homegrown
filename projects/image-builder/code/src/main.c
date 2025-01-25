@@ -1,18 +1,3 @@
-#include "image-builder/configuration.h"
-#include "image-builder/gpt.h"
-#include "image-builder/mbr.h"
-#include "image-builder/partitions/data.h"
-#include "image-builder/partitions/efi.h"
-#include "platform-abstraction/log.h"
-#include "posix/file/file-status.h"
-#include "posix/log.h"
-#include "shared/log.h"
-#include "shared/memory/allocator/arena.h"
-#include "shared/memory/allocator/macros.h"
-#include "shared/memory/sizes.h"
-#include "shared/text/string.h"
-#include "shared/types/types.h"
-
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -21,6 +6,17 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+
+#include "image-builder/configuration.h"
+#include "image-builder/gpt.h"
+#include "image-builder/mbr.h"
+#include "image-builder/partitions/data.h"
+#include "image-builder/partitions/efi.h"
+#include "posix/file/file-status.h"
+#include "posix/log.h"
+#include "shared/log.h"
+#include "shared/text/string.h"
+#include "shared/types/types.h"
 
 void *errorHandler[5];
 

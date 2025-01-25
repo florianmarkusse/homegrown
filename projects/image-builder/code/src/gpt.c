@@ -1,8 +1,8 @@
 #include "image-builder/gpt.h"
+
 #include "image-builder/configuration.h"
 #include "image-builder/crc32.h"
 #include "platform-abstraction/memory/manipulation.h"
-#include "shared/maths/maths.h"
 #include "shared/uuid.h"
 #include "uefi/guid.h"
 

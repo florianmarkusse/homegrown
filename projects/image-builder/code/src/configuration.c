@@ -1,11 +1,14 @@
 #include "image-builder/configuration.h"
+
+#include <string.h>
+
 #include "image-builder/partitions/efi.h"
 #include "platform-abstraction/log.h"
 #include "posix/log.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/sizes.h"
-#include <string.h>
+#include "shared/text/string.h"
 
 // TODO: Move default LBA size to 4096 , seems better for performone on disks in
 // this day and age

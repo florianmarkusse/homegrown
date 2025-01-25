@@ -1,17 +1,20 @@
 #include "image-builder/partitions/efi.h"
-#include "image-builder/configuration.h"
-#include "platform-abstraction/log.h"
-#include "platform-abstraction/memory/manipulation.h"
-#include "posix/log.h"
-#include "shared/log.h"
-#include "shared/maths/maths.h"
-#include "shared/text/converter.h"
-#include "shared/text/string.h"
-#include "shared/types/types.h"
-#include "uefi/constants.h"
+
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "image-builder/configuration.h"
+#include "platform-abstraction/log.h"
+#include "posix/log.h"
+#include "shared/log.h"
+#include "shared/maths/maths.h"
+#include "shared/text/string.h"
+#include "shared/types/types.h"
+#include "uefi/constants.h"
+#include "shared/assert.h"
+#include "shared/macros.h"
+#include "shared/types/array-types.h"
 
 // NOTE: This is a minimal FAT32 implementation. The following assumptions are
 // made:
