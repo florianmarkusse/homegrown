@@ -463,15 +463,12 @@ bool writeEFISystemPartition(U8 *fileBuffer, int efifd, U64 efiSizeBytes,
         mirrorLocation += FAT_SIZE_BYTES;
     }
 
-    // NOTE: Uncomment once fixed?
-    /*FSInfo.freeCount =*/
-    /*    DATA_CLUSTERS_COUNT - CURRENT_FREE_DATA_CLUSTER_INDEX.full;*/
-    /*FSInfo.nextFree = CURRENT_FREE_DATA_CLUSTER_INDEX.full;*/
-
-    FSInfo.freeCount = 4294967295;
-    FSInfo.nextFree = 5;
+    FSInfo.freeCount =
+        DATA_CLUSTERS_COUNT - CURRENT_FREE_DATA_CLUSTER_INDEX.full;
+    FSInfo.nextFree = CURRENT_FREE_DATA_CLUSTER_INDEX.full;
 
     // Reserved Sectors
+    // Primary Sectors
     // Sector 0
     memcpy(reservedSectors, &parameterBlock, sizeof(BIOSParameterBlock));
 
@@ -479,6 +476,7 @@ bool writeEFISystemPartition(U8 *fileBuffer, int efifd, U64 efiSizeBytes,
     reservedSectors += parameterBlock.bytesPerSector;
     memcpy(reservedSectors, &FSInfo, sizeof(FileSystemInformation));
 
+    // Backup Sectors
     // Sector 6
     reservedSectors += parameterBlock.bytesPerSector * 5;
     memcpy(reservedSectors, &parameterBlock, sizeof(BIOSParameterBlock));

@@ -11,15 +11,6 @@ static constexpr UUID EFI_SYSTEM_PARTITION_GUID = {
     .clockSeqLo = 0x4B,
     .node = {0x00, 0xA0, 0xC9, 0x3E, 0xC9, 0x3B}};
 
-// (Microsoft) Basic Data GUID
-static constexpr UUID BASIC_DATA_GUID = {
-    .timeLo = 0xEBD0A0A2,
-    .timeMid = 0xB9E5,
-    .timeHiAndVer = 0x4433,
-    .clockSeqHiAndRes = 0x87,
-    .clockSeqLo = 0xC0,
-    .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
-
 // My data partition GUID
 // Windows/Linux have their own. We could use one of theirs but where's the fun
 // in that?

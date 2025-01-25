@@ -5,9 +5,7 @@
 #include "shared/log.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/sizes.h"
-#include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 // TODO: Move default LBA size to 4096 , seems better for performone on disks in
 // this day and age
@@ -19,9 +17,6 @@ Configuration configuration = {.imageName = "FLOS_UEFI_IMAGE.hdd",
                                .LBASizeBytes = 512};
 
 void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
-    // Necessary to create a random UUID V4 in the GPTs.
-    srand((U32)time(nullptr));
-
     configuration.alignmentLBA = (U16)((1 * MiB) / configuration.LBASizeBytes);
     U32 currentLBA = 0;
 
@@ -43,13 +38,8 @@ void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
 
     // Data Partition
     configuration.dataPartitionStartLBA = currentLBA;
-    unalignedLBA =
-        (U32)CEILING_DIV_VALUE(32 * MiB, (U32)configuration.LBASizeBytes);
-    // NOTE: hardcoding this to be in line with the old uefi-image-creatoq
-    /*unalignedLBA = (U32)CEILING_DIV_VALUE(kernelSizeBytes,*/
-    /*                                      (U32)configuration.LBASizeBytes);*/
-    configuration.dataPartitionSizeLBA =
-        ALIGN_UP_VALUE(unalignedLBA, configuration.alignmentLBA);
+    configuration.dataPartitionSizeLBA = (U32)CEILING_DIV_VALUE(
+        kernelSizeBytes, (U32)configuration.LBASizeBytes);
     currentLBA += configuration.dataPartitionSizeLBA;
 
     // Backup GPT

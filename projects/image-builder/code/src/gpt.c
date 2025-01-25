@@ -6,8 +6,6 @@
 #include "shared/uuid.h"
 #include "uefi/guid.h"
 
-#include <stdlib.h>
-
 typedef struct {
     U8 signature[8];
     U32 revision;
@@ -33,41 +31,31 @@ typedef struct {
     U64 startingLBA;
     U64 endingLBA;
     U64 attributes;
-    U16 partitionName[36]; // UCS-2 (UTF-16 limited to code points 0x0000 -
-                           // 0xFFFF)
+    U16 partitionNameUTF16[36]; // UCS-2 (UTF-16 limited to code points 0x0000 -
+                                // 0xFFFF)
 } __attribute__((packed)) GPTPartitionEntry;
 
-/*static UUID randomVersion4Variant2UUID() {*/
-/*    UUID result;*/
-/*    for (U8 i = 0; i < sizeof(UUID); i++) {*/
-/*        result.u8[i] = rand() & 0xFF;*/
-/*    }*/
-/**/
-/*    setUUIDType(&result, 4, UUID_VARIANT_2);*/
-/**/
-/*    return result;*/
-/*}*/
-
-// NOTE: Change this back maybe to actual randomness?
-UUID RANDOM_GUID_1 = (UUID){.timeLo = 0x12345678,
-                            .timeMid = 0xB9E5,
-                            .timeHiAndVer = 0x4433,
-                            .clockSeqHiAndRes = 0x87,
-                            .clockSeqLo = 0xC0,
-                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
-
-UUID RANDOM_GUID_2 = (UUID){.timeLo = 0x87654321,
-                            .timeMid = 0xB9E5,
-                            .timeHiAndVer = 0x4433,
-                            .clockSeqHiAndRes = 0x87,
-                            .clockSeqLo = 0xC0,
-                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
-UUID RANDOM_GUID_3 = (UUID){.timeLo = 0x45612378,
-                            .timeMid = 0xB9E5,
-                            .timeHiAndVer = 0x4433,
-                            .clockSeqHiAndRes = 0x87,
-                            .clockSeqLo = 0xC0,
-                            .node = {0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7}};
+static constexpr UUID RANDOM_GUID_1 =
+    (UUID){.timeLo = 0x314D4330,
+           .timeMid = 0x29de,
+           .timeHiAndVer = 0x4029,
+           .clockSeqHiAndRes = 0xA6,
+           .clockSeqLo = 0x0D,
+           .node = {0x89, 0xEA, 0x41, 0x02, 0x6A, 0x5D}};
+static constexpr UUID RANDOM_GUID_2 =
+    (UUID){.timeLo = 0x1E736CF5,
+           .timeMid = 0x0F0F,
+           .timeHiAndVer = 0x47B4,
+           .clockSeqHiAndRes = 0x8E,
+           .clockSeqLo = 0xE0,
+           .node = {0xB6, 0xB5, 0x01, 0x0C, 0x05, 0xDD}};
+static constexpr UUID RANDOM_GUID_3 =
+    (UUID){.timeLo = 0x1B67CFAB,
+           .timeMid = 0x21EF,
+           .timeHiAndVer = 0x4033,
+           .clockSeqHiAndRes = 0xB9,
+           .clockSeqLo = 0xDD,
+           .node = {0xCE, 0x61, 0x8C, 0xB3, 0x2C, 0xB8}};
 
 static GPTHeader gptHeader = {
     .signature = {"EFI PART"},
@@ -94,15 +82,15 @@ GPTPartitionEntry partitionEntries[GPT_PARTITION_TABLE_ENTRIES] = {
         .startingLBA = 0,           // NOTE Will calculate later
         .endingLBA = 0,             // NOTE Will calculate later
         .attributes = 0,
-        .partitionName = u"EFI SYSTEM",
+        .partitionNameUTF16 = u"EFI SYSTEM",
     },
     {
-        .partitionTypeGUID = BASIC_DATA_GUID,
+        .partitionTypeGUID = FLOS_BASIC_DATA_GUID,
         .uniquePartitionGUID = {0}, // NOTE Will calculate later
         .startingLBA = 0,           // NOTE Will calculate later
         .endingLBA = 0,             // NOTE Will calculate later
         .attributes = 0,
-        .partitionName = u"BASIC DATA",
+        .partitionNameUTF16 = u"BASIC DATA",
     },
 };
 
