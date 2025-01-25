@@ -14,6 +14,6 @@ func CreateUefiImage(buildMode string) {
 	copyKernelCommand := fmt.Sprintf("find %s -executable -type f -name \"kernel.bin\" -exec cp {} %s \\;", project.BuildDirectoryRoot(project.PROJECT_STRUCTURES[project.KERNEL], buildMode), common.FLOS_KERNEL_FILE)
 	argument.ExecCommand(copyKernelCommand)
 
-	createTestImageCommand := fmt.Sprintf("find %s -type f -name \"%s\" -exec {} %s %s \\;", project.BuildDirectoryRoot(project.PROJECT_STRUCTURES[project.IMAGE_BUILDER], buildMode), project.IMAGE_BUILDER, common.FLOS_EFI_FILE, common.FLOS_KERNEL_FILE)
+	createTestImageCommand := fmt.Sprintf("find %s -type f -name \"%s\" -exec {} --phys 512 --efi %s --kernel %s \\;", project.BuildDirectoryRoot(project.PROJECT_STRUCTURES[project.IMAGE_BUILDER], buildMode), project.IMAGE_BUILDER, common.FLOS_EFI_FILE, common.FLOS_KERNEL_FILE)
 	argument.ExecCommand(createTestImageCommand)
 }

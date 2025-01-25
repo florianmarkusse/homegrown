@@ -1,6 +1,6 @@
 project(shared-text LANGUAGES C ASM)
 
-add_library(${PROJECT_NAME} OBJECT "src/converter.c")
+add_library(${PROJECT_NAME} OBJECT "src/converter.c" "src/parser.c")
 
 target_include_directories(
     ${PROJECT_NAME}

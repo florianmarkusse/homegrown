@@ -23,6 +23,6 @@ func main() {
 
 	uefiimage.CreateUefiImage(buildmode.DefaultBuildMode())
 
-	writeToUSBCommand := fmt.Sprintf("sudo dd bs=4M if=%s/%s of=/dev/sdc1 conv=notrunc", common.REPO_ROOT, common.FLOS_UEFI_IMAGE_FILE)
+	writeToUSBCommand := fmt.Sprintf("sudo dd if=%s/%s of=/dev/sdc1 conv=notrunc", common.REPO_ROOT, common.FLOS_UEFI_IMAGE_FILE)
 	argument.ExecCommand(writeToUSBCommand)
 }

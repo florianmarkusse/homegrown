@@ -7,20 +7,17 @@
 #include "posix/log.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
-#include "shared/memory/sizes.h"
 #include "shared/text/string.h"
 
-// TODO: Move default LBA size to 4096 , seems better for performone on disks in
-// this day and age
-// And have it be dependent on or set it manually
-// static U64 physicalBlockBoundary = 512;
-// static U64 optimalTransferLengthGranularity = 512;
-// NOTE: minimum LBA size is 512! upwards with powers of 2
-Configuration configuration = {.imageName = "FLOS_UEFI_IMAGE.hdd",
-                               .LBASizeBytes = 512};
+Configuration configuration = {
+    .imageName = "FLOS_UEFI_IMAGE.hdd", .LBASizeBytes = 512, .alignmentLBA = 1};
 
-void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
-    configuration.alignmentLBA = (U16)((1 * MiB) / configuration.LBASizeBytes);
+void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes,
+                      U32 alignmentSizeBytes) {
+    if (alignmentSizeBytes > configuration.LBASizeBytes) {
+        configuration.alignmentLBA =
+            alignmentSizeBytes / configuration.LBASizeBytes;
+    }
     U32 currentLBA = 0;
 
     // MBR + primary GPT
@@ -61,10 +58,10 @@ void setConfiguration(U64 efiApplicationSizeBytes, U64 kernelSizeBytes) {
              NEWLINE);
 
         INFO(STRING("LBA size bytes: "));
-        INFO(configuration.alignmentLBA, NEWLINE);
+        INFO(configuration.LBASizeBytes, NEWLINE);
 
         INFO(STRING("Alignment in LBA: "));
-        INFO(configuration.LBASizeBytes, NEWLINE);
+        INFO(configuration.alignmentLBA, NEWLINE);
 
         INFO(STRING("total image size LBA: "));
         INFO(configuration.totalImageSizeLBA, NEWLINE);
