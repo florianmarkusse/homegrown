@@ -17,6 +17,7 @@ PhysicalAddress allocAndZero(USize numPages) {
         error(u"unable to allocate pages!\r\n");
     }
 
+    /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
     memset((void *)page, 0, numPages * PAGE_FRAME_SIZE);
     return page;
 }
@@ -35,6 +36,7 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
          virt += PAGE_FRAME_SIZE, phys += PAGE_FRAME_SIZE) {
         /* 512G */
         pageEntry =
+            /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
             &(((PhysicalAddress *)globals.level4PageTable)[RING_RANGE_VALUE(
                 virt >> 39L, PageTableFormat.ENTRIES)]);
         if (!*pageEntry) {
@@ -46,6 +48,7 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
         }
 
         /* 1G */
+        /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
         pageEntry = &(
             pageEntry[RING_RANGE_VALUE(virt >> 30L, PageTableFormat.ENTRIES)]);
@@ -56,6 +59,7 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
             globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
         }
         /* 2M  */
+        /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
         pageEntry = &(
             pageEntry[RING_RANGE_VALUE(virt >> 21L, PageTableFormat.ENTRIES)]);
@@ -64,6 +68,7 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
                                              VirtualPageMasks.PAGE_WRITABLE));
         }
         /* 4K */
+        /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
         pageEntry = (PhysicalAddress *)(*pageEntry & ~(PAGE_MASK));
         pageEntry = &(
             pageEntry[RING_RANGE_VALUE(virt >> 12L, PageTableFormat.ENTRIES)]);
