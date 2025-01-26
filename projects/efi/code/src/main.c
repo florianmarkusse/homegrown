@@ -170,14 +170,12 @@ extern void CpuEnableGpe(void);
 extern void CpuEnableFpu(void);
 
 bool CpuHasFeatures(unsigned int ecx, unsigned int edx) {
-    // Check ECX features @todo multiple cpus
     if (ecx != 0) {
         if ((globals.ecxFeatureInfo & ecx) != ecx) {
             return false;
         }
     }
 
-    // Check EDX features @todo multiple cpus
     if (edx != 0) {
         if ((globals.edxFeatureInfo & edx) != edx) {
             return false;
@@ -388,6 +386,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     PhysicalAddress kernelParams =
         allocAndZero(KERNEL_PARAMS_SIZE / PAGE_FRAME_SIZE);
     mapMemoryAt(kernelParams, KERNEL_PARAMS_START, KERNEL_PARAMS_SIZE);
+    /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
     KernelParameters *params = (KernelParameters *)kernelParams;
 
     params->level4PageTable = globals.level4PageTable;
