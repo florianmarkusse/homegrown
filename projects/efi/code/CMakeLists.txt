@@ -32,8 +32,6 @@ add_platform_abstraction_and_correct_implementations()
 
 add_executable(
     ${PROJECT_NAME}
-    #  "src/bootboot.c"
-    #  "src/smp.S"
     "src/main.c"
     "src/cpu.S"
     "src/globals.c"
