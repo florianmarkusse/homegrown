@@ -81,23 +81,29 @@ var EFI_SYSTEM = CommonConfig{
 // If you add a project add it here
 const KERNEL = "kernel"
 const EFI_TO_KERNEL = "efi-to-kernel"
+const EFI_APP = "efi-app"
 const EFI = "efi"
 const IMAGE_BUILDER = "image-builder"
 const SHARED = "shared"
 const POSIX = "posix"
 const PLATFORM_ABSTRACTION = "platform-abstraction"
 const X86 = "x86"
+const X86_KERNEL = "x86-kernel"
+const X86_EFI = "x86-efi"
 const UEFI = "uefi"
 
 // and here
 var kernelFolder = common.REPO_PROJECTS + "/" + KERNEL + "/"
 var efiToKernelFolder = common.REPO_PROJECTS + "/" + EFI_TO_KERNEL + "/"
+var efiAppFolder = common.REPO_PROJECTS + "/" + EFI_APP + "/"
 var efiFolder = common.REPO_PROJECTS + "/" + EFI + "/"
 var imageBuilderFolder = common.REPO_PROJECTS + "/" + IMAGE_BUILDER + "/"
 var sharedFolder = common.REPO_PROJECTS + "/" + SHARED + "/"
 var posixFolder = common.REPO_PROJECTS + "/" + POSIX + "/"
 var platformAbstractionFolder = common.REPO_PROJECTS + "/" + PLATFORM_ABSTRACTION + "/"
 var x86Folder = common.REPO_PROJECTS + "/" + X86 + "/"
+var x86KernelFolder = common.REPO_PROJECTS + "/" + X86_KERNEL + "/"
+var x86EfiFolder = common.REPO_PROJECTS + "/" + X86_EFI + "/"
 var uefiFolder = common.REPO_PROJECTS + "/" + UEFI + "/"
 
 // and here
@@ -114,6 +120,13 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Linker:      ELF.Linker,
 		Folder:      efiToKernelFolder,
 		CodeFolder:  efiToKernelFolder + "code",
+		Environment: string(environment.Freestanding),
+	},
+	EFI_APP: {
+		CCompiler:   EFI_SYSTEM.CCompiler,
+		Linker:      EFI_SYSTEM.Linker,
+		Folder:      efiAppFolder,
+		CodeFolder:  efiAppFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 	EFI: {
@@ -156,6 +169,20 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Linker:      ELF.Linker,
 		Folder:      x86Folder,
 		CodeFolder:  x86Folder + "code",
+		Environment: string(environment.Freestanding),
+	},
+	X86_KERNEL: {
+		CCompiler:   ELF.CCompiler,
+		Linker:      ELF.Linker,
+		Folder:      x86KernelFolder,
+		CodeFolder:  x86KernelFolder + "code",
+		Environment: string(environment.Freestanding),
+	},
+	X86_EFI: {
+		CCompiler:   EFI_SYSTEM.CCompiler,
+		Linker:      EFI_SYSTEM.Linker,
+		Folder:      x86EfiFolder,
+		CodeFolder:  x86EfiFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 	UEFI: {

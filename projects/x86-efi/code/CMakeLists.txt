@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
-project(efi LANGUAGES C ASM)
+project(x86-efi LANGUAGES C ASM)
 set(AGGREGATED_INTERFACE "${PROJECT_NAME}-i")
 add_library(${AGGREGATED_INTERFACE} INTERFACE)
 include("${REPO_PROJECTS}/setup.cmake")
@@ -29,6 +29,8 @@ add_subproject("shared")
 add_subproject("efi-to-kernel")
 add_subproject("uefi")
 add_platform_abstraction_and_correct_implementations()
+
+add_subdirectory(log)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()

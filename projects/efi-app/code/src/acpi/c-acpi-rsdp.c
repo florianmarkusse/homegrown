@@ -3,7 +3,7 @@
 #include "efi/acpi/guid.h"
 #include "platform-abstraction/memory/manipulation.h" // for memcmp
 #include "shared/types/types.h" // for USize, U8, nullptr, U16, U64
-#include "shared/uuid.h"          // for Guid, ACPI_TABLE_GUID, EFI_ACPI_20_...
+#include "shared/uuid.h"        // for Guid, ACPI_TABLE_GUID, EFI_ACPI_20_...
 
 bool acpi_checksum(void *ptr, U64 size) {
     U8 sum = 0, *_ptr = ptr;

@@ -1,19 +1,22 @@
 #include "platform-abstraction/log.h"
 
-#include "kernel/log/init.h"
-#include "peripheral/screen/screen.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
+#include "shared/memory/sizes.h"
 #include "shared/text/string.h"
 #include "shared/types/array-types.h" // for U8_a, uint8_max_a, U8_d_a
 #include "shared/types/types.h"
+
+static constexpr auto FLUSH_BUFFER_SIZE = (2 * MiB);
+static U8_max_a flushBuf = (U8_max_a){
+    .buf = (U8[FLUSH_BUFFER_SIZE]){0}, .cap = FLUSH_BUFFER_SIZE, .len = 0};
 
 // We are going to flush to:
 // - The in-memory standin file buffer, this will be replaced by a file
 // buffer in the future.
 bool flushBuffer(U8_max_a *buffer) {
-    flushToScreen(*buffer);
+    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
     // TODO: Flush to file system here?
 

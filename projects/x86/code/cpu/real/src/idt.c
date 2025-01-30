@@ -304,7 +304,6 @@ static void idt_set_gate(U8 num, U64 base, GateType gateType) {
 }
 
 void initIDT() {
-    /* Sets the special IDT pointer up, just like in 'gdt.c' */
     idtp.limit = (sizeof(InterruptDescriptor) * 256) - 1;
     idtp.base = (U64)&idt;
 
