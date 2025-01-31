@@ -30,6 +30,8 @@ add_subproject("efi-to-kernel")
 add_subproject("uefi")
 add_platform_abstraction_and_correct_implementations()
 
+add_subdirectory(firmware)
+
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()
 endif()

@@ -81,7 +81,7 @@ var EFI_SYSTEM = CommonConfig{
 // If you add a project add it here
 const KERNEL = "kernel"
 const EFI_TO_KERNEL = "efi-to-kernel"
-const EFI_APP = "efi-app"
+const OS_LOADER = "os-loader"
 const EFI = "efi"
 const IMAGE_BUILDER = "image-builder"
 const SHARED = "shared"
@@ -95,7 +95,7 @@ const UEFI = "uefi"
 // and here
 var kernelFolder = common.REPO_PROJECTS + "/" + KERNEL + "/"
 var efiToKernelFolder = common.REPO_PROJECTS + "/" + EFI_TO_KERNEL + "/"
-var efiAppFolder = common.REPO_PROJECTS + "/" + EFI_APP + "/"
+var osLoaderFolder = common.REPO_PROJECTS + "/" + OS_LOADER + "/"
 var efiFolder = common.REPO_PROJECTS + "/" + EFI + "/"
 var imageBuilderFolder = common.REPO_PROJECTS + "/" + IMAGE_BUILDER + "/"
 var sharedFolder = common.REPO_PROJECTS + "/" + SHARED + "/"
@@ -122,11 +122,11 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		CodeFolder:  efiToKernelFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
-	EFI_APP: {
+	OS_LOADER: {
 		CCompiler:   EFI_SYSTEM.CCompiler,
 		Linker:      EFI_SYSTEM.Linker,
-		Folder:      efiAppFolder,
-		CodeFolder:  efiAppFolder + "code",
+		Folder:      osLoaderFolder,
+		CodeFolder:  osLoaderFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 	EFI: {

@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-#include "efi/efi/c-efi-base.h"
-#include "efi/efi/c-efi-protocol-file.h"
+#include "efi/firmware/base.h"
+#include "efi/firmware/file.h"
 #include "shared/uuid.h"
 
 static constexpr auto SIMPLE_FILE_SYSTEM_PROTOCOL_GUID =

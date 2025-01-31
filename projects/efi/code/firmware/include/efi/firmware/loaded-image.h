@@ -13,8 +13,8 @@
 extern "C" {
 #endif
 
-#include "efi/efi/c-efi-base.h"
-#include "efi/efi/c-efi-system.h"
+#include "efi/firmware/base.h"
+#include "efi/firmware/system.h"
 #include "shared/uuid.h"
 
 static constexpr auto LOADED_IMAGE_PROTOCOL_GUID =

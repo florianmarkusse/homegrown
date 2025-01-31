@@ -22,7 +22,7 @@ extern "C" {
 
 #include "efi-to-kernel/memory/descriptor.h"
 #include "efi/acpi/configuration-table.h"
-#include "efi/efi/c-efi-base.h"
+#include "efi/firmware/base.h"
 #include "shared/uuid.h"
 
 /*

@@ -14,8 +14,8 @@ extern "C" {
 #endif
 
 #include "efi/acpi/guid.h"
-#include "efi/efi/c-efi-base.h"
-#include "efi/efi/c-efi-protocol-device-path.h"
+#include "efi/firmware/base.h"
+#include "efi/firmware/device-path.h"
 
 static constexpr auto DEVICE_PATH_FROM_TEXT_PROTOCOL_GUID =
     (GUID){.ms1 = 0x5c99a21,

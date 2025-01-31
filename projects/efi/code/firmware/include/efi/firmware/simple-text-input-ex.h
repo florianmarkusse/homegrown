@@ -14,8 +14,8 @@ extern "C" {
 #endif
 
 #include "efi/acpi/guid.h"
-#include "efi/efi/c-efi-base.h"
-#include "efi/efi/c-efi-protocol-simple-text-input.h"
+#include "efi/firmware/base.h"
+#include "efi/firmware/simple-text-input.h"
 
 typedef struct SimpleTextInputExProtocol SimpleTextInputExProtocol;
 

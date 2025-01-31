@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "efi/acpi/guid.h"
-#include "efi/efi/c-efi-base.h"
+#include "efi/firmware/base.h"
 
 static constexpr auto DISK_IO_PROTOCOL_GUID =
     (GUID){.ms1 = 0xCE345171,

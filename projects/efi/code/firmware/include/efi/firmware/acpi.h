@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "efi/efi/c-efi-base.h"
+#include "efi/firmware/base.h"
 
 static constexpr auto ACPI_TABLE_PROTOCOL_GUID =
     (GUID){.ms1 = 0xffe06bdd,

@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "efi/efi/c-efi-base.h"
+#include "efi/firmware/base.h"
 #include "shared/uuid.h"
 
 static constexpr auto BLOCK_IO_PROTOCOL_GUID =

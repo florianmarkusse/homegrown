@@ -172,6 +172,6 @@ func usage() {
 	flags.DisplayExamples()
 	fmt.Printf("  %s\n", filepath.Base(os.Args[0]))
 	fmt.Printf("  %s --%s=%s --%s %s,%s --%s -%s\n", filepath.Base(os.Args[0]),
-		buildmode.BUILD_MODE_LONG_FLAG, buildmode.PossibleBuildModes[1], project.PROJECTS_LONG_FLAG, project.KERNEL, project.EFI_APP, BUILD_TESTS_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
+		buildmode.BUILD_MODE_LONG_FLAG, buildmode.PossibleBuildModes[1], project.PROJECTS_LONG_FLAG, project.KERNEL, project.OS_LOADER, BUILD_TESTS_LONG_FLAG, RUN_TESTS_SHORT_FLAG)
 	fmt.Printf("\n")
 }
