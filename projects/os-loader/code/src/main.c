@@ -12,7 +12,6 @@
 #include "os-loader/memory/boot-functions.h"  // for mapMemoryAt
 #include "os-loader/memory/page-size.h"       // for UEFI_PAGE_SIZE
 #include "os-loader/printing.h"               // for error, printN...
-#include "os-loader/string.h"                 // for AsciString
 #include "shared/maths/maths.h"               // for CEILING_DIV_V...
 #include "shared/types/types.h"               // for U64, U32, USize
 #include "x86/memory/definitions/virtual.h"   // for PAGE_FRAME_SIZE
@@ -332,7 +331,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     printNumber(kernelFile.lbaStart, 10);
     globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
-    AsciString kernelContent = readDiskLbasFromCurrentGlobalImage(
+    string kernelContent = readDiskLbasFromCurrentGlobalImage(
         kernelFile.lbaStart, kernelFile.bytes);
 
     globals.st->con_out->output_string(

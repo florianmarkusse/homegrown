@@ -13,9 +13,10 @@
 #include "os-loader/memory/page-size.h" // for memcmp
 #include "os-loader/printing.h"         // for error, printNumber
 #include "platform-abstraction/memory/manipulation.h"
+#include "shared/macros.h"
 #include "shared/maths/maths.h"
 
-AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
+string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
     Status status;
 
     LoadedImageProtocol *lip = nullptr;
@@ -51,7 +52,7 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
 
     Handle mediaHandle = nullptr;
     bool readBlocks = false;
-    AsciString data;
+    string data;
 
     globals.st->con_out->output_string(globals.st->con_out,
                                        u"Media ID UEFI loaded from: ");
@@ -66,9 +67,7 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
             error(u"Could not Open Block IO protocol on handle\r\n");
         }
 
-        U64 alignedBytes =
-            ((bytes + biop->Media->BlockSize - 1) / biop->Media->BlockSize) *
-            biop->Media->BlockSize;
+        U64 alignedBytes = ALIGN_UP_VALUE(bytes, biop->Media->BlockSize);
 
         PhysicalAddress address;
         status = globals.st->boot_services->allocate_pages(
@@ -85,11 +84,9 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
                                  alignedBytes, (void *)address);
             if (!(ERROR(status))) {
                 /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
-                data = (AsciString){.buf = (U8 *)address, .len = alignedBytes};
+                data = (string){.buf = (U8 *)address, .len = alignedBytes};
 
-                const U8 kernelMagic[] = KERNEL_MAGIC;
-                if (!memcmp(kernelMagic, data.buf,
-                            sizeof(kernelMagic) / sizeof(kernelMagic[0]))) {
+                if (!memcmp(KERNEL_MAGIC, data.buf, COUNTOF(KERNEL_MAGIC))) {
                     readBlocks = true;
                 }
             }
@@ -117,7 +114,7 @@ AsciString readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
     return data;
 }
 
-AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
+string readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
     Status status;
 
     // Loop through and get Block IO protocol for input media ID, for entire
@@ -137,7 +134,7 @@ AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
 
     Handle mediaHandle = nullptr;
     bool readBlocks = false;
-    AsciString data;
+    string data;
     for (USize i = 0; i < num_handles && mediaHandle == nullptr; i++) {
         status = globals.st->boot_services->open_protocol(
             handle_buffer[i], &BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
@@ -165,7 +162,7 @@ AsciString readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
                                  alignedBytes, (void *)address);
 
             /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
-            data = (AsciString){.buf = (U8 *)address, .len = alignedBytes};
+            data = (string){.buf = (U8 *)address, .len = alignedBytes};
 
             readBlocks = true;
         }
@@ -288,7 +285,7 @@ DataPartitionFile getKernelInfo() {
         error(u"Could not get file info\r\n");
     }
 
-    AsciString dataFile;
+    string dataFile;
     dataFile.len = file_info.fileSize;
 
     PhysicalAddress dataFileAddress;
@@ -321,13 +318,13 @@ DataPartitionFile getKernelInfo() {
     // Assumes the below file structure:
     // KERNEL_SIZE_BYTES=132456
     // KERNEL_START_LBA=123
-    AsciStringIter lines;
+    StringIter lines;
     DataPartitionFile kernelFile;
     DataPartitionLayout layout = BYTE_SIZE;
-    TOKENIZE_ASCI_STRING(dataFile, lines, '\n', 0) {
-        AsciStringIter tokens;
+    TOKENIZE_STRING(dataFile, lines, '\n', 0) {
+        StringIter tokens;
         bool second = false;
-        TOKENIZE_ASCI_STRING(lines.string, tokens, '=', 0) {
+        TOKENIZE_STRING(lines.string, tokens, '=', 0) {
             if (second) {
                 switch (layout) {
                 case BYTE_SIZE: {
