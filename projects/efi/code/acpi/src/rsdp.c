@@ -2,13 +2,14 @@
 #include "efi/acpi/guid.h"
 #include "efi/acpi/rdsp.h" // for RSDP_REVISION_2, CAcpiRSDPV1, CAcpi...
 #include "platform-abstraction/memory/manipulation.h" // for memcmp
+#include "shared/macros.h"
 #include "shared/types/types.h" // for USize, U8, nullptr, U16, U64
 #include "shared/uuid.h"        // for Guid, ACPI_TABLE_GUID, EFI_ACPI_20_...
 
-bool acpi_checksum(void *ptr, U64 size) {
-    U8 sum = 0, *_ptr = ptr;
+bool ACPIChecksum(void *ptr, U64 size) {
+    U8 sum = 0;
     for (USize i = 0; i < size; i++) {
-        sum += _ptr[i];
+        sum += ((U8 *)ptr)[i];
     }
     return sum == 0;
 }
@@ -30,21 +31,18 @@ static RSDPStruct possibleRsdps[2] = {
      .revision = RSDP_REVISION_2,
      .string = u"RSDP REVISION 2"},
 };
-#define COUNTOF(a) (sizeof(a) / sizeof(*(a)))
-static constexpr auto POSSIBLE_RSDP_NUM = COUNTOF(possibleRsdps);
 
 RSDPResult getRSDP(USize tableEntries, ConfigurationTable *tables) {
     RSDPResult rsdp = {.rsdp = nullptr};
     for (USize i = 0; i < tableEntries; i++) {
         ConfigurationTable *cur_table = &tables[i];
 
-        for (USize i = 0; i < POSSIBLE_RSDP_NUM; i++) {
+        for (USize i = 0; i < COUNTOF(possibleRsdps); i++) {
             if (memcmp(&cur_table->vendor_guid, &possibleRsdps[i].guid,
                        sizeof(UUID)) != 0) {
                 continue;
             }
-            if (!acpi_checksum(cur_table->vendor_table,
-                               possibleRsdps[i].size)) {
+            if (!ACPIChecksum(cur_table->vendor_table, possibleRsdps[i].size)) {
                 continue;
             }
 
