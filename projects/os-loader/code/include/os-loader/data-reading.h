@@ -1,7 +1,7 @@
 #ifndef EFI_DATA_READING_H
 #define EFI_DATA_READING_H
 
-#include "os-loader/efi/c-efi-base.h" // for Lba
+#include "efi/firmware/base.h" // for Lba
 #include "os-loader/string.h"         // for AsciString
 #include "shared/types/types.h" // for U32, U64, USize
 

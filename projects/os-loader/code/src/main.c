@@ -1,21 +1,21 @@
-#include "efi-to-kernel/kernel-parameters.h"           // for KernelParameters
-#include "efi-to-kernel/memory/definitions.h"          // for STACK_SIZE
-#include "efi-to-kernel/memory/descriptor.h"           // for MemoryDescriptor
-#include "os-loader/acpi/c-acpi-rdsp.h"                      // for getRSDP, RSDP...
-#include "os-loader/data-reading.h"                          // for getKernelInfo
-#include "os-loader/efi/c-efi-base.h"                        // for PhysicalAddress
-#include "os-loader/efi/c-efi-protocol-graphics-output.h"    // for GRAPHICS_OUTP...
-#include "os-loader/efi/c-efi-protocol-simple-text-output.h" // for SimpleTextOut...
-#include "os-loader/efi/c-efi-system.h"                      // for SystemTable
-#include "os-loader/gdt.h"                                   // for enableNewGDT
-#include "os-loader/globals.h"                               // for globals
-#include "os-loader/memory/boot-functions.h"                 // for mapMemoryAt
-#include "os-loader/memory/page-size.h"                      // for UEFI_PAGE_SIZE
-#include "os-loader/printing.h"                              // for error, printN...
-#include "os-loader/string.h"                                // for AsciString
-#include "shared/maths/maths.h"                        // for CEILING_DIV_V...
-#include "shared/types/types.h"                        // for U64, U32, USize
-#include "x86/memory/definitions/virtual.h"            // for PAGE_FRAME_SIZE
+#include "efi-to-kernel/kernel-parameters.h"  // for KernelParameters
+#include "efi-to-kernel/memory/definitions.h" // for STACK_SIZE
+#include "efi-to-kernel/memory/descriptor.h"  // for MemoryDescriptor
+#include "efi/firmware/base.h"                // for PhysicalAddress
+#include "efi/firmware/graphics-output.h"     // for GRAPHICS_OUTP...
+#include "efi/firmware/simple-text-output.h"  // for SimpleTextOut...
+#include "efi/firmware/system.h"              // for SystemTable
+#include "efi/globals.h"                      // for globals
+#include "os-loader/acpi/c-acpi-rdsp.h"       // for getRSDP, RSDP...
+#include "os-loader/data-reading.h"           // for getKernelInfo
+#include "os-loader/gdt.h"                    // for enableNewGDT
+#include "os-loader/memory/boot-functions.h"  // for mapMemoryAt
+#include "os-loader/memory/page-size.h"       // for UEFI_PAGE_SIZE
+#include "os-loader/printing.h"               // for error, printN...
+#include "os-loader/string.h"                 // for AsciString
+#include "shared/maths/maths.h"               // for CEILING_DIV_V...
+#include "shared/types/types.h"               // for U64, U32, USize
+#include "x86/memory/definitions/virtual.h"   // for PAGE_FRAME_SIZE
 // static U8 in_exc = 0;
 
 // // Not sure what we are doing when we encounter an exception tbh.

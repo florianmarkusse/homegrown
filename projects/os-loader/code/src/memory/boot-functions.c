@@ -1,8 +1,8 @@
 #include "os-loader/memory/boot-functions.h"
 
-#include "os-loader/efi/c-efi-protocol-simple-text-output.h"
-#include "os-loader/efi/c-efi-system.h"
-#include "os-loader/globals.h"
+#include "efi/firmware/simple-text-output.h"
+#include "efi/firmware/system.h"
+#include "efi/globals.h"
 #include "os-loader/memory/page-size.h"
 #include "os-loader/printing.h"
 #include "platform-abstraction/memory/manipulation.h"

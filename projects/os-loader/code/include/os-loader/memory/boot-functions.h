@@ -1,7 +1,7 @@
 #ifndef EFI_MEMORY_BOOT_FUNCTIONS_H
 #define EFI_MEMORY_BOOT_FUNCTIONS_H
 
-#include "os-loader/efi/c-efi-base.h" // for PhysicalAddress
+#include "efi/firmware/base.h" // for PhysicalAddress
 #include "efi-to-kernel/memory/descriptor.h"
 #include "shared/types/types.h" // for USize, U64, U32
 

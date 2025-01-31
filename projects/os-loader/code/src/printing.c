@@ -1,9 +1,9 @@
 #include "os-loader/printing.h"
-#include "os-loader/efi/c-efi-base.h"                       // for SUCCESS
-#include "os-loader/efi/c-efi-protocol-simple-text-input.h" // for InputKey
-#include "os-loader/efi/c-efi-protocol-simple-text-output.h" // for SimpleTextOutputP...
-#include "os-loader/efi/c-efi-system.h"                      // for ResetType
-#include "os-loader/globals.h"                               // for globals
+#include "efi/firmware/base.h"               // for SUCCESS
+#include "efi/firmware/simple-text-input.h"  // for InputKey
+#include "efi/firmware/simple-text-output.h" // for SimpleTextOutputP...
+#include "efi/firmware/system.h"             // for ResetType
+#include "efi/globals.h"                     // for globals
 
 void error(U16 *string) {
     globals.st->con_out->output_string(globals.st->con_out, string);

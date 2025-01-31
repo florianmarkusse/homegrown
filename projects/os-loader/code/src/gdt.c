@@ -1,5 +1,5 @@
 #include "os-loader/gdt.h"
-#include "os-loader/efi/c-efi-base.h"        // for PhysicalAddress
+#include "efi/firmware/base.h"        // for PhysicalAddress
 #include "os-loader/memory/boot-functions.h" // for allocAndZero
 #include "shared/types/types.h"        // for U64, U32, U16
 
