@@ -22,7 +22,6 @@ add_executable(
     "src/data-reading.c"
     "src/memory/boot-functions.c"
     "src/memory/boot-functions.c"
-    "src/acpi/c-acpi-rsdp.c"
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
@@ -44,6 +43,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE uefi-i)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-globals)
+target_link_libraries(${PROJECT_NAME} PRIVATE efi-acpi)
 
 target_include_directories(
     ${PROJECT_NAME}

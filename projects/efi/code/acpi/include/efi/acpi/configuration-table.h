@@ -1,5 +1,5 @@
-#ifndef CONFIGURATION_TABLE_H
-#define CONFIGURATION_TABLE_H
+#ifndef EFI_ACPI_CONFIGURATION_TABLE_H
+#define EFI_ACPI_CONFIGURATION_TABLE_H
 
 #include "shared/uuid.h"
 typedef struct {

@@ -1,12 +1,12 @@
 #include "efi-to-kernel/kernel-parameters.h"  // for KernelParameters
 #include "efi-to-kernel/memory/definitions.h" // for STACK_SIZE
 #include "efi-to-kernel/memory/descriptor.h"  // for MemoryDescriptor
+#include "efi/acpi/rdsp.h"                    // for getRSDP, RSDP...
 #include "efi/firmware/base.h"                // for PhysicalAddress
 #include "efi/firmware/graphics-output.h"     // for GRAPHICS_OUTP...
 #include "efi/firmware/simple-text-output.h"  // for SimpleTextOut...
 #include "efi/firmware/system.h"              // for SystemTable
 #include "efi/globals.h"                      // for globals
-#include "os-loader/acpi/c-acpi-rdsp.h"       // for getRSDP, RSDP...
 #include "os-loader/data-reading.h"           // for getKernelInfo
 #include "os-loader/gdt.h"                    // for enableNewGDT
 #include "os-loader/memory/boot-functions.h"  // for mapMemoryAt
