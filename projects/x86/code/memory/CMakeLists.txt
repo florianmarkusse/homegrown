@@ -10,7 +10,7 @@ add_library(
     "src/init.c"
 )
 
-if("${BUILD_UNIT_TESTS}")
+if("${UNIT_TEST_BUILD}")
     add_subdirectory(tests)
 endif()
 

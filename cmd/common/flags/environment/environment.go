@@ -17,11 +17,13 @@ type Environment string
 const (
 	Freestanding Environment = "freestanding"
 	Posix        Environment = "posix"
+	Efi          Environment = "efi"
 )
 
 var PossibleEnvironments = []string{
 	string(Freestanding),
 	string(Posix),
+	string(Efi),
 }
 
 func IsValidEnvironment(mode string) bool {

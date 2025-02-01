@@ -13,7 +13,7 @@ PhysicalAddress allocAndZero(USize numPages) {
     PhysicalAddress page = 0;
     Status status = globals.st->boot_services->allocate_pages(
         ALLOCATE_ANY_PAGES, LOADER_DATA, numPages, &page);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"unable to allocate pages!\r\n");
     }
 
@@ -108,14 +108,14 @@ MemoryInfo getMemoryInfo() {
         ALLOCATE_ANY_PAGES, LOADER_DATA,
         CEILING_DIV_VALUE(mmap.memoryMapSize, UEFI_PAGE_SIZE),
         (PhysicalAddress *)&mmap.memoryMap);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not allocate data for memory map buffer\r\n");
     }
 
     status = globals.st->boot_services->get_memory_map(
         &mmap.memoryMapSize, mmap.memoryMap, &mmap.mapKey, &mmap.descriptorSize,
         &mmap.descriptorVersion);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Getting memory map failed!\r\n");
     }
 

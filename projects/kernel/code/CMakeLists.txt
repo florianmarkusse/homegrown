@@ -3,44 +3,28 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(kernel LANGUAGES C ASM)
 set(AGGREGATED_INTERFACE "${PROJECT_NAME}-i")
 add_library(${AGGREGATED_INTERFACE} INTERFACE)
-if(
-    (NOT "${BUILD_UNIT_TESTS}")
-    AND (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-)
-    set(CMAKE_C_FLAGS
-        # TODO: SSE is still broken!!!
-        "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-avx"
-    )
 
-    set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    include("${REPO_PROJECTS}/setup.cmake")
+
+    if((NOT "${UNIT_TEST_BUILD}"))
+        set(CMAKE_C_FLAGS
+            # TODO: SSE is still broken!!!
+            "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-avx"
+        )
+        set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
+    endif()
+
+    add_subproject("shared")
+    add_subproject("efi-to-kernel")
+    add_platform_abstraction_and_correct_implementations()
 endif()
 
 set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}/${PROJECT_NAME}/resources"
 )
+include("${REPO_PROJECTS}/print-configuration.cmake")
 
-if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-    include("${REPO_PROJECTS}/print-configuration.cmake")
-endif()
-
-if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-    include("${REPO_PROJECTS}/setup.cmake")
-    add_link_options("--ld-path=${CMAKE_LINKER}")
-
-    add_subproject("shared")
-    add_subproject("efi-to-kernel")
-    add_subproject("platform-abstraction")
-    if("${ENVIRONMENT}" STREQUAL "posix")
-        add_subproject("posix")
-    endif()
-    if("${ARCHITECTURE}" STREQUAL "x86")
-        add_subproject("x86")
-    elseif("${ARCHITECTURE}" STREQUAL "mock")
-        add_subproject("mock")
-    endif()
-endif()
-
-add_subdirectory(memory)
 add_subdirectory(log)
 add_subdirectory(peripheral)
 
@@ -48,7 +32,7 @@ add_subdirectory(peripheral)
 #       End of common setup, below is only for production kernel build         #
 ################################################################################
 if(
-    (NOT "${BUILD_UNIT_TESTS}")
+    (NOT "${UNIT_TEST_BUILD}")
     AND (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 )
     add_executable(${PROJECT_NAME} "src/main.c")

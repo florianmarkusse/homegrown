@@ -6,7 +6,6 @@ add_library(${AGGREGATED_INTERFACE} INTERFACE)
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/setup.cmake")
     include("${REPO_PROJECTS}/print-configuration.cmake")
-    add_link_options("--ld-path=${CMAKE_LINKER}")
 endif()
 
 function(include_and_link_object_library project)

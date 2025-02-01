@@ -29,7 +29,7 @@ func AddDefaultConfigureOptions(options *strings.Builder, codeFolder string, bui
 	argument.AddArgument(options, fmt.Sprintf("-D PROJECT_TARGETS_FILE=%s", projectTargetsFile))
 
 	argument.AddArgument(options, fmt.Sprintf("--graphviz=%s/output.dot", codeFolder))
-	argument.AddArgument(options, fmt.Sprintf("-D BUILD_UNIT_TESTS=%t", buildTests))
+	argument.AddArgument(options, fmt.Sprintf("-D UNIT_TEST_BUILD=%t", buildTests))
 
 	var iwyuString = strings.Builder{}
 	iwyuString.WriteString("-D CMAKE_C_INCLUDE_WHAT_YOU_USE=\"include-what-you-use;-w;-Xiwyu;")

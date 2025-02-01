@@ -4,14 +4,13 @@ project(os-loader LANGUAGES C ASM)
 set(AGGREGATED_INTERFACE "${PROJECT_NAME}-i")
 add_library(${AGGREGATED_INTERFACE} INTERFACE)
 include("${REPO_PROJECTS}/setup.cmake")
-include("${REPO_PROJECTS}/efi-setup.cmake")
 include("${REPO_PROJECTS}/print-configuration.cmake")
 
+add_platform_abstraction_and_correct_implementations()
 add_subproject("shared")
 add_subproject("efi-to-kernel")
 add_subproject("uefi")
 add_subproject("efi")
-add_platform_abstraction_and_correct_implementations()
 
 add_executable(
     ${PROJECT_NAME}

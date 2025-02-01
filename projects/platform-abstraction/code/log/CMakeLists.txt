@@ -9,6 +9,8 @@ target_include_directories(
 
 if("${ENVIRONMENT}" STREQUAL "freestanding")
     include_and_link_object_library(kernel-log)
+elseif("${ENVIRONMENT}" STREQUAL "efi")
+    include_and_link_object_library(efi-log)
 elseif("${ENVIRONMENT}" STREQUAL "posix")
     include_and_link_object_library(posix-log)
 else()

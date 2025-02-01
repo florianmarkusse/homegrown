@@ -91,6 +91,7 @@ const X86 = "x86"
 const X86_KERNEL = "x86-kernel"
 const X86_EFI = "x86-efi"
 const UEFI = "uefi"
+const FREE_C = "free-c"
 
 // and here
 var kernelFolder = common.REPO_PROJECTS + "/" + KERNEL + "/"
@@ -105,6 +106,7 @@ var x86Folder = common.REPO_PROJECTS + "/" + X86 + "/"
 var x86KernelFolder = common.REPO_PROJECTS + "/" + X86_KERNEL + "/"
 var x86EfiFolder = common.REPO_PROJECTS + "/" + X86_EFI + "/"
 var uefiFolder = common.REPO_PROJECTS + "/" + UEFI + "/"
+var freeCFolder = common.REPO_PROJECTS + "/" + FREE_C + "/"
 
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
@@ -120,21 +122,21 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Linker:      ELF.Linker,
 		Folder:      efiToKernelFolder,
 		CodeFolder:  efiToKernelFolder + "code",
-		Environment: string(environment.Freestanding),
+		Environment: string(environment.Efi),
 	},
 	OS_LOADER: {
 		CCompiler:   EFI_SYSTEM.CCompiler,
 		Linker:      EFI_SYSTEM.Linker,
 		Folder:      osLoaderFolder,
 		CodeFolder:  osLoaderFolder + "code",
-		Environment: string(environment.Freestanding),
+		Environment: string(environment.Efi),
 	},
 	EFI: {
 		CCompiler:   EFI_SYSTEM.CCompiler,
 		Linker:      EFI_SYSTEM.Linker,
 		Folder:      efiFolder,
 		CodeFolder:  efiFolder + "code",
-		Environment: string(environment.Freestanding),
+		Environment: string(environment.Efi),
 	},
 	IMAGE_BUILDER: {
 		CCompiler:   ELF.CCompiler,
@@ -190,6 +192,13 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Linker:      ELF.Linker,
 		Folder:      uefiFolder,
 		CodeFolder:  uefiFolder + "code",
+		Environment: string(environment.Freestanding),
+	},
+	FREE_C: {
+		CCompiler:   ELF.CCompiler,
+		Linker:      ELF.Linker,
+		Folder:      freeCFolder,
+		CodeFolder:  freeCFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 }

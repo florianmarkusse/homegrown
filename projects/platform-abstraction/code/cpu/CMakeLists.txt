@@ -10,6 +10,8 @@ target_include_directories(
 if("${ARCHITECTURE}" STREQUAL "x86")
     if("${ENVIRONMENT}" STREQUAL "freestanding")
         include_and_link_object_library(x86-cpu-real)
+    elseif("${ENVIRONMENT}" STREQUAL "efi")
+        include_and_link_object_library(x86-cpu-real)
     elseif("${ENVIRONMENT}" STREQUAL "posix")
         include_and_link_object_library(x86-cpu-mock)
     else()

@@ -23,7 +23,7 @@ string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
     status = globals.st->boot_services->open_protocol(
         globals.h, &LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
         nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not open Loaded Image Protocol\r\n");
     }
 
@@ -31,7 +31,7 @@ string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
     status = globals.st->boot_services->open_protocol(
         lip->device_handle, &BLOCK_IO_PROTOCOL_GUID, (void **)&imageBiop,
         globals.h, nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not open Block IO Protocol for this loaded image.\r\n");
     }
 
@@ -46,7 +46,7 @@ string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
     status = globals.st->boot_services->locate_handle_buffer(
         BY_PROTOCOL, &BLOCK_IO_PROTOCOL_GUID, nullptr, &num_handles,
         &handle_buffer);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not locate any Block IO Protocols.\r\n");
     }
 
@@ -63,7 +63,7 @@ string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
         status = globals.st->boot_services->open_protocol(
             handle_buffer[i], &BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
             globals.h, nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-        if (ERROR(status)) {
+        if (EFI_ERROR(status)) {
             error(u"Could not Open Block IO protocol on handle\r\n");
         }
 
@@ -73,7 +73,7 @@ string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
         status = globals.st->boot_services->allocate_pages(
             ALLOCATE_ANY_PAGES, LOADER_DATA,
             CEILING_DIV_VALUE(alignedBytes, UEFI_PAGE_SIZE), &address);
-        if (ERROR(status)) {
+        if (EFI_ERROR(status)) {
             error(u"Could not allocete data for disk buffer\r\n");
         }
 
@@ -82,7 +82,7 @@ string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
                 biop->readBlocks(biop, biop->Media->MediaId, diskLba,
                                  /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
                                  alignedBytes, (void *)address);
-            if (!(ERROR(status))) {
+            if (!(EFI_ERROR(status))) {
                 /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
                 data = (string){.buf = (U8 *)address, .len = alignedBytes};
 
@@ -128,7 +128,7 @@ string readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
     status = globals.st->boot_services->locate_handle_buffer(
         BY_PROTOCOL, &BLOCK_IO_PROTOCOL_GUID, nullptr, &num_handles,
         &handle_buffer);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not locate any Block IO Protocols.\r\n");
     }
 
@@ -139,7 +139,7 @@ string readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
         status = globals.st->boot_services->open_protocol(
             handle_buffer[i], &BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
             globals.h, nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-        if (ERROR(status)) {
+        if (EFI_ERROR(status)) {
             error(u"Could not Open Block IO protocol on handle\r\n");
         }
 
@@ -152,7 +152,7 @@ string readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
             status = globals.st->boot_services->allocate_pages(
                 ALLOCATE_ANY_PAGES, LOADER_DATA,
                 CEILING_DIV_VALUE(alignedBytes, UEFI_PAGE_SIZE), &address);
-            if (ERROR(status)) {
+            if (EFI_ERROR(status)) {
                 error(u"Could not allocete data for disk buffer\r\n");
             }
 
@@ -186,7 +186,7 @@ string readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
     //    status = globals.st->boot_services->open_protocol(
     //        mediaHandle, &DISK_IO_PROTOCOL_GUID, (void **)&diop,
     //        globals.h, nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    //    if (ERROR(status)) {
+    //    if (EFI_ERROR(status)) {
     //        error(u"Could not Open Disk IO protocol on handle\r\n");
     //    }
     //
@@ -194,14 +194,14 @@ string readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
     //    status = globals.st->boot_services->allocate_pages(
     //        ALLOCATE_ANY_PAGES, LOADER_DATA,
     //        BYTES_TO_PAGE_FRAMES(bytes), &address);
-    //    if (ERROR(status)) {
+    //    if (EFI_ERROR(status)) {
     //        error(u"Could not allocete data for disk buffer\r\n");
     //    }
     //
     //    status = diop->readDisk(diop, mediaID, diskLba *
     //    biop->Media->BlockSize,
     //                            bytes, (void *)address);
-    //    if (ERROR(status)) {
+    //    if (EFI_ERROR(status)) {
     //        error(u"Could not read Disk LBAs into buffer\r\n");
     //    }
     //
@@ -220,7 +220,7 @@ U32 getDiskImageMediaID() {
     status = globals.st->boot_services->open_protocol(
         globals.h, &LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
         nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not open Loaded Image Protocol\r\n");
     }
 
@@ -228,7 +228,7 @@ U32 getDiskImageMediaID() {
     status = globals.st->boot_services->open_protocol(
         lip->device_handle, &BLOCK_IO_PROTOCOL_GUID, (void **)&biop, globals.h,
         nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not open Block IO Protocol for this loaded image.\r\n");
     }
 
@@ -251,7 +251,7 @@ DataPartitionFile getKernelInfo() {
     Status status = globals.st->boot_services->open_protocol(
         globals.h, &LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
         nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not open Loaded Image Protocol\r\n");
     }
 
@@ -261,27 +261,27 @@ DataPartitionFile getKernelInfo() {
     status = globals.st->boot_services->open_protocol(
         lip->device_handle, &SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, (void **)&sfsp,
         globals.h, nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not open Simple File System Protocol\r\n");
     }
 
     FileProtocol *root = nullptr;
     status = sfsp->openVolume(sfsp, &root);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not Open Volume for root directory in ESP\r\n");
     }
 
     FileProtocol *file = nullptr;
     status =
         root->open(root, &file, u"\\EFI\\FLOS\\KERNEL.INF", FILE_MODE_READ, 0);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not Open File\r\n");
     }
 
     FileInfo file_info;
     USize file_info_size = sizeof(file_info);
     status = file->getInfo(file, &FILE_INFO_ID, &file_info_size, &file_info);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not get file info\r\n");
     }
 
@@ -293,7 +293,7 @@ DataPartitionFile getKernelInfo() {
     status = globals.st->boot_services->allocate_pages(
         ALLOCATE_ANY_PAGES, LOADER_DATA,
         CEILING_DIV_VALUE(dataFile.len, UEFI_PAGE_SIZE), &dataFileAddress);
-    if (ERROR(status) || dataFile.len != file_info.fileSize) {
+    if (EFI_ERROR(status) || dataFile.len != file_info.fileSize) {
         error(u"Could not allocate memory for file\r\n");
     }
 
@@ -301,7 +301,7 @@ DataPartitionFile getKernelInfo() {
     dataFile.buf = (U8 *)dataFileAddress;
 
     status = file->read(file, &dataFile.len, dataFile.buf);
-    if (ERROR(status) || dataFile.len != file_info.fileSize) {
+    if (EFI_ERROR(status) || dataFile.len != file_info.fileSize) {
         error(u"Could not read file into buffer\r\n");
     }
 

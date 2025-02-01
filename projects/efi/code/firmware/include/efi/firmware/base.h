@@ -19,8 +19,8 @@
  * I8acteristics.
  *
  * This header provides the base types and macros used throughout the project.
- * It provides basic fixed-size integers, a nullptr-equivalent, booleans, standard
- * UEFI types, and more. All symbols are prefixed with `*` or `*`.
+ * It provides basic fixed-size integers, a nullptr-equivalent, booleans,
+ * standard UEFI types, and more. All symbols are prefixed with `*` or `*`.
  *
  * You are highly recommended to conduct the UEFI Specification for details on
  * the programming environment. Following a summary of key parts from the
@@ -146,7 +146,7 @@ static constexpr auto STATUS_WARNING_OEM_MASK =
 #define STATUS_WARNING_C(_x) (STATUS_C(_x) | STATUS_WARNING_MASK)
 #define STATUS_WARNING_OEM_C(_x) (STATUS_C(_x) | STATUS_WARNING_OEM_MASK)
 
-#define ERROR(_x) (!!((_x) & STATUS_ERROR_MASK))
+#define EFI_ERROR(_x) (!!((_x) & STATUS_ERROR_MASK))
 
 static constexpr auto SUCCESS = STATUS_C(0);
 

@@ -357,7 +357,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     GraphicsOutputProtocol *gop = nullptr;
     Status status = globals.st->boot_services->locate_protocol(
         &GRAPHICS_OUTPUT_PROTOCOL_GUID, nullptr, (void **)&gop);
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"Could not locate locate GOP\r\n");
     }
 
@@ -481,11 +481,11 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     status = globals.st->boot_services->exit_boot_services(globals.h,
                                                            memoryInfo.mapKey);
 
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         status = globals.st->boot_services->free_pages(
             (PhysicalAddress)memoryInfo.memoryMap,
             CEILING_DIV_VALUE(memoryInfo.memoryMapSize, UEFI_PAGE_SIZE));
-        if (ERROR(status)) {
+        if (EFI_ERROR(status)) {
             error(u"Could not free allocated memory map\r\n");
         }
 
@@ -493,7 +493,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
         status = globals.st->boot_services->exit_boot_services(
             globals.h, memoryInfo.mapKey);
     }
-    if (ERROR(status)) {
+    if (EFI_ERROR(status)) {
         error(u"could not exit boot services!\r\n");
     }
 

@@ -8,9 +8,10 @@ target_include_directories(
 )
 
 if("${ENVIRONMENT}" STREQUAL "freestanding")
-    include_and_link_object_library(kernel-memory-manipulation)
+    include_and_link_object_library(free-c-memory-manipulation)
+elseif("${ENVIRONMENT}" STREQUAL "efi")
+    include_and_link_object_library(free-c-memory-manipulation)
 elseif("${ENVIRONMENT}" STREQUAL "posix")
-else()
     # Posix should link with a stdlib that contains the right implementations
 endif()
 

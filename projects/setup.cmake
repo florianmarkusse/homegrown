@@ -7,8 +7,10 @@ set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} -march=native -m64 -Wall -Wextra -Wconversion -Wno-incompatible-pointer-types-discards-qualifiers -Wno-pointer-sign -Wno-sign-conversion -Wdouble-promotion -Wvla"
 )
 
-if("${BUILD_UNIT_TESTS}")
-    add_compile_definitions(BUILD_UNIT_TESTS)
+if("${UNIT_TEST_BUILD}")
+    add_compile_definitions(UNIT_TEST_BUILD)
+else()
+    add_compile_definitions(PROJECT_BUILD)
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -41,7 +43,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 endif()
 
-set(VALID_ENVIRONMENTS "freestanding" "posix")
+set(VALID_ENVIRONMENTS "freestanding" "posix" "efi")
 list(FIND VALID_ENVIRONMENTS ${ENVIRONMENT} VALID_ENVIRONMENT_INDEX)
 if(VALID_ENVIRONMENT_INDEX EQUAL -1)
     message(
@@ -50,11 +52,27 @@ if(VALID_ENVIRONMENT_INDEX EQUAL -1)
     )
 endif()
 if(${ENVIRONMENT} STREQUAL "freestanding")
+    add_compile_definitions(FREE_C_LIB)
     add_compile_definitions(FREESTANDING_ENVIRONMENT)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -ffreestanding")
+    add_link_options("--ld-path=${CMAKE_LINKER}")
+endif()
+if(${ENVIRONMENT} STREQUAL "efi")
+    add_compile_definitions(FREE_C_LIB)
+    add_compile_definitions(EFI_ENVIRONMENT)
+    set(CMAKE_C_FLAGS
+        "${CMAKE_C_FLAGS} -ffreestanding -nostdlib -nostdinc -target x86_64-unknown-windows -mgeneral-regs-only -mno-stack-arg-probe"
+    )
+    get_filename_component(LINKER_FILENAME ${CMAKE_LINKER} NAME)
+    add_link_options(
+        -fuse-ld=${LINKER_FILENAME}
+        -Wl,-entry:efi_main,-subsystem:efi_application
+    )
 endif()
 if(${ENVIRONMENT} STREQUAL "posix")
+    add_compile_definitions(HOSTED_C_LIB)
     add_compile_definitions(POSIX_ENVIRONMENT)
+    add_link_options("--ld-path=${CMAKE_LINKER}")
 endif()
 
 set(VALID_ARCHITECTURES "x86" "mock")
@@ -71,6 +89,8 @@ endif()
 if(${ARCHITECTURE} STREQUAL "posix")
     add_compile_definitions(MOCK_ARHCITECTURE)
 endif()
+
+set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 
 function(add_subproject project)
     add_subdirectory(
@@ -122,7 +142,15 @@ function(add_correct_platfom_abstraction_implementations)
         if("${ARCHITECTURE}" STREQUAL "mock")
             add_subproject("mock")
         endif()
-        add_subproject("kernel")
+        add_subproject("free-c")
+    elseif("${ENVIRONMENT}" STREQUAL "efi")
+        if("${ARCHITECTURE}" STREQUAL "x86")
+            add_subproject("x86")
+        endif()
+        if("${ARCHITECTURE}" STREQUAL "mock")
+            add_subproject("mock")
+        endif()
+        add_subproject("free-c")
     elseif("${ENVIRONMENT}" STREQUAL "posix")
         if("${ARCHITECTURE}" STREQUAL "mock")
             add_subproject("mock")
