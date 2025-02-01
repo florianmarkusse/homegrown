@@ -8,10 +8,6 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/print-configuration.cmake")
     add_subproject("shared")
     add_subproject("platform-abstraction")
-    # NOTE: This really shouldn't happen
-    if("${ENVIRONMENT}" STREQUAL "freestanding")
-        add_subproject("kernel")
-    endif()
 endif()
 
 add_subdirectory(log)

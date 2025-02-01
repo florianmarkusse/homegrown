@@ -37,7 +37,7 @@ func IsValidEnvironment(mode string) bool {
 
 func DisplayEnvironment() {
 	// Not sure why go doesnt understand string lengths of this one, but whatever
-	var buildModeDescription = fmt.Sprintf("Set the environment (%s%s%s)                    ", common.WHITE,
+	var buildModeDescription = fmt.Sprintf("Set the environment (%s%s%s)                ", common.WHITE,
 		converter.ArrayIntoPrintableString(PossibleEnvironments[:]), common.RESET)
 	flags.DisplayArgumentInput(ENVIRONMENT_SHORT_FLAG, ENVIRONMENT_LONG_FLAG, buildModeDescription, "_CONFIGURED SEPARATELY BY EACH PROJECT_")
 }

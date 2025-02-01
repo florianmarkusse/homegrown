@@ -44,7 +44,7 @@ func AddDefaultBuildOptions(options *strings.Builder, buildDirectory string, pro
 	argument.AddArgument(options, fmt.Sprintf("--build %s", buildDirectory))
 	argument.AddArgument(options, fmt.Sprintf("--parallel %d", threads))
 	if verbose {
-		argument.AddArgument(options, fmt.Sprintf("-v"))
+		argument.AddArgument(options, "-v")
 	}
 
 	targetsString := strings.Builder{}
