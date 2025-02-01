@@ -16,7 +16,6 @@ add_executable(
     ${PROJECT_NAME}
     "src/main.c"
     "src/cpu.S"
-    "src/printing.c"
     "src/gdt.c"
     "src/data-reading.c"
     "src/memory/boot-functions.c"
@@ -37,12 +36,15 @@ target_link_libraries(
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE uefi-i)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE efi-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-globals)
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-acpi)
+target_link_libraries(${PROJECT_NAME} PRIVATE efi-error)
 
 target_include_directories(
     ${PROJECT_NAME}

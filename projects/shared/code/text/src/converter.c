@@ -1,13 +1,14 @@
+#include "shared/text/converter.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/assert.h"
+#include "shared/memory/sizes.h"
 #include "shared/text/string.h"
 #include "shared/types/array-types.h"
 #include "shared/types/types.h"
 
-static constexpr auto STRING_CONVERTER_BUF_LEN = 1 << 10;
-U8 stringConverterBuf[STRING_CONVERTER_BUF_LEN];
-static U8_a stringConverterBuffer =
-    (U8_a){.buf = stringConverterBuf, .len = STRING_CONVERTER_BUF_LEN};
+static constexpr auto STRING_CONVERTER_BUF_LEN = 1 * KiB;
+static U8_a stringConverterBuffer = (U8_a){
+    .buf = (U8[STRING_CONVERTER_BUF_LEN]){0}, .len = STRING_CONVERTER_BUF_LEN};
 
 string stringToString(string data) { return data; }
 

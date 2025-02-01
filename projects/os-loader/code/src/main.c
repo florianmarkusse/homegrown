@@ -2,19 +2,22 @@
 #include "efi-to-kernel/memory/definitions.h" // for STACK_SIZE
 #include "efi-to-kernel/memory/descriptor.h"  // for MemoryDescriptor
 #include "efi/acpi/rdsp.h"                    // for getRSDP, RSDP...
-#include "efi/firmware/base.h"                // for PhysicalAddress
-#include "efi/firmware/graphics-output.h"     // for GRAPHICS_OUTP...
-#include "efi/firmware/simple-text-output.h"  // for SimpleTextOut...
-#include "efi/firmware/system.h"              // for SystemTable
-#include "efi/globals.h"                      // for globals
-#include "os-loader/data-reading.h"           // for getKernelInfo
-#include "os-loader/gdt.h"                    // for enableNewGDT
-#include "os-loader/memory/boot-functions.h"  // for mapMemoryAt
-#include "os-loader/memory/page-size.h"       // for UEFI_PAGE_SIZE
-#include "os-loader/printing.h"               // for error, printN...
-#include "shared/maths/maths.h"               // for CEILING_DIV_V...
-#include "shared/types/types.h"               // for U64, U32, USize
-#include "x86/memory/definitions/virtual.h"   // for PAGE_FRAME_SIZE
+#include "efi/error.h"
+#include "efi/firmware/base.h"               // for PhysicalAddress
+#include "efi/firmware/graphics-output.h"    // for GRAPHICS_OUTP...
+#include "efi/firmware/simple-text-output.h" // for SimpleTextOut...
+#include "efi/firmware/system.h"             // for PhysicalAddress
+#include "efi/globals.h"                     // for globals
+#include "os-loader/data-reading.h"          // for getKernelInfo
+#include "os-loader/gdt.h"                   // for enableNewGDT
+#include "os-loader/memory/boot-functions.h" // for mapMemoryAt
+#include "os-loader/memory/page-size.h"      // for UEFI_PAGE_SIZE
+#include "platform-abstraction/log.h"
+#include "shared/log.h"
+#include "shared/maths/maths.h"             // for CEILING_DIV_V...
+#include "shared/text/string.h"             // for CEILING_DIV_V...
+#include "shared/types/types.h"             // for U64, U32, USize
+#include "x86/memory/definitions/virtual.h" // for PAGE_FRAME_SIZE
 // static U8 in_exc = 0;
 
 // // Not sure what we are doing when we encounter an exception tbh.
@@ -248,16 +251,17 @@ EFICALL void wait(U64 microseconds) {
 EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.h = handle;
     globals.st = systemtable;
-
     globals.st->con_out->reset(globals.st->con_out, false);
     globals.st->con_out->set_attribute(globals.st->con_out,
                                        BACKGROUND_RED | YELLOW);
 
     globals.level4PageTable = allocAndZero(1);
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"CR3 memory location:");
-    printNumber(globals.level4PageTable, 16);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+    KFLUSH_AFTER {
+        INFO(STRING("CR3 memory location:"));
+        /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
+        INFO((void *)globals.level4PageTable, NEWLINE);
+    }
 
     U32 maxSupportCPUID = 0;
     __asm__ __volatile__("mov $0, %%eax;"
@@ -269,8 +273,11 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
                          : "eax", "ebx", "ecx", "edx");
 
     if (maxSupportCPUID < 1) {
-        error(u"CPU does not support cpu id of 1 and above, "
-              u"buy newer cpu.\r\n");
+        KFLUSH_AFTER {
+            ERROR(STRING(
+                "CPU does not support CPUID of 1 and above, buy newer CPU.\n"));
+        }
+        waitKeyThenReset();
     }
 
     U32 processorVersionInfo = 0;
@@ -314,51 +321,50 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
             ncycles = 1;
         }
     } else {
-        error(u"RDSTC not supported\r\n");
+        KFLUSH_AFTER { ERROR(STRING("RDSTC not supported, buy newer CPU.\n")); }
+        waitKeyThenReset();
     }
 
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"Going to read kernel info\r\n");
+    KFLUSH_AFTER { INFO(STRING("Going to read kernel info\n")); }
     DataPartitionFile kernelFile = getKernelInfo();
 
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"Going to load kernel\r\n");
-
-    globals.st->con_out->output_string(globals.st->con_out, u"kernel bytes: ");
-    printNumber(kernelFile.bytes, 10);
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"\r\nkernel lba start: ");
-    printNumber(kernelFile.lbaStart, 10);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+    KFLUSH_AFTER {
+        INFO(STRING("Going to load kernel\n"));
+        INFO(STRING("\tbytes: "));
+        INFO(kernelFile.bytes, NEWLINE);
+        INFO(STRING("\tlba start: "));
+        INFO(kernelFile.lbaStart, NEWLINE);
+    }
 
     string kernelContent = readDiskLbasFromCurrentGlobalImage(
         kernelFile.lbaStart, kernelFile.bytes);
 
-    globals.st->con_out->output_string(
-        globals.st->con_out, u"Read kernel content, at memory location:");
-    printNumber((USize)kernelContent.buf, 16);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+    KFLUSH_AFTER {
+        INFO(STRING("Read kernel content, at memory location:"));
+        INFO(kernelContent.buf, NEWLINE);
+    }
 
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"Attempting to map memory now...\r\n");
+    KFLUSH_AFTER { INFO(STRING("Attempting to map memory now\n")); }
     mapMemoryAt((U64)kernelContent.buf, KERNEL_CODE_START,
                 (U32)kernelContent.len);
 
     __asm__ __volatile__("cli");
 
-    globals.st->con_out->output_string(
-        globals.st->con_out,
-        u"Bootstrap processor work before exiting boot services...\r\n");
+    KFLUSH_AFTER {
+        INFO(STRING("Bootstrap processor work before exiting boot services\n"));
+    }
     bootstrapProcessorWork();
 
-    globals.st->con_out->output_string(
-        globals.st->con_out,
-        u"Going to collect necessary info, then exit bootservices...\r\n");
+    KFLUSH_AFTER {
+        INFO(STRING(
+            "Going to collect necessary info, then exit bootservices\n"));
+    }
     GraphicsOutputProtocol *gop = nullptr;
     Status status = globals.st->boot_services->locate_protocol(
         &GRAPHICS_OUTPUT_PROTOCOL_GUID, nullptr, (void **)&gop);
     if (EFI_ERROR(status)) {
-        error(u"Could not locate locate GOP\r\n");
+        KFLUSH_AFTER { ERROR(STRING("Could not locate locate GOP\n")); }
+        waitKeyThenReset();
     }
 
     MemoryInfo memoryInfo = getMemoryInfo();
@@ -375,18 +381,15 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
                 gop->mode->frameBufferSize);
 
     globals.frameBufferAddress = gop->mode->frameBufferBase;
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"The graphics buffer location is at ");
-    printNumber(gop->mode->frameBufferBase, 16);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
 
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"The graphics buffer size is ");
-    printNumber(gop->mode->frameBufferSize, 16);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+    KFLUSH_AFTER {
+        INFO(STRING("The graphics buffer location is at: "));
+        INFO(gop->mode->frameBufferBase, NEWLINE);
+        INFO(STRING("The graphics buffer size is: "));
+        INFO(gop->mode->frameBufferSize, NEWLINE);
+    }
 
-    globals.st->con_out->output_string(
-        globals.st->con_out, u"Creating space for kernel parameters...\r\n");
+    KFLUSH_AFTER { INFO(STRING("Allocating space for kernel parameters\n")); }
     PhysicalAddress kernelParams =
         allocAndZero(KERNEL_PARAMS_SIZE / PAGE_FRAME_SIZE);
     mapMemoryAt(kernelParams, KERNEL_PARAMS_START, KERNEL_PARAMS_SIZE);
@@ -395,8 +398,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
 
     params->level4PageTable = globals.level4PageTable;
 
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"Creating space for stack...\r\n");
+    KFLUSH_AFTER { INFO(STRING("Allocating space for stack\n")); }
     // NOTE: It seems we are adding this stuff to the "free" memory in the
     // kernel. We should somehow distinguish between kernel-required memory that
     // was allocated by the efi-application and useless memory.
@@ -404,12 +406,14 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     mapMemoryAt(stackEnd, BOTTOM_STACK, STACK_SIZE);
     PhysicalAddress stackPointer = stackEnd + STACK_SIZE;
 
-    globals.st->con_out->output_string(globals.st->con_out,
-                                       u"The stack will go down from ");
-    printNumber(stackPointer, 16);
-    globals.st->con_out->output_string(globals.st->con_out, u" to ");
-    printNumber(stackEnd, 16);
-    globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+    KFLUSH_AFTER {
+        INFO(STRING("The stack will go down from: "));
+        /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
+        INFO((void *)stackPointer, NEWLINE);
+        INFO(STRING("to: "));
+        /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
+        INFO((void *)stackEnd, NEWLINE);
+    }
 
     params->fb.columns = gop->mode->info->horizontalResolution;
     params->fb.rows = gop->mode->info->verticalResolution;
@@ -420,34 +424,39 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     RSDPResult rsdp = getRSDP(globals.st->number_of_table_entries,
                               globals.st->configuration_table);
     if (!rsdp.rsdp) {
-        error(u"Could not find an RSDP!\r\n");
+        KFLUSH_AFTER { ERROR(STRING("Could not find an RSDP!\n")); }
+        waitKeyThenReset();
     }
 
     if (CpuHasFeatures(0, CPUID_FEAT_EDX_PGE)) {
-        globals.st->con_out->output_string(globals.st->con_out,
-                                           u"Enabling GPE...\r\n");
+        KFLUSH_AFTER { INFO(STRING("Enabling GPE\n")); }
         CpuEnableGpe();
     } else {
-        error(u"CPU does not support global memory paging!");
+        KFLUSH_AFTER {
+            ERROR(STRING("CPU does not support global memory paging!"));
+        }
+        waitKeyThenReset();
     }
 
     // Can we enable FPU?
     if (CpuHasFeatures(0, CPUID_FEAT_EDX_FPU)) {
-        globals.st->con_out->output_string(globals.st->con_out,
-                                           u"Enabling FPU...\r\n");
+        KFLUSH_AFTER { INFO(STRING("Enabling FPU\n")); }
         CpuEnableFpu();
     } else {
-        error(u"CPU does not support FPU!");
+        KFLUSH_AFTER { ERROR(STRING("CPU does not support FPU!")); }
+        waitKeyThenReset();
     }
 
     // Can we enable SSE?
     if (CpuHasFeatures(0, CPUID_FEAT_EDX_SSE)) {
-        globals.st->con_out->output_string(
-            globals.st->con_out,
-            u"Enabling SSE... even though it doesnt work yet anyway lol\r\n");
+        KFLUSH_AFTER {
+            INFO(STRING(
+                "Enabling SSE... even though it doesnt work yet anyway lol\n"));
+        }
         CpuEnableSse();
     } else {
-        error(u"CPU does not support SSE!");
+        KFLUSH_AFTER { ERROR(STRING("CPU does not support SSE!")); }
+        waitKeyThenReset();
     }
 
     //    // Can we enable xsave? (and maybe avx?)
@@ -455,13 +464,12 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     //    sure
     //    // what the implications would be tbh.
     //    if (CpuHasFeatures(CPUID_FEAT_ECX_XSAVE, 0)) {
-    //        globals.st->con_out->output_string(globals.st->con_out,
-    //                                           u"Enabling XSAVE...\r\n");
+    //
+    //        KFLUSH_AFTER { INFO(STRING("Enabling XSAVE\n")); }
     //        CpuEnableXSave();
     //
     //        if (CpuHasFeatures(CPUID_FEAT_ECX_AVX, 0)) {
-    //            globals.st->con_out->output_string(globals.st->con_out,
-    //                                               u"Enabling AVX...\r\n");
+    //            KFLUSH_AFTER { INFO(STRING("Enabling AVX\n")); }
     //            CpuEnableAvx();
     //        } else {
     //            error(u"CPU does not support AVX!");
@@ -470,12 +478,11 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     //        error(u"CPU does not support XSAVE!");
     //    }
 
-    globals.st->con_out->output_string(
-        globals.st->con_out, u"Prepared and collected all necessary "
-                             u"information to jump to the kernel.\r\n");
-    globals.st->con_out->output_string(
-        globals.st->con_out,
-        u"Starting exit boot services process, no printing after this!\r\n");
+    KFLUSH_AFTER {
+        INFO(STRING("Prepared and collected all necessary information to jump "
+                    "to the kernel.\nStarting exit boot services process, no "
+                    "printing after this!\n"));
+    }
 
     memoryInfo = getMemoryInfo();
     status = globals.st->boot_services->exit_boot_services(globals.h,
@@ -486,7 +493,10 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
             (PhysicalAddress)memoryInfo.memoryMap,
             CEILING_DIV_VALUE(memoryInfo.memoryMapSize, UEFI_PAGE_SIZE));
         if (EFI_ERROR(status)) {
-            error(u"Could not free allocated memory map\r\n");
+            KFLUSH_AFTER {
+                ERROR(STRING("Could not free allocated memory map\r\n"));
+            }
+            waitKeyThenReset();
         }
 
         memoryInfo = getMemoryInfo();
@@ -494,7 +504,8 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
             globals.h, memoryInfo.mapKey);
     }
     if (EFI_ERROR(status)) {
-        error(u"could not exit boot services!\r\n");
+        KFLUSH_AFTER { ERROR(STRING("could not exit boot services!\r\n")); }
+        waitKeyThenReset();
     }
 
     params->memory =

@@ -1,11 +1,13 @@
 #include "os-loader/memory/boot-functions.h"
 
+#include "efi/error.h"
 #include "efi/firmware/simple-text-output.h"
 #include "efi/firmware/system.h"
 #include "efi/globals.h"
 #include "os-loader/memory/page-size.h"
-#include "os-loader/printing.h"
+#include "platform-abstraction/log.h"
 #include "platform-abstraction/memory/manipulation.h"
+#include "shared/log.h"
 #include "shared/maths/maths.h"
 #include "x86/memory/definitions/virtual.h"
 
@@ -14,7 +16,8 @@ PhysicalAddress allocAndZero(USize numPages) {
     Status status = globals.st->boot_services->allocate_pages(
         ALLOCATE_ANY_PAGES, LOADER_DATA, numPages, &page);
     if (EFI_ERROR(status)) {
-        error(u"unable to allocate pages!\r\n");
+        KFLUSH_AFTER { ERROR(STRING("unable to allocate pages!\n")); }
+        waitKeyThenReset();
     }
 
     /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
@@ -26,7 +29,11 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
     /* is this a canonical address? We handle virtual memory up to 256TB */
     if (!globals.level4PageTable ||
         ((virt >> 48L) != 0x0000 && (virt >> 48L) != 0xffff)) {
-        error(u"Incorrect address mapped or no page table set up yet!\r\n");
+        KFLUSH_AFTER {
+            ERROR(STRING(
+                "Incorrect address mapped or no page table set up yet!\n"));
+        }
+        waitKeyThenReset();
     }
 
     U64 end = virt + size;
@@ -43,8 +50,9 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
             PhysicalAddress addr = allocAndZero(1);
             *pageEntry = (addr | (VirtualPageMasks.PAGE_PRESENT |
                                   VirtualPageMasks.PAGE_WRITABLE));
-            printNumber((USize)*pageEntry, 16);
-            globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+            /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
+            KFLUSH_AFTER { INFO((void *)(*pageEntry), NEWLINE); }
         }
 
         /* 1G */
@@ -55,8 +63,9 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
         if (!*pageEntry) {
             *pageEntry = (allocAndZero(1) | (VirtualPageMasks.PAGE_PRESENT |
                                              VirtualPageMasks.PAGE_WRITABLE));
-            printNumber((USize)*pageEntry, 16);
-            globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+
+            /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
+            KFLUSH_AFTER { INFO((void *)(*pageEntry), NEWLINE); }
         }
         /* 2M  */
         /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
@@ -97,7 +106,11 @@ MemoryInfo getMemoryInfo() {
         &mmap.descriptorVersion);
 
     if (status != BUFFER_TOO_SMALL) {
-        error(u"Should have received a buffer too small error here!\r\n");
+        KFLUSH_AFTER {
+            ERROR(STRING(
+                "Should have received a buffer too small error here!\n"));
+        }
+        waitKeyThenReset();
     }
 
     // Some extra because allocating can create extra descriptors and
@@ -109,14 +122,18 @@ MemoryInfo getMemoryInfo() {
         CEILING_DIV_VALUE(mmap.memoryMapSize, UEFI_PAGE_SIZE),
         (PhysicalAddress *)&mmap.memoryMap);
     if (EFI_ERROR(status)) {
-        error(u"Could not allocate data for memory map buffer\r\n");
+        KFLUSH_AFTER {
+            ERROR(STRING("Could not allocate data for memory map buffer\n"));
+        }
+        waitKeyThenReset();
     }
 
     status = globals.st->boot_services->get_memory_map(
         &mmap.memoryMapSize, mmap.memoryMap, &mmap.mapKey, &mmap.descriptorSize,
         &mmap.descriptorVersion);
     if (EFI_ERROR(status)) {
-        error(u"Getting memory map failed!\r\n");
+        KFLUSH_AFTER { ERROR(STRING("Getting memory map failed!\n")); }
+        waitKeyThenReset();
     }
 
     return mmap;
