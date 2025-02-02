@@ -24,23 +24,20 @@ add_executable(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 
-# TODO: Need to change this once multi-platform UEFI support?
-target_link_libraries(${PROJECT_NAME} PRIVATE x86-i)
-target_link_libraries(${PROJECT_NAME} PRIVATE x86-memory)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
 target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE platform-abstraction-memory-manipulation
 )
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-efi)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE uefi-i)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE efi-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-globals)
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-acpi)

@@ -11,7 +11,7 @@
 #include "efi/firmware/base.h"
 
 static constexpr auto DEVICE_PATH_PROTOCOL_GUID =
-    (GUID){.ms1 = 0x09576e91,
+    (UUID){.ms1 = 0x09576e91,
            .ms2 = 0x6d3f,
            .ms3 = 0x11d2,
            .ms4 = {0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b}};
@@ -38,7 +38,7 @@ static constexpr U8 DEVICE_PATH_TYPE_END = 0x7f;
  *
  * Also note that any function taking an object of this type usually never
  * accepts nullptr. That is, the empty device-path is represented by
- * DEVICE_PATH_nullptr (which is just a TYPE_END+SUBTYPE_END_ALL). Though,
+ * DEVICE_PATH_NULL (which is just a TYPE_END+SUBTYPE_END_ALL). Though,
  * the UEFI Specification contradicts itself there and uses nullptr in several
  * cases. Make sure to check each of these use-cases carefully.
  */
@@ -58,7 +58,7 @@ static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_VENDOR = 0x04;
 static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_CONTROLLER = 0x05;
 static constexpr U8 DEVICE_PATH_SUBTYPE_HARDWARE_BMC = 0x06;
 
-static constexpr auto DEVICE_PATH_nullptr = (DevicePathProtocol){
+static constexpr auto DEVICE_PATH_NULL = (DevicePathProtocol){
     .type = DEVICE_PATH_TYPE_END,
     .subtype = DEVICE_PATH_SUBTYPE_END_ALL,
     .length = {4, 0},

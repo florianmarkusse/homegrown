@@ -18,8 +18,13 @@ U8_max_a flushBuf = (U8_max_a){
 static U16 convertedChar[2] = {0, '\0'};
 bool flushBuffer(U8_max_a *buffer) {
     for (U64 i = 0; i < buffer->len; i++) {
-        convertedChar[0] = buffer->buf[i];
-        globals.st->con_out->output_string(globals.st->con_out, convertedChar);
+        if (buffer->buf[i] == '\n') {
+            globals.st->con_out->output_string(globals.st->con_out, u"\r\n");
+        } else {
+            convertedChar[0] = buffer->buf[i];
+            globals.st->con_out->output_string(globals.st->con_out,
+                                               convertedChar);
+        }
     }
 
     buffer->len = 0;

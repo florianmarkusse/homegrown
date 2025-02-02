@@ -3,25 +3,28 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(x86-efi LANGUAGES C ASM)
 set(AGGREGATED_INTERFACE "${PROJECT_NAME}-i")
 add_library(${AGGREGATED_INTERFACE} INTERFACE)
-include("${REPO_PROJECTS}/setup.cmake")
 
-# For some reason, clang-19 does not accept the full file path in --ld-path, so
-# we do it like this
-get_filename_component(LINKER_FILENAME ${CMAKE_LINKER} NAME)
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    include(${REPO_PROJECTS}/setup.cmake)
+    include(${REPO_PROJECTS}/print-configuration.cmake)
+    add_subproject("shared")
+    add_subproject("efi-to-kernel")
+    add_subproject("uefi")
+    add_subproject("efi")
+    add_platform_abstraction_and_correct_implementations()
+endif()
 
-set(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS} -target x86_64-unknown-windows -mgeneral-regs-only -ffreestanding -nostdlib -nostdinc -mno-stack-arg-probe"
+add_library(${PROJECT_NAME} OBJECT "src/init.c")
+
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
+target_link_libraries(
+    ${PROJECT_NAME}
+    PRIVATE platform-abstraction-memory-manipulation
 )
-set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 
-include("${REPO_PROJECTS}/print-configuration.cmake")
-
-add_subproject("shared")
-add_subproject("efi-to-kernel")
-add_subproject("uefi")
-add_platform_abstraction_and_correct_implementations()
-
-add_subdirectory(log)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()

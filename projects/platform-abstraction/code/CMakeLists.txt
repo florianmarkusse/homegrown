@@ -26,6 +26,7 @@ endfunction()
 add_subdirectory(log)
 add_subdirectory(cpu)
 add_subdirectory(memory)
+add_subdirectory(efi)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()

@@ -185,7 +185,7 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Linker:      EFI_SYSTEM.Linker,
 		Folder:      x86EfiFolder,
 		CodeFolder:  x86EfiFolder + "code",
-		Environment: string(environment.Freestanding),
+		Environment: string(environment.Efi),
 	},
 	UEFI: {
 		CCompiler:   ELF.CCompiler,

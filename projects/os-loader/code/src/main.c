@@ -12,6 +12,7 @@
 #include "os-loader/gdt.h"                   // for enableNewGDT
 #include "os-loader/memory/boot-functions.h" // for mapMemoryAt
 #include "os-loader/memory/page-size.h"      // for UEFI_PAGE_SIZE
+#include "platform-abstraction/efi.h"
 #include "platform-abstraction/log.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"             // for CEILING_DIV_V...
@@ -256,6 +257,8 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
                                        BACKGROUND_RED | YELLOW);
 
     globals.level4PageTable = allocAndZero(1);
+
+    initArchitecture();
 
     KFLUSH_AFTER {
         INFO(STRING("CR3 memory location:"));
