@@ -1,8 +1,6 @@
 #ifndef EFI_FIRMWARE_BASE_H
 #define EFI_FIRMWARE_BASE_H
 
-#pragma once
-
 #include "shared/types/types.h"
 
 /**

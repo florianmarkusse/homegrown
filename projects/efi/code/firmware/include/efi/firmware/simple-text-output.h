@@ -1,8 +1,6 @@
 #ifndef EFI_FIRMWARE_SIMPLE_TEXT_OUTPUT_H
 #define EFI_FIRMWARE_SIMPLE_TEXT_OUTPUT_H
 
-#pragma once
-
 /**
  * UEFI Protocol - Simple Text Output
  *

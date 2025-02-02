@@ -1,8 +1,6 @@
 #ifndef EFI_FIRMWARE_SYSTEM_H
 #define EFI_FIRMWARE_SYSTEM_H
 
-#pragma once
-
 /**
  * UEFI System Integration
  *

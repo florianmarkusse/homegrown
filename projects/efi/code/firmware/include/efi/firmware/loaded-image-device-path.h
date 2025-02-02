@@ -1,8 +1,6 @@
 #ifndef EFI_FIRMWARE_LOADED_IMAGE_DEVICE_PATH_H
 #define EFI_FIRMWARE_LOADED_IMAGE_DEVICE_PATH_H
 
-#pragma once
-
 /**
  * UEFI Protocol - Loaded Image Device Path
  *

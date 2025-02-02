@@ -1,8 +1,6 @@
 #ifndef EFI_FIRMWARE_DEVICE_PATH_TO_TEXT_H
 #define EFI_FIRMWARE_DEVICE_PATH_TO_TEXT_H
 
-#pragma once
-
 /**
  * UEFI Protocol - Device Path To Text
  *

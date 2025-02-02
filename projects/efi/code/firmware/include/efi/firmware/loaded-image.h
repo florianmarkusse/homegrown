@@ -1,8 +1,6 @@
 #ifndef EFI_FIRMWARE_LOADED_IMAGE_H
 #define EFI_FIRMWARE_LOADED_IMAGE_H
 
-#pragma once
-
 /**
  * UEFI Protocol - Loaded Image
  *

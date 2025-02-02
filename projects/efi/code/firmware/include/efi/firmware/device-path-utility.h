@@ -1,8 +1,6 @@
 #ifndef EFI_FIRMWARE_DEVICE_PATH_UTILITY_H
 #define EFI_FIRMWARE_DEVICE_PATH_UTILITY_H
 
-#pragma once
-
 /**
  * UEFI Protocol - Device Path Utility
  *
