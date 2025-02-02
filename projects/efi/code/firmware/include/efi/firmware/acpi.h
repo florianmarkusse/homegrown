@@ -1,5 +1,5 @@
-#ifndef EFI_C_EFI_PROTOCOL_ACPI_H
-#define EFI_C_EFI_PROTOCOL_ACPI_H
+#ifndef EFI_FIRMWARE_ACPI_H
+#define EFI_FIRMWARE_ACPI_H
 
 #include "efi/firmware/base.h"
 

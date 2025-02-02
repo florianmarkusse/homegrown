@@ -1,5 +1,5 @@
-#ifndef EFI_ACPI_C_ACPI_RSDT_H
-#define EFI_ACPI_C_ACPI_RSDT_H
+#ifndef EFI_ACPI_RSDT_H
+#define EFI_ACPI_RSDT_H
 
 #include "shared/types/types.h"
 

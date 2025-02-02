@@ -1,5 +1,5 @@
-#ifndef EFI_DATA_READING_H
-#define EFI_DATA_READING_H
+#ifndef OS_LOADER_DATA_READING_H
+#define OS_LOADER_DATA_READING_H
 
 #include "efi/firmware/base.h" // for Lba
 #include "shared/text/string.h"

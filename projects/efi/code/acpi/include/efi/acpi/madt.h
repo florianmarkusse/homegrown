@@ -1,5 +1,5 @@
-#ifndef EFI_ACPI_C_ACPI_MADT_H
-#define EFI_ACPI_C_ACPI_MADT_H
+#ifndef EFI_ACPI_MADT_H
+#define EFI_ACPI_MADT_H
 
 #include "efi/acpi/c-acpi-rsdt.h"
 #include "shared/types/types.h"

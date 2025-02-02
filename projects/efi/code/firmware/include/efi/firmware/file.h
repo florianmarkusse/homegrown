@@ -1,5 +1,5 @@
-#ifndef EFI_C_EFI_PROTOCOL_FILE_H
-#define EFI_C_EFI_PROTOCOL_FILE_H
+#ifndef EFI_FIRMWARE_FILE_H
+#define EFI_FIRMWARE_FILE_H
 
 #include "efi/firmware/base.h"
 #include "efi/firmware/system.h"

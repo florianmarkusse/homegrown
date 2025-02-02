@@ -1,5 +1,5 @@
-#ifndef EFI_ACPI_C_ACPI_RDSP_H
-#define EFI_ACPI_C_ACPI_RDSP_H
+#ifndef EFI_ACPI_RDSP_H
+#define EFI_ACPI_RDSP_H
 
 #include "efi/acpi/configuration-table.h"
 #include "shared/types/types.h"

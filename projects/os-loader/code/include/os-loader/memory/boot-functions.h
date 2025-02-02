@@ -1,5 +1,5 @@
-#ifndef EFI_MEMORY_BOOT_FUNCTIONS_H
-#define EFI_MEMORY_BOOT_FUNCTIONS_H
+#ifndef OS_LOADER_MEMORY_BOOT_FUNCTIONS_H
+#define OS_LOADER_MEMORY_BOOT_FUNCTIONS_H
 
 #include "efi/firmware/base.h" // for PhysicalAddress
 #include "efi-to-kernel/memory/descriptor.h"

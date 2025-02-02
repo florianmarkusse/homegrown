@@ -1,5 +1,5 @@
-#ifndef EFI_C_EFI_SYSTEM_H
-#define EFI_C_EFI_SYSTEM_H
+#ifndef EFI_FIRMWARE_SYSTEM_H
+#define EFI_FIRMWARE_SYSTEM_H
 
 #pragma once
 

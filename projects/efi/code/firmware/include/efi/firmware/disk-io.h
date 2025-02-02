@@ -1,5 +1,5 @@
-#ifndef EFI_C_EFI_PROTOCOL_DISK_IO_H
-#define EFI_C_EFI_PROTOCOL_DISK_IO_H
+#ifndef EFI_FIRMWARE_DISK_IO_H
+#define EFI_FIRMWARE_DISK_IO_H
 
 #include "efi/acpi/guid.h"
 #include "efi/firmware/base.h"

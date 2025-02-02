@@ -1,5 +1,5 @@
-#ifndef EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
-#define EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
+#ifndef EFI_FIRMWARE_GRAPHICS_OUTPUT_H
+#define EFI_FIRMWARE_GRAPHICS_OUTPUT_H
 
 #include "efi/firmware/base.h"
 #include "shared/uuid.h"

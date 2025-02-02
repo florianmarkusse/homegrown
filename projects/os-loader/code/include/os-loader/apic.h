@@ -1,5 +1,5 @@
-#ifndef EFI_APIC_H
-#define EFI_APIC_H
+#ifndef OS_LOADER_APIC_H
+#define OS_LOADER_APIC_H
 
 static constexpr auto APIC_LOCAL_ID_REGISTER = 0xFEE00020;
 static constexpr auto APIC_SIV_REGISTER = 0xFEE000F0;
