@@ -1,7 +1,7 @@
-#include "os-loader/gdt.h"
-#include "efi/firmware/base.h"        // for PhysicalAddress
+#include "x86-efi/gdt.h"
+#include "efi/firmware/base.h"               // for PhysicalAddress
 #include "os-loader/memory/boot-functions.h" // for allocAndZero
-#include "shared/types/types.h"        // for U64, U32, U16
+#include "shared/types/types.h"              // for U64, U32, U16
 
 typedef struct {
     union {
@@ -50,7 +50,6 @@ typedef struct {
     U64 reserved_2 : 19;
 } __attribute__((packed)) TSSDescriptor;
 
-// Task state segment - 64 bit
 typedef struct {
     U32 reserved_0;
     U32 rsp0_low;

@@ -11,10 +11,29 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_subproject("efi-to-kernel")
     add_subproject("uefi")
     add_subproject("efi")
-    add_platform_abstraction_and_correct_implementations()
+    add_subproject("platform-abstraction")
+    add_subproject("free-c")
+    add_subproject("x86")
 endif()
 
-add_library(${PROJECT_NAME} OBJECT "src/init.c")
+add_library(
+    ${PROJECT_NAME}
+    OBJECT
+    "src/init.c"
+    "src/features.c"
+    "src/gdt.c"
+    "src/jump.c"
+)
+
+target_include_directories(
+    ${PROJECT_NAME}
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_include_directories(
+    ${AGGREGATED_INTERFACE}
+    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
@@ -25,6 +44,9 @@ target_link_libraries(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE efi-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE efi-error)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()

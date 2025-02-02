@@ -16,7 +16,6 @@ add_executable(
     ${PROJECT_NAME}
     "src/main.c"
     "src/cpu.S"
-    "src/gdt.c"
     "src/data-reading.c"
     "src/memory/boot-functions.c"
     "src/memory/boot-functions.c"

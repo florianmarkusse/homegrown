@@ -9,7 +9,6 @@
 #include "efi/firmware/system.h"             // for PhysicalAddress
 #include "efi/globals.h"                     // for globals
 #include "os-loader/data-reading.h"          // for getKernelInfo
-#include "os-loader/gdt.h"                   // for enableNewGDT
 #include "os-loader/memory/boot-functions.h" // for mapMemoryAt
 #include "os-loader/memory/page-size.h"      // for UEFI_PAGE_SIZE
 #include "platform-abstraction/efi.h"
@@ -166,11 +165,11 @@ enum CpuFeatures {
     CPUID_FEAT_EDX_PBE = 1 << 31
 };
 
-extern void CpuEnableXSave(void);
-extern void CpuEnableAvx(void);
-extern void CpuEnableSse(void);
-extern void CpuEnableGpe(void);
-extern void CpuEnableFpu(void);
+extern void CPUEnableXSAVE(void);
+extern void CPUEnableAVX(void);
+extern void CPUEnableSSE(void);
+extern void CPUEnableGPE(void);
+extern void CPUEnableFPU(void);
 
 static U32 ecxFeatureInfo;
 static U32 edxFeatureInfo;
@@ -191,63 +190,63 @@ bool CpuHasFeatures(unsigned int ecx, unsigned int edx) {
     return true;
 }
 
-EFICALL void jumpIntoKernel(PhysicalAddress stackPointer) {
-    enableNewGDT();
+/*EFICALL void jumpIntoKernel(PhysicalAddress stackPointer) {*/
+/*    enableNewGDT();*/
+/**/
+/*    __asm__ __volatile__("mov %%rax, %%cr3"*/
+/*                         :*/
+/*                         : "a"(globals.rootPageTable)*/
+/*                         : "memory");*/
+/**/
+/*    __asm__ __volatile__(*/
+/*        //        "movq $0xFFFFFFFF, %%rax;"  "movq %%rax, (%%rdx);" "hlt;"*/
+/*        "cli;"*/
+/**/
+/*        //      "movq %%rdx, %%rdi;"*/
+/*        //      "movq $0xFFFFFFFFFFFFFF, %%rax;"*/
+/*        //      "movq $0x4000, %%rcx;"*/
+/*        //      "rep stosq;"*/
+/**/
+/*        // "call *%1"*/
+/**/
+/*        "movq %0, %%rsp;"*/
+/*        "movq %%rsp, %%rbp;"*/
+/**/
+/*        "cld;"*/
+/**/
+/*        "pushq %1;"*/
+/*        "retq"*/
+/*        :*/
+/*        : "r"(stackPointer), "r"(KERNEL_CODE_START)*/
+/*        // "d"(globals.frameBufferAddress)*/
+/*        : "memory");*/
+/**/
+/*    __builtin_unreachable();*/
+/**/
+/*    //*/
+/*    //    // Set PAT as:*/
+/*    //    // PAT0 -> WB  (06)*/
+/*    //    // PAT1 -> WT  (04)*/
+/*    //    // PAT2 -> UC- (07)*/
+/*    //    // PAT3 -> UC  (00)*/
+/*    //    // PAT4 -> WP  (05)*/
+/*    //    // PAT5 -> WC  (01)*/
+/*    //    U64 pat = (U64)0x010500070406;*/
+/*    //    wrmsr(0x277, pat);*/
+/*}*/
 
-    __asm__ __volatile__("mov %%rax, %%cr3"
-                         :
-                         : "a"(globals.level4PageTable)
-                         : "memory");
-
-    __asm__ __volatile__(
-        //        "movq $0xFFFFFFFF, %%rax;"  "movq %%rax, (%%rdx);"      "hlt;"
-        "cli;"
-
-        //      "movq %%rdx, %%rdi;"
-        //      "movq $0xFFFFFFFFFFFFFF, %%rax;"
-        //      "movq $0x4000, %%rcx;"
-        //      "rep stosq;"
-
-        // "call *%1"
-
-        "movq %0, %%rsp;"
-        "movq %%rsp, %%rbp;"
-
-        "cld;"
-
-        "pushq %1;"
-        "retq"
-        :
-        : "r"(stackPointer), "r"(KERNEL_CODE_START)
-        // "d"(globals.frameBufferAddress)
-        : "memory");
-
-    __builtin_unreachable();
-
-    //
-    //    // Set PAT as:
-    //    // PAT0 -> WB  (06)
-    //    // PAT1 -> WT  (04)
-    //    // PAT2 -> UC- (07)
-    //    // PAT3 -> UC  (00)
-    //    // PAT4 -> WP  (05)
-    //    // PAT5 -> WC  (01)
-    //    U64 pat = (U64)0x010500070406;
-    //    wrmsr(0x277, pat);
-}
-
-static U64 ncycles = 1;
-EFICALL void wait(U64 microseconds) {
-    U32 a;
-    U32 b;
-    __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));
-    U64 endtime = (((U64)b << 32) | a) + microseconds * 200 * ncycles;
-    U64 currTime;
-    do {
-        __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));
-        currTime = ((U64)b << 32) | a;
-    } while (currTime < endtime);
-}
+/*static U64 ncycles = 1;*/
+/*EFICALL void wait(U64 microseconds) {*/
+/*    U32 a;*/
+/*    U32 b;*/
+/*    __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));*/
+/*    U64 endtime = (((U64)b << 32) | a) + microseconds * 200 * ncycles;*/
+/*    U64 currTime;*/
+/*    do {*/
+/*        __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(b));*/
+/*        currTime = ((U64)b << 32) | a;*/
+/*    } while (currTime < endtime);*/
+/*}*/
 
 EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.h = handle;
@@ -256,77 +255,74 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.st->con_out->set_attribute(globals.st->con_out,
                                        BACKGROUND_RED | YELLOW);
 
-    globals.level4PageTable = allocAndZero(1);
+    globals.rootPageTable = allocAndZero(1);
 
     initArchitecture();
 
-    KFLUSH_AFTER {
-        INFO(STRING("CR3 memory location:"));
-        /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
-        INFO((void *)globals.level4PageTable, NEWLINE);
-    }
+    /*U32 maxSupportCPUID = 0;*/
+    /*__asm__ __volatile__("mov $0, %%eax;"*/
+    /*                     "mov $0, %%ecx;"*/
+    /*                     "cpuid;"*/
+    /*                     "mov %%eax,%0"*/
+    /*                     : "=r"(maxSupportCPUID)*/
+    /*                     :*/
+    /*                     : "eax", "ebx", "ecx", "edx");*/
+    /**/
+    /*if (maxSupportCPUID < 1) {*/
+    /*    KFLUSH_AFTER {*/
+    /*        ERROR(STRING(*/
+    /*            "CPU does not support CPUID of 1 and above, buy newer
+     * CPU.\n"));*/
+    /*    }*/
+    /*    waitKeyThenReset();*/
+    /*}*/
 
-    U32 maxSupportCPUID = 0;
-    __asm__ __volatile__("mov $0, %%eax;"
-                         "mov $0, %%ecx;"
-                         "cpuid;"
-                         "mov %%eax,%0"
-                         : "=r"(maxSupportCPUID)
-                         :
-                         : "eax", "ebx", "ecx", "edx");
-
-    if (maxSupportCPUID < 1) {
-        KFLUSH_AFTER {
-            ERROR(STRING(
-                "CPU does not support CPUID of 1 and above, buy newer CPU.\n"));
-        }
-        waitKeyThenReset();
-    }
-
-    U32 processorVersionInfo = 0;
-    __asm__ __volatile__("mov $1, %%eax;"
-                         "mov $0, %%ecx;"
-                         "cpuid;"
-                         "mov %%eax,%0;"
-                         "mov %%ecx,%1;"
-                         "mov %%edx,%2"
-                         : "=r"(processorVersionInfo), "=r"(ecxFeatureInfo),
-                           "=r"(edxFeatureInfo)
-                         :
-                         : "eax", "ebx", "ecx", "edx");
-
-    U64 bootstrapProcessorID = 0;
-    __asm__ __volatile__("mov $1, %%eax;"
-                         "mov $0, %%ecx;"
-                         "cpuid;"
-                         "shrl $24, %%ebx;"
-                         "mov %%rbx,%0;"
-                         : "=r"(bootstrapProcessorID)
-                         :
-                         : "eax", "ebx", "ecx", "edx");
-
-    U32 a;
-    // should be no need to check for RDSTC, available since Pentium, therefore
-    // all long mode capable CPUs should have it. But just to be on the safe
-    // side
-    __asm__ __volatile__("mov $1, %%eax; cpuid;" : "=d"(a) : :);
-    if (a & (1 << 4)) {
-        // calibrate CPU clock cycles
-        U32 d;
-        __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));
-        U64 currtime = ((U64)d << 32) | a;
-        globals.st->boot_services->stall(1);
-        __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));
-        ncycles = ((U64)d << 32) | a;
-        ncycles -= currtime;
-        ncycles /= 5;
-        if (ncycles < 1) {
-            ncycles = 1;
-        }
-    } else {
-        KFLUSH_AFTER { ERROR(STRING("RDSTC not supported, buy newer CPU.\n")); }
-        waitKeyThenReset();
-    }
+    /*U32 processorVersionInfo = 0;*/
+    /*__asm__ __volatile__("mov $1, %%eax;"*/
+    /*                     "mov $0, %%ecx;"*/
+    /*                     "cpuid;"*/
+    /*                     "mov %%eax,%0;"*/
+    /*                     "mov %%ecx,%1;"*/
+    /*                     "mov %%edx,%2"*/
+    /*                     : "=r"(processorVersionInfo), "=r"(ecxFeatureInfo),*/
+    /*                       "=r"(edxFeatureInfo)*/
+    /*                     :*/
+    /*                     : "eax", "ebx", "ecx", "edx");*/
+    /**/
+    /*U64 bootstrapProcessorID = 0;*/
+    /*__asm__ __volatile__("mov $1, %%eax;"*/
+    /*                     "mov $0, %%ecx;"*/
+    /*                     "cpuid;"*/
+    /*                     "shrl $24, %%ebx;"*/
+    /*                     "mov %%rbx,%0;"*/
+    /*                     : "=r"(bootstrapProcessorID)*/
+    /*                     :*/
+    /*                     : "eax", "ebx", "ecx", "edx");*/
+    /**/
+    /*U32 a;*/
+    /*// should be no need to check for RDSTC, available since Pentium,
+     * therefore*/
+    /*// all long mode capable CPUs should have it. But just to be on the safe*/
+    /*// side*/
+    /*__asm__ __volatile__("mov $1, %%eax; cpuid;" : "=d"(a) : :);*/
+    /*if (a & (1 << 4)) {*/
+    /*    // calibrate CPU clock cycles*/
+    /*    U32 d;*/
+    /*    __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));*/
+    /*    U64 currtime = ((U64)d << 32) | a;*/
+    /*    globals.st->boot_services->stall(1);*/
+    /*    __asm__ __volatile__("rdtsc" : "=a"(a), "=d"(d));*/
+    /*    ncycles = ((U64)d << 32) | a;*/
+    /*    ncycles -= currtime;*/
+    /*    ncycles /= 5;*/
+    /*    if (ncycles < 1) {*/
+    /*        ncycles = 1;*/
+    /*    }*/
+    /*} else {*/
+    /*    KFLUSH_AFTER { ERROR(STRING("RDSTC not supported, buy newer CPU.\n"));
+     * }*/
+    /*    waitKeyThenReset();*/
+    /*}*/
 
     KFLUSH_AFTER { INFO(STRING("Going to read kernel info\n")); }
     DataPartitionFile kernelFile = getKernelInfo();
@@ -351,12 +347,11 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     mapMemoryAt((U64)kernelContent.buf, KERNEL_CODE_START,
                 (U32)kernelContent.len);
 
-    __asm__ __volatile__("cli");
-
-    KFLUSH_AFTER {
-        INFO(STRING("Bootstrap processor work before exiting boot services\n"));
-    }
-    bootstrapProcessorWork();
+    /*KFLUSH_AFTER {*/
+    /*    INFO(STRING("Bootstrap processor work before exiting boot
+     * services\n"));*/
+    /*}*/
+    /*bootstrapProcessorWork();*/
 
     KFLUSH_AFTER {
         INFO(STRING(
@@ -399,7 +394,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
     KernelParameters *params = (KernelParameters *)kernelParams;
 
-    params->level4PageTable = globals.level4PageTable;
+    params->rootPageTable = globals.rootPageTable;
 
     KFLUSH_AFTER { INFO(STRING("Allocating space for stack\n")); }
     // NOTE: It seems we are adding this stuff to the "free" memory in the
@@ -431,55 +426,56 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
         waitKeyThenReset();
     }
 
-    if (CpuHasFeatures(0, CPUID_FEAT_EDX_PGE)) {
-        KFLUSH_AFTER { INFO(STRING("Enabling GPE\n")); }
-        CpuEnableGpe();
-    } else {
-        KFLUSH_AFTER {
-            ERROR(STRING("CPU does not support global memory paging!"));
-        }
-        waitKeyThenReset();
-    }
+    /*if (CpuHasFeatures(0, CPUID_FEAT_EDX_PGE)) {*/
+    /*    KFLUSH_AFTER { INFO(STRING("Enabling GPE\n")); }*/
+    /*    CPUEnableGPE();*/
+    /*} else {*/
+    /*    KFLUSH_AFTER {*/
+    /*        ERROR(STRING("CPU does not support global memory paging!"));*/
+    /*    }*/
+    /*    waitKeyThenReset();*/
+    /*}*/
+    /**/
+    /*// Can we enable FPU?*/
+    /*if (CpuHasFeatures(0, CPUID_FEAT_EDX_FPU)) {*/
+    /*    KFLUSH_AFTER { INFO(STRING("Enabling FPU\n")); }*/
+    /*    CPUEnableFPU();*/
+    /*} else {*/
+    /*    KFLUSH_AFTER { ERROR(STRING("CPU does not support FPU!")); }*/
+    /*    waitKeyThenReset();*/
+    /*}*/
+    /**/
+    /*// Can we enable SSE?*/
+    /*if (CpuHasFeatures(0, CPUID_FEAT_EDX_SSE)) {*/
+    /*    KFLUSH_AFTER {*/
+    /*        INFO(STRING(*/
+    /*            "Enabling SSE... even though it doesnt work yet anyway
+     * lol\n"));*/
+    /*    }*/
+    /*    CPUEnableSSE();*/
+    /*} else {*/
+    /*    KFLUSH_AFTER { ERROR(STRING("CPU does not support SSE!")); }*/
+    /*    waitKeyThenReset();*/
+    /*}*/
 
-    // Can we enable FPU?
-    if (CpuHasFeatures(0, CPUID_FEAT_EDX_FPU)) {
-        KFLUSH_AFTER { INFO(STRING("Enabling FPU\n")); }
-        CpuEnableFpu();
-    } else {
-        KFLUSH_AFTER { ERROR(STRING("CPU does not support FPU!")); }
-        waitKeyThenReset();
-    }
-
-    // Can we enable SSE?
-    if (CpuHasFeatures(0, CPUID_FEAT_EDX_SSE)) {
-        KFLUSH_AFTER {
-            INFO(STRING(
-                "Enabling SSE... even though it doesnt work yet anyway lol\n"));
-        }
-        CpuEnableSse();
-    } else {
-        KFLUSH_AFTER { ERROR(STRING("CPU does not support SSE!")); }
-        waitKeyThenReset();
-    }
-
-    //    // Can we enable xsave? (and maybe avx?)
-    //    // We are just checking for xsave and not osxsave currently. I am not
-    //    sure
-    //    // what the implications would be tbh.
-    //    if (CpuHasFeatures(CPUID_FEAT_ECX_XSAVE, 0)) {
-    //
-    //        KFLUSH_AFTER { INFO(STRING("Enabling XSAVE\n")); }
-    //        CpuEnableXSave();
-    //
-    //        if (CpuHasFeatures(CPUID_FEAT_ECX_AVX, 0)) {
-    //            KFLUSH_AFTER { INFO(STRING("Enabling AVX\n")); }
-    //            CpuEnableAvx();
-    //        } else {
-    //            error(u"CPU does not support AVX!");
-    //        }
-    //    } else {
-    //        error(u"CPU does not support XSAVE!");
-    //    }
+    /*// Can we enable xsave? (and maybe avx?)*/
+    /*// We are just checking for xsave and not osxsave currently. I am not*/
+    /*// sure*/
+    /*// what the implications would be tbh.*/
+    /*if (CpuHasFeatures(CPUID_FEAT_ECX_XSAVE, 0)) {*/
+    /**/
+    /*    KFLUSH_AFTER { INFO(STRING("Enabling XSAVE\n")); }*/
+    /*    CpuEnableXSave();*/
+    /**/
+    /*    if (CpuHasFeatures(CPUID_FEAT_ECX_AVX, 0)) {*/
+    /*        KFLUSH_AFTER { INFO(STRING("Enabling AVX\n")); }*/
+    /*        CpuEnableAvx();*/
+    /*    } else {*/
+    /*        error(u"CPU does not support AVX!");*/
+    /*    }*/
+    /*} else {*/
+    /*    error(u"CPU does not support XSAVE!");*/
+    /*}*/
 
     KFLUSH_AFTER {
         INFO(STRING("Prepared and collected all necessary information to jump "

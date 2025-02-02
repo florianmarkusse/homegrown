@@ -27,7 +27,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
         .totalDescriptorSize = kernelParameters->memory.totalDescriptorSize,
         .descriptors = kernelParameters->memory.descriptors,
         .descriptorSize = kernelParameters->memory.descriptorSize};
-    initMemoryManager(kernelMemory, kernelParameters->level4PageTable);
+    initMemoryManager(kernelMemory, kernelParameters->rootPageTable);
 
     void *initMemory = allocAndMap(INIT_MEMORY);
     Arena arena = (Arena){.curFree = initMemory,

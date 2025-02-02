@@ -27,7 +27,7 @@ PhysicalAddress allocAndZero(USize numPages) {
 
 void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
     /* is this a canonical address? We handle virtual memory up to 256TB */
-    if (!globals.level4PageTable ||
+    if (!globals.rootPageTable ||
         ((virt >> 48L) != 0x0000 && (virt >> 48L) != 0xffff)) {
         KFLUSH_AFTER {
             ERROR(STRING(
@@ -44,7 +44,7 @@ void mapMemoryAtWithFlags(U64 phys, U64 virt, U64 size, U64 additionalFlags) {
         /* 512G */
         pageEntry =
             /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
-            &(((PhysicalAddress *)globals.level4PageTable)[RING_RANGE_VALUE(
+            &(((PhysicalAddress *)globals.rootPageTable)[RING_RANGE_VALUE(
                 virt >> 39L, PageTableFormat.ENTRIES)]);
         if (!*pageEntry) {
             PhysicalAddress addr = allocAndZero(1);
