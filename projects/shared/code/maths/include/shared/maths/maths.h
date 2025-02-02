@@ -1,10 +1,6 @@
 #ifndef SHARED_MATHS_MATHS_H
 #define SHARED_MATHS_MATHS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "shared/types/types.h"
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -75,9 +71,5 @@ static inline U64 what_pow2(U64 x) { return 63 - __builtin_clzll(x); }
 /*    })*/
 
 U64 power(U64 base, U64 exponent);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

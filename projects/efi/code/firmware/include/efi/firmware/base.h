@@ -70,10 +70,6 @@
  *    architecture, but should be roughly the same.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * EFICALL: Annotate Functions with UEFI Calling-Convention
  *
@@ -252,9 +248,5 @@ typedef struct IpAddress {
         _Alignas(4) Ipv6Address ipv6;
     };
 } IpAddress;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

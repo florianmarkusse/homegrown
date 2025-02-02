@@ -16,10 +16,6 @@
  * limited hints on some peculiarities.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi-to-kernel/memory/descriptor.h"
 #include "efi/acpi/configuration-table.h"
 #include "efi/firmware/base.h"
@@ -584,9 +580,5 @@ typedef struct SystemTable {
     USize number_of_table_entries;
     ConfigurationTable *configuration_table;
 } SystemTable;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

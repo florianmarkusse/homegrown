@@ -1,10 +1,6 @@
 #ifndef EFI_C_EFI_PROTOCOL_BLOCK_IO_H
 #define EFI_C_EFI_PROTOCOL_BLOCK_IO_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/firmware/base.h"
 #include "shared/uuid.h"
 
@@ -41,9 +37,5 @@ typedef struct BlockIoProtocol {
     void *WriteBlocks;
     void *FlushBlocks;
 } BlockIoProtocol;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

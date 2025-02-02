@@ -1,10 +1,6 @@
 #ifndef SHARED_MEMORY_ALLOCATOR_BUDDY_H
 #define SHARED_MEMORY_ALLOCATOR_BUDDY_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "shared/types/types.h"
 
 typedef struct {
@@ -35,9 +31,5 @@ __attribute((malloc)) void *buddyAlloc(BuddyAllocator *buddyAllocator, I64 size,
                                        I64 count, U8 flags);
 
 void freeBuddy(BuddyAllocator *buddyAllocator, void *data);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

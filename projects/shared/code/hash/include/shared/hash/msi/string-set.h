@@ -1,15 +1,11 @@
 #ifndef SHARED_HASH_MSI_STRING_SET_H
 #define SHARED_HASH_MSI_STRING_SET_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "common.h"                // for MSI_SET
-#include "shared/macros.h" // for MACRO_VAR
-#include "shared/types/types.h"
+#include "common.h"                             // for MSI_SET
 #include "shared/hash/hash-comparison-status.h" // for HashComparisonStatus
+#include "shared/macros.h"                      // for MACRO_VAR
 #include "shared/text/string.h"                 // for string
+#include "shared/types/types.h"
 
 typedef MSI_SET(string) msi_string;
 
@@ -58,9 +54,5 @@ HashComparisonStatus msi_equalsStringSet(msi_string *set1, msi_string *set2);
 //     }
 //     return indexInsert(string, hashStringDjb2(string), index);
 // }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

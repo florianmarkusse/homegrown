@@ -1,10 +1,6 @@
 #ifndef SHARED_HASH_HASHES_H
 #define SHARED_HASH_HASHES_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "shared/types/types.h"
 
 #include "shared/text/string.h"
@@ -41,9 +37,5 @@ static inline U16 hashU16(U16 x) {
     x ^= x >> 10;
     return x;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

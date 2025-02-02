@@ -9,10 +9,6 @@
  * XXX
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/acpi/guid.h"
 #include "efi/firmware/base.h"
 
@@ -69,9 +65,5 @@ static constexpr auto DEVICE_PATH_nullptr = (DevicePathProtocol){
     .subtype = DEVICE_PATH_SUBTYPE_END_ALL,
     .length = {4, 0},
 };
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

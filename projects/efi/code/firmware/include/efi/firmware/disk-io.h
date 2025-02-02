@@ -1,10 +1,6 @@
 #ifndef EFI_C_EFI_PROTOCOL_DISK_IO_H
 #define EFI_C_EFI_PROTOCOL_DISK_IO_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/acpi/guid.h"
 #include "efi/firmware/base.h"
 
@@ -21,9 +17,5 @@ typedef struct DiskIOProtocol {
     USize(EFICALL *writeDisk)(DiskIOProtocol *this_, U32 mediaId, U64 offset,
                               USize bufferSize, void *buffer);
 } DiskIOProtocol;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

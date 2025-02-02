@@ -1,10 +1,6 @@
 #ifndef POSIX_TEST_FRAMEWORK_TEST_H
 #define POSIX_TEST_FRAMEWORK_TEST_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "posix/log.h"
 #include "shared/macros.h"      // for MACRO_VAR
 #include "shared/text/string.h" // for string
@@ -35,9 +31,5 @@ void appendTestFailureFinish();
 #define TEST_TOPIC(testTopicString)                                            \
     for (auto MACRO_VAR(i) = (testTopicStart(testTopicString), 0);             \
          MACRO_VAR(i) < 1; MACRO_VAR(i) = (testTopicFinish(), 1))
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

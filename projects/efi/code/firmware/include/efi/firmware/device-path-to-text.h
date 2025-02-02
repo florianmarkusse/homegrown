@@ -9,10 +9,6 @@
  * XXX
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/acpi/guid.h"
 #include "efi/firmware/base.h"
 #include "efi/firmware/device-path.h"
@@ -31,9 +27,5 @@ typedef struct DevicePathToTextProtocol {
                                                 bool display_only,
                                                 bool allow_shortcuts);
 } DevicePathToTextProtocol;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

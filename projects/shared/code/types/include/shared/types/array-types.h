@@ -1,10 +1,6 @@
 #ifndef SHARED_TYPES_ARRAY_TYPES_H
 #define SHARED_TYPES_ARRAY_TYPES_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "shared/types/array.h"
 #include "shared/types/types.h"
 
@@ -19,9 +15,5 @@ typedef ARRAY(U8) U8_a;
 typedef ARRAY(I8 *) I8_ptr_a;
 typedef ARRAY(bool) bool_a;
 typedef ARRAY(void *) void_ptr_a;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

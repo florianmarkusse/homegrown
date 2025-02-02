@@ -9,10 +9,6 @@
  * XXX
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/firmware/base.h"
 #include "efi/firmware/device-path.h"
 
@@ -42,9 +38,5 @@ typedef struct DevicePathUtilitiesProtocol {
                                                       U8 node_subtype,
                                                       U16 node_length);
 } DevicePathUtilitiesProtocol;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -9,10 +9,6 @@
  * XXX
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/firmware/base.h"
 #include "shared/uuid.h"
 
@@ -77,9 +73,5 @@ typedef struct SimpleTextOutputProtocol {
                                    bool visible);
     SimpleTextOutputMode *mode;
 } SimpleTextOutpuProtocol;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

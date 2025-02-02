@@ -1,10 +1,6 @@
 #ifndef EFI_C_EFI_PROTOCOL_SIMPLE_FILE_SYSTEM_H
 #define EFI_C_EFI_PROTOCOL_SIMPLE_FILE_SYSTEM_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/firmware/base.h"
 #include "efi/firmware/file.h"
 #include "shared/uuid.h"
@@ -22,9 +18,5 @@ typedef struct SimpleFileSystemProtocol {
     Status(EFICALL *openVolume)(SimpleFileSystemProtocol *this_,
                                 FileProtocol **Root);
 } SimpleFileSystemProtocol;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

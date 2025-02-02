@@ -1,10 +1,6 @@
 #ifndef SHARED_HASH_TRIE_COMMON_ITERATOR_H
 #define SHARED_HASH_TRIE_COMMON_ITERATOR_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // NOTE: Ready for code generation
 /**
  * Ugly code ahead. Rewriting this iterator each time is a massive pain so I
@@ -93,9 +89,5 @@ extern "C" {
                       createIteratorFunctionName)                              \
     TRIE_NEXT_ITERATOR(returnType, iteratorType, iterNodeType,                 \
                        nextIteratorFunctionName)
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

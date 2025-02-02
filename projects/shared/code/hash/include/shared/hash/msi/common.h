@@ -1,10 +1,6 @@
 #ifndef SHARED_HASH_MSI_COMMON_H
 #define SHARED_HASH_MSI_COMMON_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "shared/macros.h" // for MACRO_VAR
 #include "shared/memory/allocator/arena.h"
 #include "shared/types/types.h"
@@ -72,9 +68,5 @@ static inline U32 indexLookup(U64 hash, U16 exp, U32 idx) {
 }
 
 void msi_newSet(void *setSlice, U64 size, U64 align, Arena *a);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

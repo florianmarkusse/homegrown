@@ -1,10 +1,6 @@
 #ifndef POSIX_FILE_FILE_STATUS_H
 #define POSIX_FILE_FILE_STATUS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "shared/enum.h"
 #include "shared/text/string.h"
 
@@ -21,9 +17,5 @@ static constexpr auto FILE_STATUS_COUNT = FILE_STATUS_ENUM(PLUS_ONE);
 
 static string fileStatusStrings[FILE_STATUS_COUNT] = {
     FILE_STATUS_ENUM(ENUM_TO_STRING)};
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

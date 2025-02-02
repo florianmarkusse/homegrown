@@ -1,10 +1,6 @@
 #ifndef EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
 #define EFI_C_EFI_PROTOCOL_GRAPHICS_OUTPUT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/firmware/base.h"
 #include "shared/uuid.h"
 
@@ -73,9 +69,5 @@ typedef struct GraphicsOutputProtocol {
                          USize width, USize height, USize delta);
     GraphicsOutputProtocolMode *mode;
 } GraphicsOutputProtocol;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

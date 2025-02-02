@@ -9,10 +9,6 @@
  * XXX
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/firmware/base.h"
 #include "efi/firmware/system.h"
 #include "shared/uuid.h"
@@ -44,9 +40,5 @@ typedef struct LoadedImageProtocol {
 
     Status(EFICALL *unload)(Handle image_handle);
 } LoadedImageProtocol;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

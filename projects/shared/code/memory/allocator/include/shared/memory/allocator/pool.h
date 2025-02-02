@@ -1,10 +1,6 @@
 #ifndef SHARED_MEMORY_ALLOCATOR_POOL_H
 #define SHARED_MEMORY_ALLOCATOR_POOL_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "shared/types/types.h"
 
 struct PoolHead {
@@ -32,9 +28,5 @@ PoolAllocator createPoolAllocator(I8 *buffer, I64 cap, I64 chunkSize);
 __attribute((malloc)) void *poolAlloc(PoolAllocator *pool, U8 flags);
 
 void freePoolNode(PoolAllocator *pool, void *ptr);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

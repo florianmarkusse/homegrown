@@ -1,13 +1,9 @@
 #ifndef SHARED_HASH_TRIE_STRING_SET_H
 #define SHARED_HASH_TRIE_STRING_SET_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "common-iterator.h" // for TRIE_ITERATOR_HEADER_FILE
+#include "shared/macros.h"   // for MACRO_VAR
 #include "shared/memory/allocator/arena.h"
-#include "shared/macros.h"      // for MACRO_VAR
 #include "shared/text/string.h" // for string
 
 typedef struct trie_stringSet trie_stringSet;
@@ -94,9 +90,5 @@ TRIE_ITERATOR_HEADER_FILE(trie_stringSet, trie_stringIterNode,
 //    }
 //    return (string){0};
 //}
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

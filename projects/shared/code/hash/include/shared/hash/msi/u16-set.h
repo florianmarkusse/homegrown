@@ -1,13 +1,9 @@
 #ifndef SHARED_HASH_MSI_U16_SET_H
 #define SHARED_HASH_MSI_U16_SET_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "common.h" // for MSI_SET
-#include "shared/types/types.h"
+#include "common.h"        // for MSI_SET
 #include "shared/macros.h" // for MACRO_VAR
+#include "shared/types/types.h"
 
 typedef MSI_SET(U16) msi_U16;
 
@@ -23,9 +19,5 @@ bool msi_containsU16(U16 value, U64 hash, msi_U16 *index);
     for (U64 MACRO_VAR(_index) = 0; MACRO_VAR(_index) < (1 << (msiSet)->exp);  \
          ++MACRO_VAR(_index))                                                  \
         if (((element) = (msiSet)->buf[MACRO_VAR(_index)]) != 0)
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

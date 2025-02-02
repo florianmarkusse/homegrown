@@ -1,14 +1,10 @@
 #ifndef SHARED_HASH_TRIE_U16_SET_H
 #define SHARED_HASH_TRIE_U16_SET_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "common-iterator.h" // for TRIE_ITERATOR_HEADER_FILE
-#include "shared/types/types.h"
+#include "shared/macros.h"   // for MACRO_VAR
 #include "shared/memory/allocator/arena.h"
-#include "shared/macros.h" // for MACRO_VAR
+#include "shared/types/types.h"
 
 typedef struct trie_U16Set trie_U16Set;
 struct trie_U16Set {
@@ -28,9 +24,5 @@ TRIE_ITERATOR_HEADER_FILE(trie_U16Set, trie_U16IterNode, trie_U16Iterator, U16,
         if (((element) = nextU16Iterator(MACRO_VAR(iter), &(scratch))) == 0)   \
             break;                                                             \
         else
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -1,10 +1,6 @@
 #ifndef SHARED_TYPES_ARRAY_H
 #define SHARED_TYPES_ARRAY_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "shared/types/types.h"
 
 #define ARRAY(T)                                                               \
@@ -26,9 +22,5 @@ extern "C" {
         U64 len;                                                               \
         U64 cap;                                                               \
     }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

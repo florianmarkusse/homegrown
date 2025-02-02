@@ -1,10 +1,6 @@
 #ifndef SHARED_TYPES_TYPES_H
 #define SHARED_TYPES_TYPES_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !defined(__INT8_TYPE__) || !defined(__UINT8_TYPE__) ||                     \
     !defined(__INT16_TYPE__) || !defined(__UINT16_TYPE__) ||                   \
     !defined(__INT32_TYPE__) || !defined(__UINT32_TYPE__) ||                   \
@@ -115,9 +111,5 @@ static constexpr auto F64_MIN_POS = 2.2250738585072014e-308;
     _Generic((x), F32: F32_MIN_POS, F64: F64_MIN_POS, default: "unknown")
 
 static constexpr auto BITS_PER_BYTE = 8;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

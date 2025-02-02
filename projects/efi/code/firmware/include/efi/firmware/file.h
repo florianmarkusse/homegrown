@@ -1,10 +1,6 @@
 #ifndef EFI_C_EFI_PROTOCOL_FILE_H
 #define EFI_C_EFI_PROTOCOL_FILE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/firmware/base.h"
 #include "efi/firmware/system.h"
 #include "shared/uuid.h"
@@ -68,9 +64,5 @@ typedef struct FileProtocol {
     // EFI_FILE_FLUSH_EX FlushEx; // Added for revision 2
     void *FlushEx;
 } FileProtocol;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

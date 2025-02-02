@@ -1,10 +1,6 @@
 #ifndef SHARED_TEXT_STRING_H
 #define SHARED_TEXT_STRING_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/assert.h"
 #include "shared/types/array.h"
@@ -120,9 +116,5 @@ static inline I64 lastOccurenceOf(string s, U8 ch) {
     }
     return -1;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

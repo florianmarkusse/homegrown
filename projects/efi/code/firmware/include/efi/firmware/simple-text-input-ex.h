@@ -9,10 +9,6 @@
  * XXX
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/acpi/guid.h"
 #include "efi/firmware/base.h"
 #include "efi/firmware/simple-text-input.h"
@@ -71,9 +67,5 @@ typedef struct SimpleTextInputExProtocol {
     Status(EFICALL *unregister_key_notify)(SimpleTextInputExProtocol *this_,
                                            void *notification_handle);
 } SimpleTextInputExProtocol;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

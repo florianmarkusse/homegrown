@@ -1,10 +1,6 @@
 #ifndef EFI_C_EFI_PROTOCOL_ACPI_H
 #define EFI_C_EFI_PROTOCOL_ACPI_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "efi/firmware/base.h"
 
 static constexpr auto ACPI_TABLE_PROTOCOL_GUID =
@@ -21,9 +17,5 @@ typedef struct ACPITableProtocol {
     Status(EFICALL *uninstallACPITable)(ACPITableProtocol *this_,
                                         USize tableKey);
 } ACPITableProtocol;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
