@@ -3,7 +3,7 @@
 
 #ifdef X86_ARCHITECTURE
 
-#include "x86/cpu/fault.h"
+#include "x86/fault.h"
 
 void initIDT();
 __attribute__((noreturn)) void triggerFault(Fault fault);

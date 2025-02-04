@@ -2,41 +2,37 @@
 #include "efi/firmware/base.h"   // for PhysicalAddress
 #include "efi/firmware/system.h" // for PhysicalAddress
 #include "efi/globals.h"
+#include "efi/memory.h"
 #include "platform-abstraction/efi.h"
 #include "platform-abstraction/log.h"
 #include "shared/log.h"
+#include "shared/maths/maths.h"
 #include "shared/text/string.h"
-#include "x86-efi/features.h"
 #include "x86-efi/gdt.h"
+#include "x86/configuration/cpu2.h"
+#include "x86/configuration/features.h"
+#include "x86/gdt.h"
 
-typedef struct {
-    U32 eax;
-    U32 ebx;
-    U32 ecx;
-    U32 edx;
-} CPUIDResult;
-CPUIDResult CPUID(U32 functionID) {
-    CPUIDResult result;
-    __asm__ __volatile__("cpuid"
-                         : "=a"(result.eax), "=b"(result.ebx), "=c"(result.ecx),
-                           "=d"(result.edx)
-                         : "a"(functionID)
-                         : "cc");
-    return result;
-}
+void bootstrapProcessorWork() {
+    disablePICAndNMI();
 
-static U64 microSecondInCycles = 1;
-// 1 millionth of a second
-void wait(U64 microSeconds) {
-    U32 edx;
-    U32 eax;
-    __asm__ __volatile__("rdtscp" : "=a"(eax), "=d"(edx));
-    U64 currentCycles = ((U64)edx << 32) | eax;
-    U64 endInCycles = currentCycles + microSeconds * microSecondInCycles;
-    do {
-        __asm__ __volatile__("rdtscp" : "=a"(eax), "=d"(edx));
-        currentCycles = ((U64)edx << 32) | eax;
-    } while (currentCycles < endInCycles);
+    Status status = globals.st->boot_services->allocate_pages(
+        ALLOCATE_ANY_PAGES, LOADER_DATA,
+        CEILING_DIV_VALUE(3 * sizeof(PhysicalBasePage), UEFI_PAGE_SIZE),
+        &gdtData);
+    if (EFI_ERROR(status)) {
+        KFLUSH_AFTER {
+            ERROR(STRING("Could not allocate data for disk buffer\n"));
+        }
+        waitKeyThenReset();
+    }
+
+    gdtDescriptor = prepNewGDT((PhysicalBasePage *)gdtData);
+
+    // NOTE: WHY????
+    globals.st->boot_services->stall(100000);
+
+    __asm__ __volatile__("pause" : : : "memory"); // memory barrier
 }
 
 // NOTE: this should be done per core probably?
@@ -49,32 +45,7 @@ void calibrateWait() {
     globals.st->boot_services->stall(CALIBRATION_MICROSECONDS);
     __asm__ __volatile__("rdtscp" : "=a"(eax), "=d"(edx));
     U64 endCycles = ((U64)edx << 32) | eax;
-    microSecondInCycles = endCycles - currentCycles / CALIBRATION_MICROSECONDS;
-}
-
-void disablePICAndNMI() {
-    __asm__ __volatile__(
-        "movb $0xFF, %%al;" // Set AL to 0xFF
-        "outb %%al, $0x21;" // Disable master PIC
-        "outb %%al, $0xA1;" // Disable slave PIC
-        "inb $0x70, %%al;"  // Read from port 0x70
-        "orb $0x80, %%al;"  // Set the NMI disable bit (bit 7)
-        "outb %%al, $0x70;" // Write the modified value back to port 0x70
-        :                   // No output operands
-        :                   // No input operands
-        : "eax", "memory"   // Clobbered registers: eax and memory
-    );
-}
-
-void bootstrapProcessorWork() {
-    disablePICAndNMI();
-
-    prepNewGDT();
-
-    // NOTE: WHY????
-    globals.st->boot_services->stall(100000);
-
-    __asm__ __volatile__("pause" : : : "memory"); // memory barrier
+    cyclesPerMicroSecond = endCycles - currentCycles / CALIBRATION_MICROSECONDS;
 }
 
 void messageAndExit(string message) {
@@ -134,6 +105,8 @@ void initArchitecture() {
             "Enabling SSE... even though it doesnt work yet anyway lol\n"));
     }
     CPUEnableSSE();
+
+    // TODO: THE PAT PROGRAMMING HERE!
 
     //   if (!features.XSAVE) {
     //       messageAndExit(STRING("CPU does not support XSAVE!"));

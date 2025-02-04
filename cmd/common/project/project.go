@@ -88,7 +88,8 @@ const SHARED = "shared"
 const POSIX = "posix"
 const PLATFORM_ABSTRACTION = "platform-abstraction"
 const X86 = "x86"
-const X86_KERNEL = "x86-kernel"
+const X86_PHYSICAL = "x86-physical"
+const X86_VIRTUAL = "x86-virtual"
 const X86_EFI = "x86-efi"
 const UEFI = "uefi"
 const FREE_C = "free-c"
@@ -103,7 +104,8 @@ var sharedFolder = common.REPO_PROJECTS + "/" + SHARED + "/"
 var posixFolder = common.REPO_PROJECTS + "/" + POSIX + "/"
 var platformAbstractionFolder = common.REPO_PROJECTS + "/" + PLATFORM_ABSTRACTION + "/"
 var x86Folder = common.REPO_PROJECTS + "/" + X86 + "/"
-var x86KernelFolder = common.REPO_PROJECTS + "/" + X86_KERNEL + "/"
+var x86PhysicalFolder = common.REPO_PROJECTS + "/" + X86_PHYSICAL + "/"
+var x86VirtualFolder = common.REPO_PROJECTS + "/" + X86_VIRTUAL + "/"
 var x86EfiFolder = common.REPO_PROJECTS + "/" + X86_EFI + "/"
 var uefiFolder = common.REPO_PROJECTS + "/" + UEFI + "/"
 var freeCFolder = common.REPO_PROJECTS + "/" + FREE_C + "/"
@@ -173,11 +175,18 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		CodeFolder:  x86Folder + "code",
 		Environment: string(environment.Freestanding),
 	},
-	X86_KERNEL: {
+	X86_PHYSICAL: {
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
-		Folder:      x86KernelFolder,
-		CodeFolder:  x86KernelFolder + "code",
+		Folder:      x86PhysicalFolder,
+		CodeFolder:  x86PhysicalFolder + "code",
+		Environment: string(environment.Freestanding),
+	},
+	X86_VIRTUAL: {
+		CCompiler:   ELF.CCompiler,
+		Linker:      ELF.Linker,
+		Folder:      x86VirtualFolder,
+		CodeFolder:  x86VirtualFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 	X86_EFI: {

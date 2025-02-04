@@ -17,3 +17,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-i)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)

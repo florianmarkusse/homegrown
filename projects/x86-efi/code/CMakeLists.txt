@@ -16,14 +16,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_subproject("x86")
 endif()
 
-add_library(
-    ${PROJECT_NAME}
-    OBJECT
-    "src/init.c"
-    "src/features.c"
-    "src/gdt.c"
-    "src/jump.c"
-)
+add_library(${PROJECT_NAME} OBJECT "src/init.c" "src/jump.c" "src/gdt.c")
 
 target_include_directories(
     ${PROJECT_NAME}
@@ -41,6 +34,9 @@ target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE platform-abstraction-memory-manipulation
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE x86-gdt)
+target_link_libraries(${PROJECT_NAME} PRIVATE x86-i)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)

@@ -58,6 +58,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
+target_link_libraries(${PROJECT_NAME} PRIVATE kernel-log-init)
 
 set(BINARIZER "${PROJECT_NAME}.bin")
 set(PROJECT_NAME_BIN "${PROJECT_NAME}.bin")

@@ -1,21 +1,6 @@
 project(x86-memory LANGUAGES C ASM)
 
-add_library(
-    ${PROJECT_NAME}
-    OBJECT
-    "src/page.c"
-    "src/physical.c"
-    "src/virtual.c"
-    "src/policy.c"
-    "src/init.c"
-)
-
-if("${UNIT_TEST_BUILD}")
-    add_subdirectory(tests)
-endif()
-
-add_subdirectory(definitions)
-add_subdirectory(status)
+add_library(${PROJECT_NAME} OBJECT "src/page.c")
 
 target_include_directories(
     ${PROJECT_NAME}

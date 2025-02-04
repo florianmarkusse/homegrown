@@ -3,7 +3,7 @@
 
 #include "shared/enum.h"
 #include "shared/types/types.h"
-#include "x86/memory/virtual.h"
+#include "x86/memory/definitions.h"
 
 #define PAT_ENCODING_ENUM(VARIANT)                                             \
     VARIANT(PAT_UNCACHABLE_UC, 0x0)                                            \

@@ -18,6 +18,7 @@ add_subdirectory(firmware)
 add_subdirectory(globals)
 add_subdirectory(log)
 add_subdirectory(error)
+add_subdirectory(memory)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()

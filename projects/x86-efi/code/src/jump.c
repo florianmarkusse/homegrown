@@ -2,6 +2,7 @@
 #include "efi/globals.h"
 #include "platform-abstraction/efi.h"
 #include "x86-efi/gdt.h"
+#include "x86/gdt.h"
 
 void enableNewMemoryMapping() {
     __asm__ __volatile__("mov %%rax, %%cr3"
@@ -22,7 +23,7 @@ void toKernel(U64 stackPointer) {
 }
 
 void jumpIntoKernel(U64 stackPointer) {
-    enableNewGDT();
+    enableNewGDT(gdtDescriptor);
     enableNewMemoryMapping();
     toKernel(stackPointer);
 

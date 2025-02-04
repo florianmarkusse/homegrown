@@ -16,8 +16,11 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     endif()
 endif()
 
+add_subdirectory(configuration)
 add_subdirectory(memory)
-add_subdirectory(cpu)
+add_subdirectory(fault)
+add_subdirectory(idt)
+add_subdirectory(gdt)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()
