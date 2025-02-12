@@ -1,3 +1,4 @@
+## TODO: Get rid of this, way too granular
 project(platform-abstraction-cpu LANGUAGES C ASM)
 
 add_library(${PROJECT_NAME} INTERFACE)
@@ -9,11 +10,14 @@ target_include_directories(
 
 if("${ARCHITECTURE}" STREQUAL "x86")
     if("${ENVIRONMENT}" STREQUAL "freestanding")
-        include_and_link_object_library(x86-cpu-real)
+        include_and_link_object_library(x86-configuration)
     elseif("${ENVIRONMENT}" STREQUAL "efi")
-        include_and_link_object_library(x86-cpu-real)
+        include_and_link_object_library(x86-configuration)
     elseif("${ENVIRONMENT}" STREQUAL "posix")
-        include_and_link_object_library(x86-cpu-mock)
+        message(
+            FATAL_ERROR
+            "??? What was the intention here? To link with x86-idt-mock ?"
+        )
     else()
         message(FATAL_ERROR "Could not match ENVIRONMENT variable")
     endif()

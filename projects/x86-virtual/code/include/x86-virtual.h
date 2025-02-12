@@ -1,10 +1,9 @@
-#ifndef X86_MEMORY_VIRTUAL_H
-#define X86_MEMORY_VIRTUAL_H
+#ifndef X86_VIRTUAL_H
+#define X86_VIRTUAL_H
 
-#include "efi-to-kernel/kernel-parameters.h"
 #include "shared/memory/management/definitions.h"
 #include "shared/types/types.h"
-#include "x86/memory/definitions/virtual.h"
+#include "x86/memory/definitions.h"
 
 extern VirtualPageTable *level4PageTable;
 

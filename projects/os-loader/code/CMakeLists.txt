@@ -8,9 +8,9 @@ include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_platform_abstraction_and_correct_implementations()
 add_subproject("shared")
+add_subproject("efi")
 add_subproject("efi-to-kernel")
 add_subproject("uefi")
-add_subproject("efi")
 
 add_executable(
     ${PROJECT_NAME}
@@ -38,6 +38,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE uefi-i)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE efi-memory)
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-globals)
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-acpi)
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-error)

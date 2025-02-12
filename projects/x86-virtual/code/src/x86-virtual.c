@@ -1,15 +1,16 @@
+#include "x86-virtual.h"
+
 #include "efi-to-kernel/memory/definitions.h"
 #include "efi-to-kernel/memory/descriptor.h"
 #include "platform-abstraction/cpu.h"
 #include "platform-abstraction/memory/manipulation.h"
+#include "platform-abstraction/physical.h"
 #include "shared/assert.h"
 #include "shared/macros.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/management/definitions.h"
 #include "shared/types/types.h"
-#include "x86/memory/pat.h"
-#include "x86/memory/physical.h"
-#include "x86/memory/virtual.h"
+#include "x86/memory/definitions.h"
 
 VirtualPageTable *level4PageTable;
 
@@ -28,14 +29,10 @@ static U8 pageSizeToDepth(PageSize pageSize) {
 }
 
 static U64 getZeroBasePage() {
-    PagedMemory memoryForAddresses[1];
-    PagedMemory_a memory =
-        allocPhysicalPages((PagedMemory_a){.buf = memoryForAddresses,
-                                           .len = COUNTOF(memoryForAddresses)},
-                           BASE_PAGE);
+    U64 address = allocate4KiBPage();
     /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
-    memset((void *)memory.buf[0].pageStart, 0, PAGE_FRAME_SIZE);
-    return memory.buf[0].pageStart;
+    memset((void *)address, 0, PAGE_FRAME_SIZE);
+    return address;
 }
 
 void mapVirtualRegion(U64 virt, PagedMemory memory, PageSize pageType) {

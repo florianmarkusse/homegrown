@@ -1,5 +1,5 @@
-#ifndef X86_MEMORY_DEFINITIONS_VIRTUAL_H
-#define X86_MEMORY_DEFINITIONS_VIRTUAL_H
+#ifndef X86_MEMORY_DEFINITIONS_H
+#define X86_MEMORY_DEFINITIONS_H
 
 #include "shared/enum.h"
 #include "shared/types/types.h"

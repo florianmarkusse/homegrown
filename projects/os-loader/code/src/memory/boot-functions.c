@@ -4,12 +4,12 @@
 #include "efi/firmware/simple-text-output.h"
 #include "efi/firmware/system.h"
 #include "efi/globals.h"
-#include "os-loader/memory/page-size.h"
+#include "efi/memory.h"
 #include "platform-abstraction/log.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
-#include "x86/memory/definitions/virtual.h"
+#include "x86/memory/definitions.h"
 
 PhysicalAddress allocAndZero(USize numPages) {
     PhysicalAddress page = 0;
@@ -21,7 +21,7 @@ PhysicalAddress allocAndZero(USize numPages) {
     }
 
     /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
-    memset((void *)page, 0, numPages * PAGE_FRAME_SIZE);
+    memset((void *)page, 0, numPages * UEFI_PAGE_SIZE);
     return page;
 }
 

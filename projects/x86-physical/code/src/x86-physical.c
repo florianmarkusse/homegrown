@@ -1,12 +1,16 @@
+#include "x86-physical.h"
 #include "efi-to-kernel/kernel-parameters.h" // for KernelMemory
 #include "efi-to-kernel/memory/descriptor.h"
 #include "platform-abstraction/idt.h"
 #include "platform-abstraction/memory/manipulation.h"
+#include "platform-abstraction/physical.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
 #include "shared/types/types.h" // for U64, U32, U8
-#include "x86-physical.h"
 #include "x86/fault.h"
+
+// NOTE: This is for an abstraction used in virtual allocation.
+U64 allocate4KiBPage() { return allocContiguousPhysicalPages(1, BASE_PAGE); }
 
 PhysicalMemoryManager basePMM;
 PhysicalMemoryManager largePMM;
