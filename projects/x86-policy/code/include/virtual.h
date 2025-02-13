@@ -6,8 +6,6 @@
 #include "shared/types/types.h"
 #include "x86/memory/definitions/virtual.h"
 
-extern VirtualPageTable *level4PageTable;
-
 extern VirtualRegion higherHalfRegion;
 extern VirtualRegion lowerHalfRegion; // Start is set in the init function.
 

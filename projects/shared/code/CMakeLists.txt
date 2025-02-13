@@ -7,6 +7,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include(${REPO_PROJECTS}/setup.cmake)
     include(${REPO_PROJECTS}/print-configuration.cmake)
     add_platform_abstraction_and_correct_implementations()
+    add_subproject("efi-to-kernel")
 endif()
 
 add_subdirectory(assert)

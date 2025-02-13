@@ -1,4 +1,4 @@
-project(platform-abstraction-physicel LANGUAGES C ASM)
+project(platform-abstraction-physical LANGUAGES C ASM)
 
 add_library(${PROJECT_NAME} INTERFACE)
 

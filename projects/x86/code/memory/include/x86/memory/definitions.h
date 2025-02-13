@@ -24,11 +24,6 @@ static constexpr auto WUMBO_PAGE_SIZE =
      PageTableFormat.ENTRIES); // Does not exist but comes in handy. 256TiB
 static constexpr auto PAGE_MASK = (PAGE_FRAME_SIZE - 1);
 
-static constexpr auto LEVEL_4_SHIFT = 39U;
-static constexpr auto LEVEL_3_SHIFT = 30U;
-static constexpr auto LEVEL_2_SHIFT = 21U;
-static constexpr auto LEVEL_1_SHIFT = 12U;
-
 #define MEMORY_PAGE_SIZES_ENUM(VARIANT)                                        \
     VARIANT(BASE_PAGE, PAGE_FRAME_SIZE)                                        \
     VARIANT(LARGE_PAGE, LARGE_PAGE_SIZE)                                       \
@@ -39,6 +34,9 @@ static constexpr auto MEMORY_PAGE_SIZES_COUNT =
     (0 MEMORY_PAGE_SIZES_ENUM(PLUS_ONE));
 
 extern PageSize pageSizes[MEMORY_PAGE_SIZES_COUNT];
+
+static constexpr U64 AVAILABLE_PAGE_SIZES_MASK =
+    (PAGE_FRAME_SIZE | LARGE_PAGE_SIZE | HUGE_PAGE_SIZE);
 
 typedef struct {
     U8 data[PAGE_FRAME_SIZE];

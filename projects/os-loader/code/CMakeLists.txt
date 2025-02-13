@@ -15,9 +15,7 @@ add_subproject("uefi")
 add_executable(
     ${PROJECT_NAME}
     "src/main.c"
-    "src/cpu.S"
     "src/data-reading.c"
-    "src/memory/boot-functions.c"
     "src/memory/boot-functions.c"
 )
 

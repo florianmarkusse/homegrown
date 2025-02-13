@@ -1,12 +1,9 @@
 #include "x86-virtual.h"
 
-#include "efi-to-kernel/memory/definitions.h"
-#include "efi-to-kernel/memory/descriptor.h"
-#include "platform-abstraction/cpu.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "platform-abstraction/physical.h"
+#include "platform-abstraction/virtual.h"
 #include "shared/assert.h"
-#include "shared/macros.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/management/definitions.h"
 #include "shared/types/types.h"

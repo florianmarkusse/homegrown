@@ -138,17 +138,3 @@ MemoryInfo getMemoryInfo() {
 
     return mmap;
 }
-
-// TODO: table 7.10 UEFI spec section 7.2 - 7.2.1 , not fully complete yet I
-// think?
-bool needsTobeMappedByOS(MemoryType type) {
-    switch (type) {
-    case RUNTIME_SERVICES_DATA:
-        //    case ACPI_RECLAIM_MEMORY:
-        //    case ACPI_MEMORY_NVS:
-        //    case PAL_CODE:
-        return true;
-    default:
-        return false;
-    }
-}
