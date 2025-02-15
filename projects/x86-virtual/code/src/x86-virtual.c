@@ -1,8 +1,8 @@
 #include "x86-virtual.h"
 
 #include "platform-abstraction/memory/manipulation.h"
-#include "platform-abstraction/physical.h"
-#include "platform-abstraction/virtual.h"
+#include "platform-abstraction/physical/allocation.h"
+#include "platform-abstraction/virtual/map.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/management/definitions.h"

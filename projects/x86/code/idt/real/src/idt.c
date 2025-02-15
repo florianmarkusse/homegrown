@@ -1,4 +1,4 @@
-#include "platform-abstraction/idt.h"
+#include "platform-abstraction/interrupts.h"
 
 #include "shared/enum.h"
 #include "shared/types/types.h"

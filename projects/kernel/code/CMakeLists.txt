@@ -44,10 +44,9 @@ target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE platform-abstraction-memory-management
 )
-target_link_libraries(
-    ${PROJECT_NAME}
-    PRIVATE platform-abstraction-memory-management-status
-)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-interrupts)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-physical)
+target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-virtual)
 target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE platform-abstraction-memory-manipulation

@@ -35,6 +35,7 @@ add_subdirectory(efi)
 ## NOTE: temporary until we improve the abstraction structure
 add_subdirectory(physical)
 add_subdirectory(virtual)
+add_subdirectory(interrupts)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()

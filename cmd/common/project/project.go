@@ -91,6 +91,7 @@ const X86 = "x86"
 const X86_PHYSICAL = "x86-physical"
 const X86_VIRTUAL = "x86-virtual"
 const X86_EFI = "x86-efi"
+const X86_POLICY = "x86-policy"
 const UEFI = "uefi"
 const FREE_C = "free-c"
 
@@ -107,6 +108,7 @@ var x86Folder = common.REPO_PROJECTS + "/" + X86 + "/"
 var x86PhysicalFolder = common.REPO_PROJECTS + "/" + X86_PHYSICAL + "/"
 var x86VirtualFolder = common.REPO_PROJECTS + "/" + X86_VIRTUAL + "/"
 var x86EfiFolder = common.REPO_PROJECTS + "/" + X86_EFI + "/"
+var x86PolicyFolder = common.REPO_PROJECTS + "/" + X86_POLICY + "/"
 var uefiFolder = common.REPO_PROJECTS + "/" + UEFI + "/"
 var freeCFolder = common.REPO_PROJECTS + "/" + FREE_C + "/"
 
@@ -187,6 +189,13 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Linker:      ELF.Linker,
 		Folder:      x86VirtualFolder,
 		CodeFolder:  x86VirtualFolder + "code",
+		Environment: string(environment.Freestanding),
+	},
+	X86_POLICY: {
+		CCompiler:   ELF.CCompiler,
+		Linker:      ELF.Linker,
+		Folder:      x86PolicyFolder,
+		CodeFolder:  x86PolicyFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 	X86_EFI: {

@@ -2,11 +2,12 @@
 #include "efi-to-kernel/memory/definitions.h" // for KERNEL_PARAMS_START
 #include "kernel/log/init.h"
 #include "peripheral/screen/screen.h"
-#include "platform-abstraction/idt.h" // for setupIDT
+#include "platform-abstraction/interrupts.h" // for setupIDT
 #include "platform-abstraction/log.h" // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "platform-abstraction/memory/management/init.h"
 #include "platform-abstraction/memory/management/policy.h"
-#include "platform-abstraction/memory/management/status.h"
+#include "platform-abstraction/physical/status.h"
+#include "platform-abstraction/virtual/status.h"
 #include "shared/memory/allocator/arena.h"
 #include "shared/memory/sizes.h"
 #include "shared/text/string.h" // for STRING

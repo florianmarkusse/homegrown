@@ -1,5 +1,5 @@
-#ifndef PLATFORM_ABSTRACTION_VIRTUAL_H
-#define PLATFORM_ABSTRACTION_VIRTUAL_H
+#ifndef PLATFORM_ABSTRACTION_MAP_H
+#define PLATFORM_ABSTRACTION_MAP_H
 
 #include "shared/memory/management/definitions.h"
 #include "shared/types/types.h"

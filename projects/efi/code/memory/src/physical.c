@@ -1,4 +1,4 @@
-#include "platform-abstraction/physical.h"
+#include "platform-abstraction/physical/allocation.h"
 
 #include "efi-to-kernel/memory/descriptor.h"
 #include "efi/error.h"
