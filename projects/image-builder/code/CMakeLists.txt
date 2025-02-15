@@ -8,6 +8,10 @@ include("${REPO_PROJECTS}/print-configuration.cmake")
 add_subproject("shared")
 add_subproject("uefi")
 add_platform_abstraction_and_correct_implementations()
+add_subproject("x86")
+add_subproject("x86-physical")
+add_subproject("x86-virtual")
+add_subproject("x86-policy")
 
 add_executable(
     ${PROJECT_NAME}

@@ -9,6 +9,9 @@ target_include_directories(
 
 if("${ARCHITECTURE}" STREQUAL "x86")
     include_and_link_object_library(x86-memory)
+    include_and_link_object_library(x86-physical)
+    include_and_link_object_library(x86-virtual)
+    include_and_link_object_library(x86-policy)
 else()
     message(FATAL_ERROR "Could not match ARCHITECTURE variable")
 endif()

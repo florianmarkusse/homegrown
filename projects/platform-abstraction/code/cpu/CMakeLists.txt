@@ -14,10 +14,7 @@ if("${ARCHITECTURE}" STREQUAL "x86")
     elseif("${ENVIRONMENT}" STREQUAL "efi")
         include_and_link_object_library(x86-configuration)
     elseif("${ENVIRONMENT}" STREQUAL "posix")
-        message(
-            FATAL_ERROR
-            "??? What was the intention here? To link with x86-idt-mock ?"
-        )
+        message("Don't need this for a posix build!")
     else()
         message(FATAL_ERROR "Could not match ENVIRONMENT variable")
     endif()

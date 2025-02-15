@@ -29,13 +29,6 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
 
     initArchitecture();
 
-    EXIT_WITH_MESSAGE {
-        ERROR(STRING("I failed boss\n"));
-        ERROR(STRING("I failed boss\n"));
-        ERROR(STRING("I failed boss\n"));
-        ERROR(STRING("I failed boss\n"));
-    }
-
     KFLUSH_AFTER { INFO(STRING("Going to read kernel info\n")); }
     DataPartitionFile kernelFile = getKernelInfo();
 

@@ -6,9 +6,8 @@
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
 #include "shared/types/types.h"
+#include "x86-virtual.h"
 #include "x86/memory/pat.h"
-
-VirtualPageTable *level4PageTable;
 
 VirtualRegion higherHalfRegion = {.start = HIGHER_HALF_START,
                                   .end = KERNEL_SPACE_START};
