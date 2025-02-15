@@ -5,10 +5,10 @@
 #include "shared/log.h"
 #include "shared/text/string.h"
 #include "shared/types/types.h"
-#include "x86/memory/definitions/virtual.h"
+#include "x86-policy/virtual.h"
+#include "x86-virtual.h"
+#include "x86/memory/definitions.h"
 #include "x86/memory/pat.h"
-#include "x86/memory/physical.h"
-#include "x86/memory/virtual.h"
 
 static string patEncodingToString[PAT_ENCODING_COUNT] = {
     STRING("Uncachable (UC)"),        STRING("Write Combining (WC)"),

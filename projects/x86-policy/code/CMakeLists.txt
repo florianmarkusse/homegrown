@@ -8,17 +8,15 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/print-configuration.cmake")
     add_subproject("shared")
     add_subproject("efi-to-kernel")
-    add_platform_abstraction_and_correct_implementations()
+    add_subproject("x86")
+    add_subproject("x86-physical")
+    add_subproject("x86-virtual")
+    add_subproject("platform-abstraction")
 endif()
 
-add_library(
-    ${PROJECT_NAME}
-    OBJECT
-    "src/init.c"
-    "src/policy.c"
-    # "src/status.c"
-    "src/virtual.c"
-)
+add_library(${PROJECT_NAME} OBJECT "src/init.c" "src/policy.c" "src/virtual.c")
+
+add_subdirectory(status)
 
 target_include_directories(
     ${PROJECT_NAME}
@@ -35,6 +33,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x86-physical)
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-virtual)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-converter)
 
 target_include_directories(
     ${AGGREGATED_INTERFACE}

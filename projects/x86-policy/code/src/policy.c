@@ -4,40 +4,13 @@
 #include "platform-abstraction/virtual/map.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
+#include "shared/memory/converter.h"
 #include "shared/memory/management/definitions.h"
 #include "shared/types/types.h"
 #include "x86-physical.h"
 #include "x86-policy/virtual.h"
 #include "x86/fault.h"
 #include "x86/memory/definitions.h"
-
-// TODO: Use shared/memory/converter.h for abstraction.
-static constexpr U64 USED_PAGE_SIZES_MASK =
-    (PAGE_FRAME_SIZE | LARGE_PAGE_SIZE | HUGE_PAGE_SIZE);
-static bool isPageSizeInUse(U64 pageSize) {
-    ASSERT(((pageSize) & (pageSize - 1)) == 0);
-    return pageSize & USED_PAGE_SIZES_MASK;
-}
-
-typedef struct {
-    U64 numberOfPages;
-    PageSize pageSize;
-} PageSizeConversion;
-
-static PageSizeConversion convertBytesToPages(U64 bytesPowerOfTwo) {
-    ASSERT(((bytesPowerOfTwo) & (bytesPowerOfTwo - 1)) == 0);
-    if (bytesPowerOfTwo <= PAGE_FRAME_SIZE) {
-        return (PageSizeConversion){.numberOfPages = 1,
-                                    .pageSize = PAGE_FRAME_SIZE};
-    }
-    PageSizeConversion result =
-        (PageSizeConversion){.numberOfPages = 1, .pageSize = bytesPowerOfTwo};
-    while (!isPageSizeInUse(result.pageSize)) {
-        result.numberOfPages <<= 1;
-        result.pageSize >>= 1;
-    }
-    return result;
-}
 
 void *allocAndMapExplicit(U64 numberOfPages, U64 preferredPageSizePowerOfTwo) {
     PageSizeConversion conversion =

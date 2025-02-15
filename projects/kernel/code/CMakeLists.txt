@@ -55,6 +55,7 @@ target_link_libraries(
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-converter)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel-log-init)

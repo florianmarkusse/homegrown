@@ -8,6 +8,6 @@ typedef struct {
     U64 pageSize;
 } PageSizeConversion;
 
-static PageSizeConversion convertBytesToPages(U64 bytesPowerOfTwo);
+PageSizeConversion convertBytesToPages(U64 bytesPowerOfTwo);
 
 #endif

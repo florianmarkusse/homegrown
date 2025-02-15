@@ -10,7 +10,7 @@ static bool isPageSizeValid(U64 pageSize) {
 
 U64 smallestPageSize = 1 << __builtin_ctzl(AVAILABLE_PAGE_SIZES_MASK);
 
-static PageSizeConversion convertBytesToPages(U64 bytesPowerOfTwo) {
+PageSizeConversion convertBytesToPages(U64 bytesPowerOfTwo) {
     ASSERT(((bytesPowerOfTwo) & (bytesPowerOfTwo - 1)) == 0);
     if (bytesPowerOfTwo <= smallestPageSize) {
         return (PageSizeConversion){.numberOfPages = 1,

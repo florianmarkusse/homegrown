@@ -6,8 +6,8 @@
 #include "platform-abstraction/log.h" // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "platform-abstraction/memory/management/init.h"
 #include "platform-abstraction/memory/management/policy.h"
+#include "platform-abstraction/memory/management/status.h"
 #include "platform-abstraction/physical/status.h"
-#include "platform-abstraction/virtual/status.h"
 #include "shared/memory/allocator/arena.h"
 #include "shared/memory/sizes.h"
 #include "shared/text/string.h" // for STRING
@@ -58,6 +58,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
     KFLUSH_AFTER {
         //
         appendPhysicalMemoryManagerStatus();
+        appendVirtualMemoryManagerStatus();
     }
 
     while (1) {
