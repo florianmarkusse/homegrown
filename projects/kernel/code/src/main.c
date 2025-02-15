@@ -57,8 +57,7 @@ __attribute__((section("kernel-start"))) int kernelmain() {
 
     KFLUSH_AFTER {
         //
-        appendPhysicalMemoryManagerStatus();
-        appendVirtualMemoryManagerStatus();
+        appendMemoryManagementStatus();
     }
 
     while (1) {

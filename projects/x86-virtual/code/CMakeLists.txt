@@ -14,6 +14,8 @@ endif()
 
 add_library(${PROJECT_NAME} OBJECT "src/x86-virtual.c")
 
+add_subdirectory(status)
+
 target_include_directories(
     ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
