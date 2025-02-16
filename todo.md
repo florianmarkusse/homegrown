@@ -1,4 +1,5 @@
 - redo abstractions
+- look into recursive inclusions for abstractions?
 - remove -i libs?
 - ask iwyu crew how to handle platform-abstraction includes? Perhap
 - Figure out what to do with memory allocation & mapping in os-loader

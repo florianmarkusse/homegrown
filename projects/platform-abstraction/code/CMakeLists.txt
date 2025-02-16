@@ -12,7 +12,6 @@ include("${REPO_PROJECTS}/abstractions.cmake")
 
 add_subdirectory(log)
 add_subdirectory(memory)
-add_subdirectory(efi)
 
 ## NOTE: temporary until we improve the abstraction structure
 add_subdirectory(physical)

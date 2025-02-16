@@ -95,8 +95,8 @@ endif()
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 
 function(add_subproject_named_target project target)
-    ### Need to do this, because we are in generation step and TARGET will not
-    ### work then...
+    ### Need to do this, because we are in generation step and TARGET test does
+    ### not work yet.
     get_property(ADDED_PROJECT_TARGETS GLOBAL PROPERTY ADDED_PROJECT_TARGETS)
 
     if(NOT "${target}" IN_LIST ADDED_PROJECT_TARGETS)

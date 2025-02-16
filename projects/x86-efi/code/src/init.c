@@ -1,11 +1,8 @@
-#include "platform-abstraction/efi.h"
-
 #include "efi/error.h"
 #include "efi/firmware/base.h"   // for PhysicalAddress
 #include "efi/firmware/system.h" // for PhysicalAddress
 #include "efi/globals.h"
 #include "efi/memory.h"
-#include "platform-abstraction/efi.h"
 #include "platform-abstraction/log.h"
 #include "platform-abstraction/physical/allocation.h"
 #include "shared/log.h"
