@@ -51,7 +51,6 @@ Arch-specific steps are marked.
 1. Get kernel information: size/location
 2. Read kernel into memory
 3. Map kernel into location
-   - x86: way of mapping
 4. x86: Identity map all available memory. I think this is done to avoid issues with <1MiB addresses? Why are we doing it for all memory tho?
 5. x86: Identity map GOP frame buffer. (Later I am remapping it in kernel with a PATMapping - maybe do it here if we can do pat mapping in uefi too?
 6. Allocate/map/set kernel parameters
