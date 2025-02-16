@@ -15,7 +15,7 @@ static constexpr U32 SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION = 0x00010000;
 
 typedef struct SimpleFileSystemProtocol {
     U64 revision;
-    Status(EFICALL *openVolume)(SimpleFileSystemProtocol *this_,
+    Status(*openVolume)(SimpleFileSystemProtocol *this_,
                                 FileProtocol **Root);
 } SimpleFileSystemProtocol;
 

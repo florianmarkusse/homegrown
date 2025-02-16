@@ -49,20 +49,20 @@ typedef struct KeyData {
     KeyState key_state;
 } KeyData;
 
-typedef Status(EFICALL *KeyNotifyFunction)(KeyData *key_data);
+typedef Status(*KeyNotifyFunction)(KeyData *key_data);
 
 typedef struct SimpleTextInputExProtocol {
-    Status(EFICALL *reset)(SimpleTextInputExProtocol *this_,
+    Status(*reset)(SimpleTextInputExProtocol *this_,
                            bool extended_verification);
-    Status(EFICALL *read_key_stroke_ex)(SimpleTextInputExProtocol *this_,
+    Status(*read_key_stroke_ex)(SimpleTextInputExProtocol *this_,
                                         KeyData *key_data);
     Event wait_for_key_ex;
-    Status(EFICALL *set_state)(SimpleTextInputExProtocol *this_,
+    Status(*set_state)(SimpleTextInputExProtocol *this_,
                                KeyToggleState *key_toggle_state);
-    Status(EFICALL *register_key_notify)(
+    Status(*register_key_notify)(
         SimpleTextInputExProtocol *this_, KeyData *key_data,
         KeyNotifyFunction key_notification_function, void **notify_handle);
-    Status(EFICALL *unregister_key_notify)(SimpleTextInputExProtocol *this_,
+    Status(*unregister_key_notify)(SimpleTextInputExProtocol *this_,
                                            void *notification_handle);
 } SimpleTextInputExProtocol;
 

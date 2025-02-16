@@ -22,9 +22,9 @@ typedef struct InputKey {
 } InputKey;
 
 typedef struct SimpleTextInputProtocol {
-    Status(EFICALL *reset)(SimpleTextInputProtocol *this_,
+    Status(*reset)(SimpleTextInputProtocol *this_,
                            bool extended_verification);
-    Status(EFICALL *read_key_stroke)(SimpleTextInputProtocol *this_,
+    Status(*read_key_stroke)(SimpleTextInputProtocol *this_,
                                      InputKey *key);
     Event wait_for_key;
 } SimpleTextInputProtocol;

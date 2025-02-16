@@ -20,7 +20,7 @@
 #include "shared/text/string.h" // for CEILING_DIV_V...
 #include "shared/types/types.h" // for U64, U32, USize
 
-EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
+Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.h = handle;
     globals.st = systemtable;
     globals.st->con_out->reset(globals.st->con_out, false);

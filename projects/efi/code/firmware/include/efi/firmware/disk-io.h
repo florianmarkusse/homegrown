@@ -12,9 +12,9 @@ static constexpr auto DISK_IO_PROTOCOL_GUID =
 
 typedef struct DiskIOProtocol {
     U64 Revision;
-    USize(EFICALL *readDisk)(DiskIOProtocol *this_, U32 mediaId, U64 offset,
+    USize(*readDisk)(DiskIOProtocol *this_, U32 mediaId, U64 offset,
                              USize bufferSize, void *buffer);
-    USize(EFICALL *writeDisk)(DiskIOProtocol *this_, U32 mediaId, U64 offset,
+    USize(*writeDisk)(DiskIOProtocol *this_, U32 mediaId, U64 offset,
                               USize bufferSize, void *buffer);
 } DiskIOProtocol;
 

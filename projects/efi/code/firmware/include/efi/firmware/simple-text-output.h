@@ -53,21 +53,21 @@ static constexpr U8 BACKGROUND_BROWN = 0x60;
 static constexpr U8 BACKGROUND_LIGHTGRAY = 0x70;
 
 typedef struct SimpleTextOutputProtocol {
-    Status(EFICALL *reset)(SimpleTextOutputProtocol *this_,
+    Status(*reset)(SimpleTextOutputProtocol *this_,
                            bool extended_verification);
-    Status(EFICALL *output_string)(SimpleTextOutputProtocol *this_,
+    Status(*output_string)(SimpleTextOutputProtocol *this_,
                                    U16 *string);
-    Status(EFICALL *test_string)(SimpleTextOutputProtocol *this_, U16 *string);
-    Status(EFICALL *query_mode)(SimpleTextOutputProtocol *this_,
+    Status(*test_string)(SimpleTextOutputProtocol *this_, U16 *string);
+    Status(*query_mode)(SimpleTextOutputProtocol *this_,
                                 USize mode_number, USize *columns, USize *rows);
-    Status(EFICALL *set_mode)(SimpleTextOutputProtocol *this_,
+    Status(*set_mode)(SimpleTextOutputProtocol *this_,
                               USize mode_number);
-    Status(EFICALL *set_attribute)(SimpleTextOutputProtocol *this_,
+    Status(*set_attribute)(SimpleTextOutputProtocol *this_,
                                    USize attribute);
-    Status(EFICALL *clear_screen)(SimpleTextOutputProtocol *this_);
-    Status(EFICALL *set_cursor_position)(SimpleTextOutputProtocol *this_,
+    Status(*clear_screen)(SimpleTextOutputProtocol *this_);
+    Status(*set_cursor_position)(SimpleTextOutputProtocol *this_,
                                          USize column, USize row);
-    Status(EFICALL *enable_cursor)(SimpleTextOutputProtocol *this_,
+    Status(*enable_cursor)(SimpleTextOutputProtocol *this_,
                                    bool visible);
     SimpleTextOutputMode *mode;
 } SimpleTextOutpuProtocol;

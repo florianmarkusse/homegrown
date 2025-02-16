@@ -36,7 +36,7 @@ typedef struct LoadedImageProtocol {
     MemoryType image_code_type;
     MemoryType image_data_type;
 
-    Status(EFICALL *unload)(Handle image_handle);
+    Status(*unload)(Handle image_handle);
 } LoadedImageProtocol;
 
 #endif

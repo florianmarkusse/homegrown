@@ -59,11 +59,11 @@ typedef struct {
 } GraphicsOutputProtocolMode;
 
 typedef struct GraphicsOutputProtocol {
-    Status(EFICALL *queryMode)(GraphicsOutputProtocol *this_, U32 modeNumber,
+    Status(*queryMode)(GraphicsOutputProtocol *this_, U32 modeNumber,
                                USize *sizeOfInfo,
                                GraphicsOutputModeInformation **info);
-    Status(EFICALL *setMode)(GraphicsOutputProtocol *this_, U32 modeNumber);
-    Status(EFICALL *blt)(GraphicsOutputProtocol *this_, BltPixel *bltBuffer,
+    Status(*setMode)(GraphicsOutputProtocol *this_, U32 modeNumber);
+    Status(*blt)(GraphicsOutputProtocol *this_, BltPixel *bltBuffer,
                          BltOperation bltOperation, USize sourceX,
                          USize sourceY, USize destinationX, USize destinationY,
                          USize width, USize height, USize delta);

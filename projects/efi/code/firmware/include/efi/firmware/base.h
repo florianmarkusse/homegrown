@@ -68,26 +68,6 @@
  *    architecture, but should be roughly the same.
  */
 
-/**
- * EFICALL: Annotate Functions with UEFI Calling-Convention
- *
- * This macro annotates function declarations with the correct calling
- * convention. The UEFI Specification defines the calling-convention for each
- * architecture it supports in great detail. It is almost identical to the
- * calling-convention used on Microsoft Windows.
- */
-#if defined(__arm__) || defined(_M_ARM)
-#define EFICALL __attribute__((pcs("aapcs")))
-#elif defined(__aarch64__) || defined(_M_ARM64)
-#define EFICALL /* XXX: No ABI-specifier supported so far */
-#elif defined(__i386__) || defined(_M_IX86)
-#define EFICALL __attribute__((cdecl))
-#elif defined(__x86_64__) || defined(_M_X64)
-#define EFICALL __attribute__((ms_abi))
-#else
-#define EFICALL /* Use native ABI; assume it matches the host. */
-#endif
-
 /*
  * The UEFI Specification has several circular type dependencies. We simply use
  * forward declarations to get the required types in-scope. We really try to
@@ -218,7 +198,7 @@ typedef U64 VirtualAddress;
  * applications are unloaded when this function returns. Drivers might stay in
  * memory, depending on the return type. See the specification for details.
  */
-typedef Status(EFICALL *ImageEntryPoint)(Handle image, SystemTable *st);
+typedef Status(*ImageEntryPoint)(Handle image, SystemTable *st);
 
 /**
  * MacAddress, Ipv4Address,

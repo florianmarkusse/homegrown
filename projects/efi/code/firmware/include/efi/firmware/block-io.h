@@ -30,7 +30,7 @@ typedef struct BlockIoProtocol {
     BlockIoMedia *Media;
     // Not implemented cause we not needed (yet)
     void *Reset;
-    Status(EFICALL *readBlocks)(BlockIoProtocol *this_, U32 mediaID,
+    Status(*readBlocks)(BlockIoProtocol *this_, U32 mediaID,
                                 Lba startingLBA, USize bufferSize,
                                 void *buffer);
 

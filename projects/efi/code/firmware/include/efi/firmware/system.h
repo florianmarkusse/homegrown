@@ -217,7 +217,7 @@ static constexpr U32 EVT_NOTIFY_SIGNAL = 0x00000200;
 static constexpr U32 EVT_SIGNAL_EXIT_BOOT_SERVICES = 0x00000201;
 static constexpr U32 EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE = 0x60000202;
 
-typedef void(EFICALL *EventNotify)(Event event, void *context);
+typedef void(*EventNotify)(Event event, void *context);
 
 static constexpr auto EVENT_GROUP_EXIT_BOOT_SERVICES =
     (UUID){.ms1 = 0x27abf055,
@@ -407,40 +407,40 @@ static constexpr U64 RUNTIME_TABLE_SIGNATURE =
 typedef struct RuntimeServices {
     TableHeader hdr;
 
-    Status(EFICALL *get_time)(Time *time, TimeCapabilities *capabilities
+    Status(*get_time)(Time *time, TimeCapabilities *capabilities
 
     );
-    Status(EFICALL *set_time)(Time *time);
-    Status(EFICALL *get_wakeup_time)(bool *enabled, bool *pending, Time *time);
-    Status(EFICALL *set_wakeup_time)(bool enable, Time *time);
+    Status(*set_time)(Time *time);
+    Status(*get_wakeup_time)(bool *enabled, bool *pending, Time *time);
+    Status(*set_wakeup_time)(bool enable, Time *time);
 
-    Status(EFICALL *set_virtual_address_map)(USize memory_map_size,
+    Status(*set_virtual_address_map)(USize memory_map_size,
                                              USize descriptor_size,
                                              U32 descriptor_version,
                                              MemoryDescriptor *virtual_map);
-    Status(EFICALL *convert_pointer)(USize debug_disposition, void **address);
+    Status(*convert_pointer)(USize debug_disposition, void **address);
 
-    Status(EFICALL *get_variable)(U16 *variable_name, UUID *vendor_guid,
+    Status(*get_variable)(U16 *variable_name, UUID *vendor_guid,
                                   U32 *attributes, USize *data_size,
                                   void *data);
-    Status(EFICALL *get_next_variable_name)(USize *variable_name_size,
+    Status(*get_next_variable_name)(USize *variable_name_size,
                                             U16 *variable_name,
                                             UUID *vendor_guid);
-    Status(EFICALL *set_variable)(U16 *variable_name, UUID *vendor_guid,
+    Status(*set_variable)(U16 *variable_name, UUID *vendor_guid,
                                   U32 attributes, USize data_size, void *data);
 
-    Status(EFICALL *get_next_high_mono_count)(U32 *high_count);
-    void(EFICALL *reset_system)(ResetType reset_type, Status reset_status,
+    Status(*get_next_high_mono_count)(U32 *high_count);
+    void(*reset_system)(ResetType reset_type, Status reset_status,
                                 USize data_size, void *reset_data);
 
-    Status(EFICALL *update_capsule)(CapsuleHeader **capsule_header_array,
+    Status(*update_capsule)(CapsuleHeader **capsule_header_array,
                                     USize capsule_count,
                                     PhysicalAddress scatter_gather_list);
-    Status(EFICALL *query_capsule_capabilities)(
+    Status(*query_capsule_capabilities)(
         CapsuleHeader **capsule_header_array, USize capsule_count,
         U64 *maximum_capsule_size, ResetType *reset_type);
 
-    Status(EFICALL *query_variable_info)(U32 attributes,
+    Status(*query_variable_info)(U32 attributes,
                                          U64 *maximum_variable_storage_size,
                                          U64 *remaining_variable_storage_size,
                                          U64 *maximum_variable_size);
@@ -452,106 +452,106 @@ static constexpr U64 BOOT_SERVICES_SIGNATURE =
 typedef struct BootServices {
     TableHeader hdr;
 
-    Tpl(EFICALL *raise_tpl)(Tpl new_tpl);
-    void(EFICALL *restore_tpl)(Tpl old_tpl);
+    Tpl(*raise_tpl)(Tpl new_tpl);
+    void(*restore_tpl)(Tpl old_tpl);
 
-    Status(EFICALL *allocate_pages)(AllocateType type, MemoryType memory_type,
+    Status(*allocate_pages)(AllocateType type, MemoryType memory_type,
                                     USize pages, PhysicalAddress *memory);
-    Status(EFICALL *free_pages)(PhysicalAddress memory, USize pages);
-    Status(EFICALL *get_memory_map)(USize *memory_map_size,
+    Status(*free_pages)(PhysicalAddress memory, USize pages);
+    Status(*get_memory_map)(USize *memory_map_size,
                                     MemoryDescriptor *memory_map,
                                     USize *map_key, USize *descriptor_size,
                                     U32 *descriptor_version);
-    Status(EFICALL *allocate_pool)(MemoryType pool_type, USize size,
+    Status(*allocate_pool)(MemoryType pool_type, USize size,
                                    void **buffer);
-    Status(EFICALL *free_pool)(void *buffer);
+    Status(*free_pool)(void *buffer);
 
-    Status(EFICALL *create_event)(U32 type, Tpl notify_tpl,
+    Status(*create_event)(U32 type, Tpl notify_tpl,
                                   EventNotify notify_function,
                                   void *notify_context, Event *event);
-    Status(EFICALL *set_timer)(Event event, TimerDelay type, U64 trigger_time);
-    Status(EFICALL *wait_for_event)(USize number_of_events, Event *event,
+    Status(*set_timer)(Event event, TimerDelay type, U64 trigger_time);
+    Status(*wait_for_event)(USize number_of_events, Event *event,
                                     USize *index);
-    Status(EFICALL *signal_event)(Event event);
-    Status(EFICALL *close_event)(Event event);
-    Status(EFICALL *check_event)(Event event);
+    Status(*signal_event)(Event event);
+    Status(*close_event)(Event event);
+    Status(*check_event)(Event event);
 
-    Status(EFICALL *install_protocol_interface)(Handle *handle, UUID *protocol,
+    Status(*install_protocol_interface)(Handle *handle, UUID *protocol,
                                                 InterfaceType interface_type,
                                                 void *interface);
-    Status(EFICALL *reinstall_protocol_interface)(Handle handle, UUID *protocol,
+    Status(*reinstall_protocol_interface)(Handle handle, UUID *protocol,
                                                   void *old_interface,
                                                   void *new_interface);
-    Status(EFICALL *uninstall_protocol_interface)(Handle handle, UUID *protocol,
+    Status(*uninstall_protocol_interface)(Handle handle, UUID *protocol,
                                                   void *interface);
-    Status(EFICALL *handle_protocol)(Handle handle, UUID *protocol,
+    Status(*handle_protocol)(Handle handle, UUID *protocol,
                                      void **interface);
     void *reserved;
-    Status(EFICALL *register_protocol_notify)(UUID *protocol, Event event,
+    Status(*register_protocol_notify)(UUID *protocol, Event event,
                                               void **registration);
-    Status(EFICALL *locate_handle)(LocateSearchType search_type, UUID *protocol,
+    Status(*locate_handle)(LocateSearchType search_type, UUID *protocol,
                                    void *search_key, USize *buffer_size,
                                    Handle *buffer);
-    Status(EFICALL *locate_device_path)(UUID *protocol,
+    Status(*locate_device_path)(UUID *protocol,
                                         DevicePathProtocol **device_path,
                                         Handle *device);
 
-    Status(EFICALL *install_configuration_table)(UUID *guid, void *table);
+    Status(*install_configuration_table)(UUID *guid, void *table);
 
-    Status(EFICALL *load_image)(bool boot_policy, Handle parent_image_handle,
+    Status(*load_image)(bool boot_policy, Handle parent_image_handle,
                                 DevicePathProtocol *device_path,
                                 void *source_buffer, USize source_size,
                                 Handle *image_handle);
-    Status(EFICALL *start_image)(Handle image_handle, USize *exit_data_size,
+    Status(*start_image)(Handle image_handle, USize *exit_data_size,
                                  U16 **exit_data);
-    Status(EFICALL *exit)(Handle image_handle, Status exit_status,
+    Status(*exit)(Handle image_handle, Status exit_status,
                           USize exit_data_size, U16 *exit_data);
-    Status(EFICALL *unload_image)(Handle image_handle);
-    Status(EFICALL *exit_boot_services)(Handle image_handle, USize map_key);
+    Status(*unload_image)(Handle image_handle);
+    Status(*exit_boot_services)(Handle image_handle, USize map_key);
 
-    Status(EFICALL *get_next_monotonic_count)(U64 *count);
-    Status(EFICALL *stall)(USize microseconds);
-    Status(EFICALL *set_watchdog_timer)(USize timeout, U64 watchdog_code,
+    Status(*get_next_monotonic_count)(U64 *count);
+    Status(*stall)(USize microseconds);
+    Status(*set_watchdog_timer)(USize timeout, U64 watchdog_code,
                                         USize data_size, U16 *watchdog_data);
 
     /* 1.1+ */
 
-    Status(EFICALL *connect_controller)(
+    Status(*connect_controller)(
         Handle controller_handle, Handle *driver_image_handle,
         DevicePathProtocol *remaining_device_path, bool recursive);
-    Status(EFICALL *disconnect_controller)(Handle controller_handle,
+    Status(*disconnect_controller)(Handle controller_handle,
                                            Handle driver_image_handle,
                                            Handle child_handle);
 
-    Status(EFICALL *open_protocol)(Handle handle, UUID *protocol,
+    Status(*open_protocol)(Handle handle, UUID *protocol,
                                    void **interface, Handle agent_handle,
                                    Handle controller_handle, U32 attributes);
-    Status(EFICALL *close_protocol)(Handle handle, UUID *protocol,
+    Status(*close_protocol)(Handle handle, UUID *protocol,
                                     Handle agent_handle,
                                     Handle controller_handle);
-    Status(EFICALL *open_protocol_information)(
+    Status(*open_protocol_information)(
         Handle handle, UUID *protocol,
         OpenProtocolInformationEntry **entry_buffer, USize *entry_count);
 
-    Status(EFICALL *protocols_per_handle)(Handle handle,
+    Status(*protocols_per_handle)(Handle handle,
                                           UUID ***protocol_buffer,
                                           USize *protocol_buffer_count);
-    Status(EFICALL *locate_handle_buffer)(LocateSearchType search_type,
+    Status(*locate_handle_buffer)(LocateSearchType search_type,
                                           UUID *protocol, void *search_key,
                                           USize *no_handles, Handle **buffer);
-    Status(EFICALL *locate_protocol)(UUID *protocol, void *registration,
+    Status(*locate_protocol)(UUID *protocol, void *registration,
                                      void **interface);
-    Status(EFICALL *install_multiple_protocol_interfaces)(Handle *handle, ...);
-    Status(EFICALL *uninstall_multiple_protocol_interfaces)(Handle handle, ...);
+    Status(*install_multiple_protocol_interfaces)(Handle *handle, ...);
+    Status(*uninstall_multiple_protocol_interfaces)(Handle handle, ...);
 
-    Status(EFICALL *calculate_crc32)(void *data, USize data_size, U32 *crc32);
+    Status(*calculate_crc32)(void *data, USize data_size, U32 *crc32);
 
-    void(EFICALL *copy_mem)(void *destination, void *source, USize length);
-    void(EFICALL *set_mem)(void *buffer, USize size, U8 value);
+    void(*copy_mem)(void *destination, void *source, USize length);
+    void(*set_mem)(void *buffer, USize size, U8 value);
 
     /* 2.0+ */
 
-    Status(EFICALL *create_event_ex)(U32 type, Tpl notify_tpl,
+    Status(*create_event_ex)(U32 type, Tpl notify_tpl,
                                      EventNotify notify_function,
                                      void *notify_context, UUID *event_group,
                                      Event *event);

@@ -39,20 +39,20 @@ static constexpr auto FILE_VALID_ATTR = 0x0000000000000037;
 
 typedef struct FileProtocol {
     U64 Revision;
-    Status(EFICALL *open)(FileProtocol *this_, FileProtocol **newHandle,
+    Status(*open)(FileProtocol *this_, FileProtocol **newHandle,
                           U16 *fileName, U64 openMode, U64 attributes);
-    Status(EFICALL *close)(FileProtocol *this_);
-    Status(EFICALL *delete)(FileProtocol *this_);
-    Status(EFICALL *read)(FileProtocol *this_, USize *bufferSize, void *buffer);
-    Status(EFICALL *write)(FileProtocol *this_, USize *bufferSize,
+    Status(*close)(FileProtocol *this_);
+    Status(*delete)(FileProtocol *this_);
+    Status(*read)(FileProtocol *this_, USize *bufferSize, void *buffer);
+    Status(*write)(FileProtocol *this_, USize *bufferSize,
                            void *buffer);
-    Status(EFICALL *getPosisition)(FileProtocol *this_, U64 position);
-    Status(EFICALL *setPosisition)(FileProtocol *this_, U64 position);
-    Status(EFICALL *getInfo)(FileProtocol *this_, UUID *informationType,
+    Status(*getPosisition)(FileProtocol *this_, U64 position);
+    Status(*setPosisition)(FileProtocol *this_, U64 position);
+    Status(*getInfo)(FileProtocol *this_, UUID *informationType,
                              USize *bufferSize, void *buffer);
-    Status(EFICALL *setInfo)(FileProtocol *this_, UUID *informationType,
+    Status(*setInfo)(FileProtocol *this_, UUID *informationType,
                              USize bufferSize, void *buffer);
-    Status(EFICALL *flush)(FileProtocol *this_);
+    Status(*flush)(FileProtocol *this_);
 
     // the functions below are not (yet) implemented
     // EFI_FILE_OPEN_EX  OpenEx;  // Added for revision 2
