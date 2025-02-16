@@ -4,6 +4,13 @@
 // FIX: Once the platform-abstraction stuff is moved, merge this with cpu.c
 
 #include "shared/types/types.h"
+
+U64 rdmsr(U32 msr);
+void wrmsr(U32 msr, U64 value);
+
+void flushTLB();
+void flushCPUCaches();
+
 extern U64 cyclesPerMicroSecond;
 void wait(U64 microSeconds);
 

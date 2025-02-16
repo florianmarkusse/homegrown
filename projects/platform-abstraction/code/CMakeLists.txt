@@ -28,7 +28,6 @@ function(include_interface_library project)
 endfunction()
 
 add_subdirectory(log)
-add_subdirectory(cpu)
 add_subdirectory(memory)
 add_subdirectory(efi)
 

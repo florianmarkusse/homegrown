@@ -1,11 +1,11 @@
 #include "platform-abstraction/memory/management/init.h"
 
-#include "platform-abstraction/cpu.h"
 #include "platform-abstraction/virtual/map.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/management/definitions.h"
 #include "x86-physical.h"
 #include "x86-policy/virtual.h"
+#include "x86/configuration/cpu2.h"
 #include "x86/memory/definitions.h"
 #include "x86/memory/pat.h"
 

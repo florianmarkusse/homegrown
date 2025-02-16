@@ -1,12 +1,10 @@
 #include "platform-abstraction/physical/status.h"
 
-#include "platform-abstraction/cpu.h"
 #include "platform-abstraction/log.h"
 #include "shared/log.h"
 #include "shared/text/string.h"
 #include "shared/types/types.h"
 #include "x86-physical.h"
-#include "x86/memory/pat.h"
 
 static string pageSizeToString(PageSize pageSize) {
     switch (pageSize) {

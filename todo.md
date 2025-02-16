@@ -1,5 +1,3 @@
-- Fix code so that it compiles :)
-- remove **asm** in favor of asm and **volatile** for volatile
 - Rething platform-abstraction fault -> should just have single functions for each "interrupt":
   - noPhysicalMemory();
   - etc.

@@ -1,11 +1,11 @@
 #include "platform-abstraction/virtual/status.h"
 
-#include "platform-abstraction/cpu.h"
 #include "platform-abstraction/log.h"
 #include "shared/log.h"
 #include "shared/text/string.h"
 #include "shared/types/types.h"
 #include "x86-virtual.h"
+#include "x86/configuration/cpu2.h"
 #include "x86/memory/pat.h"
 
 static string patEncodingToString[PAT_ENCODING_COUNT] = {

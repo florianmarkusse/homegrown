@@ -11,7 +11,6 @@ target_include_directories(
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE platform-abstraction-memory-manipulation

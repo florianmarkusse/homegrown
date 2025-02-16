@@ -2,7 +2,6 @@
 
 #include "efi-to-kernel/memory/definitions.h"
 #include "efi-to-kernel/memory/descriptor.h"
-#include "platform-abstraction/cpu.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
 #include "shared/types/types.h"

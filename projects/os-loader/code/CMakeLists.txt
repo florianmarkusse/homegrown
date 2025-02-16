@@ -27,7 +27,6 @@ target_link_libraries(
     PRIVATE platform-abstraction-memory-manipulation
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-cpu)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-efi)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-virtual)
 
