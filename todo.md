@@ -1,11 +1,7 @@
-- Rething platform-abstraction fault -> should just have single functions for each "interrupt":
-  - noPhysicalMemory();
-  - etc.
-  - ask iwyu crew how to handle platform-abstraction includes? Perhap
+- ask iwyu crew how to handle platform-abstraction includes? Perhap
 - Figure out what to do with memory allocation & mapping in os-loader
-- Should we even have a platfor-abstraction/cpu.h ??? It seems too low-level
-- Fix posix tests in physical memory
 - Create macro for message and exit in efi just like flush after but with wait key stuff
+- Fix posix tests in physical memory
 - can I get rid of EFICALL ? I am compiling with efi stuff anyway which automatically does the right ABI afaik
 - Rethink memory allocation for kernel structures in uefi and whether or not to add them to free physical memory in kernel --- definitely some bugs now.
 - if you ever decide to use unit tests in the kernel, need to create an abstraction for test-framework so it can be used in both posix and freestanding environments

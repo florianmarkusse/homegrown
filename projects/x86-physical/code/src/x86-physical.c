@@ -112,7 +112,7 @@ allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
         return address;
     }
 
-    triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
+    interruptNoMorePhysicalMemory;
 }
 
 U64 allocContiguousPhysicalPages(U64 numberOfPages, PageSize pageSize) {
@@ -172,7 +172,7 @@ allocPhysicalPagesWithManager(PagedMemory_a pages,
         return pages;
     }
 
-    triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
+    interruptNoMorePhysicalMemory;
 }
 
 PagedMemory_a allocPhysicalPages(PagedMemory_a pages, PageSize pageSize) {
@@ -306,7 +306,7 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory) {
 
     MemoryDescriptor *descriptor = nextValidDescriptor(&i, kernelMemory);
     if (!descriptor) {
-        triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
+        interruptNoMorePhysicalMemory;
     }
 
     /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
@@ -319,7 +319,7 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory) {
     if (descriptor->numberOfPages == 0) {
         descriptor = nextValidDescriptor(&i, kernelMemory);
         if (!descriptor) {
-            triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
+            interruptNoMorePhysicalMemory;
         }
     }
 

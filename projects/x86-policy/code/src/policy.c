@@ -18,7 +18,7 @@ void *allocAndMapExplicit(U64 numberOfPages, U64 preferredPageSizePowerOfTwo) {
 
     numberOfPages *= conversion.numberOfPages;
     if (numberOfPages > PageTableFormat.ENTRIES) {
-        triggerFault(FAULT_TOO_LARGE_ALLOCATION);
+        interruptTooLargeAllocation;
     }
     PagedMemory pagedMemory[PageTableFormat.ENTRIES];
     PagedMemory_a request =
@@ -67,7 +67,7 @@ void *allocContiguousAndMap(U64 numberOfPages,
         convertPreferredPageToAvailablePages(preferredPageSizePowerOfTwo);
     numberOfPages *= conversion.numberOfPages;
     if (numberOfPages > PageTableFormat.ENTRIES) {
-        triggerFault(FAULT_TOO_LARGE_ALLOCATION);
+        interruptTooLargeAllocation;
     }
 
     U64 size = numberOfPages * conversion.pageSize;

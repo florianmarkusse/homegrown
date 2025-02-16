@@ -2,6 +2,7 @@
 
 #include "shared/enum.h"
 #include "shared/types/types.h"
+#include "x86/fault.h"
 
 typedef struct {
     U16 limit;
@@ -685,6 +686,11 @@ void triggerFault(Fault fault) {
     __builtin_unreachable();
 }
 
+void interruptNoMorePhysicalMemory() {
+    triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
+}
+void interruptTooLargeAllocation() { triggerFault(FAULT_TOO_LARGE_ALLOCATION); }
+
 typedef struct {
     // Segment selectors with alignment attributes
     U16 gs __attribute__((aligned(8)));
@@ -720,6 +726,4 @@ typedef struct {
     //    U64 ss;
 } regs __attribute__((aligned(8)));
 
-void fault_handler([[maybe_unused]] regs *regs) {
-    asm volatile("cli;hlt;");
-}
+void fault_handler([[maybe_unused]] regs *regs) { asm volatile("cli;hlt;"); }
