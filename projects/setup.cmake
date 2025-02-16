@@ -94,11 +94,26 @@ endif()
 
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 
+function(add_subproject_named_target project target)
+    ### Need to do this, because we are in generation step and TARGET will not
+    ### work then...
+    get_property(ADDED_PROJECT_TARGETS GLOBAL PROPERTY ADDED_PROJECT_TARGETS)
+
+    if(NOT "${target}" IN_LIST ADDED_PROJECT_TARGETS)
+        add_subdirectory(
+            "${REPO_PROJECTS}/${project}/code"
+            "${REPO_PROJECTS}/${project}/code/${BUILD_OUTPUT_PATH}"
+        )
+        set(ADDED_PROJECT_TARGETS "${ADDED_PROJECT_TARGETS};${target}")
+        set_property(
+            GLOBAL
+            PROPERTY ADDED_PROJECT_TARGETS "${ADDED_PROJECT_TARGETS}"
+        )
+    endif()
+endfunction()
+
 function(add_subproject project)
-    add_subdirectory(
-        "${REPO_PROJECTS}/${project}/code"
-        "${REPO_PROJECTS}/${project}/code/${BUILD_OUTPUT_PATH}"
-    )
+    add_subproject_named_target(${project} ${project})
 endfunction()
 
 function(get_project_targets result currentDir)

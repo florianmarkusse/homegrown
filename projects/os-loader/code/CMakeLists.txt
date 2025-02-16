@@ -11,6 +11,7 @@ add_subproject("shared")
 add_subproject("efi")
 add_subproject("efi-to-kernel")
 add_subproject("uefi")
+add_subproject_named_target("abstraction/efi" abstraction-efi)
 
 add_executable(
     ${PROJECT_NAME}
@@ -18,6 +19,8 @@ add_executable(
     "src/data-reading.c"
     "src/memory/boot-functions.c"
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-efi)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 
@@ -27,7 +30,6 @@ target_link_libraries(
     PRIVATE platform-abstraction-memory-manipulation
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-efi)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-virtual)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)

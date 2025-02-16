@@ -1,3 +1,5 @@
+- redo abstractions
+- remove -i libs?
 - ask iwyu crew how to handle platform-abstraction includes? Perhap
 - Figure out what to do with memory allocation & mapping in os-loader
 - Fix posix tests in physical memory

@@ -94,6 +94,7 @@ const X86_EFI = "x86-efi"
 const X86_POLICY = "x86-policy"
 const UEFI = "uefi"
 const FREE_C = "free-c"
+const ABSTRACTION = "abstraction"
 
 // and here
 var kernelFolder = common.REPO_PROJECTS + "/" + KERNEL + "/"
@@ -111,6 +112,7 @@ var x86EfiFolder = common.REPO_PROJECTS + "/" + X86_EFI + "/"
 var x86PolicyFolder = common.REPO_PROJECTS + "/" + X86_POLICY + "/"
 var uefiFolder = common.REPO_PROJECTS + "/" + UEFI + "/"
 var freeCFolder = common.REPO_PROJECTS + "/" + FREE_C + "/"
+var abstractionFolder = common.REPO_PROJECTS + "/" + ABSTRACTION + "/"
 
 // and here
 var PROJECT_STRUCTURES = map[string]*ProjectStructure{
@@ -217,6 +219,13 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		Linker:      ELF.Linker,
 		Folder:      freeCFolder,
 		CodeFolder:  freeCFolder + "code",
+		Environment: string(environment.Freestanding),
+	},
+	ABSTRACTION: {
+		CCompiler:   ELF.CCompiler,
+		Linker:      ELF.Linker,
+		Folder:      abstractionFolder,
+		CodeFolder:  abstractionFolder,
 		Environment: string(environment.Freestanding),
 	},
 }

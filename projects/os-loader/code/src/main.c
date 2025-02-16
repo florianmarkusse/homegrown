@@ -1,3 +1,4 @@
+#include "abstraction/efi.h"
 #include "efi-to-kernel/kernel-parameters.h"  // for KernelParameters
 #include "efi-to-kernel/memory/definitions.h" // for STACK_SIZE
 #include "efi-to-kernel/memory/descriptor.h"  // for MemoryDescriptor
@@ -11,7 +12,6 @@
 #include "efi/memory.h"
 #include "os-loader/data-reading.h"          // for getKernelInfo
 #include "os-loader/memory/boot-functions.h" // for mapMemoryAt
-#include "platform-abstraction/efi.h"
 #include "platform-abstraction/log.h"
 #include "platform-abstraction/physical/allocation.h"
 #include "platform-abstraction/virtual/map.h"
