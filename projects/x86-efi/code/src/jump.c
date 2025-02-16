@@ -2,12 +2,13 @@
 #include "efi/globals.h"
 #include "platform-abstraction/efi.h"
 #include "x86-efi/gdt.h"
+#include "x86-virtual.h"
 #include "x86/gdt.h"
 
 void enableNewMemoryMapping() {
     __asm__ __volatile__("mov %%rax, %%cr3"
                          :
-                         : "a"(globals.rootPageTable)
+                         : "a"(level4PageTable)
                          : "memory");
 }
 

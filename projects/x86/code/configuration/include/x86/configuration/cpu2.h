@@ -15,4 +15,6 @@ typedef struct {
 } CPUIDResult;
 CPUIDResult CPUID(U32 functionID);
 void disablePICAndNMI();
+U64 CR3();
+
 #endif

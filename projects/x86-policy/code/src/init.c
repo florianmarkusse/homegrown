@@ -9,9 +9,9 @@
 #include "x86/memory/definitions.h"
 #include "x86/memory/pat.h"
 
-void initMemoryManager(KernelMemory kernelMemory, U64 rootMemoryMappingTable) {
+void initMemoryManager(KernelMemory kernelMemory) {
     initPhysicalMemoryManager(kernelMemory);
-    initVirtualMemoryManager(rootMemoryMappingTable, kernelMemory);
+    initVirtualMemoryManager(kernelMemory);
 }
 
 void initScreenMemory(U64 screenAddress, U64 bytes) {

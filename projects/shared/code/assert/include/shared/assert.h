@@ -3,7 +3,7 @@
 
 #ifdef DEBUG
 
-#ifdef FREESTANDING_ENVIRONMENT
+#if defined(FREESTANDING_ENVIRONMENT) || defined(EFI_ENVIRONMENT)
 // Use set $pc += 2 to resume exection
 #define BREAKPOINT __asm__ __volatile__("1: jmp 1b");
 #define ASSERT(c)                                                              \

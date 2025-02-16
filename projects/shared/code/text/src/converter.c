@@ -73,6 +73,7 @@ string I64ToStringDefault(I64 data) {
     return I64ToString(data, stringConverterBuffer);
 }
 
+#ifndef NO_FLOAT
 string F64ToString(F64 data, U8_a tmp) {
     U64 tmpLen = 0;
     U32 prec = 1000000; // i.e. 6 decimals
@@ -120,6 +121,7 @@ string F64ToString(F64 data, U8_a tmp) {
 string F64ToStringDefault(F64 data) {
     return F64ToString(data, stringConverterBuffer);
 }
+#endif
 
 string stringWithMinSize(string data, U8 minSize, U8_a tmp) {
     if (data.len >= minSize) {

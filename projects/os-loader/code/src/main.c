@@ -13,6 +13,8 @@
 #include "os-loader/memory/boot-functions.h" // for mapMemoryAt
 #include "platform-abstraction/efi.h"
 #include "platform-abstraction/log.h"
+#include "platform-abstraction/physical/allocation.h"
+#include "platform-abstraction/virtual/map.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h" // for CEILING_DIV_V...
 #include "shared/text/string.h" // for CEILING_DIV_V...
@@ -24,8 +26,6 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     globals.st->con_out->reset(globals.st->con_out, false);
     globals.st->con_out->set_attribute(globals.st->con_out,
                                        BACKGROUND_RED | YELLOW);
-
-    globals.rootPageTable = allocAndZero(1);
 
     initArchitecture();
 
@@ -49,14 +49,12 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     }
 
     KFLUSH_AFTER { INFO(STRING("Attempting to map memory now\n")); }
-    mapMemoryAt((U64)kernelContent.buf, KERNEL_CODE_START,
-                (U32)kernelContent.len);
 
-    /*KFLUSH_AFTER {*/
-    /*    INFO(STRING("Bootstrap processor work before exiting boot
-     * services\n"));*/
-    /*}*/
-    /*bootstrapProcessorWork();*/
+    mapVirtualRegion(KERNEL_CODE_START,
+                     (PagedMemory){.pageStart = (U64)kernelContent.buf,
+                                   .numberOfPages = CEILING_DIV_VALUE(
+                                       kernelContent.len, UEFI_PAGE_SIZE)},
+                     UEFI_PAGE_SIZE);
 
     KFLUSH_AFTER {
         INFO(STRING(
@@ -76,12 +74,18 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
         MemoryDescriptor *desc =
             (MemoryDescriptor *)((U8 *)memoryInfo.memoryMap +
                                  (i * memoryInfo.descriptorSize));
-        mapMemoryAt(desc->physicalStart, desc->physicalStart,
-                    desc->numberOfPages * UEFI_PAGE_SIZE);
+        mapVirtualRegion(desc->physicalStart,
+                         (PagedMemory){.pageStart = (U64)desc->physicalStart,
+                                       .numberOfPages = desc->numberOfPages},
+                         UEFI_PAGE_SIZE);
     }
 
-    mapMemoryAt(gop->mode->frameBufferBase, gop->mode->frameBufferBase,
-                gop->mode->frameBufferSize);
+    mapVirtualRegion(
+        gop->mode->frameBufferBase,
+        (PagedMemory){.pageStart = (U64)gop->mode->frameBufferBase,
+                      .numberOfPages = CEILING_DIV_VALUE(
+                          gop->mode->frameBufferSize, UEFI_PAGE_SIZE)},
+        UEFI_PAGE_SIZE);
 
     globals.frameBufferAddress = gop->mode->frameBufferBase;
 
@@ -94,19 +98,29 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
 
     KFLUSH_AFTER { INFO(STRING("Allocating space for kernel parameters\n")); }
     PhysicalAddress kernelParams =
-        allocAndZero(KERNEL_PARAMS_SIZE / UEFI_PAGE_SIZE);
-    mapMemoryAt(kernelParams, KERNEL_PARAMS_START, KERNEL_PARAMS_SIZE);
+        allocAndZero(CEILING_DIV_VALUE(KERNEL_PARAMS_SIZE, UEFI_PAGE_SIZE));
+
+    mapVirtualRegion(KERNEL_PARAMS_START,
+                     (PagedMemory){.pageStart = kernelParams,
+                                   .numberOfPages = CEILING_DIV_VALUE(
+                                       KERNEL_PARAMS_SIZE, UEFI_PAGE_SIZE)},
+                     UEFI_PAGE_SIZE);
+
     /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
     KernelParameters *params = (KernelParameters *)kernelParams;
-
-    params->rootPageTable = globals.rootPageTable;
 
     KFLUSH_AFTER { INFO(STRING("Allocating space for stack\n")); }
     // NOTE: It seems we are adding this stuff to the "free" memory in the
     // kernel. We should somehow distinguish between kernel-required memory that
     // was allocated by the efi-application and useless memory.
-    PhysicalAddress stackEnd = allocAndZero(STACK_SIZE / UEFI_PAGE_SIZE);
-    mapMemoryAt(stackEnd, BOTTOM_STACK, STACK_SIZE);
+    PhysicalAddress stackEnd =
+        allocAndZero(CEILING_DIV_VALUE(STACK_SIZE, UEFI_PAGE_SIZE));
+
+    mapVirtualRegion(BOTTOM_STACK,
+                     (PagedMemory){.pageStart = stackEnd,
+                                   .numberOfPages = CEILING_DIV_VALUE(
+                                       STACK_SIZE, UEFI_PAGE_SIZE)},
+                     UEFI_PAGE_SIZE);
     PhysicalAddress stackPointer = stackEnd + STACK_SIZE;
 
     KFLUSH_AFTER {

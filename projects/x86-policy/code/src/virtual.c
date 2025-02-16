@@ -7,6 +7,7 @@
 #include "shared/maths/maths.h"
 #include "shared/types/types.h"
 #include "x86-virtual.h"
+#include "x86/configuration/cpu2.h"
 #include "x86/memory/pat.h"
 
 VirtualRegion higherHalfRegion = {.start = HIGHER_HALF_START,
@@ -57,7 +58,7 @@ U64 getPhysicalAddressFrame(U64 virtualPage) {
     return virtualPage & VirtualPageMasks.FRAME_OR_NEXT_PAGE_TABLE;
 }
 
-void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory) {
+void initVirtualMemoryManager(KernelMemory kernelMemory) {
     U64 currentHighestAddress = 0;
     for (U64 i = 0;
          i < kernelMemory.totalDescriptorSize / kernelMemory.descriptorSize;
@@ -75,7 +76,7 @@ void initVirtualMemoryManager(U64 level4Address, KernelMemory kernelMemory) {
     lowerHalfRegion.start = currentHighestAddress;
 
     /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
-    level4PageTable = (VirtualPageTable *)level4Address;
+    level4PageTable = (VirtualPageTable *)CR3();
     programPat();
 }
 

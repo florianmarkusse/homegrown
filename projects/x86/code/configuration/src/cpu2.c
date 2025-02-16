@@ -37,3 +37,9 @@ void disablePICAndNMI() {
         : "eax", "memory"   // Clobbered registers: eax and memory
     );
 }
+
+U64 CR3() {
+    U64 cr3;
+    asm volatile("mov %%cr3, %0" : "=r"(cr3));
+    return cr3;
+}

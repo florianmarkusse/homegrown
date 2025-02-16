@@ -33,6 +33,7 @@ typedef enum : U64 { MEMORY_PAGE_SIZES_ENUM(ENUM_VALUES_VARIANT) } PageSize;
 static constexpr auto MEMORY_PAGE_SIZES_COUNT =
     (0 MEMORY_PAGE_SIZES_ENUM(PLUS_ONE));
 
+// NOTE: Goes from smallest to largest!!!
 extern PageSize pageSizes[MEMORY_PAGE_SIZES_COUNT];
 
 static constexpr U64 AVAILABLE_PAGE_SIZES_MASK =

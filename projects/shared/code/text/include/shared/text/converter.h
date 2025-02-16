@@ -24,11 +24,38 @@ string U64ToStringDefault(U64 data);
 string I64ToString(I64 data, U8_a tmp);
 string I64ToStringDefault(I64 data);
 
+#ifndef NO_FLOAT
 string F64ToString(F64 data, U8_a tmp);
 string F64ToStringDefault(F64 data);
+#endif
 
 string noAppend();
 
+#ifdef NO_FLOAT
+#define CONVERT_TO_STRING(data)                                                \
+    _Generic((data),                                                           \
+        string: stringToString,                                                \
+        char: charToStringDefault,                                             \
+        bool: boolToString,                                                    \
+        void *: ptrToStringDefault,                                            \
+        U8 *: ptrToStringDefault,                                              \
+        I8 *: ptrToStringDefault,                                              \
+        U16 *: ptrToStringDefault,                                             \
+        I16 *: ptrToStringDefault,                                             \
+        U32 *: ptrToStringDefault,                                             \
+        I32 *: ptrToStringDefault,                                             \
+        U64 *: ptrToStringDefault,                                             \
+        I64 *: ptrToStringDefault,                                             \
+        U8: U64ToStringDefault,                                                \
+        I8: I64ToStringDefault,                                                \
+        U16: U64ToStringDefault,                                               \
+        I16: I64ToStringDefault,                                               \
+        U32: U64ToStringDefault,                                               \
+        I32: I64ToStringDefault,                                               \
+        U64: U64ToStringDefault,                                               \
+        I64: I64ToStringDefault,                                               \
+        default: noAppend)(data)
+#else
 #define CONVERT_TO_STRING(data)                                                \
     _Generic((data),                                                           \
         string: stringToString,                                                \
@@ -53,5 +80,6 @@ string noAppend();
         I64: I64ToStringDefault,                                               \
         F64: F64ToStringDefault,                                               \
         default: noAppend)(data)
+#endif
 
 #endif

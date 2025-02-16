@@ -8,6 +8,10 @@ typedef struct {
     U64 pageSize;
 } PageSizeConversion;
 
-PageSizeConversion convertBytesToPages(U64 bytesPowerOfTwo);
+PageSizeConversion convertPreferredPageToAvailablePages(U64 bytesPowerOfTwo);
+
+// Converts the given bytes to a sensible conversion of available page sizes.
+// I.e., If you pass (2 MiB - 1 KiB), it will return 1 page of size 2 MiB.
+PageSizeConversion convertBytesToPagesToMapSmartly(U64 bytesPowerOfTwo);
 
 #endif

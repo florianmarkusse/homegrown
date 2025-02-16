@@ -3,6 +3,6 @@
 
 #include "shared/types/types.h"
 
-U64 allocate4KiBPage();
+U64 allocate4KiBPage(U64 numPages);
 
 #endif

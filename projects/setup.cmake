@@ -13,6 +13,40 @@ else()
     add_compile_definitions(PROJECT_BUILD)
 endif()
 
+set(VALID_ENVIRONMENTS "freestanding" "posix" "efi")
+list(FIND VALID_ENVIRONMENTS ${ENVIRONMENT} VALID_ENVIRONMENT_INDEX)
+if(VALID_ENVIRONMENT_INDEX EQUAL -1)
+    message(
+        FATAL_ERROR
+        "Invalid environment specified. Please choose one of: ${VALID_ENVIRONMENTS}"
+    )
+endif()
+if(${ENVIRONMENT} STREQUAL "freestanding")
+    add_compile_definitions(FREE_C_LIB)
+    add_compile_definitions(FREESTANDING_ENVIRONMENT)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -ffreestanding")
+    add_link_options("--ld-path=${CMAKE_LINKER}")
+endif()
+if(${ENVIRONMENT} STREQUAL "efi")
+    add_compile_definitions(FREE_C_LIB)
+    add_compile_definitions(EFI_ENVIRONMENT)
+    set(CMAKE_C_FLAGS
+        "${CMAKE_C_FLAGS} -ffreestanding -nostdlib -nostdinc --target=x86_64-unknown-windows -mgeneral-regs-only -mno-stack-arg-probe"
+    )
+    ### NOTE: Need these compile definitions because we ccmpile with -mgeneral-regs-only
+    add_compile_definitions(NO_FLOAT)
+    add_compile_definitions(NO_SSE)
+    get_filename_component(LINKER_FILENAME ${CMAKE_LINKER} NAME)
+    add_link_options(
+        -fuse-ld=${LINKER_FILENAME}
+        -Wl,-entry:efi_main,-subsystem:efi_application
+    )
+endif()
+if(${ENVIRONMENT} STREQUAL "posix")
+    add_compile_definitions(HOSTED_C_LIB)
+    add_compile_definitions(POSIX_ENVIRONMENT)
+    add_link_options("--ld-path=${CMAKE_LINKER}")
+endif()
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE
         "Release"
@@ -41,38 +75,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     # TODO: Add -flto on production build I guess or on flag?
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -flto")
     # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
-endif()
-
-set(VALID_ENVIRONMENTS "freestanding" "posix" "efi")
-list(FIND VALID_ENVIRONMENTS ${ENVIRONMENT} VALID_ENVIRONMENT_INDEX)
-if(VALID_ENVIRONMENT_INDEX EQUAL -1)
-    message(
-        FATAL_ERROR
-        "Invalid environment specified. Please choose one of: ${VALID_ENVIRONMENTS}"
-    )
-endif()
-if(${ENVIRONMENT} STREQUAL "freestanding")
-    add_compile_definitions(FREE_C_LIB)
-    add_compile_definitions(FREESTANDING_ENVIRONMENT)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdinc -nostdlib -ffreestanding")
-    add_link_options("--ld-path=${CMAKE_LINKER}")
-endif()
-if(${ENVIRONMENT} STREQUAL "efi")
-    add_compile_definitions(FREE_C_LIB)
-    add_compile_definitions(EFI_ENVIRONMENT)
-    set(CMAKE_C_FLAGS
-        "${CMAKE_C_FLAGS} -ffreestanding -nostdlib -nostdinc -target x86_64-unknown-windows -mgeneral-regs-only -mno-stack-arg-probe"
-    )
-    get_filename_component(LINKER_FILENAME ${CMAKE_LINKER} NAME)
-    add_link_options(
-        -fuse-ld=${LINKER_FILENAME}
-        -Wl,-entry:efi_main,-subsystem:efi_application
-    )
-endif()
-if(${ENVIRONMENT} STREQUAL "posix")
-    add_compile_definitions(HOSTED_C_LIB)
-    add_compile_definitions(POSIX_ENVIRONMENT)
-    add_link_options("--ld-path=${CMAKE_LINKER}")
 endif()
 
 set(VALID_ARCHITECTURES "x86" "mock")

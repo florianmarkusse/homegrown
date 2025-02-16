@@ -8,11 +8,11 @@
 #include "platform-abstraction/log.h"
 #include "shared/types/types.h"
 
-U64 allocate4KiBPage() {
+U64 allocate4KiBPage(U64 numPages) {
     U64 address;
 
     Status status = globals.st->boot_services->allocate_pages(
-        ALLOCATE_ANY_PAGES, LOADER_DATA, 1, &address);
+        ALLOCATE_ANY_PAGES, LOADER_DATA, numPages, &address);
     if (EFI_ERROR(status)) {
         KFLUSH_AFTER { ERROR(STRING("Could not allocate 4KiB page\n")); }
         waitKeyThenReset();

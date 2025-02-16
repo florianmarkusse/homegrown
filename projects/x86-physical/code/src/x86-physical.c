@@ -10,7 +10,9 @@
 #include "x86/fault.h"
 
 // NOTE: This is for an abstraction used in virtual allocation.
-U64 allocate4KiBPage() { return allocContiguousPhysicalPages(1, BASE_PAGE); }
+U64 allocate4KiBPage(U64 numPages) {
+    return allocContiguousPhysicalPages(numPages, BASE_PAGE);
+}
 
 PhysicalMemoryManager basePMM;
 PhysicalMemoryManager largePMM;

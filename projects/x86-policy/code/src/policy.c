@@ -14,7 +14,7 @@
 
 void *allocAndMapExplicit(U64 numberOfPages, U64 preferredPageSizePowerOfTwo) {
     PageSizeConversion conversion =
-        convertBytesToPages(preferredPageSizePowerOfTwo);
+        convertPreferredPageToAvailablePages(preferredPageSizePowerOfTwo);
 
     numberOfPages *= conversion.numberOfPages;
     if (numberOfPages > PageTableFormat.ENTRIES) {
@@ -64,7 +64,7 @@ void *allocAndMap(U64 bytes) {
 void *allocContiguousAndMap(U64 numberOfPages,
                             U64 preferredPageSizePowerOfTwo) {
     PageSizeConversion conversion =
-        convertBytesToPages(preferredPageSizePowerOfTwo);
+        convertPreferredPageToAvailablePages(preferredPageSizePowerOfTwo);
     numberOfPages *= conversion.numberOfPages;
     if (numberOfPages > PageTableFormat.ENTRIES) {
         triggerFault(FAULT_TOO_LARGE_ALLOCATION);

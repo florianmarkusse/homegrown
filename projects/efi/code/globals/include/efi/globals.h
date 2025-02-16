@@ -7,7 +7,6 @@
 typedef struct {
     Handle h;
     SystemTable *st;
-    U64 rootPageTable;
     U64 frameBufferAddress;
 } Configuration;
 

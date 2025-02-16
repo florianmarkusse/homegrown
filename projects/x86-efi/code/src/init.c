@@ -1,3 +1,5 @@
+#include "platform-abstraction/efi.h"
+
 #include "efi/error.h"
 #include "efi/firmware/base.h"   // for PhysicalAddress
 #include "efi/firmware/system.h" // for PhysicalAddress
@@ -5,10 +7,12 @@
 #include "efi/memory.h"
 #include "platform-abstraction/efi.h"
 #include "platform-abstraction/log.h"
+#include "platform-abstraction/physical/allocation.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
 #include "shared/text/string.h"
 #include "x86-efi/gdt.h"
+#include "x86-virtual.h"
 #include "x86/configuration/cpu2.h"
 #include "x86/configuration/features.h"
 #include "x86/gdt.h"
@@ -59,10 +63,17 @@ void messageAndExit(string message) {
 void initArchitecture() {
     asm volatile("cli");
 
-    KFLUSH_AFTER {
-        INFO(STRING("CR3 memory location:"));
+    {
+        U64 newCR3 = allocate4KiBPage(1);
         /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
-        INFO((void *)globals.rootPageTable, NEWLINE);
+        memset((void *)newCR3, 0, UEFI_PAGE_SIZE);
+        level4PageTable = (VirtualPageTable *)newCR3;
+    }
+
+    KFLUSH_AFTER {
+        INFO(STRING("root page table memory location:"));
+        /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
+        INFO((void *)level4PageTable, NEWLINE);
     }
 
     U32 maxCPUID = CPUID(0).eax;

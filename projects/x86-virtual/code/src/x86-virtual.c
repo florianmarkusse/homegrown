@@ -26,7 +26,7 @@ static U8 pageSizeToDepth(PageSize pageSize) {
 }
 
 static U64 getZeroBasePage() {
-    U64 address = allocate4KiBPage();
+    U64 address = allocate4KiBPage(1);
     /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
     memset((void *)address, 0, PAGE_FRAME_SIZE);
     return address;
