@@ -29,11 +29,10 @@ MemoryInfo getMemoryInfo() {
         &mmap.descriptorVersion);
 
     if (status != BUFFER_TOO_SMALL) {
-        KFLUSH_AFTER {
+        EXIT_WITH_MESSAGE {
             ERROR(STRING(
                 "Should have received a buffer too small error here!\n"));
         }
-        waitKeyThenReset();
     }
 
     // Some extra because allocating can create extra descriptors and
@@ -44,19 +43,15 @@ MemoryInfo getMemoryInfo() {
         ALLOCATE_ANY_PAGES, LOADER_DATA,
         CEILING_DIV_VALUE(mmap.memoryMapSize, UEFI_PAGE_SIZE),
         (PhysicalAddress *)&mmap.memoryMap);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER {
-            ERROR(STRING("Could not allocate data for memory map buffer\n"));
-        }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Could not allocate data for memory map buffer\n"));
     }
 
     status = globals.st->boot_services->get_memory_map(
         &mmap.memoryMapSize, mmap.memoryMap, &mmap.mapKey, &mmap.descriptorSize,
         &mmap.descriptorVersion);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER { ERROR(STRING("Getting memory map failed!\n")); }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Getting memory map failed!\n"));
     }
 
     return mmap;

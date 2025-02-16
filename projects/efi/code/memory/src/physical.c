@@ -13,9 +13,8 @@ U64 allocate4KiBPage(U64 numPages) {
 
     Status status = globals.st->boot_services->allocate_pages(
         ALLOCATE_ANY_PAGES, LOADER_DATA, numPages, &address);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER { ERROR(STRING("Could not allocate 4KiB page\n")); }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Could not allocate 4KiB page\n"));
     }
 
     return address;

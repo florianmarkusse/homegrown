@@ -63,9 +63,8 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     GraphicsOutputProtocol *gop = nullptr;
     Status status = globals.st->boot_services->locate_protocol(
         &GRAPHICS_OUTPUT_PROTOCOL_GUID, nullptr, (void **)&gop);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER { ERROR(STRING("Could not locate locate GOP\n")); }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Could not locate locate GOP\n"));
     }
 
     MemoryInfo memoryInfo = getMemoryInfo();
@@ -141,8 +140,7 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
     RSDPResult rsdp = getRSDP(globals.st->number_of_table_entries,
                               globals.st->configuration_table);
     if (!rsdp.rsdp) {
-        KFLUSH_AFTER { ERROR(STRING("Could not find an RSDP!\n")); }
-        waitKeyThenReset();
+        EXIT_WITH_MESSAGE { ERROR(STRING("Could not find an RSDP!\n")); }
     }
 
     KFLUSH_AFTER {
@@ -159,20 +157,16 @@ EFICALL Status efi_main(Handle handle, SystemTable *systemtable) {
         status = globals.st->boot_services->free_pages(
             (PhysicalAddress)memoryInfo.memoryMap,
             CEILING_DIV_VALUE(memoryInfo.memoryMapSize, UEFI_PAGE_SIZE));
-        if (EFI_ERROR(status)) {
-            KFLUSH_AFTER {
-                ERROR(STRING("Could not free allocated memory map\r\n"));
-            }
-            waitKeyThenReset();
+        EXIT_WITH_MESSAGE_IF(status) {
+            ERROR(STRING("Could not free allocated memory map\r\n"));
         }
 
         memoryInfo = getMemoryInfo();
         status = globals.st->boot_services->exit_boot_services(
             globals.h, memoryInfo.mapKey);
     }
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER { ERROR(STRING("could not exit boot services!\r\n")); }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("could not exit boot services!\r\n"));
     }
 
     params->memory =

@@ -25,23 +25,17 @@ string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
     status = globals.st->boot_services->open_protocol(
         globals.h, &LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
         nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER {
-            ERROR(STRING("Could not open Loaded Image Protocol\n"));
-        }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Could not open Loaded Image Protocol\n"));
     }
 
     BlockIoProtocol *imageBiop;
     status = globals.st->boot_services->open_protocol(
         lip->device_handle, &BLOCK_IO_PROTOCOL_GUID, (void **)&imageBiop,
         globals.h, nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER {
-            ERROR(STRING(
-                "Could not open Block IO Protocol for this loaded image.\n"));
-        }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING(
+            "Could not open Block IO Protocol for this loaded image.\n"));
     }
 
     // Loop through and get Block IO protocol for input media ID, for entire
@@ -55,11 +49,8 @@ string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
     status = globals.st->boot_services->locate_handle_buffer(
         BY_PROTOCOL, &BLOCK_IO_PROTOCOL_GUID, nullptr, &num_handles,
         &handle_buffer);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER {
-            ERROR(STRING("Could not locate any Block IO Protocols.\n"));
-        }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Could not locate any Block IO Protocols.\n"));
     }
 
     Handle mediaHandle = nullptr;
@@ -75,11 +66,8 @@ string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
         status = globals.st->boot_services->open_protocol(
             handle_buffer[i], &BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
             globals.h, nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-        if (EFI_ERROR(status)) {
-            KFLUSH_AFTER {
-                ERROR(STRING("Could not Open Block IO protocol on handle\n"));
-            }
-            waitKeyThenReset();
+        EXIT_WITH_MESSAGE_IF(status) {
+            ERROR(STRING("Could not Open Block IO protocol on handle\n"));
         }
 
         U64 alignedBytes = ALIGN_UP_VALUE(bytes, biop->Media->BlockSize);
@@ -88,11 +76,8 @@ string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
         status = globals.st->boot_services->allocate_pages(
             ALLOCATE_ANY_PAGES, LOADER_DATA,
             CEILING_DIV_VALUE(alignedBytes, UEFI_PAGE_SIZE), &address);
-        if (EFI_ERROR(status)) {
-            KFLUSH_AFTER {
-                ERROR(STRING("Could not allocete data for disk buffer\n"));
-            }
-            waitKeyThenReset();
+        EXIT_WITH_MESSAGE_IF(status) {
+            ERROR(STRING("Could not allocete data for disk buffer\n"));
         }
 
         if (biop->Media->MediaId == imageBiop->Media->MediaId) {
@@ -125,11 +110,10 @@ string readDiskLbasFromCurrentGlobalImage(Lba diskLba, USize bytes) {
         globals.h, &LOADED_IMAGE_PROTOCOL_GUID, globals.h, nullptr);
 
     if (!readBlocks) {
-        KFLUSH_AFTER {
+        EXIT_WITH_MESSAGE {
             ERROR(STRING("Could not find Block IO protocol for disk with ID:"));
-            INFO(imageBiop->Media->MediaId, NEWLINE);
+            ERROR(imageBiop->Media->MediaId, NEWLINE);
         }
-        waitKeyThenReset();
     }
 
     return data;
@@ -149,11 +133,9 @@ string readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
     status = globals.st->boot_services->locate_handle_buffer(
         BY_PROTOCOL, &BLOCK_IO_PROTOCOL_GUID, nullptr, &num_handles,
         &handle_buffer);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER {
-            ERROR(STRING("Could not locate any Block IO Protocols.\n"));
-        }
-        waitKeyThenReset();
+
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Could not locate any Block IO Protocols.\n"));
     }
 
     Handle mediaHandle = nullptr;
@@ -163,11 +145,8 @@ string readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
         status = globals.st->boot_services->open_protocol(
             handle_buffer[i], &BLOCK_IO_PROTOCOL_GUID, (void **)&biop,
             globals.h, nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-        if (EFI_ERROR(status)) {
-            KFLUSH_AFTER {
-                ERROR(STRING("Could not Open Block IO protocol on handle\n"));
-            }
-            waitKeyThenReset();
+        EXIT_WITH_MESSAGE_IF(status) {
+            ERROR(STRING("Could not Open Block IO protocol on handle\n"));
         }
 
         if (biop->Media->MediaId == mediaID && !biop->Media->LogicalPartition) {
@@ -179,11 +158,8 @@ string readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
             status = globals.st->boot_services->allocate_pages(
                 ALLOCATE_ANY_PAGES, LOADER_DATA,
                 CEILING_DIV_VALUE(alignedBytes, UEFI_PAGE_SIZE), &address);
-            if (EFI_ERROR(status)) {
-                KFLUSH_AFTER {
-                    ERROR(STRING("Could not allocate data for disk buffer\n"));
-                }
-                waitKeyThenReset();
+            EXIT_WITH_MESSAGE_IF(status) {
+                ERROR(STRING("Could not allocate data for disk buffer\n"));
             }
 
             status =
@@ -207,11 +183,10 @@ string readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
     }
 
     if (!readBlocks) {
-        KFLUSH_AFTER {
+        EXIT_WITH_MESSAGE {
             ERROR(STRING("Could not find Block IO protocol for disk with ID:"));
-            INFO(mediaID, NEWLINE);
+            ERROR(mediaID, NEWLINE);
         }
-        waitKeyThenReset();
     }
 
     //    // Get Disk IO Protocol on same handle as Block IO protocol
@@ -253,23 +228,17 @@ U32 getDiskImageMediaID() {
     status = globals.st->boot_services->open_protocol(
         globals.h, &LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
         nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER {
-            ERROR(STRING("Could not open Loaded Image Protocol\n"));
-        }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Could not open Loaded Image Protocol\n"));
     }
 
     BlockIoProtocol *biop;
     status = globals.st->boot_services->open_protocol(
         lip->device_handle, &BLOCK_IO_PROTOCOL_GUID, (void **)&biop, globals.h,
         nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER {
-            ERROR(STRING(
-                "Could not open Block IO Protocol for this loaded image.\n"));
-        }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING(
+            "Could not open Block IO Protocol for this loaded image.\n"));
     }
 
     U32 mediaID = biop->Media->MediaId;
@@ -291,11 +260,8 @@ DataPartitionFile getKernelInfo() {
     Status status = globals.st->boot_services->open_protocol(
         globals.h, &LOADED_IMAGE_PROTOCOL_GUID, (void **)&lip, globals.h,
         nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER {
-            ERROR(STRING("Could not open Loaded Image Protocol\n"));
-        }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Could not open Loaded Image Protocol\n"));
     }
 
     // Get Simple File System Protocol for device handle for this loaded
@@ -304,37 +270,25 @@ DataPartitionFile getKernelInfo() {
     status = globals.st->boot_services->open_protocol(
         lip->device_handle, &SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, (void **)&sfsp,
         globals.h, nullptr, OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER {
-            ERROR(STRING("Could not open Simple File System Protocol\n"));
-        }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Could not open Simple File System Protocol\n"));
     }
 
     FileProtocol *root = nullptr;
     status = sfsp->openVolume(sfsp, &root);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER {
-            ERROR(STRING("Could not Open Volume for root directory in ESP\n"));
-        }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Could not Open Volume for root directory in ESP\n"));
     }
 
     FileProtocol *file = nullptr;
     status =
         root->open(root, &file, u"\\EFI\\FLOS\\KERNEL.INF", FILE_MODE_READ, 0);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER { ERROR(STRING("Could not Open File\n")); }
-        waitKeyThenReset();
-    }
+    EXIT_WITH_MESSAGE_IF(status) { ERROR(STRING("Could not Open File\n")); }
 
     FileInfo file_info;
     USize file_info_size = sizeof(file_info);
     status = file->getInfo(file, &FILE_INFO_ID, &file_info_size, &file_info);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER { ERROR(STRING("Could not get file info\n")); }
-        waitKeyThenReset();
-    }
+    EXIT_WITH_MESSAGE_IF(status) { ERROR(STRING("Could not get file info\n")); }
 
     string dataFile;
     dataFile.len = file_info.fileSize;
@@ -345,8 +299,9 @@ DataPartitionFile getKernelInfo() {
         ALLOCATE_ANY_PAGES, LOADER_DATA,
         CEILING_DIV_VALUE(dataFile.len, UEFI_PAGE_SIZE), &dataFileAddress);
     if (EFI_ERROR(status) || dataFile.len != file_info.fileSize) {
-        KFLUSH_AFTER { ERROR(STRING("Could not allocate memory for file\n")); }
-        waitKeyThenReset();
+        EXIT_WITH_MESSAGE {
+            ERROR(STRING("Could not allocate memory for file\n"));
+        }
     }
 
     /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
@@ -354,8 +309,9 @@ DataPartitionFile getKernelInfo() {
 
     status = file->read(file, &dataFile.len, dataFile.buf);
     if (EFI_ERROR(status) || dataFile.len != file_info.fileSize) {
-        KFLUSH_AFTER { ERROR(STRING("Could not read file into buffer\n")); }
-        waitKeyThenReset();
+        EXIT_WITH_MESSAGE {
+            ERROR(STRING("Could not read file into buffer\n"));
+        }
     }
 
     root->close(root);

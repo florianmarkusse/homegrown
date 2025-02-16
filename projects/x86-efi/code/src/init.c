@@ -24,11 +24,8 @@ void bootstrapProcessorWork() {
         ALLOCATE_ANY_PAGES, LOADER_DATA,
         CEILING_DIV_VALUE(3 * sizeof(PhysicalBasePage), UEFI_PAGE_SIZE),
         &gdtData);
-    if (EFI_ERROR(status)) {
-        KFLUSH_AFTER {
-            ERROR(STRING("Could not allocate data for disk buffer\n"));
-        }
-        waitKeyThenReset();
+    EXIT_WITH_MESSAGE_IF(status) {
+        ERROR(STRING("Could not allocate data for disk buffer\n"));
     }
 
     gdtDescriptor = prepNewGDT((PhysicalBasePage *)gdtData);
