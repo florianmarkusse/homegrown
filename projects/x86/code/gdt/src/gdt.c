@@ -136,7 +136,7 @@ DescriptorTableRegister *prepNewGDT(PhysicalBasePage zeroPages[3]) {
     return GDTRegister;
 }
 void enableNewGDT(DescriptorTableRegister *GDTRegister) {
-    __asm__ __volatile__(
+    asm volatile(
         "lgdt %0;" // Load new Global Descriptor Table
 
         "movw $0x18, %%ax;" // 0x18 = tss segment offset in gdt

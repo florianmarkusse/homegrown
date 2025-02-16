@@ -570,115 +570,115 @@ void initIDT() {
 void triggerFault(Fault fault) {
     switch (fault) {
     case FAULT_DIVIDE_ERROR:
-        __asm__ __volatile__("int $0x00" :::);
+        asm volatile("int $0x00" :::);
         break;
     case FAULT_DEBUG:
-        __asm__ __volatile__("int $0x01" :::);
+        asm volatile("int $0x01" :::);
         break;
     case FAULT_NMI:
-        __asm__ __volatile__("int $0x02" :::);
+        asm volatile("int $0x02" :::);
         break;
     case FAULT_BREAKPOINT:
-        __asm__ __volatile__("int $0x03" :::);
+        asm volatile("int $0x03" :::);
         break;
     case FAULT_OVERFLOW:
-        __asm__ __volatile__("int $0x04" :::);
+        asm volatile("int $0x04" :::);
         break;
     case FAULT_BOUND_RANGE_EXCEED:
-        __asm__ __volatile__("int $0x05" :::);
+        asm volatile("int $0x05" :::);
         break;
     case FAULT_INVALID_OPCODE:
-        __asm__ __volatile__("int $0x06" :::);
+        asm volatile("int $0x06" :::);
         break;
     case FAULT_DEVICE_NOT_AVAILABLE:
-        __asm__ __volatile__("int $0x07" :::);
+        asm volatile("int $0x07" :::);
         break;
     case FAULT_DOUBLE_FAULT:
-        __asm__ __volatile__("int $0x08" :::);
+        asm volatile("int $0x08" :::);
         break;
     case FAULT_9_RESERVED:
-        __asm__ __volatile__("int $0x09" :::);
+        asm volatile("int $0x09" :::);
         break;
     case FAULT_INVALID_TSS:
-        __asm__ __volatile__("int $0x0A" :::);
+        asm volatile("int $0x0A" :::);
         break;
     case FAULT_SEGMENT_NOT_PRESENT:
-        __asm__ __volatile__("int $0x0B" :::);
+        asm volatile("int $0x0B" :::);
         break;
     case FAULT_STACK_FAULT:
-        __asm__ __volatile__("int $0x0C" :::);
+        asm volatile("int $0x0C" :::);
         break;
     case FAULT_GENERAL_PROTECTION:
-        __asm__ __volatile__("int $0x0D" :::);
+        asm volatile("int $0x0D" :::);
         break;
     case FAULT_PAGE_FAULT:
-        __asm__ __volatile__("int $0x0E" :::);
+        asm volatile("int $0x0E" :::);
         break;
     case FAULT_15_RESERVED:
-        __asm__ __volatile__("int $0x0F" :::);
+        asm volatile("int $0x0F" :::);
         break;
     case FAULT_FPU_ERROR:
-        __asm__ __volatile__("int $0x10" :::);
+        asm volatile("int $0x10" :::);
         break;
     case FAULT_ALIGNMENT_CHECK:
-        __asm__ __volatile__("int $0x11" :::);
+        asm volatile("int $0x11" :::);
         break;
     case FAULT_MACHINE_CHECK:
-        __asm__ __volatile__("int $0x12" :::);
+        asm volatile("int $0x12" :::);
         break;
     case FAULT_SIMD_FLOATING_POINT:
-        __asm__ __volatile__("int $0x13" :::);
+        asm volatile("int $0x13" :::);
         break;
     case FAULT_VIRTUALIZATION:
-        __asm__ __volatile__("int $0x14" :::);
+        asm volatile("int $0x14" :::);
         break;
     case FAULT_CONTROL_PROTECTION:
-        __asm__ __volatile__("int $0x15" :::);
+        asm volatile("int $0x15" :::);
         break;
     case FAULT_22_RESERVED:
-        __asm__ __volatile__("int $0x16" :::);
+        asm volatile("int $0x16" :::);
         break;
     case FAULT_23_RESERVED:
-        __asm__ __volatile__("int $0x17" :::);
+        asm volatile("int $0x17" :::);
         break;
     case FAULT_24_RESERVED:
-        __asm__ __volatile__("int $0x18" :::);
+        asm volatile("int $0x18" :::);
         break;
     case FAULT_25_RESERVED:
-        __asm__ __volatile__("int $0x19" :::);
+        asm volatile("int $0x19" :::);
         break;
     case FAULT_26_RESERVED:
-        __asm__ __volatile__("int $0x1A" :::);
+        asm volatile("int $0x1A" :::);
         break;
     case FAULT_27_RESERVED:
-        __asm__ __volatile__("int $0x1B" :::);
+        asm volatile("int $0x1B" :::);
         break;
     case FAULT_28_RESERVED:
-        __asm__ __volatile__("int $0x1C" :::);
+        asm volatile("int $0x1C" :::);
         break;
     case FAULT_29_RESERVED:
-        __asm__ __volatile__("int $0x1D" :::);
+        asm volatile("int $0x1D" :::);
         break;
     case FAULT_30_RESERVED:
-        __asm__ __volatile__("int $0x1E" :::);
+        asm volatile("int $0x1E" :::);
         break;
     case FAULT_31_RESERVED:
-        __asm__ __volatile__("int $0x1F" :::);
+        asm volatile("int $0x1F" :::);
         break;
     case FAULT_USER:
-        __asm__ __volatile__("int $0x20" :::);
+        asm volatile("int $0x20" :::);
         break;
     case FAULT_SYSCALL:
-        __asm__ __volatile__("int $0x21" :::);
+        asm volatile("int $0x21" :::);
         break;
     case FAULT_NO_MORE_PHYSICAL_MEMORY:
-        __asm__ __volatile__("int $0x22" :::);
+        asm volatile("int $0x22" :::);
         break;
     case FAULT_TOO_LARGE_ALLOCATION:
-        __asm__ __volatile__("int $0x23" :::);
+        asm volatile("int $0x23" :::);
         break;
     default:
-        __asm__ __volatile__("int $0xFF" :::);
+        asm volatile("int $0xFF" :::);
         break;
     }
 
@@ -721,5 +721,5 @@ typedef struct {
 } regs __attribute__((aligned(8)));
 
 void fault_handler([[maybe_unused]] regs *regs) {
-    __asm__ __volatile__("cli;hlt;");
+    asm volatile("cli;hlt;");
 }

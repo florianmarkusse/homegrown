@@ -92,20 +92,20 @@ void CPUEnableGPE() {
     CR4 cr4;
 
     // Read CR4 register
-    __asm__ __volatile__("mov %%cr4, %%rax" : "=a"(cr4));
+    asm volatile("mov %%cr4, %%rax" : "=a"(cr4));
 
     // Set Operating System Support for Page Global Enable
     cr4.PGE = 1;
 
     // Write the modified CR4 register back
-    __asm__ __volatile__("mov %%rax, %%cr4" : : "a"(cr4));
+    asm volatile("mov %%rax, %%cr4" : : "a"(cr4));
 }
 
 void CPUEnableFPU() {
     CR0 cr0;
 
     // Read CR0 register
-    __asm__ __volatile__("mov %%cr0, %%rax" : "=a"(cr0));
+    asm volatile("mov %%cr0, %%rax" : "=a"(cr0));
 
     // Set Monitor co-processor
     cr0.MP = 1;

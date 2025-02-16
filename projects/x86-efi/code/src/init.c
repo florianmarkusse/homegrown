@@ -36,7 +36,7 @@ void bootstrapProcessorWork() {
     // NOTE: WHY????
     globals.st->boot_services->stall(100000);
 
-    __asm__ __volatile__("pause" : : : "memory"); // memory barrier
+    asm volatile("pause" : : : "memory"); // memory barrier
 }
 
 // NOTE: this should be done per core probably?
@@ -44,10 +44,10 @@ static constexpr auto CALIBRATION_MICROSECONDS = 100;
 void calibrateWait() {
     U32 edx;
     U32 eax;
-    __asm__ __volatile__("rdtscp" : "=a"(eax), "=d"(edx));
+    asm volatile("rdtscp" : "=a"(eax), "=d"(edx));
     U64 currentCycles = ((U64)edx << 32) | eax;
     globals.st->boot_services->stall(CALIBRATION_MICROSECONDS);
-    __asm__ __volatile__("rdtscp" : "=a"(eax), "=d"(edx));
+    asm volatile("rdtscp" : "=a"(eax), "=d"(edx));
     U64 endCycles = ((U64)edx << 32) | eax;
     cyclesPerMicroSecond = endCycles - currentCycles / CALIBRATION_MICROSECONDS;
 }

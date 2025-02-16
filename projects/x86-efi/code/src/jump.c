@@ -6,14 +6,14 @@
 #include "x86/gdt.h"
 
 void enableNewMemoryMapping() {
-    __asm__ __volatile__("mov %%rax, %%cr3"
+    asm volatile("mov %%rax, %%cr3"
                          :
                          : "a"(level4PageTable)
                          : "memory");
 }
 
 void toKernel(U64 stackPointer) {
-    __asm__ __volatile__("movq %0, %%rsp;"
+    asm volatile("movq %0, %%rsp;"
                          "movq %%rsp, %%rbp;"
                          "cld;"
                          "pushq %1;"

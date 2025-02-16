@@ -5,14 +5,14 @@
 
 #if defined(FREESTANDING_ENVIRONMENT) || defined(EFI_ENVIRONMENT)
 // Use set $pc += 2 to resume exection
-#define BREAKPOINT __asm__ __volatile__("1: jmp 1b");
+#define BREAKPOINT asm volatile("1: jmp 1b");
 #define ASSERT(c)                                                              \
     if (!(c)) {                                                                \
-        __asm__ __volatile__("1: jmp 1b");                                     \
+        asm volatile("1: jmp 1b");                                     \
     }
 #elif POSIX_ENVIRONMENT
 
-#define BREAKPOINT __asm__ __volatile__("int3; nop");
+#define BREAKPOINT asm volatile("int3; nop");
 
 #if _MSC_VER
 #define ASSERT(c)                                                              \

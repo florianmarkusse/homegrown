@@ -1,4 +1,3 @@
-- AVAILABLE_PAGE_SIZES_MASK and co
 - Fix code so that it compiles :)
 - remove **asm** in favor of asm and **volatile** for volatile
 - Rething platform-abstraction fault -> should just have single functions for each "interrupt":
@@ -7,6 +6,7 @@
   - ask iwyu crew how to handle platform-abstraction includes? Perhap
 - Figure out what to do with memory allocation & mapping in os-loader
 - Should we even have a platfor-abstraction/cpu.h ??? It seems too low-level
+- Fix posix tests in physical memory
 - Create macro for message and exit in efi just like flush after but with wait key stuff
 - can I get rid of EFICALL ? I am compiling with efi stuff anyway which automatically does the right ABI afaik
 - Rethink memory allocation for kernel structures in uefi and whether or not to add them to free physical memory in kernel --- definitely some bugs now.

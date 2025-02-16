@@ -40,7 +40,7 @@ static constexpr auto APIC_ICR_DELIVERY_STATUS = (1 << 12);
 //     do {                                                                       \
 //         while (*((volatile U32 *)(APIC_IPI_ICR_LOW)) &                     \
 //                (APIC_ICR_DELIVERY_STATUS)) {                                   \
-//             __asm__ __volatile__("pause" : : : "memory");                      \
+//             asm volatile("pause" : : : "memory");                      \
 //         }                                                                      \
 //         /* Setting high is not necessary when we are setting    */             \
 //         /* a desination shorthand */                                           \

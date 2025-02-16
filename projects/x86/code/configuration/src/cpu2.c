@@ -2,7 +2,7 @@
 
 CPUIDResult CPUID(U32 functionID) {
     CPUIDResult result;
-    __asm__ __volatile__("cpuid"
+    asm volatile("cpuid"
                          : "=a"(result.eax), "=b"(result.ebx), "=c"(result.ecx),
                            "=d"(result.edx)
                          : "a"(functionID)
@@ -15,17 +15,17 @@ U64 cyclesPerMicroSecond = 1;
 void wait(U64 microSeconds) {
     U32 edx;
     U32 eax;
-    __asm__ __volatile__("rdtscp" : "=a"(eax), "=d"(edx));
+    asm volatile("rdtscp" : "=a"(eax), "=d"(edx));
     U64 currentCycles = ((U64)edx << 32) | eax;
     U64 endInCycles = currentCycles + microSeconds * cyclesPerMicroSecond;
     do {
-        __asm__ __volatile__("rdtscp" : "=a"(eax), "=d"(edx));
+        asm volatile("rdtscp" : "=a"(eax), "=d"(edx));
         currentCycles = ((U64)edx << 32) | eax;
     } while (currentCycles < endInCycles);
 }
 
 void disablePICAndNMI() {
-    __asm__ __volatile__(
+    asm volatile(
         "movb $0xFF, %%al;" // Set AL to 0xFF
         "outb %%al, $0x21;" // Disable master PIC
         "outb %%al, $0xA1;" // Disable slave PIC
