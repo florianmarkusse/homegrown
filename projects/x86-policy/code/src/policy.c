@@ -1,6 +1,6 @@
 #include "platform-abstraction/memory/management/policy.h"
 
-#include "platform-abstraction/interrupts.h"
+#include "abstraction/interrupts.h"
 #include "platform-abstraction/virtual/map.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"

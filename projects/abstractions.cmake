@@ -1,3 +1,9 @@
+set(ADDED_PROJECT_TARGETS
+    ""
+    CACHE INTERNAL
+    "Used to ensure a module is only added once."
+)
+
 ### NOTE: This does not seem to work recursively, see platform-abstraction-efi
 ### which needs to link to x86-gdt too for some reason. It should propogate
 ### x86-efi's link targets imo

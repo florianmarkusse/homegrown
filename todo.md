@@ -1,4 +1,5 @@
 - redo abstractions
+- get rid of if xxx for `add_subproject` - each project can just declare their included projects now
 - look into recursive inclusions for abstractions?
 - remove -i libs?
 - ask iwyu crew how to handle platform-abstraction includes? Perhap

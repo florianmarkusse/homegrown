@@ -1,7 +1,7 @@
 #include "x86-physical.h"
+#include "abstraction/interrupts.h"
 #include "efi-to-kernel/kernel-parameters.h" // for KernelMemory
 #include "efi-to-kernel/memory/descriptor.h"
-#include "platform-abstraction/interrupts.h"
 #include "platform-abstraction/memory/manipulation.h"
 #include "platform-abstraction/physical/allocation.h"
 #include "shared/assert.h"
@@ -112,7 +112,7 @@ allocContiguousPhysicalPagesWithManager(U64 numberOfPages,
         return address;
     }
 
-    interruptNoMorePhysicalMemory;
+    interruptNoMorePhysicalMemory();
 }
 
 U64 allocContiguousPhysicalPages(U64 numberOfPages, PageSize pageSize) {
@@ -172,7 +172,7 @@ allocPhysicalPagesWithManager(PagedMemory_a pages,
         return pages;
     }
 
-    interruptNoMorePhysicalMemory;
+    interruptNoMorePhysicalMemory();
 }
 
 PagedMemory_a allocPhysicalPages(PagedMemory_a pages, PageSize pageSize) {
@@ -306,7 +306,7 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory) {
 
     MemoryDescriptor *descriptor = nextValidDescriptor(&i, kernelMemory);
     if (!descriptor) {
-        interruptNoMorePhysicalMemory;
+        interruptNoMorePhysicalMemory();
     }
 
     /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
@@ -319,7 +319,7 @@ void initPhysicalMemoryManager(KernelMemory kernelMemory) {
     if (descriptor->numberOfPages == 0) {
         descriptor = nextValidDescriptor(&i, kernelMemory);
         if (!descriptor) {
-            interruptNoMorePhysicalMemory;
+            interruptNoMorePhysicalMemory();
         }
     }
 

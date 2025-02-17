@@ -8,6 +8,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/print-configuration.cmake")
     add_subproject("shared")
     add_subproject("platform-abstraction")
+    add_subproject("abstraction/interrupts" abstraction-interrupts)
     add_subproject("efi-to-kernel")
     add_subproject("x86")
     add_subproject("x86-virtual")
@@ -25,6 +26,8 @@ target_include_directories(
     ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-interrupts)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 

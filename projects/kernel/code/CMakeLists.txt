@@ -21,6 +21,7 @@ include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_subproject("shared")
 add_subproject("efi-to-kernel")
+add_subproject_named_target("abstraction/interrupts" abstraction-interrupts)
 add_platform_abstraction_and_correct_implementations()
 
 add_subdirectory(log)
@@ -43,13 +44,14 @@ target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE platform-abstraction-memory-management
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-interrupts)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-physical)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-virtual)
 target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE platform-abstraction-memory-manipulation
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-interrupts)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)

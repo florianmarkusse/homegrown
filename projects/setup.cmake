@@ -33,7 +33,7 @@ if(${ENVIRONMENT} STREQUAL "efi")
     set(CMAKE_C_FLAGS
         "${CMAKE_C_FLAGS} -ffreestanding -nostdlib -nostdinc --target=x86_64-unknown-windows -mgeneral-regs-only -mno-stack-arg-probe"
     )
-    ### NOTE: Need these compile definitions because we ccmpile with -mgeneral-regs-only
+    ### NOTE: Need these compile definitions because we compile with -mgeneral-regs-only
     add_compile_definitions(NO_FLOAT)
     add_compile_definitions(NO_SSE)
     get_filename_component(LINKER_FILENAME ${CMAKE_LINKER} NAME)
@@ -94,20 +94,18 @@ endif()
 
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 
-function(add_subproject_named_target project target)
-    ### Need to do this, because we are in generation step and TARGET test does
-    ### not work yet.
-    get_property(ADDED_PROJECT_TARGETS GLOBAL PROPERTY ADDED_PROJECT_TARGETS)
+include("${REPO_PROJECTS}/abstractions.cmake")
 
+function(add_subproject_named_target project target)
     if(NOT "${target}" IN_LIST ADDED_PROJECT_TARGETS)
         add_subdirectory(
             "${REPO_PROJECTS}/${project}/code"
             "${REPO_PROJECTS}/${project}/code/${BUILD_OUTPUT_PATH}"
         )
-        set(ADDED_PROJECT_TARGETS "${ADDED_PROJECT_TARGETS};${target}")
-        set_property(
-            GLOBAL
-            PROPERTY ADDED_PROJECT_TARGETS "${ADDED_PROJECT_TARGETS}"
+        set(ADDED_PROJECT_TARGETS
+            "${ADDED_PROJECT_TARGETS};${target}"
+            CACHE INTERNAL
+            "Used to ensure a module is only added once."
         )
     endif()
 endfunction()

@@ -2,7 +2,7 @@
 #include "efi-to-kernel/memory/definitions.h" // for KERNEL_PARAMS_START
 #include "kernel/log/init.h"
 #include "peripheral/screen/screen.h"
-#include "platform-abstraction/interrupts.h" // for setupIDT
+#include "abstraction/interrupts.h" // for setupIDT
 #include "platform-abstraction/log.h" // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
 #include "platform-abstraction/memory/management/init.h"
 #include "platform-abstraction/memory/management/policy.h"
