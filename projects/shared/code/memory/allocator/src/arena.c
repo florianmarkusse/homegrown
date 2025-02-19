@@ -1,5 +1,5 @@
 #include "shared/memory/allocator/arena.h"
-#include "platform-abstraction/memory/manipulation.h"
+#include "abstraction/memory/manipulation.h"
 #include "shared/assert.h" // for ASSERT
 #include "shared/memory/allocator/macros.h"
 #include "shared/types/types.h"
@@ -20,5 +20,10 @@ __attribute((malloc, alloc_align(3))) void *alloc(Arena *a, U64 size, U64 align,
     U8 *p = a->curFree + padding;
     a->curFree += padding + total;
 
+#ifdef POSIX_ENVIRONMENT
+    // Memory is already zeroed on this platform for security reasons
+    return p;
+#else
     return flags & ZERO_MEMORY ? memset(p, 0, total) : p;
+#endif
 }

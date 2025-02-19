@@ -1,4 +1,6 @@
 - redo abstractions
+- need to only print-configuration after adding all subprojects, some subprojects can add flags now if they need it
+- remove FREE_C & HOSTED_LIB_C in favor of just using environments
 - get rid of if xxx for `add_subproject` - each project can just declare their included projects now
 - look into recursive inclusions for abstractions?
 - remove -i libs?

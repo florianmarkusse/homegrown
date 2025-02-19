@@ -1,16 +1,4 @@
-project(abstraction-efi LANGUAGES C ASM)
-add_library(${PROJECT_NAME} INTERFACE)
-
-if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-    include("${REPO_PROJECTS}/setup.cmake")
-    include("${REPO_PROJECTS}/print-configuration.cmake")
-    include("${REPO_PROJECTS}/abstractions.cmake")
-endif()
-
-target_include_directories(
-    ${PROJECT_NAME}
-    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
+create_abstraction_targets(abstraction-efi)
 
 add_subproject("shared")
 include_interface_library(shared-types)

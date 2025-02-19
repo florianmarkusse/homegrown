@@ -1,9 +1,9 @@
 #include "posix/log.h"
-#include "platform-abstraction/log.h"
+#include "abstraction/log.h"
 
 #include <unistd.h>
 
-#include "platform-abstraction/memory/manipulation.h"
+#include "abstraction/memory/manipulation.h"
 #include "shared/assert.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"

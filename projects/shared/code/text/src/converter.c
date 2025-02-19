@@ -1,5 +1,5 @@
 #include "shared/text/converter.h"
-#include "platform-abstraction/memory/manipulation.h"
+#include "abstraction/memory/manipulation.h"
 #include "shared/assert.h"
 #include "shared/memory/sizes.h"
 #include "shared/text/string.h"

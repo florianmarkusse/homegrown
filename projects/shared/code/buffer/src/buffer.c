@@ -1,6 +1,6 @@
 #include "shared/buffer/buffer.h"
 
-#include "platform-abstraction/memory/manipulation.h"
+#include "abstraction/memory/manipulation.h"
 #include "shared/types/types.h"
 
 void appendToSimpleBuffer(string data, U8_d_a *array, Arena *perm) {

@@ -9,8 +9,7 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-virtual)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-virtual)
 
 target_include_directories(
     ${AGGREGATED_INTERFACE}

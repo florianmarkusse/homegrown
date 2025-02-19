@@ -12,8 +12,8 @@
 #include "efi/firmware/system.h" // for OPEN_PROTOCOL_BY_...
 #include "efi/globals.h"         // for globals
 #include "efi/memory.h"
-#include "platform-abstraction/log.h"
-#include "platform-abstraction/memory/manipulation.h"
+#include "abstraction/log.h"
+#include "abstraction/memory/manipulation.h"
 #include "shared/log.h"
 #include "shared/macros.h"
 #include "shared/maths/maths.h"

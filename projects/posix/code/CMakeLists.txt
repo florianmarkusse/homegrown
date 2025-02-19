@@ -5,9 +5,10 @@ add_library(${AGGREGATED_INTERFACE} INTERFACE)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/setup.cmake")
-    include("${REPO_PROJECTS}/print-configuration.cmake")
     add_subproject("shared")
-    add_subproject("platform-abstraction")
+    add_subproject("abstraction/memory/manipulation")
+    add_subproject("abstraction/log")
+    include("${REPO_PROJECTS}/print-configuration.cmake")
 endif()
 
 add_subdirectory(log)

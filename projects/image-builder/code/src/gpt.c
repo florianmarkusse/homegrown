@@ -2,7 +2,7 @@
 
 #include "image-builder/configuration.h"
 #include "image-builder/crc32.h"
-#include "platform-abstraction/memory/manipulation.h"
+#include "abstraction/memory/manipulation.h"
 #include "shared/uuid.h"
 #include "uefi/guid.h"
 

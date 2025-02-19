@@ -86,14 +86,13 @@ const EFI = "efi"
 const IMAGE_BUILDER = "image-builder"
 const SHARED = "shared"
 const POSIX = "posix"
-const PLATFORM_ABSTRACTION = "platform-abstraction"
 const X86 = "x86"
 const X86_PHYSICAL = "x86-physical"
 const X86_VIRTUAL = "x86-virtual"
 const X86_EFI = "x86-efi"
 const X86_POLICY = "x86-policy"
 const UEFI = "uefi"
-const FREE_C = "free-c"
+const FREESTANDING = "freestanding"
 const ABSTRACTION = "abstraction"
 
 // and here
@@ -104,14 +103,13 @@ var efiFolder = common.REPO_PROJECTS + "/" + EFI + "/"
 var imageBuilderFolder = common.REPO_PROJECTS + "/" + IMAGE_BUILDER + "/"
 var sharedFolder = common.REPO_PROJECTS + "/" + SHARED + "/"
 var posixFolder = common.REPO_PROJECTS + "/" + POSIX + "/"
-var platformAbstractionFolder = common.REPO_PROJECTS + "/" + PLATFORM_ABSTRACTION + "/"
 var x86Folder = common.REPO_PROJECTS + "/" + X86 + "/"
 var x86PhysicalFolder = common.REPO_PROJECTS + "/" + X86_PHYSICAL + "/"
 var x86VirtualFolder = common.REPO_PROJECTS + "/" + X86_VIRTUAL + "/"
 var x86EfiFolder = common.REPO_PROJECTS + "/" + X86_EFI + "/"
 var x86PolicyFolder = common.REPO_PROJECTS + "/" + X86_POLICY + "/"
 var uefiFolder = common.REPO_PROJECTS + "/" + UEFI + "/"
-var freeCFolder = common.REPO_PROJECTS + "/" + FREE_C + "/"
+var freestandingFolder = common.REPO_PROJECTS + "/" + FREESTANDING + "/"
 var abstractionFolder = common.REPO_PROJECTS + "/" + ABSTRACTION + "/"
 
 // and here
@@ -165,13 +163,6 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		CodeFolder:  posixFolder + "code",
 		Environment: string(environment.Posix),
 	},
-	PLATFORM_ABSTRACTION: {
-		CCompiler:   ELF.CCompiler,
-		Linker:      ELF.Linker,
-		Folder:      platformAbstractionFolder,
-		CodeFolder:  platformAbstractionFolder + "code",
-		Environment: string(environment.Freestanding),
-	},
 	X86: {
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
@@ -214,11 +205,11 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		CodeFolder:  uefiFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
-	FREE_C: {
+	FREESTANDING: {
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
-		Folder:      freeCFolder,
-		CodeFolder:  freeCFolder + "code",
+		Folder:      freestandingFolder,
+		CodeFolder:  freestandingFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 	ABSTRACTION: {

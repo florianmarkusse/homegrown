@@ -1,5 +1,5 @@
 #include "shared/memory/converter.h"
-#include "platform-abstraction/virtual/converter.h"
+#include "abstraction/memory/virtual/converter.h"
 
 #include "shared/assert.h"
 #include "shared/maths/maths.h"

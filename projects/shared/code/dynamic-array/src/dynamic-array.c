@@ -1,7 +1,7 @@
 #include "shared/dynamic-array/dynamic-array.h"
 #include "shared/types/types.h"
 #include "shared/memory/allocator/arena.h"
-#include "platform-abstraction/memory/manipulation.h"
+#include "abstraction/memory/manipulation.h"
 
 typedef struct {
     U8 *buf;

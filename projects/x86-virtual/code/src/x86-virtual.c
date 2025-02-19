@@ -1,8 +1,8 @@
 #include "x86-virtual.h"
 
-#include "platform-abstraction/memory/manipulation.h"
-#include "platform-abstraction/physical/allocation.h"
-#include "platform-abstraction/virtual/map.h"
+#include "abstraction/memory/manipulation.h"
+#include "abstraction/memory/physical/allocation.h"
+#include "abstraction/memory/virtual/map.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/management/definitions.h"
@@ -39,6 +39,7 @@ void mapVirtualRegion(U64 virt, PagedMemory memory, PageSize pageType) {
 // The caller should take care that the virtual address and physical
 // address are correctly aligned. If they are not, not sure what the
 // caller wanted to accomplish.
+// TODO: FIX this frcm PageSize to pagetype
 void mapVirtualRegionWithFlags(U64 virt, PagedMemory memory, PageSize pageType,
                                U64 additionalFlags) {
     ASSERT(level4PageTable);

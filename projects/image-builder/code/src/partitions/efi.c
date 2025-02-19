@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include "image-builder/configuration.h"
-#include "platform-abstraction/log.h"
+#include "abstraction/log.h"
 #include "posix/log.h"
 #include "shared/assert.h"
 #include "shared/log.h"
@@ -15,7 +15,7 @@
 #include "shared/types/array-types.h"
 #include "shared/types/types.h"
 #include "uefi/constants.h"
-#include "platform-abstraction/memory/manipulation.h"
+#include "abstraction/memory/manipulation.h"
 
 // NOTE: This is a minimal FAT32 implementation. The following assumptions are
 // made:

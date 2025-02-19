@@ -3,8 +3,8 @@
 #include "efi/firmware/system.h" // for PhysicalAddress
 #include "efi/globals.h"
 #include "efi/memory.h"
-#include "platform-abstraction/log.h"
-#include "platform-abstraction/physical/allocation.h"
+#include "abstraction/log.h"
+#include "abstraction/memory/physical/allocation.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
 #include "shared/text/string.h"

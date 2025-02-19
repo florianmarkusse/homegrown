@@ -1,11 +1,11 @@
-#include "platform-abstraction/physical/allocation.h"
+#include "abstraction/memory/physical/allocation.h"
 
+#include "abstraction/log.h"
 #include "efi-to-kernel/memory/descriptor.h"
 #include "efi/error.h"
 #include "efi/firmware/base.h"
 #include "efi/firmware/system.h"
 #include "efi/globals.h"
-#include "platform-abstraction/log.h"
 #include "shared/types/types.h"
 
 U64 allocate4KiBPage(U64 numPages) {

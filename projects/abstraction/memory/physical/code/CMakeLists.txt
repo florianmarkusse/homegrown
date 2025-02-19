@@ -1,0 +1,12 @@
+create_abstraction_targets(abstraction-memory-physical)
+
+if("${ENVIRONMENT}" STREQUAL "efi")
+    add_subproject("efi")
+    include_and_link_object_library(efi-memory)
+elseif("${ARCHITECTURE}" STREQUAL "x86")
+    add_subproject("x86-physical")
+    include_and_link_object_library(x86-physical)
+    include_and_link_object_library(x86-physical-status)
+else()
+    message(FATAL_ERROR "Could not find matching lib for ${PROJECT_NAME}")
+endif()

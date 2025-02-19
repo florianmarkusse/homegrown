@@ -12,7 +12,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_subproject("uefi")
     add_subproject("efi")
     add_subproject("platform-abstraction")
-    add_subproject("free-c")
+    add_subproject("freestanding")
     add_subproject("x86")
     add_subproject("x86-virtual")
 endif()
@@ -33,7 +33,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
 target_link_libraries(
     ${PROJECT_NAME}
-    PRIVATE platform-abstraction-memory-manipulation
+    PRIVATE abstraction-memory-manipulation
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-virtual)

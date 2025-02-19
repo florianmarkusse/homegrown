@@ -1,6 +1,6 @@
 #include "image-builder/mbr.h"
 #include "image-builder/configuration.h"
-#include "platform-abstraction/memory/manipulation.h"
+#include "abstraction/memory/manipulation.h"
 #include "shared/types/types.h"
 #include "uefi/constants.h"
 

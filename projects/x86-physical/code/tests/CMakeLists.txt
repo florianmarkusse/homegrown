@@ -13,7 +13,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
 target_link_libraries(
     ${PROJECT_NAME}
-    PRIVATE platform-abstraction-memory-manipulation
+    PRIVATE abstraction-memory-manipulation
 )
 target_link_libraries(
     ${PROJECT_NAME}

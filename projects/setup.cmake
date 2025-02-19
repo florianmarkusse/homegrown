@@ -94,24 +94,50 @@ endif()
 
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 
-include("${REPO_PROJECTS}/abstractions.cmake")
+### NOTE: This does not seem to work recursively, see platform-abstraction-efi
+### which needs to link to x86-gdt too for some reason. It should propogate
+### x86-efi's link targets imo
+function(include_and_link_object_library project)
+    target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:${project}>)
+    ### NOTE: Does it require below ? Why do I need the interface libraries of an implementation?
+    target_include_directories(
+        ${PROJECT_NAME}
+        INTERFACE $<TARGET_PROPERTY:${project},INCLUDE_DIRECTORIES>
+    )
+endfunction()
 
-function(add_subproject_named_target project target)
-    if(NOT "${target}" IN_LIST ADDED_PROJECT_TARGETS)
+function(include_interface_library project)
+    target_include_directories(
+        ${PROJECT_NAME}
+        INTERFACE $<TARGET_PROPERTY:${project},INTERFACE_INCLUDE_DIRECTORIES>
+    )
+endfunction()
+
+set(ADDED_PROJECT_TARGETS
+    "${PROJECT_NAME}"
+    CACHE INTERNAL
+    "Used to ensure a module is only added once."
+)
+
+function(add_subproject project)
+    if(NOT "${project}" IN_LIST ADDED_PROJECT_TARGETS)
+        update_added_projects(${project})
         add_subdirectory(
             "${REPO_PROJECTS}/${project}/code"
             "${REPO_PROJECTS}/${project}/code/${BUILD_OUTPUT_PATH}"
         )
+    endif()
+    message(STATUS "after:             ${ADDED_PROJECT_TARGETS}")
+endfunction()
+
+function(update_added_projects target)
+    if(NOT "${project}" IN_LIST ADDED_PROJECT_TARGETS)
         set(ADDED_PROJECT_TARGETS
             "${ADDED_PROJECT_TARGETS};${target}"
             CACHE INTERNAL
             "Used to ensure a module is only added once."
         )
     endif()
-endfunction()
-
-function(add_subproject project)
-    add_subproject_named_target(${project} ${project})
 endfunction()
 
 function(get_project_targets result currentDir)
@@ -149,39 +175,4 @@ function(fetch_and_write_project_targets)
     endforeach()
 endfunction()
 
-function(add_correct_platfom_abstraction_implementations)
-    if("${ENVIRONMENT}" STREQUAL "freestanding")
-        if("${ARCHITECTURE}" STREQUAL "x86")
-            add_subproject("x86")
-            add_subproject("x86-physical")
-            add_subproject("x86-virtual")
-            add_subproject("x86-policy")
-        endif()
-        if("${ARCHITECTURE}" STREQUAL "mock")
-            add_subproject("mock")
-        endif()
-        add_subproject("free-c")
-    elseif("${ENVIRONMENT}" STREQUAL "efi")
-        if("${ARCHITECTURE}" STREQUAL "x86")
-            add_subproject("x86")
-            add_subproject("x86-efi")
-            add_subproject("x86-virtual")
-        endif()
-        if("${ARCHITECTURE}" STREQUAL "mock")
-            add_subproject("mock")
-        endif()
-        add_subproject("free-c")
-    elseif("${ENVIRONMENT}" STREQUAL "posix")
-        if("${ARCHITECTURE}" STREQUAL "mock")
-            add_subproject("mock")
-        endif()
-        add_subproject("posix")
-    else()
-        message(FATAL_ERROR "Could not match ENVIRONMENT variable")
-    endif()
-endfunction()
-
-function(add_platform_abstraction_and_correct_implementations)
-    add_correct_platfom_abstraction_implementations()
-    add_subproject("platform-abstraction")
-endfunction()
+include(${REPO_PROJECTS}/macros.cmake)

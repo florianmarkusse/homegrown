@@ -1,6 +1,6 @@
-#include "platform-abstraction/physical/status.h"
+#include "abstraction/memory/physical/status.h"
 
-#include "platform-abstraction/log.h"
+#include "abstraction/log.h"
 #include "shared/log.h"
 #include "shared/text/string.h"
 #include "shared/types/types.h"

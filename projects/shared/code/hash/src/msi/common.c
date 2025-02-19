@@ -2,7 +2,7 @@
 
 #include "shared/types/types.h"
 #include "shared/assert.h" // for ASSERT
-#include "platform-abstraction/memory/manipulation.h"
+#include "abstraction/memory/manipulation.h"
 #include "shared/memory/allocator/macros.h"
 
 /**

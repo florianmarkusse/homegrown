@@ -23,7 +23,9 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-manipulation-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-physical-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-virtual-i)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-i)
 

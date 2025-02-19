@@ -1,6 +1,6 @@
 #include "x86/cpu/status/test.h"
 
-#include "platform-abstraction/log.h"
+#include "abstraction/log.h"
 #include "shared/text/string.h"
 #include "x86/cpu/status/core.h"
 #include "shared/text/converter.h"

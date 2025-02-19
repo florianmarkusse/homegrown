@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "image-builder/partitions/efi.h"
-#include "platform-abstraction/log.h"
+#include "abstraction/log.h"
 #include "posix/log.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"

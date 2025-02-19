@@ -3,12 +3,12 @@ project(efi-to-kernel-i LANGUAGES C ASM)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/setup.cmake")
-    include("${REPO_PROJECTS}/print-configuration.cmake")
     add_subproject("shared")
+
+    include("${REPO_PROJECTS}/print-configuration.cmake")
 endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
-
 target_include_directories(
     ${PROJECT_NAME}
     INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include

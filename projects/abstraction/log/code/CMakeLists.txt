@@ -1,0 +1,16 @@
+create_abstraction_targets(abstraction-log)
+
+add_subproject("shared")
+
+if("${ENVIRONMENT}" STREQUAL "freestanding")
+    add_subproject("freestanding")
+    include_and_link_object_library(freestanding-log)
+elseif("${ENVIRONMENT}" STREQUAL "efi")
+    add_subproject("efi")
+    include_and_link_object_library(efi-log)
+elseif("${ENVIRONMENT}" STREQUAL "posix")
+    add_subproject("posix")
+    include_and_link_object_library(posix-log)
+else()
+    message(FATAL_ERROR "Could not match ENVIRONMENT variable")
+endif()

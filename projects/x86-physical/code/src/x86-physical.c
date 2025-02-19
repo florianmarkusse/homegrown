@@ -2,8 +2,8 @@
 #include "abstraction/interrupts.h"
 #include "efi-to-kernel/kernel-parameters.h" // for KernelMemory
 #include "efi-to-kernel/memory/descriptor.h"
-#include "platform-abstraction/memory/manipulation.h"
-#include "platform-abstraction/physical/allocation.h"
+#include "abstraction/memory/manipulation.h"
+#include "abstraction/memory/physical/allocation.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
 #include "shared/types/types.h" // for U64, U32, U8

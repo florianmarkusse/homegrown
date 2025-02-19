@@ -1,17 +1,13 @@
 cmake_minimum_required(VERSION 3.22)
 project(image-builder LANGUAGES C ASM)
-set(AGGREGATED_INTERFACE "${PROJECT_NAME}-i")
-add_library(${AGGREGATED_INTERFACE} INTERFACE)
-include("${REPO_PROJECTS}/setup.cmake")
-include("${REPO_PROJECTS}/print-configuration.cmake")
 
+include("${REPO_PROJECTS}/setup.cmake")
 add_subproject("shared")
+add_subproject("posix")
 add_subproject("uefi")
-add_platform_abstraction_and_correct_implementations()
-add_subproject("x86")
-add_subproject("x86-physical")
-add_subproject("x86-virtual")
-add_subproject("x86-policy")
+add_subproject("abstraction/log")
+add_subproject("abstraction/memory/manipulation")
+include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_executable(
     ${PROJECT_NAME}
@@ -29,17 +25,16 @@ target_include_directories(
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-manipulation-i)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE posix-i)
-target_link_libraries(${PROJECT_NAME} PRIVATE posix-log)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-uuid)
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE uefi-i)
 

@@ -1,7 +1,7 @@
 #ifndef SHARED_TEXT_STRING_H
 #define SHARED_TEXT_STRING_H
 
-#include "platform-abstraction/memory/manipulation.h"
+#include "abstraction/memory/manipulation.h"
 #include "shared/assert.h"
 #include "shared/types/array.h"
 #include "shared/types/types.h"

@@ -8,14 +8,14 @@ include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_subproject("platform-abstraction")
 add_subproject("x86")
-add_subproject("free-c")
+add_subproject("freestanding")
 add_subproject("x86-efi")
 add_subproject("x86-virtual")
 add_subproject("shared")
 add_subproject("efi")
 add_subproject("efi-to-kernel")
 add_subproject("uefi")
-add_subproject_named_target("abstraction/efi" abstraction-efi)
+add_subproject("abstraction/efi")
 
 add_executable(
     ${PROJECT_NAME}
@@ -29,10 +29,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-efi)
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
-target_link_libraries(
-    ${PROJECT_NAME}
-    PRIVATE platform-abstraction-memory-manipulation
-)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-manipulation)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
 target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-virtual)
 
