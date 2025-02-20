@@ -1,15 +1,13 @@
-#include "platform-abstraction/memory/management/policy.h"
+#include "abstraction/memory/management/policy.h"
 
 #include "abstraction/interrupts.h"
-#include "abstraction/virtual/map.h"
-#include "shared/assert.h"
+#include "abstraction/memory/virtual/map.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/converter.h"
 #include "shared/memory/management/definitions.h"
 #include "shared/types/types.h"
 #include "x86-physical.h"
 #include "x86-policy/virtual.h"
-#include "x86/fault.h"
 #include "x86/memory/definitions.h"
 
 void *allocAndMapExplicit(U64 numberOfPages, U64 preferredPageSizePowerOfTwo) {
@@ -67,7 +65,7 @@ void *allocContiguousAndMap(U64 numberOfPages,
         convertPreferredPageToAvailablePages(preferredPageSizePowerOfTwo);
     numberOfPages *= conversion.numberOfPages;
     if (numberOfPages > PageTableFormat.ENTRIES) {
-        interruptTooLargeAllocation;
+        interruptTooLargeAllocation();
     }
 
     U64 size = numberOfPages * conversion.pageSize;

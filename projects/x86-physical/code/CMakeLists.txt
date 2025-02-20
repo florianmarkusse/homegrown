@@ -5,16 +5,19 @@ add_library(${AGGREGATED_INTERFACE} INTERFACE)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/setup.cmake")
-    include("${REPO_PROJECTS}/print-configuration.cmake")
     add_subproject("shared")
-    add_subproject("platform-abstraction")
-    add_subproject("abstraction/interrupts")
-    add_subproject("efi-to-kernel")
     add_subproject("x86")
-    add_subproject("x86-virtual")
+    add_subproject("efi-to-kernel")
+    add_subproject("abstraction/memory/physical")
+    add_subproject("abstraction/memory/manipulation")
+    add_subproject("abstraction/log")
+    add_subproject("abstraction/interrupts")
+    include("${REPO_PROJECTS}/print-configuration.cmake")
 endif()
 
 add_library(${PROJECT_NAME} OBJECT "src/x86-physical.c")
+
+add_includes_for_sublibrary()
 
 if("${UNIT_TEST_BUILD}")
     add_subdirectory(tests)
@@ -22,25 +25,15 @@ endif()
 
 add_subdirectory(status)
 
-target_include_directories(
-    ${PROJECT_NAME}
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-interrupts)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-physical-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-manipulation-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-interrupts-i)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE x86-i)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 
-target_include_directories(
-    ${AGGREGATED_INTERFACE}
-    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
+target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     fetch_and_write_project_targets()

@@ -9,6 +9,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_subproject("abstraction/memory/manipulation")
     add_subproject("abstraction/memory/virtual")
     add_subproject("abstraction/memory/physical")
+    add_subproject("abstraction/log")
     add_subproject("efi-to-kernel")
 endif()
 

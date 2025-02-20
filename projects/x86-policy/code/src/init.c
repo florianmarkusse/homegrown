@@ -1,6 +1,6 @@
-#include "platform-abstraction/memory/management/init.h"
+#include "abstraction/memory/management/init.h"
 
-#include "abstraction/virtual/map.h"
+#include "abstraction/memory/virtual/map.h"
 #include "shared/maths/maths.h"
 #include "shared/memory/management/definitions.h"
 #include "x86-physical.h"

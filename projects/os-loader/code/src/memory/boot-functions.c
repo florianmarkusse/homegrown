@@ -1,16 +1,15 @@
 #include "os-loader/memory/boot-functions.h"
 
+#include "abstraction/log.h"
+#include "abstraction/memory/manipulation.h"
+#include "abstraction/memory/physical/allocation.h"
 #include "efi/error.h"
 #include "efi/firmware/simple-text-output.h"
 #include "efi/firmware/system.h"
 #include "efi/globals.h"
 #include "efi/memory.h"
-#include "abstraction/log.h"
-#include "abstraction/memory/manipulation.h"
-#include "abstraction/memory/physical/allocation.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
-#include "x86/memory/definitions.h"
 
 PhysicalAddress allocAndZero(USize numPages) {
     PhysicalAddress page = allocate4KiBPage(numPages);

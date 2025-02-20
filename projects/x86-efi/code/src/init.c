@@ -1,10 +1,10 @@
+#include "abstraction/log.h"
+#include "abstraction/memory/physical/allocation.h"
 #include "efi/error.h"
 #include "efi/firmware/base.h"   // for PhysicalAddress
 #include "efi/firmware/system.h" // for PhysicalAddress
 #include "efi/globals.h"
 #include "efi/memory.h"
-#include "abstraction/log.h"
-#include "abstraction/memory/physical/allocation.h"
 #include "shared/log.h"
 #include "shared/maths/maths.h"
 #include "shared/text/string.h"

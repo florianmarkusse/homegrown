@@ -1,4 +1,4 @@
-#include "abstraction/virtual/status.h"
+#include "abstraction/memory/virtual/status.h"
 
 #include "abstraction/log.h"
 #include "shared/log.h"

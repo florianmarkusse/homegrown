@@ -4,7 +4,6 @@ project(efi-to-kernel-i LANGUAGES C ASM)
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/setup.cmake")
     add_subproject("shared")
-
     include("${REPO_PROJECTS}/print-configuration.cmake")
 endif()
 

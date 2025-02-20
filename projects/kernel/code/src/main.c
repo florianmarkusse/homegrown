@@ -1,13 +1,12 @@
-#include "efi-to-kernel/kernel-parameters.h"  // for KernelParameters
-#include "efi-to-kernel/memory/definitions.h" // for KERNEL_PARAMS_START
-#include "kernel/log/init.h"
-#include "peripheral/screen/screen.h"
 #include "abstraction/interrupts.h" // for setupIDT
 #include "abstraction/log.h" // for LOG, LOG_CHOOSER_IMPL_1, rewind, pro...
-#include "platform-abstraction/memory/management/init.h"
-#include "platform-abstraction/memory/management/policy.h"
-#include "platform-abstraction/memory/management/status.h"
-#include "abstraction/memory/physical/status.h"
+#include "abstraction/memory/management/init.h"
+#include "abstraction/memory/management/policy.h"
+#include "abstraction/memory/management/status.h"
+#include "efi-to-kernel/kernel-parameters.h"  // for KernelParameters
+#include "efi-to-kernel/memory/definitions.h" // for KERNEL_PARAMS_START
+#include "freestanding/log/init.h"
+#include "freestanding/peripheral/screen.h"
 #include "shared/memory/allocator/arena.h"
 #include "shared/memory/sizes.h"
 #include "shared/text/string.h" // for STRING

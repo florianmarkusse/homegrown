@@ -93,6 +93,8 @@ if(${ARCHITECTURE} STREQUAL "posix")
 endif()
 
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
+# NOTE: embed-dir is not a supported asm flag
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}")
 
 ### NOTE: This does not seem to work recursively, see platform-abstraction-efi
 ### which needs to link to x86-gdt too for some reason. It should propogate

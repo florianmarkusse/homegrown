@@ -13,10 +13,6 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     add_subproject("abstraction/memory/manipulation")
     add_subproject("abstraction/memory/management")
 
-    set(CMAKE_C_FLAGS
-        "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}/${PROJECT_NAME}/resources"
-    )
-
     include(${REPO_PROJECTS}/print-configuration.cmake)
 endif()
 

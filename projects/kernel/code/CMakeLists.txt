@@ -6,27 +6,26 @@ add_library(${AGGREGATED_INTERFACE} INTERFACE)
 
 include("${REPO_PROJECTS}/setup.cmake")
 
-if((NOT "${UNIT_TEST_BUILD}"))
-    set(CMAKE_C_FLAGS
-        # TODO: SSE is still broken!!!
-        "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-avx"
-    )
-    set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
-endif()
-
-set(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}/${PROJECT_NAME}/resources"
-)
-include("${REPO_PROJECTS}/print-configuration.cmake")
-
 add_subproject("shared")
 add_subproject("efi-to-kernel")
+add_subproject("freestanding")
+add_subproject("abstraction/log")
 add_subproject("abstraction/interrupts")
+add_subproject("abstraction/memory/management")
+add_subproject("abstraction/memory/manipulation")
+add_subproject("abstraction/memory/physical")
+add_subproject("abstraction/memory/virtual")
 
-add_subdirectory(log)
-add_subdirectory(peripheral)
+set(CMAKE_C_FLAGS
+    # TODO: SSE is still broken!!!
+    "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-avx"
+)
+set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
+
+include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_executable(${PROJECT_NAME} "src/main.c")
+# TODO: substitute for flag dependent on architecure
 set_target_properties(
     ${PROJECT_NAME}
     PROPERTIES
@@ -37,25 +36,21 @@ set_target_properties(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE efi-to-kernel-i)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-i)
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-log)
-target_link_libraries(
-    ${PROJECT_NAME}
-    PRIVATE platform-abstraction-memory-management
-)
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-physical)
-target_link_libraries(${PROJECT_NAME} PRIVATE platform-abstraction-virtual)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-virtual-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-physical-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-interrupts)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-log)
+target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-management)
 target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-memory-manipulation)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE abstraction-interrupts)
+target_link_libraries(${PROJECT_NAME} PRIVATE freestanding-i)
+target_link_libraries(${PROJECT_NAME} PRIVATE freestanding-log-init)
+target_link_libraries(${PROJECT_NAME} PRIVATE freestanding-peripheral-screen)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-i)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-text)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-allocator)
 target_link_libraries(${PROJECT_NAME} PRIVATE shared-memory-converter)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE kernel-peripheral-screen)
-target_link_libraries(${PROJECT_NAME} PRIVATE kernel-log-init)
 
 set(BINARIZER "${PROJECT_NAME}.bin")
 set(PROJECT_NAME_BIN "${PROJECT_NAME}.bin")

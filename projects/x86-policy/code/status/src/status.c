@@ -1,15 +1,11 @@
-#include "platform-abstraction/memory/management/status.h"
+#include "abstraction/memory/management/status.h"
 
 #include "abstraction/log.h"
 #include "abstraction/memory/physical/status.h"
-#include "abstraction/virtual/status.h"
+#include "abstraction/memory/virtual/status.h"
 #include "shared/log.h"
 #include "shared/text/string.h"
-#include "shared/types/types.h"
 #include "x86-policy/virtual.h"
-#include "x86-virtual.h"
-#include "x86/memory/definitions.h"
-#include "x86/memory/pat.h"
 
 static void appendVirtualRegionStatus(VirtualRegion region) {
     KLOG(STRING("Start: "));
