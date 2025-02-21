@@ -1,3 +1,6 @@
+#ifndef X86_CONFIGURATION_FEATURES_H
+#define X86_CONFIGURATION_FEATURES_H
+
 #include "shared/types/types.h"
 
 typedef struct {
@@ -84,3 +87,5 @@ void CPUEnableFPU();
 void CPUEnableXSAVE();
 void CPUEnableAVX();
 void CPUEnableSSE();
+
+#endif

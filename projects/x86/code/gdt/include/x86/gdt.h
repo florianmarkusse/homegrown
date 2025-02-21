@@ -1,5 +1,5 @@
-#ifndef OS_LOADER_GDT_H
-#define OS_LOADER_GDT_H
+#ifndef X86_GDT_H
+#define X86_GDT_H
 
 #include "shared/types/types.h"
 #include "x86/memory/definitions.h"

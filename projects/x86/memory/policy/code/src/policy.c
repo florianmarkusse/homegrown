@@ -6,9 +6,9 @@
 #include "shared/memory/converter.h"
 #include "shared/memory/management/definitions.h"
 #include "shared/types/types.h"
+#include "x86/memory/definitions.h"
 #include "x86/memory/physical.h"
 #include "x86/memory/policy/virtual.h"
-#include "x86/memory/definitions.h"
 
 void *allocAndMapExplicit(U64 numberOfPages, U64 preferredPageSizePowerOfTwo) {
     PageSizeConversion conversion =
@@ -16,7 +16,7 @@ void *allocAndMapExplicit(U64 numberOfPages, U64 preferredPageSizePowerOfTwo) {
 
     numberOfPages *= conversion.numberOfPages;
     if (numberOfPages > PageTableFormat.ENTRIES) {
-        interruptTooLargeAllocation;
+        interruptTooLargeAllocation();
     }
     PagedMemory pagedMemory[PageTableFormat.ENTRIES];
     PagedMemory_a request =
