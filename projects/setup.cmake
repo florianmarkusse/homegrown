@@ -72,12 +72,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "Profiling")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -O2 -pg")
 endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    # TODO: Add -flto on production build I guess or on flag?
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -flto")
     # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 endif()
 
-set(VALID_ARCHITECTURES "x86" "mock")
+set(VALID_ARCHITECTURES "x86")
 list(FIND VALID_ARCHITECTURES ${ARCHITECTURE} VALID_ARCHITECTURE_INDEX)
 if(VALID_ARCHITECTURE_INDEX EQUAL -1)
     message(
@@ -88,32 +87,10 @@ endif()
 if(${ARCHITECTURE} STREQUAL "x86")
     add_compile_definitions(X86_ARCHITECTURE)
 endif()
-if(${ARCHITECTURE} STREQUAL "posix")
-    add_compile_definitions(MOCK_ARHCITECTURE)
-endif()
 
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 # NOTE: embed-dir is not a supported asm flag
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}")
-
-### NOTE: This does not seem to work recursively, see platform-abstraction-efi
-### which needs to link to x86-gdt too for some reason. It should propogate
-### x86-efi's link targets imo
-function(include_and_link_object_library project)
-    target_sources(${PROJECT_NAME} INTERFACE $<TARGET_OBJECTS:${project}>)
-    ### NOTE: Does it require below ? Why do I need the interface libraries of an implementation?
-    target_include_directories(
-        ${PROJECT_NAME}
-        INTERFACE $<TARGET_PROPERTY:${project},INCLUDE_DIRECTORIES>
-    )
-endfunction()
-
-function(include_interface_library project)
-    target_include_directories(
-        ${PROJECT_NAME}
-        INTERFACE $<TARGET_PROPERTY:${project},INTERFACE_INCLUDE_DIRECTORIES>
-    )
-endfunction()
 
 set(ADDED_PROJECT_TARGETS
     "${PROJECT_NAME}"
@@ -129,7 +106,6 @@ function(add_subproject project)
             "${REPO_PROJECTS}/${project}/code/${BUILD_OUTPUT_PATH}"
         )
     endif()
-    message(STATUS "after:             ${ADDED_PROJECT_TARGETS}")
 endfunction()
 
 function(update_added_projects target)
@@ -177,4 +153,5 @@ function(fetch_and_write_project_targets)
     endforeach()
 endfunction()
 
-include(${REPO_PROJECTS}/macros.cmake)
+include("${REPO_PROJECTS}/abstraction.cmake")
+include("${REPO_PROJECTS}/macros.cmake")

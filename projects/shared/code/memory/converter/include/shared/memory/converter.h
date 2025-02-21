@@ -14,4 +14,5 @@ PageSizeConversion convertPreferredPageToAvailablePages(U64 bytesPowerOfTwo);
 // I.e., If you pass (2 MiB - 1 KiB), it will return 1 page of size 2 MiB.
 PageSizeConversion convertBytesToPagesToMapSmartly(U64 bytesPowerOfTwo);
 
+bool isValidPageSizeForArch(U64 pageSize);
 #endif

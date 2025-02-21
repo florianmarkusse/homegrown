@@ -11,14 +11,14 @@
 #include "shared/log.h"
 #include "shared/macros.h"
 #include "shared/maths/maths.h"
+#include "shared/memory/management/definitions.h"
 #include "shared/text/string.h"
 #include "shared/types/types.h"
-#include "x86/cpu/mock/idt.h"
-#include "x86/cpu/status/test.h"
-#include "x86/memory/physical.h"
-#include "shared/memory/management/definitions.h"
-#include "x86/cpu/fault.h"
-#include "x86/memory/definitions/virtual.h"
+#include "x86-physical.h"
+#include "x86/fault.h"
+#include "x86/fault/print/test.h"
+#include "x86/idt/mock.h"
+#include "x86/memory/definitions.h"
 
 static constexpr auto TOTAL_BASE_PAGES = (U64)(512 * 512 * 5);
 static constexpr auto MEMORY = (PAGE_FRAME_SIZE * TOTAL_BASE_PAGES);

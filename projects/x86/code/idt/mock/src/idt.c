@@ -1,3 +1,4 @@
+#include "x86/idt.h"
 #include "shared/types/types.h"
 #include "x86/fault.h"
 #include "x86/idt/mock.h"

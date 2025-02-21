@@ -3,6 +3,7 @@
 #include "shared/enum.h"
 #include "shared/types/types.h"
 #include "x86/fault.h"
+#include "x86/idt.h"
 
 typedef struct {
     U16 limit;
@@ -568,7 +569,7 @@ void initIDT() {
     asm_lidt(&idtp);
 }
 
-void triggerFault(Fault fault) {
+__attribute__((noreturn)) void triggerFault(Fault fault) {
     switch (fault) {
     case FAULT_DIVIDE_ERROR:
         asm volatile("int $0x00" :::);
@@ -685,11 +686,6 @@ void triggerFault(Fault fault) {
 
     __builtin_unreachable();
 }
-
-void interruptNoMorePhysicalMemory() {
-    triggerFault(FAULT_NO_MORE_PHYSICAL_MEMORY);
-}
-void interruptTooLargeAllocation() { triggerFault(FAULT_TOO_LARGE_ALLOCATION); }
 
 typedef struct {
     // Segment selectors with alignment attributes

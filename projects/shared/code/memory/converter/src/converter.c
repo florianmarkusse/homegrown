@@ -43,3 +43,13 @@ PageSizeConversion convertBytesToPagesToMapSmartly(U64 bytes) {
 
     __builtin_unreachable();
 }
+
+bool isValidPageSizeForArch(U64 pageSize) {
+    for (U64 i = 0; i < MEMORY_PAGE_SIZES_COUNT; i++) {
+        if (pageSizes[i] == pageSize) {
+            return true;
+        }
+    }
+
+    return false;
+}

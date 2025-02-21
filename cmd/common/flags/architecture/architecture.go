@@ -15,13 +15,11 @@ const ARCHITECTURE_SHORT_FLAG = "a"
 type Architecture string
 
 const (
-	X86  Architecture = "x86"
-	MOCK Architecture = "mock"
+	X86 Architecture = "x86"
 )
 
 var PossibleArchitectures = []string{
 	string(X86),
-	string(MOCK),
 }
 
 func IsValidArchitecture(architecture string) bool {
@@ -39,7 +37,7 @@ func DefaultArchitecture() string {
 
 func DisplayArchitecture() {
 	// Not sure why go doesnt understand string lengths of this one, but whatever
-	var architectureDescription = fmt.Sprintf("Set the architecture (%s%s%s)                             ", common.WHITE,
+	var architectureDescription = fmt.Sprintf("Set the architecture (%s%s%s)                                  ", common.WHITE,
 		converter.ArrayIntoPrintableString(PossibleArchitectures[:]), common.RESET)
 	flags.DisplayArgumentInput(ARCHITECTURE_SHORT_FLAG, ARCHITECTURE_LONG_FLAG, architectureDescription, DefaultArchitecture())
 }

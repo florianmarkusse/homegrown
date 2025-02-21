@@ -40,8 +40,11 @@ void mapVirtualRegion(U64 virt, PagedMemory memory, PageSize pageType) {
 // address are correctly aligned. If they are not, not sure what the
 // caller wanted to accomplish.
 // TODO: FIX this frcm PageSize to pagetype
-void mapVirtualRegionWithFlags(U64 virt, PagedMemory memory, PageSize pageType,
+void mapVirtualRegionWithFlags(U64 virt, PagedMemory memory, U64 pageSize,
                                U64 additionalFlags) {
+    ASSERT(isValidPageSizeForArch(pageSize));
+    PageSize pageType = pageSize;
+    ASSERT(isValidPageSixe);
     ASSERT(level4PageTable);
     ASSERT(((virt) >> 48L) == 0 || ((virt) >> 48L) == 0xFFFF);
 
@@ -49,7 +52,6 @@ void mapVirtualRegionWithFlags(U64 virt, PagedMemory memory, PageSize pageType,
 
     ASSERT(!(RING_RANGE_VALUE(virt, pageType)));
     ASSERT(!(RING_RANGE_VALUE(memory.pageStart, pageType)));
-
     U64 virtualEnd = virt + pageType * memory.numberOfPages;
     for (U64 physical = memory.pageStart; virt < virtualEnd;
          virt += pageType, physical += pageType) {
