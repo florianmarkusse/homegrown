@@ -1,9 +1,9 @@
 #include "x86-physical.h"
 #include "abstraction/interrupts.h"
-#include "efi-to-kernel/kernel-parameters.h" // for KernelMemory
-#include "efi-to-kernel/memory/descriptor.h"
 #include "abstraction/memory/manipulation.h"
 #include "abstraction/memory/physical/allocation.h"
+#include "efi-to-kernel/kernel-parameters.h" // for KernelMemory
+#include "efi-to-kernel/memory/descriptor.h"
 #include "shared/assert.h"
 #include "shared/maths/maths.h"
 #include "shared/types/types.h" // for U64, U32, U8

@@ -25,12 +25,17 @@ add_subproject("abstraction/memory/virtual")
 include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_executable(${PROJECT_NAME} "src/main.c")
-# TODO: substitute for flag dependent on architecure
+
+if(${ARCHITECTURE} STREQUAL "x86")
+    set(EMULATION_TARGET "elf_x86_64")
+else()
+    message(FATAL "No emulation target set to link")
+endif()
 set_target_properties(
     ${PROJECT_NAME}
     PROPERTIES
         LINK_FLAGS
-            "-T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld -no-pie -Wl,-n,-m,elf_x86_64,--build-id=none"
+            "-T ${CMAKE_CURRENT_SOURCE_DIR}/main.ld -no-pie -Wl,-n,-m,${EMULATION_TARGET},--build-id=none"
         EXCLUDE_FROM_ALL TRUE
 )
 

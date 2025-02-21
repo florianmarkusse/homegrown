@@ -39,7 +39,6 @@ void mapVirtualRegion(U64 virt, PagedMemory memory, PageSize pageType) {
 // The caller should take care that the virtual address and physical
 // address are correctly aligned. If they are not, not sure what the
 // caller wanted to accomplish.
-// TODO: FIX this frcm PageSize to pagetype
 void mapVirtualRegionWithFlags(U64 virt, PagedMemory memory, U64 pageSize,
                                U64 additionalFlags) {
     ASSERT(isValidPageSizeForArch(pageSize));
