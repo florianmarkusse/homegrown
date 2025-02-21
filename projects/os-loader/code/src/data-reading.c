@@ -1,5 +1,7 @@
 #include "os-loader/data-reading.h"
 
+#include "abstraction/log.h"
+#include "abstraction/memory/manipulation.h"
 #include "efi-to-kernel/generated/kernel-magic.h"
 #include "efi-to-kernel/memory/descriptor.h"
 #include "efi/error.h"
@@ -12,8 +14,6 @@
 #include "efi/firmware/system.h" // for OPEN_PROTOCOL_BY_...
 #include "efi/globals.h"         // for globals
 #include "efi/memory.h"
-#include "abstraction/log.h"
-#include "abstraction/memory/manipulation.h"
 #include "shared/log.h"
 #include "shared/macros.h"
 #include "shared/maths/maths.h"
@@ -166,6 +166,9 @@ string readDiskLbas(Lba diskLba, USize bytes, U32 mediaID) {
                 biop->readBlocks(biop, biop->Media->MediaId, diskLba,
                                  /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
                                  alignedBytes, (void *)address);
+            EXIT_WITH_MESSAGE_IF(status) {
+                ERROR(STRING("Could not read blocks from disk buffer\n"));
+            }
 
             /* NOLINTNEXTLINE(performance-no-int-to-ptr) */
             data = (string){.buf = (U8 *)address, .len = alignedBytes};
