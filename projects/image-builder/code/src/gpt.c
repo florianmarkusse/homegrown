@@ -1,10 +1,10 @@
 #include "image-builder/gpt.h"
 
+#include "abstraction/memory/manipulation.h"
+#include "efi/uefi.h"
 #include "image-builder/configuration.h"
 #include "image-builder/crc32.h"
-#include "abstraction/memory/manipulation.h"
 #include "shared/uuid.h"
-#include "uefi/guid.h"
 
 typedef struct {
     U8 signature[8];
@@ -34,6 +34,17 @@ typedef struct {
     U16 partitionNameUTF16[36]; // UCS-2 (UTF-16 limited to code points 0x0000 -
                                 // 0xFFFF)
 } __attribute__((packed)) GPTPartitionEntry;
+
+// My data partition GUID
+// Windows/Linux have their own. We could use one of theirs but where's the fun
+// in that?
+static constexpr UUID FLOS_BASIC_DATA_GUID = {
+    .timeLo = 0x5f68a13c,
+    .timeMid = 0xcdae,
+    .timeHiAndVer = 0x4372,
+    .clockSeqHiAndRes = 0x95,
+    .clockSeqLo = 0xc7,
+    .node = {0xfb, 0xc3, 0x8a, 0x42, 0xff, 0x3e}};
 
 static constexpr UUID RANDOM_GUID_1 =
     (UUID){.timeLo = 0x314D4330,

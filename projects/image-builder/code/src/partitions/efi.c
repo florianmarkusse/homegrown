@@ -4,8 +4,10 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "image-builder/configuration.h"
 #include "abstraction/log.h"
+#include "abstraction/memory/manipulation.h"
+#include "efi/uefi.h"
+#include "image-builder/configuration.h"
 #include "posix/log.h"
 #include "shared/assert.h"
 #include "shared/log.h"
@@ -14,8 +16,6 @@
 #include "shared/text/string.h"
 #include "shared/types/array-types.h"
 #include "shared/types/types.h"
-#include "uefi/constants.h"
-#include "abstraction/memory/manipulation.h"
 
 // NOTE: This is a minimal FAT32 implementation. The following assumptions are
 // made:

@@ -91,7 +91,7 @@ const X86_EFI = "x86-efi"
 const X86_MEMORY_PHYSICAL = "x86-memory-physical"
 const X86_MEMORY_VIRTUAL = "x86-memory-virtual"
 const X86_MEMORY_POLICY = "x86-memory-policy"
-const UEFI = "uefi"
+const EFI_UEFI = "efi-uefi"
 const FREESTANDING = "freestanding"
 const ABSTRACTION = "abstraction"
 
@@ -108,7 +108,7 @@ var x86EfiFolder = common.REPO_PROJECTS + "/" + "x86/efi" + "/"
 var x86MemoryPhysicalFolder = common.REPO_PROJECTS + "/" + "x86/memory/physical" + "/"
 var x86MemoryVirtualFolder = common.REPO_PROJECTS + "/" + "x86/memory/virtual" + "/"
 var x86MemoryPolicyFolder = common.REPO_PROJECTS + "/" + "x86/memory/policy" + "/"
-var uefiFolder = common.REPO_PROJECTS + "/" + UEFI + "/"
+var efiUefiFolder = common.REPO_PROJECTS + "/" + "efi/uefi" + "/"
 var freestandingFolder = common.REPO_PROJECTS + "/" + FREESTANDING + "/"
 var abstractionFolder = common.REPO_PROJECTS + "/" + ABSTRACTION + "/"
 
@@ -198,11 +198,11 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		CodeFolder:  x86EfiFolder + "code",
 		Environment: string(environment.Efi),
 	},
-	UEFI: {
+	EFI_UEFI: {
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
-		Folder:      uefiFolder,
-		CodeFolder:  uefiFolder + "code",
+		Folder:      efiUefiFolder,
+		CodeFolder:  efiUefiFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 	FREESTANDING: {
