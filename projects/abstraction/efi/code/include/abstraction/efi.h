@@ -1,5 +1,5 @@
-#ifndef PLATFORM_ABSTRACTION_EFI_H
-#define PLATFORM_ABSTRACTION_EFI_H
+#ifndef ABSTRACTION_EFI_H
+#define ABSTRACTION_EFI_H
 
 #include "shared/types/types.h"
 void initArchitecture();
