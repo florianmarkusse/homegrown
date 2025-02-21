@@ -4,6 +4,12 @@ project(kernel LANGUAGES C ASM)
 set(AGGREGATED_INTERFACE "${PROJECT_NAME}-i")
 add_library(${AGGREGATED_INTERFACE} INTERFACE)
 
+set(CMAKE_C_FLAGS
+    # TODO: SSE is still broken!!!
+    "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-avx"
+)
+set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
+
 include("${REPO_PROJECTS}/setup.cmake")
 
 add_subproject("shared")
@@ -15,12 +21,6 @@ add_subproject("abstraction/memory/management")
 add_subproject("abstraction/memory/manipulation")
 add_subproject("abstraction/memory/physical")
 add_subproject("abstraction/memory/virtual")
-
-set(CMAKE_C_FLAGS
-    # TODO: SSE is still broken!!!
-    "${CMAKE_C_FLAGS} -fno-pic -fno-pie -mcmodel=kernel -m64 -fno-stack-protector -mno-sse -mno-avx"
-)
-set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 
 include("${REPO_PROJECTS}/print-configuration.cmake")
 
