@@ -1,7 +1,7 @@
 create_abstraction_targets(abstraction-interrupts)
 
 if("${ARCHITECTURE}" STREQUAL "x86")
-    add_subproject("x86")
+    add_project("x86")
     abstraction_add_sources(x86-idt)
     if("${ENVIRONMENT}" STREQUAL "freestanding")
         abstraction_add_sources(x86-idt-real)

@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.22)
 project(image-builder LANGUAGES C ASM)
 
 include("${REPO_PROJECTS}/setup.cmake")
-add_subproject("shared")
-add_subproject("posix")
-add_subproject("uefi")
-add_subproject("abstraction/log")
-add_subproject("abstraction/memory/manipulation")
+add_project("shared")
+add_project("posix")
+add_project("uefi")
+add_project("abstraction/log")
+add_project("abstraction/memory/manipulation")
 include("${REPO_PROJECTS}/print-configuration.cmake")
 
 add_executable(

@@ -8,8 +8,6 @@ static constexpr struct {
     U64 ENTRIES;
 } PageTableFormat = {.ENTRIES = (1ULL << 9ULL)};
 
-// TODO: These macros are quite confusing, should rewrite them into more
-// sensible constructs when working on virtual memory.
 static constexpr auto PAGE_FRAME_SHIFT = 12ULL;
 static constexpr auto PAGE_FRAME_SIZE = (1ULL << PAGE_FRAME_SHIFT);
 static constexpr auto LARGE_PAGE_SIZE =

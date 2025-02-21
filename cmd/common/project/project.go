@@ -87,10 +87,10 @@ const IMAGE_BUILDER = "image-builder"
 const SHARED = "shared"
 const POSIX = "posix"
 const X86 = "x86"
-const X86_PHYSICAL = "x86-physical"
-const X86_VIRTUAL = "x86-virtual"
 const X86_EFI = "x86-efi"
-const X86_POLICY = "x86-policy"
+const X86_MEMORY_PHYSICAL = "x86-memory-physical"
+const X86_MEMORY_VIRTUAL = "x86-memory-virtual"
+const X86_MEMORY_POLICY = "x86-memory-policy"
 const UEFI = "uefi"
 const FREESTANDING = "freestanding"
 const ABSTRACTION = "abstraction"
@@ -104,10 +104,10 @@ var imageBuilderFolder = common.REPO_PROJECTS + "/" + IMAGE_BUILDER + "/"
 var sharedFolder = common.REPO_PROJECTS + "/" + SHARED + "/"
 var posixFolder = common.REPO_PROJECTS + "/" + POSIX + "/"
 var x86Folder = common.REPO_PROJECTS + "/" + X86 + "/"
-var x86PhysicalFolder = common.REPO_PROJECTS + "/" + X86_PHYSICAL + "/"
-var x86VirtualFolder = common.REPO_PROJECTS + "/" + X86_VIRTUAL + "/"
-var x86EfiFolder = common.REPO_PROJECTS + "/" + X86_EFI + "/"
-var x86PolicyFolder = common.REPO_PROJECTS + "/" + X86_POLICY + "/"
+var x86EfiFolder = common.REPO_PROJECTS + "/" + "x86/efi" + "/"
+var x86MemoryPhysicalFolder = common.REPO_PROJECTS + "/" + "x86/memory/physical" + "/"
+var x86MemoryVirtualFolder = common.REPO_PROJECTS + "/" + "x86/memory/virtual" + "/"
+var x86MemoryPolicyFolder = common.REPO_PROJECTS + "/" + "x86/memory/policy" + "/"
 var uefiFolder = common.REPO_PROJECTS + "/" + UEFI + "/"
 var freestandingFolder = common.REPO_PROJECTS + "/" + FREESTANDING + "/"
 var abstractionFolder = common.REPO_PROJECTS + "/" + ABSTRACTION + "/"
@@ -170,25 +170,25 @@ var PROJECT_STRUCTURES = map[string]*ProjectStructure{
 		CodeFolder:  x86Folder + "code",
 		Environment: string(environment.Freestanding),
 	},
-	X86_PHYSICAL: {
+	X86_MEMORY_PHYSICAL: {
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
-		Folder:      x86PhysicalFolder,
-		CodeFolder:  x86PhysicalFolder + "code",
+		Folder:      x86MemoryPhysicalFolder,
+		CodeFolder:  x86MemoryPhysicalFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
-	X86_VIRTUAL: {
+	X86_MEMORY_VIRTUAL: {
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
-		Folder:      x86VirtualFolder,
-		CodeFolder:  x86VirtualFolder + "code",
+		Folder:      x86MemoryVirtualFolder,
+		CodeFolder:  x86MemoryVirtualFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
-	X86_POLICY: {
+	X86_MEMORY_POLICY: {
 		CCompiler:   ELF.CCompiler,
 		Linker:      ELF.Linker,
-		Folder:      x86PolicyFolder,
-		CodeFolder:  x86PolicyFolder + "code",
+		Folder:      x86MemoryPolicyFolder,
+		CodeFolder:  x86MemoryPolicyFolder + "code",
 		Environment: string(environment.Freestanding),
 	},
 	X86_EFI: {

@@ -93,12 +93,12 @@ set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --embed-dir=${REPO_PROJECTS}")
 
 set(ADDED_PROJECT_TARGETS
-    "${PROJECT_NAME}"
+    "${PROJECT_FOLDER}"
     CACHE INTERNAL
     "Used to ensure a module is only added once."
 )
 
-function(add_subproject project)
+function(add_project project)
     if(NOT "${project}" IN_LIST ADDED_PROJECT_TARGETS)
         update_added_projects(${project})
         add_subdirectory(

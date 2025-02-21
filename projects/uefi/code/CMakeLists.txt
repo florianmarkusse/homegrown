@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 project(uefi-i LANGUAGES C ASM)
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include("${REPO_PROJECTS}/setup.cmake")
-    add_subproject("shared")
+    add_project("shared")
     include("${REPO_PROJECTS}/print-configuration.cmake")
 endif()
 

@@ -14,9 +14,14 @@ import (
 
 const EXECUTABLE = "cmake"
 
-func AddDefaultConfigureOptions(options *strings.Builder, codeFolder string, buildDirectory string, cCompiler string, linker string, buildMode string, env string, buildTests bool, projectTargetsFile string, architecture string) {
+func AddDefaultConfigureOptions(options *strings.Builder, projectFolder string, codeFolder string, buildDirectory string, cCompiler string, linker string, buildMode string, env string, buildTests bool, projectTargetsFile string, architecture string) {
 	argument.AddArgument(options, fmt.Sprintf("-S %s", codeFolder))
 	argument.AddArgument(options, fmt.Sprintf("-B %s", buildDirectory))
+
+	result := strings.TrimPrefix(projectFolder, common.REPO_PROJECTS)
+	result = result[1 : len(result)-1] // remove '/' xxx '/'
+	argument.AddArgument(options, fmt.Sprintf("-D PROJECT_FOLDER=%s", result))
+
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_C_COMPILER=%s", cCompiler))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_LINKER=%s", linker))
 	argument.AddArgument(options, fmt.Sprintf("-D CMAKE_BUILD_TYPE=%s", buildMode))

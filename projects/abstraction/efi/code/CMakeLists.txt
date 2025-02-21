@@ -1,10 +1,10 @@
 create_abstraction_targets(abstraction-efi)
 
-add_subproject("shared")
+add_project("shared")
 
 if("${ARCHITECTURE}" STREQUAL "x86")
-    add_subproject("x86")
-    add_subproject("x86-efi")
+    add_project("x86")
+    add_project("x86/efi")
     abstraction_add_sources(x86-efi)
     abstraction_add_sources(x86-gdt)
     abstraction_add_sources(x86-configuration)
